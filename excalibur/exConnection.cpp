@@ -413,6 +413,7 @@ void exConnection::processPacket(exPacket * p)
               break;
           case 0x5b: /* Crafting timer */
               parseCraftingTimer(p);
+              break;
 	  case 0x88:
 	      selfid = id = p->getShort();
 	      p->seek(2);
@@ -654,7 +655,7 @@ void exConnection::parseCraftingTimer(exPacket *p)
     {
         time_count = p->getShort();
         p->seek(2);
-        product = p->getNullString();
+        product = p->getZeroString();
 
         if ( time_count > 0 )
         {
