@@ -33,11 +33,11 @@
 #include "excalibur.h"
 #include "exConnection.h"
 #include "exMapInfo.h"
-#include "daoccrypt.h"
+#include "exCrypt.h"
 #include "exSniffer.h"
 #include "exItem.h"
 
-daoccryptfunc daoccrypt;
+exCryptFunc exCrypt;
 exTimeType exTick;
 exPrefs prefs;
 
@@ -57,15 +57,17 @@ bool prepareCrypt() {
   void *handle;
 
   getcwd(name, 4096);
-  strcat(name, "/daoccrypt.so");
+  strcat(name, "/exCrypt.so");
 
   handle=dlopen(name,RTLD_LAZY);
   if (handle == NULL) {
+    fputs(dlerror(), stderr);
     return false;
   }
 
-  daoccrypt=(daoccryptfunc) dlsym(handle, "daoccrypt");
-  if (daoccrypt == NULL) {
+  exCrypt=(exCryptFunc) dlsym(handle, "exCrypt");
+  if (exCrypt == NULL) {
+    fputs(dlerror(), stderr);
     return false;
   }
 
@@ -141,7 +143,7 @@ int main( int argc, char ** argv )
 
     if (! prepareCrypt()) {
       qFatal("\nFATAL ERROR:\tFailed to load the decryption library "
-             "(daoccrypt.so)!");
+             "(exCrypt.so)!");
     }
 
     exMapInfo::setup("maps/mapinfo.txt");

@@ -1,3 +1,18 @@
+Andon (02/Mar/02)
+-----------------
+Changes:
+ + In order to begin adding support for non-x86
+   architectures, daoccrypt has been re-written
+   and re-named..  exCrypt.so now.
+
+  * NOTE: This means to run Excalibur now, you
+          MUST read the INSTALL file again and
+          follow the new procedures at compile
+          time.
+
+ * Version bumped to 1.2.1
+
+
 Andon (28/Feb/02)
 -----------------
 Major Changes:

@@ -26,7 +26,7 @@
 #include <qdatastream.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "daoccrypt.h"
+#include "exCrypt.h"
 #include "excalibur.h"
 
 class exPacket {

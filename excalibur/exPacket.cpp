@@ -43,7 +43,7 @@ ssize_t exPacket::getlen() {
 
 void exPacket::decrypt(QString key) {
   if (key.length() == 12) { 
-    daoccrypt((char *)data,d.size(),key,key.length());
+    exCrypt((char *)data,d.size(),key,key.length());
   }
 }
 
