@@ -29,7 +29,7 @@ type
 
     procedure SSOnTerminate(Sender: TObject);
     procedure SSOnStateChange(Sender: TObject);
-    procedure SSOnError(Sender: TObject; const AErr, ALine: string);
+    procedure SSOnError(Sender: TObject; const AErr, ALine: string; AErrPos: TPoint);
     procedure SSOnEnter(Sender: TObject);
     procedure SSOnLeave(Sender: TObject);
     procedure SSObjNeeded(Sender: TObject; const AName: string; out IObj: IUnknown);
@@ -117,9 +117,9 @@ begin
   Log('SSEnter');
 end;
 
-procedure TfrmTellMacro.SSOnError(Sender: TObject; const AErr, ALine: string);
+procedure TfrmTellMacro.SSOnError(Sender: TObject; const AErr, ALine: string; AErrPos: TPoint);
 begin
-  Log('SSError: ' + AErr + #13#10 + ALine);
+  Log(Format('SSError at (%d,%d): %s'#13#10'%s', [AErrPos.X, AErrPos.Y, AErr, ALine]));
 end;
 
 procedure TfrmTellMacro.SSOnLeave(Sender: TObject);
