@@ -2294,13 +2294,11 @@ void Central::RenderWorld(void)const
 
                 glEnd();
             
-                glColor4f(0.0f,0.0f,0.0f,1.0f);
-
+                //glColor4f(0.75f,0.75f,0.75f,1.0f);
+                glColor4f(1.0f,1.0f,1.0f,1.0f);
+                
                 // disable textures for text and vector maps
                 glDisable(GL_TEXTURE_2D);
-
-                // draw vector map with no z buffering
-                glDisable(GL_DEPTH_TEST);
 
                 // draw zone name text
                 glRasterPos3i
@@ -2312,6 +2310,9 @@ void Central::RenderWorld(void)const
 
                 //glCallLists(zone.ZoneFile.length(),GL_UNSIGNED_BYTE,zone.ZoneFile.c_str());
                 DrawGLFontString(zone.ZoneFile);
+
+                // draw vector map with no z buffering
+                glDisable(GL_DEPTH_TEST);
 
                 // draw vector map only if enabled in options
                 if(Config.GetVectorMapInPPI())
@@ -2501,7 +2502,7 @@ void Central::DrawPPI(void)
         glVertex3f(gt.GetXPos()+GroundTargetVertexX,gt.GetYPos()-GroundTargetVertexY,0.0f);
         
         glTexCoord2f(1.0f,1.0f);
-        glVertex3f(gt.GetXPos()+GroundTargetVertexX,gt.GetYPos()+GroundTargetVertexY,gt.GetZPos());
+        glVertex3f(gt.GetXPos()+GroundTargetVertexX,gt.GetYPos()+GroundTargetVertexY,0.0f);
         glEnd();
 
         // disable textures
