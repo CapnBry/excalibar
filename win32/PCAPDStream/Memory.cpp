@@ -6,19 +6,24 @@ unsigned char* search_string=NULL;
 size_t sizeof_search_string=0;
 size_t search_size=0;
 bool allocated_search_string=false;
+unsigned char *BaseAddr=NULL;
 
 cMemory::cMemory()
 {
     // attempt to load searching info from file
     std::ifstream f("key_search");
-    std::string line;
+    unsigned int base_addr;
     if(f.is_open())
         {
         f >> std::hex // use hex
           >> std::ws // skip whitespace
           >> search_size // get search size then
           >> std::ws // skip whitespace
+          >> base_addr // get probe address
+          >> std::ws // skip whitespace
           >> sizeof_search_string; // get sizeof search string then
+          
+        BaseAddr=(unsigned char *)base_addr;
           
         // sanity check
         if(sizeof_search_string > 4096)
@@ -141,12 +146,14 @@ unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 	    search_string=&(string[0]);
 	    sizeof_search_string=sizeof(string);
 	    search_size=0x10000;
+	    BaseAddr=(unsigned char *)0x400000;
 	    }
 	else
 	    {
 	    #ifdef _DEBUG
         std::cout << "[cMemory::FindMemOffset] using key_search file for search string\n";
         std::cout << "search size=" << search_size << "\n"
+                  << "BaseAddr=" << BaseAddr << "\n"
                   << "sizeof(search_string)=" << sizeof_search_string << "\n"
                   << "search string=\n";
         std::cout << std::hex;
@@ -161,7 +168,6 @@ unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 	unsigned char *ptr = (unsigned char *)VirtualAlloc(NULL,search_size,MEM_COMMIT,PAGE_READWRITE);	
 	unsigned char *const original_mem=ptr;
 	ZeroMemory(ptr,search_size);
-	unsigned char *BaseAddr=(unsigned char *)0x400000;
 
 	while(ReadProcessMemory(hProcess,BaseAddr,ptr,search_size,0)==TRUE)
 	    {
