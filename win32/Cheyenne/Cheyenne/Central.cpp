@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <fstream>
 #include "centralfunctors.h"
 #include "centraldialogs.h"
+#include "vectormaploader.h"
 #include "resource.h"
 
 const int DataChildId=1;
@@ -34,12 +35,14 @@ const int RedrawTimerId=1;
 const UINT INIT_GL_MSG=WM_USER+1;
 const UINT CALL_INIT_DISPLAY_MATRICES=WM_USER+2;
 const UINT RENDER_NOW=WM_USER+3;
+const UINT VECTOR_MAPS_LOADED=WM_USER+4;
 
 Central::Central() :
     FontListBase(1000),NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
     ProjectionX(600000.0f),ProjectionY(500000.0f),
     XLimit(2000000.0f),YLimit(2000000.0f),ProjectionWidthX(10000.0f),ProjectionWidthY(10000.0f),
-    ZoomIncrement(5000.0f),PanIncrement(5000.0f)
+    ZoomIncrement(5000.0f),PanIncrement(5000.0f),
+    VmLoader(NULL)
 
 {
     hMainWnd=NULL;
@@ -54,7 +57,7 @@ Central::Central() :
     ActorVertexY=ProjectionWidthY*0.0135f;
     IDToFollow=0;
     HookedActor=0;
-    FollowedActorHeadingDegrees=90.0f;
+    FollowedActorHeadingDegrees=0.0f;
     hTahoma=NULL;
     hTahomaBig=NULL;
     ZeroMemory(&TahomaTextMetric,sizeof(TahomaTextMetric));
@@ -63,10 +66,6 @@ Central::Central() :
 
 Central::~Central()
 {
-    // don't need the font anymore
-    DeleteObject(hTahoma);
-    DeleteObject(hTahomaBig);
-
     // stop
     sniffer.Stop();
     db.Stop();
@@ -76,6 +75,17 @@ Central::~Central()
         {
         delete MessageInputFifo.Pop();
         }
+
+    // make sure this got deleted
+    if(VmLoader)
+        {
+        delete(VmLoader);
+        VmLoader=NULL;
+        }
+
+    // don't need the font anymore
+    DeleteObject(hTahoma);
+    DeleteObject(hTahomaBig);
 
 } // end ~Central
 
@@ -148,7 +158,7 @@ void Central::OnMaintenanceUpdate(const Actor& ThisActor)
         GetRenderPosition(ThisActor,Pos);
 
         // set followed actor heading
-        FollowedActorHeadingDegrees=float(fmod(180.0f+ThisActor.GetMotion().GetHeading()*57.295779513082320876798154814105f,360.0f));
+        FollowedActorHeadingDegrees=float(fmod(ThisActor.GetMotion().GetHeading()*57.295779513082320876798154814105f,360.0f));
 
         // move camera to Pos
         ProjectionX=Pos.GetXPos()-(0.5f*ProjectionWidthX);
@@ -422,11 +432,11 @@ void Central::DrawDataWindow(HDC hFront)const
     RECT rClient;
     GetClientRect(hDataWnd,&rClient);
 
-    FillRect(hFront,&rClient,(HBRUSH)(COLOR_WINDOW+1));
-
     if(HookedActor == 0)
         {
         // 0 ID is not really an actor
+        FillRect(hFront,&rClient,(HBRUSH)(COLOR_WINDOW+1));
+
         return;
         }
 
@@ -495,7 +505,7 @@ void Central::DrawDataWindow(HDC hFront)const
         << "Zone=" << HookedZone.ZoneFile.c_str() << "\n"
         << "Loc=<" << x << "," << y << "," << z << ">\n"
         << "Heading=" << Hooked.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
-        << "Speed=" << unsigned int(Hooked.GetMotion().GetSpeed()) << "\n"
+        << "Speed=" << Hooked.GetMotion().GetSpeed() << "\n"
         << "Valid Time=" << Hooked.GetMotion().GetValidTime().Seconds() << "\n"
         << "Last Update=" << Hooked.GetLastUpdateTime().Seconds() << "\n"
         << "Current Time=" << Clock.Current().Seconds() << "\n"
@@ -505,23 +515,53 @@ void Central::DrawDataWindow(HDC hFront)const
         << "Mobs=" << stats.GetNumMobs() << "\n"
         << "InfoId Mappings=" << stats.GetInfoIdSize() << "\n";
 
-    // inflate a little bit
-    rClient.left+=1;
+    HDC hBack=CreateCompatibleDC(hFront);
+    HBITMAP hBmp=CreateCompatibleBitmap(hBack,rClient.right-rClient.left,rClient.bottom-rClient.top);
+    
+    // set bitmap
+    HGDIOBJ hOldBmp=SelectObject(hBack,hBmp);
 
     // set font
-    HGDIOBJ hOldObj=SelectObject(hFront,hTahomaBig);
+    HGDIOBJ hOldFont=SelectObject(hBack,hTahomaBig);
 
+    // fill with white
+    FillRect(hBack,&rClient,(HBRUSH)(COLOR_WINDOW+1));
+
+    // draw text in the back buffer
     DrawText
         (
-        hFront,
+        hBack,
         oss.str().c_str(),
         oss.str().length(),
         &rClient,
         DT_LEFT|DT_TOP|DT_WORDBREAK
         );
 
-    // restore font
-    SelectObject(hFront,hOldObj);
+    // bitblt
+    BitBlt
+        (
+        hFront,
+        0,
+        0,
+        rClient.right-rClient.left,
+        rClient.bottom-rClient.top,
+        hBack,
+        0,
+        0,
+        SRCCOPY
+        );
+
+    // restore original font
+    SelectObject(hBack,hOldFont);
+
+    // restore original bitmap
+    SelectObject(hBack,hOldBmp);
+
+    // delete bitmap
+    DeleteObject(hBmp);
+
+    // delete dc
+    DeleteDC(hBack);
 
     // done
     return;
@@ -649,6 +689,15 @@ LRESULT CALLBACK Central::WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lP
         case RENDER_NOW:
             // redraw
             pMe->DrawPPI();
+            break;
+
+        case VECTOR_MAPS_LOADED:
+            // vector maps finished loading, 
+            // make display lists and delete
+            pMe->VmLoader->SetListBase(pMe->VectorMapListBase);
+            pMe->VmLoader->MakeDisplayLists();
+            delete(pMe->VmLoader);
+            pMe->VmLoader=NULL;
             break;
 
         case WM_KEYDOWN:
@@ -1240,6 +1289,10 @@ void Central::InitPixelFormat(void)
 
     SetPixelFormat(hPPIDC,iPF,&pfd);
 
+    Logger << "[Central::InitPixelFormat] using pixel format:\n" 
+           << (pfd.dwFlags&PFD_GENERIC_ACCELERATED ? "PFD_GENERIC_ACCELERATED" : "no PFD_GENERIC_ACCELERATED") << "\n"
+           << (pfd.dwFlags&PFD_GENERIC_FORMAT ? "PFD_GENERIC_FORMAT" : "no PFD_GENERIC_FORMAT") << "\n";
+
     // done
     return;
 }// end InitPixelFormat
@@ -1431,32 +1484,16 @@ void Central::DestroyDisplayLists(void)
 
 void Central::LoadVectorMaps(void)
 {
-    return;
-    std::fstream map_file;
-
-    for(unsigned char map_cnt=0;map_cnt<=254;++map_cnt)
+    if(VmLoader)
         {
-        // check if this zone is valid
-        if(Zones.GetZone(map_cnt).bValid)
-            {
-            // open the .map file
-            map_file.open(Zones.GetZone(map_cnt).ZoneFile.c_str(),std::ios::in);
+        return;
+        }
 
-            // make sure it opened
-            if(!map_file.is_open())
-                {
-                // go to next one
-                continue;
-                } // end if open
-            
-            while(!map_file.eof() && map_file.good())
-                {
-                } // end while there is data left in the file
-
-            // close this file
-            map_file.close();
-            } // end if zone is valid
-        } // end for all zones
+    // create vector map loader
+    VmLoader=new VectorMapLoader(AsyncWindowSignal(hMainWnd,VECTOR_MAPS_LOADED,0,0));
+    
+    // start it up, it will post a message to us when it finishes
+    VmLoader->Go();
 
     // done
     return;
@@ -1630,15 +1667,8 @@ void Central::RenderActor(const Actor& ThisActor)const
             // radius for hook is (ActorVertexX + ActorVertexY)/2 + 25;
             const float radius=25.0f+(0.5f*(ActorVertexX + ActorVertexY));
 
-            // draw it
-            glPushMatrix();
-
-            // scale
-            glScalef(radius*0.01f,radius*0.01f,radius*0.01f);
-            // draw
-            glCallList(CircleList);
-
-            glPopMatrix();
+            // draw circle
+            DrawCircle(radius);
             } // end if this is the hooked actor
 
         // if its the followed actor, draw range rings
@@ -1677,6 +1707,9 @@ void Central::RenderWorld(void)const
     // set the list base for font bitmaps
     glListBase(FontListBase);
 
+    // enable depth test
+    glEnable(GL_DEPTH_TEST);
+
     // render every zone
     for(unsigned char i=0;i<=254;++i)
         {
@@ -1699,20 +1732,25 @@ void Central::RenderWorld(void)const
             // check to make sure zone is visible on screen
             if(IsZoneVisible(BaseX,BaseY,MaxX,MaxY))
                 {
+                glPushMatrix();
+                glTranslatef(float(BaseX),float(BaseY),0);
 
-                // enable textures
-                glEnable(GL_TEXTURE_2D);
-
-                // activate the proper texture
-                TextureMapConstIteratorType it=TextureMap.find(i);
-
-                if(it != TextureMap.end())
+                if(Config.GetTexturesInPPI())
                     {
-                    glBindTexture(GL_TEXTURE_2D,it->second);
-                    }
-                else
-                    {
-                    glBindTexture(GL_TEXTURE_2D,0);
+                    // enable textures
+                    glEnable(GL_TEXTURE_2D);
+
+                    // activate the proper texture
+                    TextureMapConstIteratorType it=TextureMap.find(i);
+
+                    if(it != TextureMap.end())
+                        {
+                        glBindTexture(GL_TEXTURE_2D,it->second);
+                        }
+                    else
+                        {
+                        glBindTexture(GL_TEXTURE_2D,0);
+                        }
                     }
 
                 // draw this zone
@@ -1722,39 +1760,48 @@ void Central::RenderWorld(void)const
                 glColor3f(0.5f,0.5f,0.5f);
 
                 glTexCoord2i(0,1);
-                glVertex3i(BaseX,MaxY,0);
+                //glVertex3i(BaseX,MaxY,0);
+                glVertex3i(0,MaxY-BaseY,0);
 
                 glTexCoord2i(0,0);
-                glVertex3i(BaseX,BaseY,0);
+                //glVertex3i(BaseX,BaseY,0);
+                glVertex3i(0,0,0);
 
                 glTexCoord2i(1,0);
-                glVertex3i(MaxX,BaseY,0);
+                //glVertex3i(MaxX,BaseY,0);
+                glVertex3i(MaxX-BaseX,0,0);
 
                 glTexCoord2i(1,1);
-                glVertex3i(MaxX,MaxY,0);
+                //glVertex3i(MaxX,MaxY,0);
+                glVertex3i(MaxX-BaseX,MaxY-BaseY,0);
 
                 glEnd();
             
                 glColor3f(0.0f,0.0f,0.0f);
 
-                // disable textures for text
+                // disable textures for text and vector maps
                 glDisable(GL_TEXTURE_2D);
+
+                // draw vector map with no z buffering
+                glDisable(GL_DEPTH_TEST);
 
                 // draw zone name text
                 glRasterPos3i
                     (
-                    BaseX,
-                    BaseY,
-                    1
+                    0,
+                    0,
+                    2
                     );
 
                 //glCallLists(zone.ZoneFile.length(),GL_UNSIGNED_BYTE,zone.ZoneFile.c_str());
                 DrawGLUTFontString(zone.ZoneFile);
 
-                // draw vector map with no z buffering
-                glPushMatrix();
-                glDisable(GL_DEPTH_TEST);
-                glCallList(VectorMapListBase + unsigned int(i));
+                if(Config.GetVectorMapInPPI())
+                    {
+                    glCallList(VectorMapListBase + unsigned int(i));
+                    }
+
+                // reenable these
                 glEnable(GL_DEPTH_TEST);
                 glPopMatrix();
                 } // end if zone is visible
@@ -1813,8 +1860,6 @@ void Central::DrawPPI(void)
         db.IterateActors(ActorRenderFunctor(*this));
         }
 
-    glEnable(GL_DEPTH_TEST);
-    
     glPopMatrix();
 
     // finish and swap

@@ -281,4 +281,49 @@ private:
     typedef std::list<EventSignal*>::iterator signal_list_iterator;
     std::list<EventSignal*> signal_list;
 }; // end class MultiWaitSignal
+
+class AsyncWindowSignal
+{
+public:
+    AsyncWindowSignal(HWND h=NULL,UINT m=0, WPARAM w=0, LPARAM l=0)
+    {
+        hWnd=h;
+        uMsg=m;
+        wParam=w;
+        lParam=l;
+    }
+
+    AsyncWindowSignal(const AsyncWindowSignal& s){set(s);};
+    AsyncWindowSignal& operator=(const AsyncWindowSignal& s)
+    {
+        if(this != &s)
+            {
+            set(s);
+            }
+
+        return(*this);
+    }
+
+    void signal(void)
+    {
+        PostMessage(hWnd,uMsg,wParam,lParam);
+    }
+
+protected:
+private:
+    void set(const AsyncWindowSignal& s)
+    {
+        hWnd=s.hWnd;
+        uMsg=s.uMsg;
+        wParam=s.wParam;
+        lParam=s.lParam;
+    }
+
+
+    HWND hWnd;
+    UINT uMsg;
+    WPARAM wParam;
+    LPARAM lParam;
+}; // end class AsyncWindowSignal
+
 #endif //SIGNALS_H

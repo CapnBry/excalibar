@@ -35,6 +35,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <gl\glut.h>
 #include "database.h"
 
+// predefine this
+class VectorMapLoader;
+
 class Central
 {
 friend class ActorRenderFunctor;
@@ -43,6 +46,7 @@ friend class NewActorFunctor;
 friend class DeleteActorFunctor;
 friend class ReassignActorFunctor;
 friend class MaintenanceIntervalDoneFunctor;
+friend class VectorMapItem;
 public:
     Central();
     virtual ~Central();
@@ -102,7 +106,7 @@ private:
     static LRESULT CALLBACK DataWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
     void DrawDataWindow(HDC hFront)const;
 
-    void DrawGLUTFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)const
+    static void DrawGLUTFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
     {
         std::string::const_iterator it;
         for(it=text.begin();it!=text.end();++it)
@@ -110,6 +114,19 @@ private:
             glutBitmapCharacter(font,int(*it));
             }
     };
+
+    void DrawCircle(float radius)const
+    {
+        // draw it
+        glPushMatrix();
+
+        // scale
+        glScalef(radius*0.01f,radius*0.01f,radius*0.01f);
+        // draw
+        glCallList(CircleList);
+
+        glPopMatrix();
+    }
 
 
     void InitCheyenne(void);
@@ -210,6 +227,9 @@ private:
     DatabaseStatistics stats;
 
     mutable MutexLock CentralMutex;
+
+    // vector map loader
+    VectorMapLoader* VmLoader;
 
 }; // end Central
 

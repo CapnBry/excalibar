@@ -217,6 +217,8 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
             // use macro, this was developed later to make the above code more readable
             SET_CHECK_BOOL(hWnd,IDC_PPIDEAD,param->GetDrawDeadActors());
             SET_CHECK_BOOL(hWnd,IDC_UPDATEWHENRENDERED,param->GetUpdateWhenRendered());
+            SET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI,param->GetTexturesInPPI());
+            SET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI,param->GetVectorMapInPPI());
             }
             break;
 
@@ -239,6 +241,8 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
                     // use macro, this was developed later to make the above code more readable
                     param->ModifyDrawDeadActors() = GET_CHECK_BOOL(hWnd,IDC_PPIDEAD);
                     param->ModifyUpdateWhenRendered() = GET_CHECK_BOOL(hWnd,IDC_UPDATEWHENRENDERED);
+                    param->ModifyTexturesInPPI() = GET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI);
+                    param->ModifyVectorMapInPPI() = GET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI);
 
                     EndDialog(hWnd,IDOK);
                     break;

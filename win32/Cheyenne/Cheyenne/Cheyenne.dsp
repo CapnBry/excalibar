@@ -150,6 +150,10 @@ SOURCE=.\sniffer.cpp
 
 SOURCE=.\times.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\VectorMapLoader.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -237,6 +241,10 @@ SOURCE=.\times.h
 # Begin Source File
 
 SOURCE=.\tsdeque.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VectorMapLoader.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

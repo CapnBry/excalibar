@@ -11,5 +11,8 @@ Cheyenne TODO list:
 
 - Fix "follow heading" display option
 
-- Implement vector map loading
+- Fix z buffer issue where the png map textures overwrite the zone/vector map text
+
+- Move png map load to a background thread like the vector map load. Texture generation must be done with an active
+render context, so that will still have to be done in the GUI thread.
  

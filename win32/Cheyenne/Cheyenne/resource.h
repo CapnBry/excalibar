@@ -27,13 +27,14 @@
 #define IDC_ENABLED1                    1011
 #define IDC_PPIDEAD                     1011
 #define IDC_PLAYALBCREATESOUND          1012
-#define IDC_PPIDEAD2                    1012
 #define IDC_UPDATEWHENRENDERED          1012
 #define IDC_ALBCREATESOUND              1013
 #define IDC_PLAYHIBCREATESOUND          1014
 #define IDC_PRINTUNKNOWNPACKETS         1014
 #define IDC_HIBCREATESOUND              1015
+#define IDC_TEXTURESINPPI               1015
 #define IDC_PLAYMIDCREATESOUND          1016
+#define IDC_VECTORMAPINPPI              1016
 #define IDC_MIDCREATESOUND              1017
 #define IDC_RADIUS2                     1022
 #define IDC_ENABLED2                    1023
@@ -59,7 +60,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

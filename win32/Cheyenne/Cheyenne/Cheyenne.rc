@@ -104,38 +104,45 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,20,87,10
 END
 
-IDD_DISPLAYCONFIG DIALOG DISCARDABLE  0, 0, 214, 122
+IDD_DISPLAYCONFIG DIALOG DISCARDABLE  0, 0, 299, 145
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure Display"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Render text in PPI",IDC_TEXTPPI,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,7,85,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,20,85,10
     CONTROL         "Render guild in PPI",IDC_GUILDPPI,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,22,85,10
-    CONTROL         "Render surname in PPI",IDC_PPISURNAME,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,37,85,10
+    CONTROL         "Render surname in PPI",IDC_PPISURNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,54,85,10
     CONTROL         "Render level in PPI",IDC_PPILEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,85,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,71,85,10
     CONTROL         "Render Health in PPI",IDC_PPIHEALTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,83,10
-    CONTROL         "Render MOBs in PPI",IDC_RENDERMOBS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,7,85,10
-    CONTROL         "Render objects in PPI",IDC_RENDEROBJECTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,22,85,10
-    CONTROL         "Render players in PPI",IDC_RENDERPLAYERS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,37,85,10
-    CONTROL         "Follow Heading",IDC_FOLLOWHEADING,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,122,53,84,10
-    CONTROL         "Autofollow first actor",IDC_AUTOFOLLOWFIRST,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,121,67,85,10
-    DEFPUSHBUTTON   "OK",IDOK,57,101,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,110,101,50,14
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,88,83,10
     CONTROL         "Render dead in PPI",IDC_PPIDEAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,82,85,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,105,85,10
+    CONTROL         "Use textures in PPI",IDC_TEXTURESINPPI,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,18,61,16
+    CONTROL         "Use vector maps in PPI",IDC_VECTORMAPINPPI,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,34,61,16
     CONTROL         "Update actors when rendered",IDC_UPDATEWHENRENDERED,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,121,
-                    78,85,18
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,
+                    50,63,18
+    CONTROL         "Render MOBs in PPI",IDC_RENDERMOBS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,198,19,85,10
+    CONTROL         "Render objects in PPI",IDC_RENDEROBJECTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,198,34,85,10
+    CONTROL         "Render players in PPI",IDC_RENDERPLAYERS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,198,49,85,10
+    CONTROL         "Follow Heading",IDC_FOLLOWHEADING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,198,90,84,10
+    CONTROL         "Autofollow first actor",IDC_AUTOFOLLOWFIRST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,197,104,85,10
+    DEFPUSHBUTTON   "OK",IDOK,189,124,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,243,124,50,14
+    GROUPBOX        "Performance",IDC_STATIC,7,7,167,114
+    GROUPBOX        "Information",IDC_STATIC,187,7,105,64
+    GROUPBOX        "Self Display",IDC_STATIC,187,80,105,40
 END
 
 IDD_SETRANGERINGS DIALOG DISCARDABLE  0, 0, 128, 151
@@ -233,9 +240,9 @@ BEGIN
     IDD_DISPLAYCONFIG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 207
+        RIGHTMARGIN, 292
         TOPMARGIN, 7
-        BOTTOMMARGIN, 115
+        BOTTOMMARGIN, 138
     END
 
     IDD_SETRANGERINGS, DIALOG

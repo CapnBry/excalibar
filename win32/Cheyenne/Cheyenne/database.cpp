@@ -33,7 +33,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Database::Database() : 
     //SpeedCorrection(0.259162303664921465968586387433f), // this is garnered from experience :(
-    SpeedCorrection(0.021f), // this is garnered from experience :(
+    //SpeedCorrection(0.021f), // this is garnered from experience :(
+    SpeedCorrection(1.0f),
     ActorEvents(DatabaseEvents::_LastEvent)
 {
 
@@ -176,13 +177,16 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
     float x=float(ThisActor.GetMotion().GetXPos());
     float y=float(ThisActor.GetMotion().GetYPos());
 
-    // update with velocity & heading
-    x = x + (ThisActor.GetMotion().GetSpeed() * sin(ThisActor.GetMotion().GetHeading()));
-    y = y + (ThisActor.GetMotion().GetSpeed() * -cos(ThisActor.GetMotion().GetHeading()));
+    float xvel=(ThisActor.GetMotion().GetSpeed() * sin(ThisActor.GetMotion().GetHeading()));
+    float yvel=(ThisActor.GetMotion().GetSpeed() * -cos(ThisActor.GetMotion().GetHeading()));
+
+    // update with velocity & heading & delta time
+    x = x + (CurrentAge.Seconds()*xvel);
+    y = y + (CurrentAge.Seconds()*yvel);
 
     // store back
-    ThisActor.ModifyMotion().SetXPos(float(x));
-    ThisActor.ModifyMotion().SetYPos(float(y));
+    ThisActor.ModifyMotion().SetXPos(x);
+    ThisActor.ModifyMotion().SetYPos(y);
 
     // set time
     ThisActor.ModifyMotion().ModifyValidTime() += CurrentAge;
@@ -270,8 +274,7 @@ void Database::DoMaintenance(void)
 void Database::IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor)
 {
     // calc age so it is delta between current time and actor valid time
-    CheyenneTime CurrentAge(::Clock.Current());
-    CurrentAge-=ThisActor.GetMotion().GetValidTime();
+    CheyenneTime CurrentAge=(CurrentTime-ThisActor.GetMotion().GetValidTime());
 
     // only update if there is something to do
     if(CurrentAge.Seconds() > 0.0)

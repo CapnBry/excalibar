@@ -114,6 +114,8 @@ private:
         MEMBER_ASSIGN(LogUnknownPackets);
         MEMBER_ASSIGN(DrawDeadActors);
         MEMBER_ASSIGN(UpdateWhenRendered);
+        MEMBER_ASSIGN(TexturesInPPI);
+        MEMBER_ASSIGN(VectorMapInPPI);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -138,5 +140,7 @@ private:
     DECL_MEMBER(bool,LogUnknownPackets);
     DECL_MEMBER(bool,DrawDeadActors)
     DECL_MEMBER(bool,UpdateWhenRendered);
+    DECL_MEMBER(bool,TexturesInPPI);
+    DECL_MEMBER(bool,VectorMapInPPI);
 
 }; // end class CheyenneConfig
