@@ -33,6 +33,10 @@
 #include <sched.h>
 #include <netdb.h>
 
+#ifdef __APPLE__
+#define __FreeBSD__
+#endif
+
 #if !defined(BSD) && !defined(_WIN32)
 # define MUST_DO_SELECT
 #endif
@@ -45,10 +49,6 @@
 #ifndef _WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
-
-#ifndef __FreeBSD__
-#define INTERFACE "any"
 #endif
 
 /*
@@ -73,9 +73,11 @@ void exCallback (u_char * param, const struct pcap_pkthdr *ph, const u_char *dat
 
   u=(exSniffer *)param;
   u->handlePacket(ph, data);
+#ifdef __APPLE__
+  qApp->postEvent( (QObject*) param,
+    (QEvent*) new QCustomEvent( EXSNIFFER_EVENT_TYPE ) );
+#endif
 }
-
-
 
 exPacketEvent::exPacketEvent(exPacket *p)
   : QCustomEvent(EXSNIFFER_EVENT_PACKET) {
@@ -314,7 +316,7 @@ void exSniffer::run() {
   }
 #endif
 
-  pcap=pcap_open_live((char*)INTERFACE, 2000, 0x0100, 200, buff);
+  pcap=pcap_open_live((char*)INTERFACE, 65535, 1, 200, buff);
 
   if (!pcap) {
     qFatal(QString("pcap failed open: %1").arg(buff));
@@ -334,6 +336,9 @@ void exSniffer::run() {
     return;
   }
 
+#ifdef __APPLE__
+  pcap_loop( pcap, -1, exCallback, (u_char *) this );
+#else
   doalert = false;
 
   while (1) {
@@ -357,6 +362,7 @@ void exSniffer::run() {
     }
 #endif
   }
+#endif
   pcap_close(pcap);
 }
 
