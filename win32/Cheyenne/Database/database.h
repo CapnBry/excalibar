@@ -285,6 +285,7 @@ private:
     void WaitForData(unsigned int timeout=250);
     void HandleSniffedMessage(const daocmessages::SniffedMessage* msg);
     void HandleShareMessage(const sharemessages::ShareMessage* msg);
+        void HandleFullUpdateRequest(void);
     void DoMaintenance(void);
     void MaintainUncorrelatedStealth(void);
     void IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor);
@@ -328,7 +329,7 @@ private:
     const float DeadReconingThreshold;
     const CheyenneTime MinNetworkTime;
     const CheyenneTime NetworkHeartbeat;
-    bool bFullUpdateRequest; // true when a sharenet full update request is active
+    //bool bFullUpdateRequest; // true when a sharenet full update request is active
     bool bSaveDAoCMessages; // true when we are supposed to save DAoC messages
     bool bSaveChatMessages; // true when we are supposed to save chat messages
     std::ostream* MessageSaveStream;

@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // not make macros out of min and max :-/
 #define NOMINMAX
 #include <sstream>
+#include <algorithm>
 #include "..\Utils\buffer.h"
 #include "..\Utils\Logger.h"
 #include "..\Utils\Times.h"
@@ -145,7 +146,6 @@ void UncorrelatedStealthInfo::set(const UncorrelatedStealthInfo& s)
 Database::Database() : 
     ActorEvents(DatabaseEvents::_LastEvent),
     OldActorThreshold(15.0),
-    bFullUpdateRequest(false),
     DeadReconingThreshold(500.0f),
     MinNetworkTime(2.0f),
     NetworkHeartbeat(10.0f),
@@ -470,7 +470,7 @@ void Database::DoMaintenance(void)
 
             // update network: we need to determine whether or not to send this 
             // actor to the network here
-            if(DRError > DeadReconingThreshold && CurrentAge > MinNetworkTime)
+            if(DRError > DeadReconingThreshold && CurrentAge > MinNetworkTime && !ThisActor.GetFullUpdateRequested())
                 {
                 //Logger << "[Database::DoMaintanance] threshold update:\n";
                 /*
@@ -485,13 +485,16 @@ void Database::DoMaintenance(void)
                 // send threshold update to network
                 SendNetworkUpdate(ThisActor,share_opcodes::threshold_update);
                 } // end if DR threshold is violated
-            else if(bFullUpdateRequest)
+            else if(ThisActor.GetFullUpdateRequested())
                 {
                 // store current pos back to actor's net
                 ThisActor.SetNet(ThisActor.GetMotion());
 
                 // send full update to network
                 SendNetworkUpdate(ThisActor,share_opcodes::full_update);
+                
+                // clear full update request flag
+                ThisActor.SetFullUpdateRequested(false);
                 } // end else full update requested
             else if(CurrentAge > NetworkHeartbeat && ::Clock.Current() - ThisActor.GetLastLocalTime() < NetworkHeartbeat)
                 {
@@ -518,10 +521,6 @@ void Database::DoMaintenance(void)
     
     // fire event -- we did the maintenance
     ActorEvents[DatabaseEvents::MaintenanceIntervalDone]();
-    
-    // clear the full update request flag: full update
-    // requests only last for 1 maintenance interval
-    bFullUpdateRequest=false;
     
     // done
     return;
@@ -1012,7 +1011,7 @@ void Database::RequestFullUpdate(void)
     // lock database: this makes sure we are not in the maintainance
     // functions when the flag is set (maintenance clears the flag)
     AutoLock al(DBMutex);
-    bFullUpdateRequest=true;
+    HandleFullUpdateRequest();
     }
     
     // done
@@ -1071,6 +1070,16 @@ const CheyenneTime Database::GetMaxAge
         }
 } // end GetMaxAge
 
+void SetFullUpdate(Database::actor_type::value_type& elem)
+{
+    elem.second.SetFullUpdateRequested(true);
+}
+void Database::HandleFullUpdateRequest(void)
+{
+    AutoLock al(DBMutex); // autolock
+    std::for_each(Actors.begin(),Actors.end(),SetFullUpdate);
+} // end HandleFullUpdateRequest
+
 void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 {
     // lock database
@@ -1088,7 +1097,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
             // no data in this message, but we set the full update flag
             // as a result
-            bFullUpdateRequest=true;
+            HandleFullUpdateRequest();
             }
             break;
             

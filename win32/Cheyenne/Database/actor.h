@@ -120,6 +120,7 @@ public:
         SetGroundTargetX(0.0f);
         SetGroundTargetY(0.0f);
         SetGroundTargetZ(0.0f);
+        SetFullUpdateRequested(false);
     };
     Actor(const Actor& s){set(s);};
     virtual ~Actor(){};
@@ -199,6 +200,7 @@ private:
         MEMBER_ASSIGN(GroundTargetX);
         MEMBER_ASSIGN(GroundTargetY);
         MEMBER_ASSIGN(GroundTargetZ);
+        MEMBER_ASSIGN(FullUpdateRequested);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -228,4 +230,5 @@ private:
     DECL_MEMBER(float,GroundTargetX);
     DECL_MEMBER(float,GroundTargetY);
     DECL_MEMBER(float,GroundTargetZ);
+    DECL_MEMBER(bool,FullUpdateRequested);
 }; // end class Actor
