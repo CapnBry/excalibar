@@ -25,6 +25,7 @@ type
     FOnNewConnection: TDAOCConnectionNotify;
     function GetCount: integer;
     function GetItems(I: integer): TDAOCConnection;
+    function GetActiveCount: integer;
   protected
     FList:    TList;
     function NewDAOCConnectionNeeded : TDAOCConnection; virtual;
@@ -45,6 +46,7 @@ type
     procedure ProcessDAOCPacket(ASource: TObject; APacket: TGameNetPacket);
 
       { properties }
+    property ActiveCount: integer read GetActiveCount;
     property Count: integer read GetCount;
     property Items[I: integer]: TDAOCConnection read GetItems; default;
       { events }
@@ -78,17 +80,16 @@ procedure TDAOCConnectionList.CloseDAOCConnection(ASource: TObject;
   AConnectionID: Cardinal);
 var
   iIdx:   integer;
+  pTmp:   TReintroduceDAOCConnection;
 begin
   iIdx := IndexOfConnection(ASource, AConnectionID);
   if iIdx <> -1 then begin
-    with TReintroduceDAOCConnection(Items[iIdx]) do begin
-      DoOnDisconnect;
-      Free;
-    end;
-
-    DoOnDeleteConnection(Items[iIdx]);
-
+    pTmp := TReintroduceDAOCConnection(Items[iIdx]);
+    pTmp.DoOnDisconnect;
     FList.Delete(iIdx);
+
+    DoOnDeleteConnection(pTmp);
+    pTmp.Free;
   end;
 end;
 
@@ -128,6 +129,16 @@ begin
     Result := Items[iIdx]
   else
     Result := nil;
+end;
+
+function TDAOCConnectionList.GetActiveCount: integer;
+var
+  I:  integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    if Items[I].Active then
+      inc(Result);
 end;
 
 function TDAOCConnectionList.GetCount: integer;
