@@ -171,12 +171,6 @@ function RecipeCraftCon(ARecipeSkill, AAtSkill: integer): TRecipeCraftCon;
 var
   iSkillDelta:  integer;
 begin
-    { things in the next tier are not available just like purples }
-  if (ARecipeSkill div 100) > (AAtSkill div 100) then begin
-    Result := rccPurple;
-    exit;
-  end;
-
   iSkillDelta := ARecipeSkill - AAtSkill;
   case iSkillDelta of
     -49..-30: Result := rccGreen;
@@ -227,8 +221,15 @@ end;
 { TTradeSkillRecipe }
 
 function TTradeSkillRecipe.CraftCon(AAtSkill: integer): TRecipeCraftCon;
+var
+  iAtTier:  integer;
 begin
-  Result := RecipeCraftCon(FSkillLevel, AAtSkill);
+    { things in the next tier are not available just like purples }
+  iAtTier := AAtSkill div 100;
+  if iAtTier > FTier then
+    Result := rccPurple
+  else
+    Result := RecipeCraftCon(FSkillLevel, AAtSkill);
 end;
 
 constructor TTradeSkillRecipe.Create;
