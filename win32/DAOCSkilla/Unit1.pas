@@ -94,6 +94,8 @@ type
     procedure OpenCollectionServer;
     procedure OpenCollectionClient;
     procedure CloseCollectionClient;
+    procedure OpenRemoteAdmin;
+    procedure CloseRemoteAdmin;
     procedure NewSegmentFromCollector;
     function UseCollectionClient : boolean;
     function SetServerNet : boolean;
@@ -337,6 +339,7 @@ begin
   FConnection.OnCharacterLogin := DAOCCharacterLogin;
   FConnection.OnUnknownStealther := DAOCUnknownStealther;
   FConnection.OnDelveItem := DAOCDelveItem;
+  FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
@@ -350,8 +353,8 @@ begin
 {$ENDIF WINPCAP}
   LoadSettings;
   dmdRemoteAdmin.DAOCControl := FConnection;
-  Log('Remote control telnet server open on port ' +
-    IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
+  if frmConnectionConfig.RemoteAdminEnabled then
+    OpenRemoteAdmin;
 
 {$IFDEF WINPCAP}
   FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
@@ -411,6 +414,7 @@ begin
     frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
     frmConnectionConfig.ServerSubnet := TServerSubnet(ReadInteger('Main', 'ServerSubnet', 0));
     frmConnectionConfig.CustomServerSubnet := ReadString('Main', 'CustomServerSubnet', '208.254.16.0');
+    frmConnectionConfig.RemoteAdminEnabled := ReadBool('Main', 'RemoteAdminEnabled', true);
     SetServerNet;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
@@ -477,6 +481,7 @@ begin
     WriteInteger('Main', 'LocalCollectorPort', frmConnectionConfig.LocalCollectorPort);
     WriteInteger('Main', 'ServerSubnet', Ord(frmConnectionConfig.ServerSubnet));
     WriteString('Main', 'CustomServerSubnet', frmConnectionConfig.CustomServerSubnet);
+    WriteBool('Main', 'RemoteAdminEnabled', frmConnectionConfig.RemoteAdminEnabled);
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -853,6 +858,12 @@ begin
     OpenCollectionClient
   else
     CloseCollectionClient;
+
+  if frmConnectionConfig.RemoteAdminEnabled <> dmdRemoteAdmin.Enabled then
+    if frmConnectionConfig.RemoteAdminEnabled then
+      OpenRemoteAdmin
+    else
+      CloseRemoteAdmin;
 end;
 
 {$IFDEF WINPCAP}
@@ -1046,7 +1057,7 @@ var
   sVer:   string;
 begin
   tmrUpdateCheck.Enabled := false;
-  if not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7) then  
+  if not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7) then
     exit;
 
   FLastUpdateCheck := Now;
@@ -1087,6 +1098,19 @@ end;
 procedure TfrmMain.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
 begin
   frmDebugging.DAOCDelveItem(ASender, AItem);
+end;
+
+procedure TfrmMain.CloseRemoteAdmin;
+begin
+  dmdRemoteAdmin.Enabled := false;
+  Log('Remote control telnet server disabled');
+end;
+
+procedure TfrmMain.OpenRemoteAdmin;
+begin
+  dmdRemoteAdmin.Enabled := true;
+  Log('Remote control telnet server open on port ' +
+    IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
 end;
 
 end.
