@@ -673,6 +673,10 @@ var
   pConNode: TMapNode;
 begin
   Clear;
+
+  if not FileExists(AFName) then
+    raise Exception.Create('Node list file not found: ' + AFName);
+    
   AssignFile(f, AFName);
   Reset(f);
 
