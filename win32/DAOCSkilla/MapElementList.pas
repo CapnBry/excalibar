@@ -140,6 +140,8 @@ begin
 
     inc(Y, dds.Height div DDS_SPLIT_COUNT);
   end;
+
+  dds.Free;
 end;
 
 { TGLRenderObjectList }
