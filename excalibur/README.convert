@@ -1,0 +1,41 @@
+
+A tiny utility is included to convert the DAOC client textures for outdoor
+zones to a background bitmap for use in EX. Some like maps this way,
+others don't.
+
+To use the converter, you need to have JDK 1.4 installed. When
+this was written, JDK 1.4 was still in beta, but the image library there
+is needed.
+Also please note that while I keep most of EX as "high quality" code, this
+converter is a really quick hack and might not always do what's right.
+It might even do what's outright WRONG, so use it with caution.
+
+Each zone image is about 4 to 10 MiB after compression, so these files are
+huge. A full conversion of all the zones requires about 300 MiB free
+hard drive space.
+
+To create all the textures, copy over all the DAOC client files somewhere,
+and then type:
+
+bash convall.sh <DAOC Client Directory> <compressionfactor> <lightfactor>
+
+Compressionfactor 1 means you generate 2048x2048 maps. 2 means
+1024x1024, 3 means 512x512, 4 means 256x256 and so on. In general anything
+below 256x256 will be very blocky.
+
+Lightfactor is the ammount of light to preserve. 1.0 means full,
+bright image while 0.0 is black. 0.5 seems to be about right in EX, as a
+brighter background means mobs get hard to see.
+
+This process will take a LONG time.....
+
+If anyone has time and energy, some work could be put into making
+my rescale functions bicubic instead of the cheesy linear one I use now.
+
+The converter uses a few third party packages:
+- BMPLoader.java, which I found at http://www.lordjoe.com
+- PcxReader.java, which was made by Matthias@burgsoft.de
+
+I'd like to thank Oliver Jowett <oliver@randomly.org> who made
+dempak and a python mapping utility, as that gave me the inspiration I
+needed to actually transform this utility from idea into reality.
