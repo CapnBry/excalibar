@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
 #include "logger.h"
+#include "codeutils.h"
 #include "mapinfo.h"
 #include <iosfwd>
 #include <istream>
@@ -24,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <algorithm>
 
 extern logger_t Logger;
+extern std::string InitialDir; // the initial directory
 
 MapInfo::MapInfo() :
     MaxZone(255),
@@ -311,3 +313,46 @@ bool MapInfo::ReadRegionOffsets(void)
     // done
     return(true);
 } // end ReadRegionOffsets
+
+void MapInfo::OffsetRegion
+    (
+    const RegionIndexType region,
+    const int x_increment,
+    const int y_increment
+    )
+{
+    RegionLimit[region].XOffset+=x_increment;
+    RegionLimit[region].YOffset+=y_increment;
+} // end OffsetRegion
+
+bool MapInfo::SaveRegionOffsets(void)const
+{
+    LOG_FUNC << "Saving region offsets\n";
+
+    std::string region_filename=AppendFileToPath(InitialDir,"regionoffsets.txt");
+    // open file
+    std::fstream offsetfile(region_filename.c_str(),std::ios::in);
+
+    if(!offsetfile.is_open())
+        {
+        return(false);
+        }
+
+    /*
+    format is:
+    region x_offset y_offset
+    */
+
+    for(int region=0;region<256;++region)
+        {
+        offsetfile << region
+                   << "\t" 
+                   << RegionLimit[region].XOffset 
+                   << "\t" 
+                   << RegionLimit[region].YOffset
+                   << "\n";
+        }
+
+    // done
+    return(true);
+} // end SaveRegionOffsets

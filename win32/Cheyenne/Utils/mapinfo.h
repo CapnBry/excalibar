@@ -138,6 +138,13 @@ public:
 
     bool ReadZoneFile(void);
     bool ReadRegionOffsets(void);
+    void OffsetRegion
+        (
+        const RegionIndexType region,
+        const int x_increment,
+        const int y_increment
+        );
+    bool SaveRegionOffsets(void)const;
 
 protected:
 
