@@ -248,7 +248,10 @@ begin
       FDControl.DoSendKeys('[esc]');
       
     if frmPowerskill.KeepBuying and IsAtMerchantNode then
-      FDControl.PathToNodeName(FPSItemList.ForgeNodeName);
+      if frmPowerskill.HasMaterialsForItem then
+        FDControl.PathToNodeName(FPSItemList.ForgeNodeName)
+      else
+        Log('Do not have all materials to create the item.');
   end
 
   else if frmSpellcraftHelp.Visible then
