@@ -188,6 +188,7 @@ type
   TDAOCVehicle = class(TDAOCMovingObject)
   protected
     function GetObjectClass : TDAOCObjectClass; override;
+    procedure CheckStale; override;
   end;
 
   TDAOCMob = class(TDAOCMovingObject)
@@ -1278,6 +1279,19 @@ begin
 end;
 
 { TDAOCVehicle }
+
+procedure TDAOCVehicle.CheckStale;
+begin
+  inherited;
+  if IsStale then
+    exit;
+    
+  dwTicksSinceUpdate := TicksSinceUpdate;
+    { copied from mob.  need to figure out how often we get vehicle updates }
+  if dwTicksSinceUpdate > 30000 then
+    FLiveDataConfidence := max(
+      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 30000) div 300, 0);
+end;
 
 function TDAOCVehicle.GetObjectClass: TDAOCObjectClass;
 begin
