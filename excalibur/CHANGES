@@ -4,6 +4,7 @@ Teerex (03/Apr/03)
    work under QT 3.1.1 and above now.
  + Fixed not being able to turn off 'Select in-game target' option
    except by editing the file.
+ + Added Makefile.OSX for OSX users having problems with qmake.
 
 Teerex (25/Feb/03)
 ------------------
