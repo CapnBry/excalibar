@@ -327,30 +327,7 @@ begin
   Result := '';
 
   case FRealm of
-    crAlbion:
-      begin
-        if AnsiSameText(AMClass, 'BRON') then
-          Result := 'bronze '
-        else if AnsiSameText(AMClass, 'IRON') then
-          Result := 'iron '
-        else if AnsiSameText(AMClass, 'STEE') then
-          Result := 'steel '
-        else if AnsiSameText(AMClass, 'ALLO') then
-          Result := 'alloy '
-        else if AnsiSameText(AMClass, 'FALL') then
-          Result := 'fine alloy '
-        else if AnsiSameText(AMClass, 'MITH') then
-          Result := 'mithril '
-        else if AnsiSameText(AMClass, 'ADAM') then
-          Result := 'adamantium '
-        else if AnsiSameText(AMClass, 'ASTE') then
-          Result := 'asterite '
-        else if AnsiSameText(AMClass, 'MET9') then
-          Result := 'netherium '
-        else if AnsiSameText(AMClass, 'MET0') then
-          Result := 'arcanium '
-      end;  { Albion }
-
+    crAlbion,
     crMidgard:
       begin
         if AnsiSameText(AMClass, 'BRON') then
@@ -471,7 +448,25 @@ begin
           Result := 'footed '
         else if AnsiSameText(AMClass, 'ARO9') then
           Result := 'footed flight '
-      end;  { Midgard }
+        else if AnsiSameText(AMClass, 'AR10') then
+          Result := 'keen footed flight '
+        else if AnsiSameText(AMClass, 'AR11') then
+          Result := 'blunt footed flight '
+        else if AnsiSameText(AMClass, 'AR12') then
+          Result := 'barbed footed flight '
+        else if AnsiSameText(AMClass, 'GENE') then
+          Result := ''
+        else
+          Result := AMClass + ' ';
+      end;  { Albion, Midgard }
+
+    crHibernia:
+      begin
+        if AnsiSameText(AMClass, 'GENE') then
+          Result := ''
+        else
+          Result := AMClass + ' ';
+      end;  { Hibernia }
   end;  { case FRealm }
 end;
 
