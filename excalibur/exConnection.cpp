@@ -108,6 +108,7 @@ exConnection::~exConnection()
     players.clear();
     mobinfo.clear();
 
+	if(ex)
     delete ex;
 
     if (ds)
