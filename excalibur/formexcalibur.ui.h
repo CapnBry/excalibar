@@ -171,9 +171,7 @@ void FormExcalibur::ProfileExit_activated()
 
 void FormExcalibur::vaderWarn_toggled( bool ena)
 {
-  if( Map->c)
-  	Map->c->vaderWarn = ena;
-  prefs.vaderWarn = ena;
+  prefs.vader_warn = ena;
   prefs.activate();
 }
 

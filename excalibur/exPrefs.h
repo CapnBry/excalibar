@@ -44,7 +44,6 @@ public:
   bool sort_group_players;
   bool sort_group_items;
   bool sort_distance;
-  bool vaderWarn;
   exPrefs::SortOptions sort_when;
   int brightness_alive;
   int brightness_dead;
@@ -84,6 +83,7 @@ public:
   bool dump_mobseen;
   int map_objsize;
   bool exclude_local;
+  bool vader_warn;
 
   int win_width;
   int win_height;

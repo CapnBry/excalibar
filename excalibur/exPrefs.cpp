@@ -68,7 +68,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->GLMapFade->setOn(map_fade);
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);
-    frm->vaderWarn->setOn(vaderWarn);
+    frm->vaderWarn->setOn(vader_warn);
     frm->MaxFPS->setOn(maxfps);
     frm->MapPNGs->setOn(map_load_png_maps);
     frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
@@ -253,7 +253,7 @@ void exPrefs::loadSettings() {
   sort_group_items=s.readBoolEntry("/Excalibur/GroupItems",TRUE);
   sort_distance=s.readBoolEntry("/Excalibur/SortDistance",FALSE);
 
-  vaderWarn=s.readBoolEntry("/Excalibur/vaderWarn",FALSE);
+  vader_warn=s.readBoolEntry("/Excalibur/vaderWarn",FALSE);
 
   sort_when=(enum SortOptions) s.readNumEntry("/Excalibur/SortWhen",(int) sortNever);
   brightness_alive=s.readNumEntry("/Excalibur/BrightnessAlive", 140);
@@ -299,7 +299,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/GroupPlayers", sort_group_players);
   s.writeEntry("/Excalibur/GroupItems", sort_group_items);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);
-  s.writeEntry("/Excalibur/vaderWarn", vaderWarn);
+  s.writeEntry("/Excalibur/vaderWarn", vader_warn);
   s.writeEntry("/Excalibur/SortWhen", (int) sort_when);
   s.writeEntry("/Excalibur/BrightnessAlive", brightness_alive);
   s.writeEntry("/Excalibur/BrightnessDead", brightness_dead);
