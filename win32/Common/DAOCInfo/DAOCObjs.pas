@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, Graphics,
-  DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem,
-  DAOCClasses, QuickSinCos;
+  DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem, DAOCClasses,
+  QuickSinCos;
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer,
@@ -266,10 +266,13 @@ type
     FMithril: integer;
     FGold: integer;
     FCopper: integer;
+    function GetAsCopper: Cardinal;
+    procedure SetAsCopper(Value: Cardinal);
   public
     procedure Clear;
     function AsText : string;
 
+    property AsCopper: Cardinal read GetAsCopper write SetAsCopper; 
     property Copper: integer read FCopper write FCopper;
     property Silver: integer read FSilver write FSilver;
     property Gold: integer read FGold write FGold;
@@ -337,6 +340,11 @@ uses
 
 const
   SPEED_1X = 191;
+
+  COPPER_PER_SILVER = 100;
+  COPPER_PER_GOLD = 10000;
+  COPPER_PER_PLATINUM = 10000000;
+  COPPER_PER_MITHRIL = 10000000000;
 
 function IntToObjectClasses(AVal: integer) : TDAOCObjectClasses;
 var
@@ -1223,6 +1231,32 @@ begin
   FMithril := 0;
   FGold := 0;
   FCopper := 0;
+end;
+
+function TDAOCCurrency.GetAsCopper: Cardinal;
+begin
+  Result := ( Copper ) +
+            ( Silver   * COPPER_PER_SILVER ) +
+            ( Gold     * COPPER_PER_GOLD ) +
+            ( Platinum * COPPER_PER_PLATINUM ) +
+            ( Mithril  * COPPER_PER_MITHRIL );
+end;
+
+procedure TDAOCCurrency.SetAsCopper(Value: Cardinal);
+begin
+  FMithril := Value div COPPER_PER_MITHRIL;
+  dec(Value, FMithril * COPPER_PER_MITHRIL);
+
+  FPlatinum := Value div COPPER_PER_PLATINUM;
+  dec(Value, FPlatinum * COPPER_PER_PLATINUM);
+
+  FGold := Value div COPPER_PER_GOLD;
+  dec(Value, FGold * COPPER_PER_GOLD);
+
+  FSilver := Value div COPPER_PER_SILVER;
+  dec(Value, FSilver * COPPER_PER_SILVER);
+
+  FCopper := Value;
 end;
 
 { TDAOCObjectList }
