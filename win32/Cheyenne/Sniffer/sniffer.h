@@ -113,7 +113,7 @@ public:
         // use static member in Sniffer class
         return(Sniffer::IsDAOCConnection(connection,bIgnorePort));
     }
-    void PrintConnections(void){};
+    void PrintConnections(void)const{};
     void PrintConnections(std::ostream& str)const{};
     size_t GetNumConnections(void)const{return(0);};
     
