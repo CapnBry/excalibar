@@ -37,12 +37,59 @@ static const QColor cFriendly(0,255,255);
   /* range is in manhattan distance (L1) 10600 = ~7500 (L2) */
 static unsigned int max_stale_range = 10600;
 
+const char * exMob::strClasses[exMob::NUM_CLASSES*2] =
+{
+    // Male, Female
+    // I don't know all the female variants, so have to fill in as we go.
+    "", "",
+    "Armsman", "Armsman", 
+    "Cabalist", "Cabalist",  
+    "Cleric", "Cleric", 
+    "Friar", "Friar", 
+    "Infiltrator", "Infiltrator", 
+    "Mercenary", "Mercenary", 
+    "Minstrel", "Minstrel",
+    "Necromancer", "Necromancer", 
+    "Paladin", "Paladin", 
+    "Reaver", "Reaver", 
+    "Scout", "Scout", 
+    "Sorcerer", "Sorcerer",   
+    "Theurgist", "Theurgist", 
+    "Wizard", "Wizard",
+    "Animist", "Animist", 
+    "Bard", "Bard", 
+    "Blademaster", "Blademaster", 
+    "Champion", "Champion", 
+    "Druid", "Druid", 
+    "Eldritch", "Eldritch", 
+    "Enchanter", "Enchanter",
+    "Hero", "Hero", 
+    "Mentalist", "Mentalist", 
+    "Nightshade", "Nightshade", 
+    "Ranger", "Ranger", 
+    "Valewalker", "Valewalker", 
+    "Warden", "Warden",
+    "Berserker", "Berserker", 
+    "Bonedancer", "Bonedancer", 
+    "Healer", "Healer", 
+    "Hunter", "Huntress", 
+    "Runemaster", "Runemaster", 
+    "Savage", "Savage",
+    "Shadowblade", "Shadowblade", 
+    "Shaman", "Shaman", 
+    "Skald", "Skald", 
+    "Spiritmaster", "Spiritmaster", 
+    "Thane", "Thane", 
+    "Warrior", "Warrior"
+};
+
 exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int
 newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj)
  : QListViewItem(view)
 { 
   id=newid;
   infoid=newinfoid;
+  opponent_infoid=0;
   name=newname;
   surname=newsurname;
   guild=newguild;
@@ -70,7 +117,7 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   _lastprojectedPos = _lasttick = exTick;
   _lastdist = 0;
   playerDist();
-
+ 
   /*
    if we see anything that's further out than our stale range,
    increase the stale range to encompass this object
@@ -328,7 +375,22 @@ const float exMob::getHead() const {
 }
 
 const int exMob::getSpeed() const {
-    /* the bit 9 is the sign, 10 = swimming? */
+	// Speed bits RLMT TTPS SSSS SSSS
+	// R - strafe right
+	// L - strafe left
+	// M - strafe on (without this player strafes in place) *From EMU docs,
+	//	   live server probably never sends M without R or L
+	// T - 3 bits represent position from 0-7
+	// 0 (000) - stand
+	// 1 (001) - swim
+	// 2 (010) - jump (landing)
+	// 3 (011) - jump (rising)
+	// 4 (100) - sit
+	// 5 (101) - die
+	// 6 (110) - horse riding
+	// 7 (111) - climb
+	// P - pos/neg.
+	// S - 9 bit speed
     if (speed & 0x0200)
         return -((speed & 0x3ff) & 0x1ff);
     else
@@ -510,47 +572,34 @@ const bool exMob::isPlayer(void) const
 
 const QString exMob::getClassName(void) const
 {
-    switch (playerclass)
+    // Always returns Male class name.  Need to parse and
+    // remember sex information to do otherwise.
+    return strClasses[playerclass*2];
+}
+
+bool exMob::setClass(QString player_class)
+{
+    bool found=false;
+
+    for (int i=0;i<NUM_CLASSES*2;i++)
     {
-    case Unknown:     return "";
-    case Armsman:     return "Armsman";
-    case Cabalist:    return "Cabalist";
-    case Cleric:      return "Cleric";
-    case Friar:       return "Friar";
-    case Infiltrator: return "Infiltrator";
-    case Mercenary:   return "Mercenary";
-    case Minstrel:    return "Minstrel";
-    case Paladin:     return "Paladin";
-    case Scout:       return "Scout";
-    case Sorcerer:    return "Sorcerer";
-    case Theurgist:   return "Theurgist";
-    case Wizard:      return "Wizard";
-
-    case Bard:        return "Bard";
-    case Blademaster: return "Blademaster";
-    case Champion:    return "Champion";
-    case Druid:       return "Druid";
-    case Eldritch:    return "Eldritch";
-    case Enchanter:   return "Enchanter";
-    case Hero:        return "Hero";
-    case Mentalist:   return "Mentalist";
-    case Nightshade:  return "Nightshade";
-    case Ranger:      return "Ranger";
-    case Warden:      return "Warden";
-
-    case Berserker:   return "Berserker";
-    case Healer:      return "Healer";
-    case Hunter:      return "Hunter";
-    case Runemaster:  return "Runemaster";
-    case Shadowblade: return "Shadowblade";
-    case Shaman:      return "Shaman";
-    case Skald:       return "Skald";
-    case Spiritmaster: return "Spiritmaster";
-    case Thane:       return "Thane";
-    case Warrior:     return "Warrior";
-    default:
-        return "???Class";
+      if (player_class == strClasses[i])
+      {
+        playerclass = (playerClass)((i-(i%2))/2);
+        found = true;
+        break;
+      }
     }
+    return found;
+}
+
+const unsigned int exMob::getOpponentInfoID() const {
+  return opponent_infoid;
+}
+
+void exMob::setOpponentInfoID(unsigned int opp_infoid)
+{
+  opponent_infoid = opp_infoid;
 }
 
 void exMob::updateInventory(exInventoryItem *ii)

@@ -38,19 +38,24 @@ class exInventoryItem;
 
 class exMob : public QListViewItem {
 public:
+    // When updating this enum make sure to also update strClasses.
     enum playerClass {
         Unknown,
-        Armsman, Cabalist, Cleric, Friar, Infiltrator, Mercenary,
-        Minstrel, Paladin, Scout, Sorcerer, Theurgist, Wizard,
-        Bard, Blademaster, Champion, Druid, Eldritch, Enchanter,
-        Hero, Mentalist, Nightshade, Ranger, Warden,
-        Berserker, Healer, Hunter, Runemaster, Shadowblade, Shaman,
-        Skald, Spiritmaster, Thane, Warrior
+        Armsman, Cabalist, Cleric, Friar, Infiltrator, Mercenary, Minstrel, 
+        Necromancer, Paladin, Reaver, Scout, Sorcerer, Theurgist, Wizard,
+        Animist, Bard, Blademaster, Champion, Druid, Eldritch, Enchanter,
+        Hero, Mentalist, Nightshade, Ranger, Valewalker, Warden,
+        Berserker, Bonedancer, Healer, Hunter, Runemaster, Savage,
+        Shadowblade, Shaman, Skald, Spiritmaster, Thane, Warrior
     };
+
+    static const int NUM_CLASSES = Warrior+1;
+    static const char *strClasses[NUM_CLASSES*2];
 
 private:
     unsigned int id;
     unsigned int infoid;
+	unsigned int opponent_infoid;
     QString name;
     QString surname;
     QString guild;
@@ -90,6 +95,7 @@ public:
 
     const unsigned int getID() const;
     const unsigned int getInfoID() const;
+	const unsigned int getOpponentInfoID() const;
     const QString getName() const;
     const QString getSurname() const;
     const QString getGuild() const;
@@ -127,6 +133,8 @@ public:
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
     void setStealth(bool stealth);
+    bool setClass(QString player_class);
+	void setOpponentInfoID(unsigned int opp_infoid);
     bool isFiltered();
     void updateInventory(exInventoryItem *ii);
     void clearInventory(void);
