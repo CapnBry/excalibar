@@ -35,23 +35,8 @@ const CheyenneTime PingInterval(20.0);
 class ShareNetClientData : public SharenetAPI
 {
 public:
-    ShareNetClientData()
-    {
-        MessageOutputFifo=NULL;
-        SetSocket(INVALID_SOCKET);
-        ZeroMemory(&ModifyRemoteAddr(),sizeof(SOCKADDR_IN));
-        ZeroMemory(&ModifyLocalAddr(),sizeof(SOCKADDR_IN));
-
-        WSADATA wsa;
-        WSAStartup(MAKEWORD(2,0),&wsa);
-    
-    }
-
-    ~ShareNetClientData()
-    {
-        Close();
-        WSACleanup();
-    }
+    ShareNetClientData();
+    virtual ~ShareNetClientData();
 
     bool IsInUse(void)const
     {

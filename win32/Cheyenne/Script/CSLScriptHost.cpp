@@ -433,6 +433,8 @@ bool CSLScriptHost::RestartScript(void)
 
 DWORD CSLScriptHost::Run(const bool& bContinue)
 {
+    LOG_FUNC << "thread id " << GetCurrentThreadId() << " created\n";
+    
     // recover the go param to get the message fifos --
     std::pair<tsfifo<std::string*>*,tsfifo<std::string*>*>* param;
 
@@ -465,6 +467,8 @@ DWORD CSLScriptHost::Run(const bool& bContinue)
         // execute scripts
         ExecScripts();
         } // end forever
+
+    LOG_FUNC << "thread id " << GetCurrentThreadId() << " exiting\n";
 
     // done
     return(0);

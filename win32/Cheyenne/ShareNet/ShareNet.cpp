@@ -41,6 +41,24 @@ template <typename MSG_T> CheyenneMessage* ShareMsgPopulate
     return(msg);
 }
 
+ShareNetClientData::ShareNetClientData()
+{
+    MessageOutputFifo=NULL;
+    SetSocket(INVALID_SOCKET);
+    ZeroMemory(&ModifyRemoteAddr(),sizeof(SOCKADDR_IN));
+    ZeroMemory(&ModifyLocalAddr(),sizeof(SOCKADDR_IN));
+
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2,0),&wsa);
+
+} // end ShareNetClientData::ShareNetClientData()
+
+ShareNetClientData::~ShareNetClientData()
+{
+    Close();
+    WSACleanup();
+} // end ShareNetClientData::~ShareNetClientData()
+
 VOID CALLBACK ShareNetClientData::ReadCompletionRoutine
     (
     DWORD dwErrorCode,
@@ -187,7 +205,7 @@ bool ShareNetClientData::DoInputMaintenance(void)
 
 DWORD ShareNetClientData::Run(const bool& bContinue)
 {
-    Logger << "[ShareNetClientData::Run] thread id " << GetCurrentThreadId() << " created\n";
+    LOG_FUNC << "thread id " << GetCurrentThreadId() << " created\n";
     
     // recover the go param to get the output message fifo --
     // this fifo is used to queue messages FROM the network
@@ -248,6 +266,7 @@ DWORD ShareNetClientData::Run(const bool& bContinue)
             } // end while IsInUse()            
         } // end forever
     
+    LOG_FUNC << "thread id " << GetCurrentThreadId() << " exiting\n";
     // done
     return(0);
 } // end ShareNetClientData::Run

@@ -279,6 +279,7 @@ DWORD TelnetClientData::Run(const bool& bContinue)
             } // end while IsInUse()            
         } // end forever
     
+    Logger << "[TelnetClientData::Run] thread id " << GetCurrentThreadId() << " exiting\n";
     // done
     return(0);
 } // end TelnetClientData::Run
