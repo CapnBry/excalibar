@@ -129,36 +129,29 @@ void exMap::makeObjects(bool simple) {
   glEndList();
 
   glNewList(listSquares, GL_COMPILE);
-  glBegin(GL_TRIANGLES);
-  glNormal3f(0.0,0.0,1.0);
 
   if (simple) {
-    glVertex3i(w,w,0);
-    glVertex3i(w,-w,0);
-    glVertex3i(-w,-w,0);
-
-    glVertex3i(-w,-w,0);
+    glBegin(GL_TRIANGLE_STRIP);
+    glNormal3f(0.0,0.0,1.0);
     glVertex3i(-w,w,0);
     glVertex3i(w,w,0);
+    glVertex3i(-w,-w,0);
+    glVertex3i(w,-w,0);
   } else {
-    glNormal3f(0.0,w,0.0);
-    glVertex3i(0,0,w);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3i(0,0,w);  // origin
+
+    glNormal3f(0.0,w,w);
     glVertex3i(-w,w,-w);
     glVertex3i(w,w,-w);
 
-    glNormal3f(w,0.0,0.0);
-    glVertex3i(0,0,w);
-    glVertex3i(w,w,-w);
+    glNormal3f(w,0.0,w);
     glVertex3i(w,-w,-w);
 
-    glNormal3f(0.0,-w,0.0);
-    glVertex3i(0,0,w);
-    glVertex3i(w,-w,-w);
+    glNormal3f(0.0,-w,w);
     glVertex3i(-w,-w,-w);
 
-    glNormal3f(-w,0.0,0.0);
-    glVertex3i(0,0,w);
-    glVertex3i(-w,-w,-w);
+    glNormal3f(-w,0.0,w);
     glVertex3i(-w,w,-w);
   }
 
@@ -473,15 +466,15 @@ void exMap::paintGL() {
 
 void exMap::drawCircle(int center_x, int center_y, int radius, uint8_t segments)
 {
-     float angle;
+     double angle;
      int vectorx, vectory;
 
      /* draw a circle from a bunch of short lines */
      glBegin(GL_LINE_LOOP);
-     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (float) segments))
+     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (double) segments))
      {
-         vectorx = (int)(center_x + ((float)radius * sin(angle)));
-         vectory = (int)(center_y + ((float)radius * cos(angle)));
+         vectorx = (int)(center_x + ((double)radius * sin(angle)));
+         vectory = (int)(center_y + ((double)radius * cos(angle)));
          glVertex3i(vectorx, vectory, 500);
      }
      glEnd();
