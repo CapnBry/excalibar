@@ -192,17 +192,17 @@ BEGIN
                     WS_TABSTOP,103,142,71,10
     GROUPBOX        "Range Rings",IDC_STATIC,7,197,250,64
     CONTROL         "Show Range Ring #1",IDC_SHOWRANGERING1,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,209,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,209,112,10
     CONTROL         "Show Range Ring #2",IDC_SHOWRANGERING2,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,222,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,222,109,10
     CONTROL         "Show Range Ring #3",IDC_SHOWRANGERING3,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,235,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,235,107,10
     CONTROL         "Show Range Ring #4",IDC_SHOWRANGERING4,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,104,208,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,208,107,10
     CONTROL         "Show Range Ring #5",IDC_SHOWRANGERING5,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,104,221,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,221,108,10
     CONTROL         "Show Range Ring #6",IDC_SHOWRANGERING6,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,104,235,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,235,107,10
 END
 
 IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60

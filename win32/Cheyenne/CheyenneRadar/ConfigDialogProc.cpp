@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <algorithm>
 #include <limits>
 #include "..\Utils\CodeUtils.h" // nice dialog utilities in here
@@ -132,6 +133,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing1(),
                             ::RadarConfig.ModifyRangeRingRange1()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #1 (" << ::RadarConfig.GetRangeRingRange1() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING1,ss.str());
                         } // end if checked
                     else
                         {
@@ -147,6 +151,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing2(),
                             ::RadarConfig.ModifyRangeRingRange2()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #2 (" << ::RadarConfig.GetRangeRingRange2() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING2,ss.str());
                         } // end if checked
                     else
                         {
@@ -162,6 +169,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing3(),
                             ::RadarConfig.ModifyRangeRingRange3()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #3 (" << ::RadarConfig.GetRangeRingRange3() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING3,ss.str());
                         } // end if checked
                     else
                         {
@@ -177,6 +187,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing4(),
                             ::RadarConfig.ModifyRangeRingRange4()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #4 (" << ::RadarConfig.GetRangeRingRange4() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING4,ss.str());
                         } // end if checked
                     else
                         {
@@ -192,6 +205,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing5(),
                             ::RadarConfig.ModifyRangeRingRange5()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #5 (" << ::RadarConfig.GetRangeRingRange5() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING5,ss.str());
                         } // end if checked
                     else
                         {
@@ -207,6 +223,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             ::RadarConfig.ModifyShowRangeRing6(),
                             ::RadarConfig.ModifyRangeRingRange6()
                             );
+                        std::stringstream ss;
+                        ss << "Show Range Ring #6 (" << ::RadarConfig.GetRangeRingRange6() << ")";
+                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING6,ss.str());
                         } // end if checked
                     else
                         {
@@ -267,12 +286,37 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBS,::RadarConfig.GetShowMobs());
     
     // range rings group
+    std::stringstream ss;
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING1,::RadarConfig.GetShowRangeRing1());
+    ss << "Show Range Ring #1 (" << ::RadarConfig.GetRangeRingRange1() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING1,ss.str());
+    ss.str("");
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING2,::RadarConfig.GetShowRangeRing2());
+    ss << "Show Range Ring #2 (" << ::RadarConfig.GetRangeRingRange2() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING2,ss.str());
+    ss.str("");
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING3,::RadarConfig.GetShowRangeRing3());
+    ss << "Show Range Ring #3 (" << ::RadarConfig.GetRangeRingRange3() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING3,ss.str());
+    ss.str("");
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING4,::RadarConfig.GetShowRangeRing4());
+    ss << "Show Range Ring #4 (" << ::RadarConfig.GetRangeRingRange4() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING4,ss.str());
+    ss.str("");
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING5,::RadarConfig.GetShowRangeRing5());
+    ss << "Show Range Ring #5 (" << ::RadarConfig.GetRangeRingRange5() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING5,ss.str());
+    ss.str("");
+
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING6,::RadarConfig.GetShowRangeRing6());
+    ss << "Show Range Ring #6 (" << ::RadarConfig.GetRangeRingRange6() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING6,ss.str());
+    ss.str("");
     
     // done
     return;
