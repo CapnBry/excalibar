@@ -1186,6 +1186,15 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << data->ReferenceActor.GetMotion().GetYPos() << ">\n\n";
         }
         
+    if(data->ReferenceTargetSet)
+        {
+        // put hooked actor in
+        oss << "Target Actor:\n"
+            << data->ReferenceTarget.GetName() << "\n"
+            << "<" << data->ReferenceTarget.GetMotion().GetXPos() << ","
+            << data->ReferenceTarget.GetMotion().GetYPos() << ">\n\n";
+        }
+        
     if(data->HookedSet)
         {
         // put hooked actor in
