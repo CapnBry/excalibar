@@ -42,7 +42,8 @@ uses
   DDSImage in 'DDSImage.pas',
   VCLMemStrms in '..\Common\VCLMemStrms.pas',
   DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
-  RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs};
+  RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
+  DAOCConSystem in '\\benny\c\utils\Excalibar\win32\Common\DAOCInfo\DAOCConSystem.pas';
 
 {$R *.TLB}
 
