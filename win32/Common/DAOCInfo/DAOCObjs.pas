@@ -1363,7 +1363,7 @@ end;
 
 function TDAOCUnknownMovingObject.GetName: string;
 begin
-  Result := Format('Unknown NFO%4.4x 0x%4.4x', [FInfoID, FPlayerID]);
+  Result := Format('Unknown NFO%4.4x %4.4x', [FInfoID, FPlayerID]);
 end;
 
 function TDAOCUnknownMovingObject.GetObjectClass: TDAOCObjectClass;
