@@ -92,8 +92,8 @@ IDI_A                   ICON                    "icon1.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,2
- PRODUCTVERSION 1,0,0,2
+ FILEVERSION 1,0,0,3
+ PRODUCTVERSION 1,0,0,3
  FILEFLAGSMASK 0x37L
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -111,13 +111,13 @@ BEGIN
             VALUE "Comments", "Visit http://www.sourceforge.net/projects/excalibar for more info"
             VALUE "CompanyName", "Cheyenne Developers"
             VALUE "FileDescription", "Cheyenne Application"
-            VALUE "FileVersion", "1, 0, 0, 2"
+            VALUE "FileVersion", "1, 0, 0, 3"
             VALUE "InternalName", "Cheyenne"
             VALUE "LegalCopyright", "Copyright (C) 2004, the Cheyenne Developers"
             VALUE "OriginalFilename", "Cheyenne.exe"
             VALUE "ProductName", " Cheyenne Radar"
-            VALUE "ProductVersion", "1, 0, 0, 2"
-            VALUE "SpecialBuild", "1.01"
+            VALUE "ProductVersion", "1, 0, 0, 3"
+            VALUE "SpecialBuild", "1.02"
         END
     END
     BLOCK "VarFileInfo"
