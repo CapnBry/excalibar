@@ -1,3 +1,17 @@
+Teerex (03/Dec/02)
+------------------
+ + (duncan3) Changes to support compiling under Mac OS X.
+ + (duncan3) Added support for crafting timer and beep alert.
+ + (duncan3) Added support for not rendering the dead.
+ + (duncan3) Added support for crafting timer and beep alert.
+ + (duncan3) Removed X Y Z from mob list.
+ + (duncan3) Delta Z used in player distance calculation again.
+ + (duncan3) Upped maximum range on range cirlces to 6000.
+ + Lowered minimum range on range cirlces to 0.
+ + Fixed a bug where reading a ZeroString() while at the end of the
+   packet would go out of bounds.
+ + Added support for 8 character slots.
+
 Teerex (26/Nov/02)
 ------------------
  + Added support for ground target display.  The current target shows 
