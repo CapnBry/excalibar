@@ -303,6 +303,7 @@ void exConnection::processPacket(exPacket * p)
 	p->seek(2);
 	command = p->getShort();
 	destid = p->getShort();
+	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
               playerspeed = p->getShort() & 0x3ff;
@@ -362,6 +363,7 @@ void exConnection::processPacket(exPacket * p)
 	}
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
+	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
@@ -498,6 +500,7 @@ END_EXPERIMENTAL_CODE
                           "," << z <<
                           "," << level <<
                           "," << name <<
+                          "," << ((guild) ? guild : "") <<
                           endl;
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
