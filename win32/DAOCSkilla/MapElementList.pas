@@ -37,6 +37,7 @@ type
     procedure DeleteFile;
     procedure LoadFromFile(const AFileName: string);
     procedure AppendFromFile(const AFileName: string);
+    procedure Save(const ATitle: string);
   end;
 
   TTextureMapElementList = class(TZoneGLRenderObjectList)
@@ -188,6 +189,29 @@ end;
 procedure TVectorMapElementList.ReloadFile;
 begin
   LoadFromFile(FFileName);
+end;
+
+procedure TVectorMapElementList.Save(const ATitle: string);
+const
+  CRLF: array[0..1] of char = (#13, #10);
+var
+  FS:   TFileStream;
+  I:    integer;
+  s:    string;
+begin
+  if FFileName = '' then
+    raise Exception.Create('Filename is blank.');
+
+  FS := TFileStream.Create(FFileName, fmCreate);
+  FS.Write(ATitle[1], Length(ATitle));
+  FS.Write(CRLF, sizeof(CRLF));
+
+  for I := 0 to Count - 1 do begin
+    s := Items[I].ToString + #13#10;
+    FS.Write(s[1], Length(s));
+  end;
+
+  FS.Free;
 end;
 
 { TTextureMapElementList }
