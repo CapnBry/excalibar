@@ -24,8 +24,9 @@ uses
 {$IFDEF DAOC_AUTO_SERVER}
   ComObj,
 {$ENDIF}
-  DAOCPackets, DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
-  VendorItems, ChatParse, MapNavigator, FrameFns, INIFiles, NamedPacketHandler;
+  GenericNetPackets, NamedPacketHandler, DAOCAccountCharInfo, DAOCObjs, DAOCRegion,
+  DAOCInventory, DAOCPlayerAttributes, StringParseHlprs, VendorItems,
+  ChatParse, FrameFns, MapNavigator, INIFiles;
 
 type
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;
@@ -36,37 +37,6 @@ type
   TCurrencyChangeEvent = procedure (Sender: TObject; AReason: TDAOCCurrencyChangeReason;
     ADeltaAsCopper: integer) of object;
 
-  TAccountCharInfo = class(TObject)
-  private
-    FName:    string;
-    FRegionID:integer;
-    FLevel:   integer;
-    FRealm:   TDAOCRealm;
-  public
-    function AsString : string;
-
-    property Name: string read FName;
-    property RegionID: integer read FRegionID;
-    property Level: integer read FLevel;
-    property Realm: TDAOCRealm read FRealm;
-  end;
-
-  TAccountCharInfoList = class(TObjectList)
-  private
-    FAccountName:   string;
-    FServerName: string;
-    FAccountPassword: string;
-    function GetItems(iIndex: integer): TAccountCharInfo;
-  public
-    procedure Clear; override;
-    function FindOrAddChar(const AName: string) : TAccountCharInfo;
-
-    property Items[iIndex: integer]: TAccountCharInfo read GetItems; default;
-    property AccountName: string read FAccountName;
-    property AccountPassword: string read FAccountPassword;
-    property ServerName: string read FServerName;
-  end;
-
   PCallbackEventInfo = ^TCallbackEventInfo;
   TCallbackEventInfo = record
     dwTime:   Cardinal;
@@ -74,13 +44,8 @@ type
     parm:     Cardinal;
   end;
 
-{$IFDEF DAOC_AUTO_SERVER}
-  TDAOCConnection = class(TAutoObject)
-{$ELSE}
-  TDAOCConnection = class(TObject)
-{$ENDIF}
+{$IFDEF DAOC_AUTO_SERVER} TDAOCConnection = class(TAutoObject) {$ELSE} TDAOCConnection = class(TObject) {$ENDIF}
   private
-
     FClientAddr: Cardinal;
     FServerAddr: Cardinal;
     FUDPServerAddr: Cardinal;
@@ -88,14 +53,8 @@ type
     FVersionMajor: byte;
     FVersionMinor: byte;
     FVersionRelease: byte;
-    FCryptKey:  TDAOCCryptKey;
-    FCryptKeySet: boolean;
-    FLargestDAOCPacketSeen: Cardinal;
-    FAccountCharacters:  TAccountCharInfoList;
+    FAccountCharacters:  TDAOCAccountCharInfoList;
     FServerProtocol:  byte;
-
-    FTCPFromClient:   TDAOCTCPPacketAssembler;
-    FTCPFromServer:   TDAOCTCPPacketAssembler;
 
     FSelectedID:    WORD;
     FTradeCommissionItem: string;
@@ -118,10 +77,10 @@ type
     FOnNewDAOCObject: TDAOCObjectNotify;
     FOnZoneChange: TNotifyEvent;
     FOnCharacterLogin: TNotifyEvent;
-    FOnPacket: TPacketEvent;
+    FOnPacket: TGNPacketEvent;
     FOnInventoryChanged: TNotifyEvent;
     FOnSkillLevelChanged: TNameValueModifiedNotify;
-    FOnAfterPacket: TPacketEvent;
+    FOnAfterPacket: TGNPacketEvent;
     FOnCurrencyChanged: TCurrencyChangeEvent;
     FOnDeleteDAOCObject: TDAOCObjectNotify;
     FOnSelectedObjectChange: TDAOCObjectNotify;
@@ -157,8 +116,6 @@ type
     procedure SetServerIP(const Value: string);
     procedure ClearCallbackList;
     procedure CheckScheduledTimeoutCallback;
-    function GetCryptKey: string;
-    procedure SetCryptKey(const Value: string);
     function GetSelectedObject: TDAOCObject;
     function GetUDPServerIP: string;
     procedure SetSelectedObject(const Value: TDAOCObject);
@@ -166,7 +123,7 @@ type
     procedure CheckObjectsOutOfRange;
     procedure SetMaxObjectDistance(const Value: double);
     function CheckZoneChanged : boolean;
-    function SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
+    function SetActiveCharacterByName(const ACharacterName: string) : TDAOCAccountCharInfo;
     function CheckAndMoveFromStaleListByInfoID(wID: WORD) : TDAOCObject;
     function CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
     procedure SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
@@ -206,61 +163,58 @@ type
     procedure CPARSEBountyPointsChange(ASender: TDAoCChatParser; APoints: Integer);
     procedure CPARSECurrencyChanged(ASender: TDAOCChatParser; AReason: TDAOCCurrencyChangeReason);
 
-    procedure ParseSetEncryptionKey(pPacket: TDAOCPacket);
-    procedure ParseSetPlayerRegion(pPacket: TDAOCPacket);
-    procedure ParseAccountCharacters(pPacket: TDAOCPacket);
-    procedure ParsePlayerDetails(pPacket: TDAOCPacket);
-    procedure ParseLocalPosUpdateFromClient(pPacket: TDAOCPacket);
-    procedure ParseInventoryList(pPacket: TDAOCPacket);
-    procedure ParsePlayerStatsUpdate(pPacket: TDAOCPacket);
-    procedure ParsePlayerSpecsSpellsAbils(pPacket: TDAOCPacket);
-    procedure ParsePlayerSkills(pPacket: TDAOCPacket);
-    procedure ParseLocalHeadUpdateFromClient(pPacket: TDAOCPacket);
-    procedure ParsePlayerPosUpdate(pPacket: TDAOCPacket);
-    procedure ParsePlayerHeadUpdate(pPacket: TDAOCPacket);
-    procedure ParseMobUpdate(pPacket: TDAOCPacket);
-    procedure ParseLogUpdate(pPacket: TDAOCPacket);
-    procedure ParseLocalHealthUpdate(pPacket: TDAOCPacket);
-    procedure ParseCharacterLoginInit(pPacket: TDAOCPacket);
-    procedure ParseNewObjectCommon(pPacket: TDAOCPacket; AClass: TDAOCObjectClass);
-    procedure ParseNewObject(pPacket: TDAOCPacket);
-    procedure ParseNewMob(pPacket: TDAOCPacket);
-    procedure ParseNewPlayer(pPacket: TDAOCPacket);
-    procedure ParseNewVehicle(pPacket: TDAOCPacket);
-    procedure ParseObjectEquipment(pPacket: TDAOCPacket);
-    procedure ParseMoneyUpdate(pPacket: TDAOCPacket);
-    procedure ParseRequestBuyItem(pPacket: TDAOCPacket);
-    procedure ParseSelectedIDUpdate(pPacket: TDAOCPacket);
-    procedure ParseProgressMeter(pPacket: TDAOCPacket);
-    procedure ParseSpellPulse(pPacket: TDAOCPacket);
-    procedure ParsePopupMessage(pPacket: TDAOCPacket);
-    procedure ParseCommandFromClient(pPacket: TDAOCPacket);
-    procedure ParseVendorWindow(pPacket: TDAOCPacket);
-    procedure ParseRegionServerInfomation(pPacket: TDAOCPacket);
-    procedure ParseDeleteObject(pPacket: TDAOCPacket);
-    procedure ParseSetGroundTarget(pPacket: TDAOCPacket);
-    procedure ParseCharacterStealthed(pPacket: TDAOCPacket);
-    procedure ParseCharacterActivationRequest(pPacket: TDAOCPacket);
-    procedure ParseServerProtocolInit(pPacket: TDAOCPacket);
-    procedure ParseRequestPlayerByPlayerID(pPacket: TDAOCPacket);
-    procedure ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
-    procedure ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
-    procedure ParseServerPingResponse(pPacket: TDAOCPacket);
-    procedure ParseServerPingRequest(pPacket: TDAOCPacket);
-    procedure ParseGroupMembersUpdate(pPacket: TDAOCPacket);
-    procedure ParseGroupWindowUpdate(pPacket: TDAOCPacket);
-    procedure ParseAggroIndicator(pPacket: TDAOCPacket);
-    procedure ParseAccountLoginRequest(pPacket: TDAOCPacket);
-    procedure ParseDelveRequest(pPacket: TDAOCPacket);
-    procedure ParseDelveInformation(pPacket: TDAOCPacket);
-    procedure ParseVendorWindowRequest(pPacket: TDAOCPacket);
-    procedure ParseDoorPositionUpdate(pPacket: TDAOCPacket);
+    procedure ParseSetEncryptionKey(pPacket: TGenericNetPacket);
+    procedure ParseSetPlayerRegion(pPacket: TGenericNetPacket);
+    procedure ParseAccountCharacters(pPacket: TGenericNetPacket);
+    procedure ParsePlayerDetails(pPacket: TGenericNetPacket);
+    procedure ParseLocalPosUpdateFromClient(pPacket: TGenericNetPacket);
+    procedure ParseInventoryList(pPacket: TGenericNetPacket);
+    procedure ParsePlayerStatsUpdate(pPacket: TGenericNetPacket);
+    procedure ParsePlayerSpecsSpellsAbils(pPacket: TGenericNetPacket);
+    procedure ParsePlayerSkills(pPacket: TGenericNetPacket);
+    procedure ParseLocalHeadUpdateFromClient(pPacket: TGenericNetPacket);
+    procedure ParsePlayerPosUpdate(pPacket: TGenericNetPacket);
+    procedure ParsePlayerHeadUpdate(pPacket: TGenericNetPacket);
+    procedure ParseMobUpdate(pPacket: TGenericNetPacket);
+    procedure ParseLogUpdate(pPacket: TGenericNetPacket);
+    procedure ParseLocalHealthUpdate(pPacket: TGenericNetPacket);
+    procedure ParseCharacterLoginInit(pPacket: TGenericNetPacket);
+    procedure ParseNewObjectCommon(pPacket: TGenericNetPacket; AClass: TDAOCObjectClass);
+    procedure ParseNewObject(pPacket: TGenericNetPacket);
+    procedure ParseNewMob(pPacket: TGenericNetPacket);
+    procedure ParseNewPlayer(pPacket: TGenericNetPacket);
+    procedure ParseNewVehicle(pPacket: TGenericNetPacket);
+    procedure ParseObjectEquipment(pPacket: TGenericNetPacket);
+    procedure ParseMoneyUpdate(pPacket: TGenericNetPacket);
+    procedure ParseRequestBuyItem(pPacket: TGenericNetPacket);
+    procedure ParseSelectedIDUpdate(pPacket: TGenericNetPacket);
+    procedure ParseProgressMeter(pPacket: TGenericNetPacket);
+    procedure ParseSpellPulse(pPacket: TGenericNetPacket);
+    procedure ParsePopupMessage(pPacket: TGenericNetPacket);
+    procedure ParseCommandFromClient(pPacket: TGenericNetPacket);
+    procedure ParseVendorWindow(pPacket: TGenericNetPacket);
+    procedure ParseRegionServerInfomation(pPacket: TGenericNetPacket);
+    procedure ParseDeleteObject(pPacket: TGenericNetPacket);
+    procedure ParseSetGroundTarget(pPacket: TGenericNetPacket);
+    procedure ParseCharacterStealthed(pPacket: TGenericNetPacket);
+    procedure ParseCharacterActivationRequest(pPacket: TGenericNetPacket);
+    procedure ParseServerProtocolInit(pPacket: TGenericNetPacket);
+    procedure ParseRequestPlayerByPlayerID(pPacket: TGenericNetPacket);
+    procedure ParseRequestObjectByInfoID(pPacket: TGenericNetPacket);
+    procedure ParsePlayerCenteredSpellEffect(pPacket: TGenericNetPacket);
+    procedure ParseServerPingResponse(pPacket: TGenericNetPacket);
+    procedure ParseServerPingRequest(pPacket: TGenericNetPacket);
+    procedure ParseGroupMembersUpdate(pPacket: TGenericNetPacket);
+    procedure ParseGroupWindowUpdate(pPacket: TGenericNetPacket);
+    procedure ParseAggroIndicator(pPacket: TGenericNetPacket);
+    procedure ParseAccountLoginRequest(pPacket: TGenericNetPacket);
+    procedure ParseDelveRequest(pPacket: TGenericNetPacket);
+    procedure ParseDelveInformation(pPacket: TGenericNetPacket);
+    procedure ParseVendorWindowRequest(pPacket: TGenericNetPacket);
+    procedure ParseDoorPositionUpdate(pPacket: TGenericNetPacket);
 
-    procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
-    procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
-    procedure IntializeFromSegment(AServerSegment: TEthernetSegment);
-    procedure ProcessUDPSegment(ASegment: TEthernetSegment);
-    procedure ProcessTCPSegment(ASegment: TEthernetSegment);
+    procedure ProcessDAOCPacketFromServer(pPacket: TGenericNetPacket);
+    procedure ProcessDAOCPacketFromClient(pPacket: TGenericNetPacket);
 
     procedure DoOnChatSayIncoming(const AWho, AMessage: string); virtual;
     procedure DoOnChatSayOutgoing(const AMessage: string); virtual;
@@ -318,12 +272,9 @@ type
     destructor Destroy; override;
 
     procedure InitPacketHandlers;
-    procedure ProcessEthernetSegment(ASegment: TEthernetSegment);
-    procedure ProcessDAOCPacket(pPacket: TDAOCPacket);
+    procedure ProcessDAOCPacket(pPacket: TGenericNetPacket);
     procedure Clear; virtual;
     procedure CheckForStaleObjects;
-    procedure SaveConnectionState(const AFileName: string);
-    procedure ResumeConnection(const AFileName: string);
     procedure LoadRealmRanks(const AFileName: string);
     procedure ScheduleCallback(ATimeout: Cardinal; ACallback: TSheduledCallback; AParm: Cardinal);
 
@@ -343,13 +294,11 @@ type
     property UDPServerIP: string read GetUDPServerIP;
 
       { properties }
-    property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
-    property CryptKey: string read GetCryptKey write SetCryptKey;
+    property AccountCharacterList: TDAOCAccountCharInfoList read FAccountCharacters;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
-    property LargestDAOCPacketSeen: Cardinal read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
     property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime;
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
@@ -368,7 +317,7 @@ type
     property ZoneList: TDAOCZoneInfoList read FZoneList;
 
       { events }
-    property OnAfterPacket: TPacketEvent read FOnAfterPacket write FOnAfterPacket;
+    property OnAfterPacket: TGNPacketEvent read FOnAfterPacket write FOnAfterPacket;
     property OnBountyPointsChanged: TIntegerEvent read FOnBountyPointsChanged write FOnBountyPointsChanged;
     property OnCharacterLogin: TNotifyEvent read FOnCharacterLogin write FOnCharacterLogin;
     property OnChatLog: TStringEvent read FOnChatLog write FOnChatLog;
@@ -392,7 +341,7 @@ type
     property OnLog: TStringEvent read FOnLog write FOnLog;
     property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
     property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
-    property OnPacket: TPacketEvent read FOnPacket write FOnPacket;
+    property OnPacket: TGNPacketEvent read FOnPacket write FOnPacket;
     property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
     property OnPlayerPosUpdate: TNotifyEvent read FOnPlayerPosUpdate write FOnPlayerPosUpdate;
     property OnRealmPointsChanged: TIntegerEvent read FOnRealmPointsChanged write FOnRealmPointsChanged;
@@ -410,57 +359,16 @@ type
     property OnZoneChange: TNotifyEvent read FOnZoneChange write FOnZoneChange;
   end;
 
-
 implementation
 
 uses
   GlobalTickCounter;
-
-{ TAccountCharInfoList }
-
-procedure TAccountCharInfoList.Clear;
-begin
-  inherited;
-  FAccountName := '';
-  FAccountPassword := '';
-  FServerName := '';    
-end;
-
-function TAccountCharInfoList.FindOrAddChar(const AName: string): TAccountCharInfo;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if AnsiSameText(Items[I].Name, AName) then begin
-      Result := Items[I];
-      exit;
-    end;
-
-  Result := TAccountCharInfo.Create;
-  Result.FName := AName;
-  Add(Result);
-end;
-
-function TAccountCharInfoList.GetItems(iIndex: integer): TAccountCharInfo;
-begin
-  Result := TAccountCharInfo(inherited Items[iIndex]);
-end;
-
-{ TAccountCharInfo }
-
-function TAccountCharInfo.AsString: string;
-begin
-  Result := Format('%s level %d %s region %d', [
-    FName, FLevel,  RealmToStr(FRealm), FRegionID]);
-end;
 
 { TDAOCConnection }
 
 procedure TDAOCConnection.Clear;
 begin
   FActive := false;
-  FillChar(FCryptKey, sizeof(FCryptKey), 0);
-  FCryptKeySet := false;
   FMasterVendorList.Clear;
   FAccountCharacters.Clear;
   ResetPlayersInGroup;
@@ -473,8 +381,8 @@ begin
   FRegionID := 0;
   FSelectedID := 0;
   FChatParser.Reset;
-  FLargestDAOCPacketSeen := 0;
   FGroundTarget.Clear;
+  FWatchedConnectionID := 0;
 end;
 
 constructor TDAOCConnection.Create;
@@ -490,13 +398,7 @@ begin
   FServerPacketHandlers := TNamedPacketHandlerList.Create;
   FClientPacketHandlers := TNamedPacketHandlerList.Create;
 
-  FTCPFromClient := TDAOCTCPPacketAssembler.Create(true);
-  FTCPFromServer := TDAOCTCPPacketAssembler.Create(false);
-
-  FTCPFromClient.OtherSide := FTCPFromServer;
-  FTCPFromServer.OtherSide := FTCPFromClient;
-
-  FAccountCharacters := TAccountCharInfoList.Create;
+  FAccountCharacters := TDAOCAccountCharInfoList.Create;
   FScheduledCallbacks := TList.Create;
   FVendorItems := TDAOCVendorItemList.Create;
   FMasterVendorList := TDAOCMasterVendorList.Create;
@@ -516,8 +418,6 @@ begin
   ClearCallbackList;
   FScheduledCallbacks.Free;
   FAccountCharacters.Free;
-  FTCPFromClient.Free;
-  FTCPFromServer.Free;
 
   FChatParser.Free;
   FDAOCObjs.Free;
@@ -583,39 +483,23 @@ begin
   Result := my_inet_ntoa(FServerAddr);
 end;
 
-procedure TDAOCConnection.IntializeFromSegment(AServerSegment: TEthernetSegment);
-(*** Set everything up from a ethernet segment from the server (the SYN ACK frame) ***)
-begin
-  Clear;
-  FClientAddr := AServerSegment.AsIP^.DestAddr;
-  FServerAddr := AServerSegment.AsIP^.SrcAddr;
-  FActive := true;
-
-  FCryptKeySet := false;
-
-  FTCPFromClient.Clear;
-  FTCPFromClient.NextExpectedSeq := ntohl(AServerSegment.AsTCP^.AckNumber);
-  FTCPFromServer.Clear;
-  FTCPFromServer.NextExpectedSeq := ntohl(AServerSegment.AsTCP^.SeqNumber) + 1;
-end;
-
 procedure TDAOCConnection.Log(const s: string);
 begin
   if Assigned(FOnLog) then
     FOnLog(Self, s);
 end;
 
-procedure TDAOCConnection.ParseAccountCharacters(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseAccountCharacters(pPacket: TGenericNetPacket);
 var
   sName:  string;
   iCharsLeft: integer;
   iRegion:  integer;
   iRealm:   integer;
   iLevel:   integer;
-  pAcctChar: TAccountCharInfo;
+  pAcctChar: TDAOCAccountCharInfo;
 begin
   pPacket.HandlerName := 'AccountCharacters';
-  FAccountCharacters.FAccountName := pPacket.getNullTermString(24);
+  FAccountCharacters.AccountName := pPacket.getNullTermString(24);
 
     { parse up to 8 characters }
   iCharsLeft := 8;
@@ -631,20 +515,20 @@ begin
     pPacket.Seek(57);
     if (iRegion <> 0) and (sName <> '') then begin
       pAcctChar := FAccountCharacters.FindOrAddChar(sName);
-      pAcctChar.FRegionID := iRegion;
-      pAcctChar.FRealm := TDAOCRealm(iRealm);
-      pAcctChar.FLevel := iLevel;
+      pAcctChar.RegionID := iRegion;
+      pAcctChar.Realm := TDAOCRealm(iRealm);
+      pAcctChar.Level := iLevel;
     end;
     dec(iCharsLeft);
   end;    { for chars }
 end;
 
-procedure TDAOCConnection.ParsePlayerDetails(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerDetails(pPacket: TGenericNetPacket);
 var
   SubType: BYTE;
   iLevel:   integer;
   sName:    string;
-  pAcctChar:  TAccountCharInfo;
+  pAcctChar:  TDAOCAccountCharInfo;
 begin
   pPacket.HandlerName := 'PlayerDetails';
   pPacket.Seek(1);  // count of items
@@ -655,7 +539,7 @@ begin
     sName := pPacket.getPascalString;
 
     pAcctChar := SetActiveCharacterByName(sName);
-    pAcctChar.FLevel := iLevel;
+    pAcctChar.Level := iLevel;
 
     with FLocalPlayer do begin
       Level := iLevel;
@@ -688,7 +572,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseInventoryList(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseInventoryList(pPacket: TGenericNetPacket);
 var
   iItemCount:   integer;
   pTmpItem: TDAOCInventoryItem;
@@ -742,7 +626,7 @@ begin
     DoOnZoneChange;
 end;
 
-procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'LocalPosUpdateFromClient';
 {$IFDEF PRE_168}
@@ -753,6 +637,7 @@ begin
   FLocalPlayer.X := pPacket.getLong;
   FLocalPlayer.Y := pPacket.getLong;
   FLocalPlayer.HeadWord := pPacket.getShort;
+  CheckZoneChanged;
 {$ELSE}
   pPacket.seek(2);
   FLocalPlayer.SpeedWord := pPacket.getShort;
@@ -764,13 +649,11 @@ begin
   FLocalPlayer.HeadWord := pPacket.getShort;
 {$ENDIF}
 
-  CheckZoneChanged;
-
   DoOnPlayerPosUpdate;
   CheckObjectsOutOfRange;
 end;
 
-procedure TDAOCConnection.ParsePlayerStatsUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerStatsUpdate(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'PlayerStatsUpdate';
   case pPacket.getByte of
@@ -782,24 +665,21 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'SetEncryptionKey';
 
     { version w x.yz }
-  pPacket.seek(1);
-  FServerProtocol := pPacket.getByte; // actually encryption scheme?
-  FVersionMajor := pPacket.getByte;  // bigver  (x)
-  FVersionMinor := pPacket.getByte;  // minver  (y)
-  FVersionRelease := pPacket.getByte;// release (z)
+//  pPacket.seek(1);
+//  FServerProtocol := pPacket.getByte; // actually encryption scheme?
+//  FVersionMajor := pPacket.getByte;  // bigver  (x)
+//  FVersionMinor := pPacket.getByte;  // minver  (y)
+//  FVersionRelease := pPacket.getByte;// release (z)
 
-  pPacket.getBytes(FCryptKey, 12);
-  FCryptKeySet := true;
-
-  DoVersionNumsSet;
+//  DoVersionNumsSet;
 end;
 
-procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'SetPlayerRegion';
   DoSetRegionID(pPacket.getShort);
@@ -832,7 +712,7 @@ begin
 end;
 
 procedure TDAOCConnection.ProcessDAOCPacketFromClient(
-  pPacket: TDAOCPacket);
+  pPacket: TGenericNetPacket);
 var
   command:  BYTE;
   pHandler: TNamedPacketHandler;
@@ -852,7 +732,7 @@ begin
     pHandler.Handler(pPacket);
 end;
 
-procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TGenericNetPacket);
 var
   command:  BYTE;
   iSeqNo:   integer;
@@ -862,9 +742,9 @@ begin
 //  if pPacket.IPProtocol = daocpUDP then
 
     { check for mislabeled UDP }
-  if pPacket.IPProtocol = daocpTCP then
+  if pPacket.IPProtocol = gnppTCP then
     if iSeqNo = (FLastUDPSeq + 1) then
-      pPacket.IPProtocol := daocpUDP
+      pPacket.IPProtocol := gnppUDP
     else
       pPacket.seek(-2);
 
@@ -873,101 +753,13 @@ begin
   if Assigned(pHandler) then
     pHandler.Handler(pPacket);
 
-  if pPacket.IPProtocol = daocpUDP then
+  if pPacket.IPProtocol = gnppUDP then
     FLastUDPSeq := iSeqNo;
-end;
-
-procedure TDAOCConnection.ProcessEthernetSegment(ASegment: TEthernetSegment);
-var
-  pDecapSegment:  TEthernetSegment;
-begin
-  if not Assigned(ASegment.Data) then
-    exit;
-
-  pDecapSegment := ASegment.DecapsulatePPPoE;
-  try
-    if Assigned(pDecapSegment) then begin
-        { quick software filter }
-      if ((pDecapSegment.AsIP^.SrcAddr and $00ffffff) <> $0010fed0) and // US
-        ((pDecapSegment.AsIP^.DestAddr and $00ffffff) <> $0010fed0) and
-        ((pDecapSegment.AsIP^.SrcAddr and $00ffffff) <> $007bfcc1) and  // EU
-        ((pDecapSegment.AsIP^.DestAddr and $00ffffff) <> $007bfcc1) then
-        exit;
-
-      if (pDecapSegment.AsIP^.Protocol = SOL_TCP) and not
-        ((pDecapSegment.AsTCP^.SrcPort = $7e29) or (pDecapSegment.AsTCP^.DestPort = $7e29)) // port 10622
-        then
-        exit;
-
-      ASegment := pDecapSegment;
-    end;  { if we decaped }
-
-    if ASegment.AsEthernet^.FrameType <> NET_IP_TYPE then
-      exit;
-
-    if (ASegment.AsIP^.Protocol = SOL_UDP) and FActive then
-      ProcessUDPSegment(ASegment)
-
-    else if ASegment.AsIP^.Protocol = SOL_TCP then
-        { see if this is a new connection, SYN / ACK will come from server }
-      if IsSyn(ASegment.AsTCP) and IsAck(ASegment.AsTCP) then begin
-        IntializeFromSegment(ASegment);
-        DoOnConnect;
-      end
-
-      else if IsFin(ASegment.AsTCP) and
-        (FClientAddr = ASegment.AsIP^.SrcAddr) then begin
-        FActive := false;
-        DoOnDisconnect;
-      end
-
-      else if FActive then
-        ProcessTCPSegment(ASegment);
-  finally
-    pDecapSegment.Free;
-  end;
-end;
-
-procedure TDAOCConnection.ProcessTCPSegment(ASegment: TEthernetSegment);
-var
-  pFrag:    TTCPFragment;
-  pPacket:  TDAOCPacket;
-  pAssembler: TDAOCTCPPacketAssembler;
-begin
-  if ASegment.AsIP^.Protocol <> SOL_TCP then
-    exit;
-
-  if FClientAddr = ASegment.AsIP^.SrcAddr then
-    pAssembler := FTCPFromClient
-  else if FServerAddr = ASegment.AsIP^.SrcAddr then
-    pAssembler := FTCPFromServer
-  else
-    pAssembler := nil;
-
-  if not Assigned(pAssembler) then
-    exit;
-
-  pFrag := TTCPFragment.CreateFrom(ASegment);
-
-  if pFrag.IsAck then begin
-    while pAssembler.OtherSide.ParsePacket(pFrag.AckNo, pPacket) do begin
-      if pPacket.Size > 0 then begin
-        pPacket.IsFromClient := pAssembler.OtherSide.IsFromClient;
-        pPacket.IPProtocol := daocpTCP;
-
-        ProcessDAOCPacket(pPacket);
-      end;  { if packet.size }
-
-      pPacket.Free;
-    end;  { while ParsePacket }
-  end;  { if is Ack }
-
-  pAssembler.AddFragment(pFrag);
 end;
 
 procedure TDAOCConnection.DoSetRegionID(ARegion: integer);
 var
-  pAcctChar:  TAccountCharInfo;
+  pAcctChar:  TDAOCAccountCharInfo;
 begin
   if FRegionID = ARegion then
     exit;
@@ -978,13 +770,13 @@ begin
 
   if FLocalPlayer.Name <> '' then begin
     pAcctChar := FAccountCharacters.FindOrAddChar(FLocalPlayer.Name);
-    pAcctChar.FRegionID := FRegionID;
+    pAcctChar.RegionID := FRegionID;
       { if we've got a blank acctchar, fill the values from the local player
         this is probably because we resumed connection }
     if pAcctChar.Level = 0 then
-      pAcctChar.FLevel := FLocalPlayer.Level;
+      pAcctChar.Level := FLocalPlayer.Level;
     if pAcctChar.Realm = drNeutral then
-      pAcctChar.FRealm := FLocalPlayer.Realm;
+      pAcctChar.Realm := FLocalPlayer.Realm;
   end;
 
   FMasterVendorList.Clear;
@@ -995,7 +787,7 @@ begin
   // Log('Player region changed to ' + IntToStr(FRegionID));
 end;
 
-procedure TDAOCConnection.ParsePlayerSpecsSpellsAbils(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerSpecsSpellsAbils(pPacket: TGenericNetPacket);
 var
   iCnt:   integer;
   iLevel: integer;
@@ -1034,7 +826,7 @@ begin
   end;  { while cnt and !EOF }
 end;
 
-procedure TDAOCConnection.ParsePlayerSkills(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerSkills(pPacket: TGenericNetPacket);
 var
   iCnt:   integer;
   iLevel: integer;
@@ -1070,7 +862,7 @@ begin
     FOnSkillLevelChanged(Self, AItem);
 end;
 
-procedure TDAOCConnection.ParseLocalHeadUpdateFromClient(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseLocalHeadUpdateFromClient(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'LocalHeadUpdateFromClient';
   pPacket.seek(2);
@@ -1078,7 +870,7 @@ begin
   DoOnPlayerPosUpdate;
 end;
 
-procedure TDAOCConnection.ParsePlayerPosUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerPosUpdate(pPacket: TGenericNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1140,7 +932,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseMobUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseMobUpdate(pPacket: TGenericNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1230,7 +1022,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParsePlayerHeadUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerHeadUpdate(pPacket: TGenericNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1272,7 +1064,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseLogUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseLogUpdate(pPacket: TGenericNetPacket);
 var
   sLine:  string;
   bType:  BYTE;
@@ -1295,7 +1087,7 @@ begin
   end;  { case bType }
 end;
 
-procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'LocalHealthUpdate';
 
@@ -1307,7 +1099,7 @@ begin
   DoOnLocalHealthUpdate;
 end;
 
-procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TGenericNetPacket);
 begin
     { the first packet we get which describes the character I think. }
   pPacket.HandlerName := 'CharacterLoginInit';
@@ -1323,7 +1115,7 @@ begin
   CheckZoneChanged;
 end;
 
-procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TDAOCPacket;
+procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TGenericNetPacket;
   AClass: TDAOCObjectClass);
 var
   tmpObject:  TDAOCObject;
@@ -1452,7 +1244,7 @@ begin
     SafeAddDAOCObjectAndNotify(tmpObject);
 end;
 
-procedure TDAOCConnection.ParseObjectEquipment(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseObjectEquipment(pPacket: TGenericNetPacket);
 var
   ID:   integer;
   iCnt: integer;
@@ -1502,7 +1294,7 @@ begin
   TDAOCMovingObject(pMob).InventoryChanged;
 end;
 
-procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TGenericNetPacket);
 var
   dwPrevious: Cardinal;
 begin
@@ -1529,12 +1321,12 @@ begin
   FLastCurrencyChangeReason := ccrUnknown;
 end;
 
-procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'RequestBuyItem NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParseSelectedIDUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseSelectedIDUpdate(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'SelectedIDUpdate';
   FSelectedID := pPacket.getShort;
@@ -1542,7 +1334,7 @@ begin
   DoOnSelectedObjectChanged(SelectedObject);
 end;
 
-procedure TDAOCConnection.ParseProgressMeter(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseProgressMeter(pPacket: TGenericNetPacket);
 var
   iDuration:  integer;
   sMessage:   string;
@@ -1567,12 +1359,12 @@ begin
 ;
 end;
 
-procedure TDAOCConnection.ParseSpellPulse(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseSpellPulse(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'SpellPulse NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParsePopupMessage(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePopupMessage(pPacket: TGenericNetPacket);
 var
   sMessage:   string;
 begin
@@ -1587,7 +1379,7 @@ begin
 ;
 end;
 
-procedure TDAOCConnection.ParseCommandFromClient(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseCommandFromClient(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'CommandFromClient NOTIMPL';
 (**
@@ -1728,23 +1520,7 @@ begin
   FTradeCommissionNPC := '';
 end;
 
-function TDAOCConnection.GetCryptKey: string;
-begin
-  Result := DAOCCryptKeyToString(FCryptKey);
-end;
-
-procedure TDAOCConnection.SetCryptKey(const Value: string);
-begin
-  if Value = '' then begin
-    FCryptKeySet := false;
-    exit;
-  end;
-
-  StringToDAOCCryptKey(Value, FCryptKey);
-  FCryptKeySet := true;
-end;
-
-procedure TDAOCConnection.ParseVendorWindow(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseVendorWindow(pPacket: TGenericNetPacket);
 var
   iItemDescs: integer;
   iPage:      integer;
@@ -1799,12 +1575,12 @@ begin
 end;
 
 procedure TDAOCConnection.ParseRegionServerInfomation(
-  pPacket: TDAOCPacket);
+  pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'RegionServerInformation NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParseDeleteObject(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseDeleteObject(pPacket: TGenericNetPacket);
 var
   pObj:   TDAOCObject;
   wID:    WORD;
@@ -1919,79 +1695,12 @@ begin
     FOnTradeSkillCapped(Self);
 end;
 
-procedure TDAOCConnection.ProcessUDPSegment(ASegment: TEthernetSegment);
-var
-  iDataLen:     integer;
-  iPacketLen:   integer;
-  wUDPDatagramLen:  WORD;
-  bIsFromClient:    boolean;
-  pPayloadDataPtr:  Pointer;
-  pDAOCPacket:      TDAOCPacket;
-begin
-  if ASegment.AsIP^.Protocol <> SOL_UDP then
-    exit;
-
-  if FClientAddr = ASegment.AsIP^.SrcAddr then begin
-    bIsFromClient := true;
-    if FUDPServerAddr <> ASegment.AsIP^.DestAddr then begin
-      Log('UDP Server changed to: ' + my_inet_ntoa(ASegment.AsIP^.DestAddr));
-      FUDPServerAddr := ASegment.AsIP^.DestAddr;
-    end;
-  end
-  else if FUDPServerAddr = ASegment.AsIP^.SrcAddr then
-    bIsFromClient := false
-  else
-    exit;
-
-    { total len is the size of the UDP header and data.
-      Does not include IP and Ethernet headers }
-  wUDPDatagramLen := ntohs(ASegment.AsUDP^.TotalLen);
-  if ASegment.Size < (wUDPDatagramLen + sizeof(TIPHeader)) then begin
-    Log('Short UDP packet discarded');
-    exit;
-  end;
-
-    { DataLen is the (declared UDP total len) - (UDP Header len) }
-  iDataLen := wUDPDatagramLen - (sizeof(TUDPHeader) - sizeof(TIPHeader));
-  pPayloadDataPtr := Pointer(Cardinal(ASegment.Data) + sizeof(TUDPHeader));
-
-  pDAOCPacket := TDAOCPacket.Create;
-  pDAOCPacket.IsFromClient := bIsFromClient;
-  pDAOCPacket.IPProtocol := daocpUDP;
-
-  while iDataLen > 2 do begin
-      { first bytes are the DAOC Packet Len }
-    iPacketLen := (PBYTEARRAY(pPayloadDataPtr)^[0] shl 8) + PBYTEARRAY(pPayloadDataPtr)^[1];
-    if iPacketLen = 0 then
-      exit;
-      { which is understated by 3 }
-    inc(iPacketLen, 3);
-
-      { remove the packet len from the buffer }
-    dec(iDataLen, 2);
-    inc(Cardinal(pPayloadDataPtr), 2);
-
-    if iDataLen < iPacketLen then begin
-      Log('UDP packet too short to contain stated DAOC packet, discarded');
-      pDAOCPacket.Free;
-      exit;
-    end;
-
-    pDAOCPacket.LinkDataToPacket(pPayloadDataPtr, iPacketLen);
-    ProcessDAOCPacket(pDAOCPacket);
-
-    dec(iDataLen, iPacketLen);
-    inc(Cardinal(pPayloadDataPtr), iPacketLen);
-  end;
-
-  pDAOCPacket.Free;
-end;
-
-procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TGenericNetPacket);
 begin
     { if we're already active and we have a preferred connection ID, then
       make sure this packet is for the right connection }
-  if FActive and (FWatchedConnectionID <> 0) and (pPacket.ConnectionID <> FWatchedConnectionID) then
+  if FActive and (FWatchedConnectionID <> 0) and
+    (pPacket.ConnectionID <> FWatchedConnectionID) then
     exit;
 
 {$IFDEF GLOBAL_TICK_COUNTER}
@@ -1999,19 +1708,11 @@ begin
 {$ENDIF GLOBAL_TICK_COUNTER}
 
   if not FActive then begin
+    Clear;
     FActive := true;
-    FCryptKeySet := false;
     FWatchedConnectionID := pPacket.ConnectionID;
     DoOnConnect;
   end;
-
-  if pPacket.Size > FLargestDAOCPacketSeen then
-    FLargestDAOCPacketSeen := pPacket.Size;
-
-  if FCryptKeySet then
-      { decrypt all TCP packets and all UDP from server }
-    if (pPacket.IPProtocol = daocpTCP) or pPacket.IsFromServer then
-      pPacket.Decrypt(FCryptKey);
 
   if Assigned(FOnPacket) then
     FOnPacket(Self, pPacket);
@@ -2029,7 +1730,7 @@ begin
   CheckScheduledTimeoutCallback;
 end;
 
-procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'SetGroundTarget';
   FGroundTarget.X := pPacket.getLong;
@@ -2143,7 +1844,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TGenericNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -2214,7 +1915,7 @@ begin
 end;
 
 procedure TDAOCConnection.ParseCharacterActivationRequest(
-  pPacket: TDAOCPacket);
+  pPacket: TGenericNetPacket);
 var
   sCharName:  string;
 begin
@@ -2225,7 +1926,7 @@ begin
   { account name follows as an NTS, but who cares }
 end;
 
-function TDAOCConnection.SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
+function TDAOCConnection.SetActiveCharacterByName(const ACharacterName: string) : TDAOCAccountCharInfo;
 begin
   Result := FAccountCharacters.FindOrAddChar(ACharacterName);
 
@@ -2235,14 +1936,14 @@ begin
   DoSetRegionID(Result.RegionID);
 end;
 
-procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'ServerProcotolInit';
   
   FServerProtocol := pPacket.GetByte;
   pPacket.seek(3);
-  FAccountCharacters.FAccountName := pPacket.getPascalString;
-  FAccountCharacters.FServerName := pPacket.getPascalString;
+  FAccountCharacters.AccountName := pPacket.getPascalString;
+  FAccountCharacters.ServerName := pPacket.getPascalString;
 end;
 
 procedure TDAOCConnection.SetClientIP(const Value: string);
@@ -2256,13 +1957,13 @@ begin
 end;
 
 procedure TDAOCConnection.ParseRequestPlayerByPlayerID(
-  pPacket: TDAOCPacket);
+  pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'RequestPlayerByPlayerID';
   // pPacket.getShort;  // PlayerID
 end;
 
-procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'RequestObjectByInfoID';
 end;
@@ -2303,7 +2004,7 @@ begin
   end;  { while pObj }
 end;
 
-procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'PlayerCenteredSpellEffect NOTIMPL';
   { I think this is a "Player-Centered" spell effect.  Like a spell effect
@@ -2313,7 +2014,7 @@ begin
   // ID := pPacket.getShort;
 end;
 
-procedure TDAOCConnection.ParseServerPingResponse(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseServerPingResponse(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'ServerPingResponse';
   { the server sends us back a copy of the timer we sent }
@@ -2323,7 +2024,7 @@ begin
   DoOnPingReply;
 end;
 
-procedure TDAOCConnection.ParseServerPingRequest(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseServerPingRequest(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'ServerPingRequest';
     { We can't use the client's tick count for the ping request time, since
@@ -2339,46 +2040,7 @@ begin
     FOnPingReply(Self, FLastPingTime);
 end;
 
-procedure TDAOCConnection.ResumeConnection(const AFileName: string);
-begin
-  with TINIFile.Create(AFileName) do begin
-    CryptKey := ReadString('ConnectionState', 'CryptKey', '');
-    ServerIP := ReadString('ConnectionState', 'ServerIP', '');
-    ClientIP := ReadString('ConnectionState', 'ClientIP', '');
-    RegionID := ReadInteger('ConnectionState', 'RegionID', 0);
-    ServerProtocol := ReadInteger('ConnectionState', 'ServerProtocol', 0);
-    FLocalPlayer.Level := ReadInteger('ConnectionState', 'Level', 0);
-    FLocalPlayer.Realm := TDAOCRealm(ReadInteger('ConnectionState', 'Realm', ord(drNeutral)));
-    Free;
-  end;
-
-  if (FServerAddr = 0) or (FClientAddr = 0) then
-    exit;
-
-  FCryptKeySet := true; // CryptKey <> '000000000000000000000000';
-  FActive := true;
-
-  FTCPFromClient.Clear;
-  FTCPFromServer.Clear;
-
-  FAccountCharacters.Clear;
-end;
-
-procedure TDAOCConnection.SaveConnectionState(const AFileName: string);
-begin
-  with TINIFile.Create(AFileName) do begin
-    WriteString('ConnectionState', 'CryptKey', CryptKey);
-    WriteString('ConnectionState', 'ServerIP', ServerIP);
-    WriteString('ConnectionState', 'ClientIP', ClientIP);
-    WriteInteger('ConnectionState', 'RegionID', RegionID);
-    WriteInteger('ConnectionState', 'ServerProtocol', ServerProtocol);
-    WriteInteger('ConnectionState', 'Level', FLocalPlayer.Level);
-    WriteInteger('ConnectionState', 'Realm', ord(FLocalPlayer.Realm));
-    Free;
-  end;
-end;
-
-procedure TDAOCConnection.ParseGroupMembersUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseGroupMembersUpdate(pPacket: TGenericNetPacket);
 var
   iCnt:   integer;
   wID:    WORD;
@@ -2415,7 +2077,7 @@ begin
   DoOnGroupMembersChanged;
 end;
 
-procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'GroupWindowUpdate? NOTIMPL';
 end;
@@ -2431,7 +2093,7 @@ begin
   FGroupMembers.Clear;
 end;
 
-procedure TDAOCConnection.ParseAggroIndicator(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseAggroIndicator(pPacket: TGenericNetPacket);
 (*
 var
   wTarget:  WORD;
@@ -2495,11 +2157,11 @@ begin
   DoOnNewDAOCObject(ADAOCObject);
 end;
 
-procedure TDAOCConnection.ParseAccountLoginRequest(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseAccountLoginRequest(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'AccountLoginRequest';
   pPacket.seek(5);
-  FAccountCharacters.FAccountPassword := pPacket.getNullTermString(11);
+  FAccountCharacters.AccountPassword := pPacket.getNullTermString(11);
     { there's some other information here, like the account name, but its
       at the end of some other ??? data, so we'll wait until the server
       sends back the account name }
@@ -2525,7 +2187,7 @@ begin
     FOnUnknownStealther(Self, AUnk);
 end;
 
-procedure TDAOCConnection.ParseDelveRequest(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseDelveRequest(pPacket: TGenericNetPacket);
 begin
   pPacket.HandlerName := 'DelveRequest';
   pPacket.seek(3);
@@ -2534,7 +2196,7 @@ begin
   FLastDelveRequestPos := pPacket.getByte;
 end;
 
-procedure TDAOCConnection.ParseDelveInformation(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseDelveInformation(pPacket: TGenericNetPacket);
 var
   sItemName:    string;
   s:            string;
@@ -2619,7 +2281,7 @@ begin
   FRealmRanks.Sorted := true;
 end;
 
-procedure TDAOCConnection.ParseVendorWindowRequest(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseVendorWindowRequest(pPacket: TGenericNetPacket);
 var
   wID:    WORD;
   pMob:   TDAOCMob;
@@ -2689,7 +2351,7 @@ begin
     FOnGroupMembersChanged(Self);
 end;
 
-procedure TDAOCConnection.ParseDoorPositionUpdate(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseDoorPositionUpdate(pPacket: TGenericNetPacket);
 var
   pObj:   TDAOCObject;
   dwDoor: Cardinal;
@@ -2858,22 +2520,22 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseNewMob(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseNewMob(pPacket: TGenericNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocMob);
 end;
 
-procedure TDAOCConnection.ParseNewObject(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseNewObject(pPacket: TGenericNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocObject);
 end;
 
-procedure TDAOCConnection.ParseNewPlayer(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseNewPlayer(pPacket: TGenericNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocPlayer);
 end;
 
-procedure TDAOCConnection.ParseNewVehicle(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseNewVehicle(pPacket: TGenericNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocVehicle);
 end;
@@ -2883,7 +2545,7 @@ procedure TDAOCConnection.AdjustObjLocForZone(AObj: TDAOCObject;
 var
   pZoneBase:  TDAOCZoneInfo;
 begin
-  if Assigned(FZone) and (FZone.ZoneNum = AZoneNum) then
+ if Assigned(FZone) and (FZone.ZoneNum = AZoneNum) then
     pZoneBase := FZone
   else
     pZoneBase := FZoneList.FindZone(AZoneNum);
@@ -2891,6 +2553,14 @@ begin
   if Assigned(pZoneBase) then begin
     AObj.X := pZoneBase.ZoneToWorldX(AObj.X);
     AObj.Y := pZoneBase.ZoneToWorldY(AObj.Y);
+  end;
+
+    { if we're adjusting our player position and the found zone isn't the
+      one we're in, then adjust our current zone to the new one }
+  if (AObj = FLocalPlayer) and (pZoneBase <> FZone) then begin
+    FZone := pZoneBase;
+    FRegionID := FZone.Region;
+    DoOnZoneChange;
   end;
 end;
 
