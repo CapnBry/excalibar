@@ -1,3 +1,16 @@
+IN TESTING
+----------
+  + Fix for Access Violation when targeting for people using a period
+    as their time separator. (standifer2)
+  + Added [Main] ChatInfoXIEnabled to INI
+  + Added delay to SendKeys to wait in between sending a / and the rest
+    of the command.
+  + Fixed Q10 on Spellcraft Help actually buying Q100.
+  + Fixed Spellcraft Help mbuy to work over 100 items.
+  + Patch for using a profile with quicklaunch. (neelm)
+  + Added Prompt command with param substitution to remote admin.
+  + Added DumpChat commant to remote admin.
+
 2004 Jan 16 - v1.78
 -------------------
   + Fixed typo in naming of Eldritch recipes.
