@@ -580,7 +580,7 @@ var
 begin
   fx := DWORDDelta(X, Self.FProjectedX);
   fy := DWORDDelta(Y, Self.FProjectedY);
-  fz := DWORDDelta(Y, Self.FZ);
+  fz := DWORDDelta(Z, Self.FZ);
 
   Result := fx * fx + fy * fy + fz * fz;
 end;
