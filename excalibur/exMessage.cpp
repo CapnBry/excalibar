@@ -33,12 +33,11 @@ exMessage::exMessage(QString newMsg, uint8_t opCode, uint8_t typeCode)
 	this->FormattedText = this->Msg;
 	this->opCode = opCode;
 	this->typeCode = typeCode;
+
 }
 
 exMessage::~exMessage()
 {
-	if( NULL != this->Msg)
-		delete this->Msg;
 }
 
 void exMessage::parseMsg()
