@@ -73,6 +73,10 @@ class SniffedMessage : public CheyenneMessage
 public:
     SniffedMessage(){bSniffed=true;};
     virtual ~SniffedMessage(){};
+    virtual void Print(std::ostream& str)const
+    {
+        str << "\topcode=" << GetOpcode() << "\n";
+    }
     opcodes::opcode_t GetOpcode(void)const{return(opcode);};
 
 protected:
@@ -84,7 +88,21 @@ struct player_pos_update : public daocmessages::SniffedMessage
     {
     player_pos_update() {opcode=opcodes::player_pos_update;};
     ~player_pos_update(){};
-
+    void Print(std::ostream& str)const
+    {
+        str << "[player_pos_update::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\tspeed=" << speed << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\theading=" << heading << "\n"
+            << "\thp=" << hp << "\n"
+            << "\tvisibility=" << visibility << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[player_pos_update::Print] end\n";
+    }
     unsigned short player_id;
     unsigned short speed;
     unsigned short z;
@@ -100,6 +118,17 @@ struct self_health_update : public daocmessages::SniffedMessage
     {
     self_health_update(){opcode=opcodes::self_health_update;};
     ~self_health_update(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[self_health_update::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\thealth=" << health << "\n"
+            << "\tmana=" << mana << "\n"
+            << "\tendurance=" << endurance << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[self_health_update::Print] end\n";
+    }
 
     unsigned char health;
     unsigned char mana;
@@ -112,6 +141,15 @@ struct system_message : public daocmessages::SniffedMessage
     {
     system_message() : string(NULL){opcode=opcodes::system_message;};
     ~system_message(){if(string){delete string;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[system_message::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tsubcode=" << subcode << "\n"
+            << "\ttypecode=" << typecode << "\n"
+            << "\tstring=" << string << "\n"
+        << "[system_message::Print] end\n";
+    }
 
     unsigned char subcode;
     unsigned char typecode;
@@ -123,6 +161,20 @@ struct mob_pos_update : public daocmessages::SniffedMessage
     {
     mob_pos_update(){opcode=opcodes::mob_pos_update;};
     ~mob_pos_update(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[mob_pos_update::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tmob_id=" << mob_id << "\n"
+            << "\tspeed=" << speed << "\n"
+            << "\theading=" << heading << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\thealth=" << health << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[mob_pos_update::Print] end\n";
+    }
 
     unsigned short speed;
     unsigned short heading;
@@ -138,6 +190,17 @@ struct player_head_update : public daocmessages::SniffedMessage
     {
     player_head_update(){opcode=opcodes::player_head_update;};
     ~player_head_update(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[player_head_update::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\theading=" << heading << "\n"
+            << "\thp=" << hp << "\n"
+            << "\tvisibility=" << visibility << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[mob_pos_update::Print] end\n";
+    }
 
     unsigned short player_id;
     unsigned short heading;
@@ -187,6 +250,15 @@ struct player_target : public daocmessages::SniffedMessage
     {
     player_target(){opcode=opcodes::player_target;};
     ~player_target(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[player_target::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\ttarget_id=" << target_id << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[player_target::Print] end\n";
+    }
 
     unsigned short player_id;
     unsigned short target_id;
@@ -197,6 +269,17 @@ struct player_ground_target : public daocmessages::SniffedMessage
     {
     player_ground_target(){opcode=opcodes::ground_target;};
     ~player_ground_target(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[player_ground_target::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[player_ground_target::Print] end\n";
+    }
 
     unsigned short player_id;
     unsigned char detected_region;
@@ -218,6 +301,15 @@ struct name_realm_zone : public daocmessages::SniffedMessage
     {
     name_realm_zone() : name(NULL){opcode=opcodes::name_realm_zone;};
     ~name_realm_zone(){if(name){delete name;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[name_realm_zone::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tname=" << name << "\n"
+            << "\trealm=" << realm << "\n"
+            << "\tregion=" << region << "\n"
+        << "[name_realm_zone::Print] end\n";
+    }
 
     unsigned char realm;
     unsigned char region;
@@ -237,6 +329,17 @@ struct self_id_position : public daocmessages::SniffedMessage
     {
     self_id_position(){opcode=opcodes::selfid_pos;};
     ~self_id_position(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[self_id_position::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tself_id=" << self_id << "\n"
+            << "\trealm=" << realm << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[self_id_position::Print] end\n";
+    }
 
     unsigned short self_id;
     unsigned int x;
@@ -250,6 +353,14 @@ struct delete_object : public daocmessages::SniffedMessage
     {
     delete_object(){opcode=opcodes::delete_object;};
     ~delete_object(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[delete_object::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tobject_id=" << object_id << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[delete_object::Print] end\n";
+    }
 
     unsigned short object_id;
     unsigned char detected_region;
@@ -259,6 +370,19 @@ struct object_identity : public daocmessages::SniffedMessage
     {
     object_identity() : name(NULL){opcode=opcodes::object_id;};
     ~object_identity(){if(name){delete name;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[object_identity::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tobject_id=" << object_id << "\n"
+            << "\theading=" << heading << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\tname=" << name << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[object_identity::Print] end\n";
+    }
 
     unsigned short object_id;
     unsigned short heading;
@@ -273,6 +397,20 @@ struct vehicle_identity : public daocmessages::SniffedMessage
     {
     vehicle_identity() : name(NULL){opcode=opcodes::new_vehicle;};
     ~vehicle_identity(){if(name){delete name;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[object_identity::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tobject_id=" << object_id << "\n"
+            << "\tname=" << name << "\n"
+            << "\theading=" << heading << "\n"
+            << "\tspeed=" << speed << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[object_identity::Print] end\n";
+    }
 
     unsigned short object_id;
     unsigned short heading;
@@ -288,8 +426,25 @@ struct mob_identity : public daocmessages::SniffedMessage
     {
     mob_identity() : name(NULL),guild(NULL){opcode=opcodes::mob_id;};
     ~mob_identity(){if(name){delete name;}if(guild){delete guild;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[mob_identity::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tmob_id=" << mob_id << "\n"
+            << "\tname=" << name << "\n"
+            << "\tguild=" << guild << "\n"
+            << "\theading=" << heading << "\n"
+            << "\tspeed=" << speed << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\tlevel=" << level << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[mob_identity::Print] end\n";
+    }
 
     unsigned short mob_id;
+    unsigned short speed;
     unsigned short heading;
     unsigned short z;
     unsigned int x;
@@ -304,6 +459,24 @@ struct player_identity : public daocmessages::SniffedMessage
     {
     player_identity() : name(NULL),guild(NULL),surname(NULL){opcode=opcodes::player_id;};
     ~player_identity(){if(name){delete name;}if(guild){delete guild;}if(surname){delete surname;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[player_identity::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tplayer_id=" << player_id << "\n"
+            << "\tinfo_id=" << info_id << "\n"
+            << "\tname=" << name << "\n"
+            << "\tsurname=" << surname << "\n"
+            << "\tguild=" << guild << "\n"
+            << "\theading=" << heading << "\n"
+            << "\trealm=" << realm << "\n"
+            << "\tx=" << x << "\n"
+            << "\ty=" << y << "\n"
+            << "\tz=" << z << "\n"
+            << "\tlevel=" << level << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[player_identity::Print] end\n";
+    }
 
     unsigned short player_id;
     unsigned short info_id; // ??
@@ -323,6 +496,15 @@ struct set_hp : public daocmessages::SniffedMessage
     {
     set_hp(){opcode=opcodes::set_hp;};
     ~set_hp(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[set_hp::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tid=" << id << "\n"
+            << "\thp=" << hp << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[set_hp::Print] end\n";
+    }
 
     unsigned short id;
     unsigned char hp;
@@ -333,6 +515,15 @@ struct self_zone_change : public daocmessages::SniffedMessage
     {
     self_zone_change(){opcode=opcodes::self_zone_change;};
     ~self_zone_change(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[self_zone_change::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tid=" << id << "\n"
+            << "\tregion=" << region << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[self_zone_change::Print] end\n";
+    }
 
     unsigned short region;
     unsigned char detected_region;
@@ -343,6 +534,18 @@ struct inventory_change : public daocmessages::SniffedMessage
     {
     inventory_change() : name(NULL){opcode=opcodes::inventory_change;};
     ~inventory_change(){if(name){delete name;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[inventory_change::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tslot=" << slot << "\n"
+            << "\tcondition=" << condition << "\n"
+            << "\tdurability=" << durability << "\n"
+            << "\tquality=" << quality << "\n"
+            << "\tbonus=" << bonus << "\n"
+            << "\tname=" << name << "\n"
+        << "[inventory_change::Print] end\n";
+    }
 
     unsigned char slot;
     unsigned char condition;
@@ -356,6 +559,19 @@ struct player_level_name : public daocmessages::SniffedMessage
     {
     player_level_name() : name(NULL){opcode=opcodes::player_level_name;};
     ~player_level_name(){if(name){delete name;}};
+    void Print(std::ostream& str)const
+    {
+        str << "[player_level_name::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\twhat=" << what << "\n"
+            << "\ttp=" << tp << "\n"
+            << "\tname=" << name << "\n"
+            << "\tlevel=" << level << "\n"
+            << "\tplayer_id=" << player_id << "\n"
+            << "\tregion=" << region << "\n"
+            << "\toriginal_self_region=" << original_self_region << "\n"
+        << "[player_level_name::Print] end\n";
+    }
 
     unsigned char what;
     unsigned char tp;
@@ -370,6 +586,15 @@ struct stealth : public daocmessages::SniffedMessage
     {
     stealth(){opcode=opcodes::stealth;};
     ~stealth(){};
+    void Print(std::ostream& str)const
+    {
+        str << "[stealth::Print] begin\n";
+        SniffedMessage::Print(str);
+        str << "\tinfo_id=" << info_id << "\n"
+            << "\tdetector_id=" << detector_id << "\n"
+            << "\tdetected_region=" << detected_region << "\n"
+        << "[stealth::Print] end\n";
+    }
 
     unsigned short info_id; // stealther infoid
     unsigned short detector_id; // id of the player that detected this stealther
