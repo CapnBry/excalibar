@@ -395,6 +395,8 @@ void exMap::paintGL() {
   }
 
   /* draw a couple range cirlces around the player */	
+  glLineWidth (1.0);
+  qglColor(darkGray);
   drawCircle(c->playerx, c->playery, 1000, 20); 
   drawCircle(c->playerx, c->playery, 1500, 20); 
 	     
