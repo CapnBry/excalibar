@@ -64,7 +64,6 @@ type
     FDirtyCount:    integer;
     FInvalidateCount: integer;
     FZoneName:      string;
-    FHasOpenGL13:   boolean;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -409,7 +408,7 @@ begin
       lstObjects.ItemIndex := iOldIndex + 1
     else if iOldIndex <> -1 then
       lstObjects.ItemIndex := iOldIndex;
-      
+
     UpdateObjectCounts;
 
     if FRenderPrefs.RedrawOnAdd then
