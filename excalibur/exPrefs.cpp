@@ -66,6 +66,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);
     frm->vaderWarn->setOn(vaderWarn);
+    frm->MaxFPS->setOn(maxfps);
     frm->MapPNGs->setOn(map_load_png_maps);
     frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
     frm->MapPlayerNames->setOn(map_rasterize_player_names);
