@@ -106,6 +106,7 @@ object frmGLRender: TfrmGLRender
       Width = 217
       Height = 575
       Style = lbVirtualOwnerDraw
+      AutoComplete = False
       Align = alClient
       BorderStyle = bsNone
       Ctl3D = False

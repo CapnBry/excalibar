@@ -411,11 +411,13 @@ end;
 procedure TfrmGLRender.DAOCAddObject(AObj: TDAOCObject);
 var
   iOldIndex:  integer;
+  iOldTop:    integer;
   iPos:       integer;
 begin
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     iPos := FilteredObjectInsert(AObj);
     iOldIndex := lstObjects.ItemIndex;
+    iOldTop := lstObjects.TopIndex;
 
     SetObjectListRowCount(FFilteredObjects.Count);
 
@@ -425,6 +427,11 @@ begin
       lstObjects.ItemIndex := iOldIndex + 1
     else if iOldIndex <> -1 then
       lstObjects.ItemIndex := iOldIndex;
+
+    if iPos <= iOldTop then
+      lstObjects.TopIndex := iOldTop + 1
+    else
+      lstObjects.TopIndex := iOldTop;
 
     UpdateObjectCounts;
 
@@ -447,6 +454,7 @@ end;
 procedure TfrmGLRender.DAOCDeleteObject(AObj: TDAOCObject);
 var
   iOldPos:  integer;
+  iOldTop:  integer;
   iPos:     integer;
 begin
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
@@ -459,11 +467,17 @@ begin
     UpdateObjectCounts;
 
     iOldPos := lstObjects.ItemIndex;
+    iOldTop := lstObjects.TopIndex;
     SetObjectListRowCount(FFilteredObjects.Count);
     if iPos <= iOldPos then
       lstObjects.ItemIndex := iOldPos - 1
     else
       lstObjects.ItemIndex := iOldPos;
+
+    if (iPos <= iOldTop) and (iOldTop > 0) then
+      lstObjects.TopIndex := iOldTop - 1
+    else if iOldTop < lstObjects.Items.Count then
+      lstObjects.TopIndex := iOldTop;
 
     if FRenderPrefs.RedrawOnDelete then
       Dirty;
@@ -1240,11 +1254,10 @@ begin
       TextOut(Rect.Left + 150, Rect.Top + 2, sText);
 
         { HEALTH }
-      if pMob.HitPoints > 0 then
-        sText := IntToStr(pMob.HitPoints)
-      else
-        sText := '';
-      TextOut(Rect.Left + 175, Rect.Top + 2, sText);
+      if pMob.HitPoints > 0 then begin
+        sText := IntToStr(pMob.HitPoints);
+        TextOut(Rect.Left + 175, Rect.Top + 2, sText);
+      end;
 
         { If selected, draw the focus rect even if we're not focused }
       if (odSelected in State) and not (odFocused in State) then
@@ -1531,7 +1544,8 @@ begin
   else
     pNearest := FFilteredObjects.FindNearest2D(FMouseLocX, FMouseLocY);
 
-  if Assigned(pNearest) and (pNearest.Distance2D(FMouseLocX, FMouseLocY) > FMobTriangle.Size) then
+  if Assigned(pNearest) and
+    (round(pNearest.Distance2D(FMouseLocX, FMouseLocY)) > (2 * FMobTriangle.Size)) then
     pNearest := nil;
 
   if Assigned(pNearest) then
