@@ -46,7 +46,8 @@ uses
   DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas',
   DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging},
   GlobalTickCounter in '..\Common\GlobalTickCounter.pas',
-  QuickSinCos in '..\Common\QuickSinCos.pas';
+  QuickSinCos in '..\Common\QuickSinCos.pas',
+  Macroing in 'Macroing.pas' {frmMacroing};
 
 {$R *.TLB}
 
@@ -63,6 +64,7 @@ begin
   Application.CreateForm(TfrmTellMacro, frmTellMacro);
   Application.CreateForm(TfrmSpellcraftHelp, frmSpellcraftHelp);
   Application.CreateForm(TfrmDebugging, frmDebugging);
+  Application.CreateForm(TfrmMacroing, frmMacroing);
   CreateOptionalForms;
   Application.Run;
 end.
