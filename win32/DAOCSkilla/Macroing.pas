@@ -58,6 +58,7 @@ type
     procedure DAOCArriveAtGotoDest;
     procedure DAOCSelectNPCSuccess;
     procedure DAOCSelectNPCFailed;
+    procedure DAOCAttemptNPCRightClickFailed;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -458,6 +459,15 @@ end;
 procedure TfrmMacroing.DAOCSelectNPCFailed;
 begin
   FSelectingNPC := false;
+end;
+
+procedure TfrmMacroing.DAOCAttemptNPCRightClickFailed;
+begin
+  if Visible then begin
+      { srafe right a bit and try again }
+    FDControl.StrafeRight(500);
+    ArrivedAtMerchant(nil, 0);
+  end;
 end;
 
 end.
