@@ -21,6 +21,11 @@
 #ifndef _EXCALIBUR_H
 #define _EXCALIBUR_H
 
+#include <qmodules.h>
+#ifndef QT_MODULE_NETWORK
+#define QT_MODULE_NETWORK
+#endif
+
 #undef ALPHA_QUALITY
 #ifdef ALPHA_QUALITY
 #warning "This is a ALPHA quality release. It most likely WILL break."

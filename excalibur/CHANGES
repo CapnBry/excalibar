@@ -25,6 +25,11 @@ Bug fixes (CapnBry):
  + Changed the range circles to be dark grey, so that they
    actually show up now.
 
+Bug fixes (Me):
+ + Added an experimental fix for the QT_NETWORK_MODULE issues
+   experienced at compile time. The method I used for this is
+   questionable at best.
+
 
 Andon (07/Feb/02)
 ------------------
