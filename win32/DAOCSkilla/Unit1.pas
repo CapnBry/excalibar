@@ -57,6 +57,11 @@ type
     ViewDaocSkillainternallog1: TMenuItem;
     atnForceVersionsUpdate: TAction;
     Forceversioncheck1: TMenuItem;
+    atnAppendMobseen: TAction;
+    atnAppendDelveseen: TAction;
+    Appendmobseenfile1: TMenuItem;
+    Appenddelveseenfile1: TMenuItem;
+    N1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -81,6 +86,9 @@ type
     procedure atnRemoteAdminEnableExecute(Sender: TObject);
     procedure atnSkillaLogExecute(Sender: TObject);
     procedure atnForceVersionsUpdateExecute(Sender: TObject);
+    procedure atnAppendDelveseenExecute(Sender: TObject);
+    procedure atnAppendMobseenExecute(Sender: TObject);
+    procedure atnDumpMobListExecute(Sender: TObject);
   private
 {$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
@@ -241,6 +249,8 @@ procedure TfrmMain.DAOCConnect(Sender: TObject);
 var
   pConn:  TDAOCControl;
 begin
+  atnDumpMobList.Enabled := true;
+  
   pConn := TDAOCControl(Sender);
   Log('New connection: ' + pConn.ClientIP + '->' + pConn.ServerIP);
 
@@ -255,6 +265,7 @@ procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
   // BRY2: Hmmm need to figure out if we're tracking this connection first. Needs work
   // CloseChatLog;
+  atnDumpMobList.Enabled := FDControlList.Count > 0;
 
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCConnectionList := FDControlList;
@@ -371,6 +382,15 @@ begin
     FDebugLogState.ChatLogEnabled := ReadBool('Logging', 'RealtimeChatLog', false);
     FDebugLogState.ChatLogXIEnabled := ReadBool('Logging', 'ChatLogXIEnabled', true);
     FDebugLogState.ChatLogFileName := ReadString('Logging', 'ChatLogFile', ExtractFilePath(ParamStr(0)) + 'realchat.log');
+      { make sure the Append*s precede the Record*s because the Records open the file }
+    FDebugLogState.AppendMobseen := ReadBool('Logging', 'AppendMobseen', true);
+    FDebugLogState.AppendDelveseen := ReadBool('Logging', 'AppendDelveseen', true);
+    FDebugLogState.RecordMobseen := ReadBool('Logging', 'RecordMobseen', false);
+    FDebugLogState.RecordDelveseen := ReadBool('Logging', 'RecordDelveseen', false);
+    atnAppendMobseen.Checked := FDebugLogState.AppendMobseen;
+    atnAppendDelveseen.Checked := FDebugLogState.AppendDelveseen;
+    atnCaptureMobseen.Checked := FDebugLogState.RecordMobseen;
+    atnCaptureDelveseen.Checked := FDebugLogState.RecordDelveseen;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -446,6 +466,10 @@ begin
     WriteString('Logging', 'ChatLogFile', FDebugLogState.ChatLogFileName);
     WriteBool('Logging', 'RealtimeChatLog', FDebugLogState.ChatLogEnabled);
     WriteBool('Logging', 'ChatLogXIEnabled', FDebugLogState.ChatLogXIEnabled);
+    WriteBool('Logging', 'AppendMobseen', FDebugLogState.AppendMobseen);
+    WriteBool('Logging', 'AppendDelveseen', FDebugLogState.AppendDelveseen);
+    WriteBool('Logging', 'RecordMobseen', FDebugLogState.RecordMobseen);
+    WriteBool('Logging', 'RecordDelveseen', FDebugLogState.RecordDelveseen);
 
     WriteBool('Main', 'RemoteAdminEnabled', atnRemoteAdminEnable.Checked);
 
@@ -1006,6 +1030,22 @@ end;
 function TfrmMain.GetVersion: string;
 begin
   Result := GetVersionString;
+end;
+
+procedure TfrmMain.atnAppendDelveseenExecute(Sender: TObject);
+begin
+  FDebugLogState.AppendDelveseen := atnAppendDelveseen.Checked;
+end;
+
+procedure TfrmMain.atnAppendMobseenExecute(Sender: TObject);
+begin
+  FDebugLogState.AppendMobseen := atnAppendMobseen.Checked;
+end;
+
+procedure TfrmMain.atnDumpMobListExecute(Sender: TObject);
+begin
+  if FDControlList.Count > 0 then
+    FDebugLogState.DumpMobsToLog(FDControlList[0]);
 end;
 
 end.

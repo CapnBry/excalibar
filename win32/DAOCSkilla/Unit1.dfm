@@ -118,20 +118,31 @@ object frmMain: TfrmMain
       object Setrealtimechatlogfile1: TMenuItem
         Action = atnChangeChatLogFile
       end
-      object Capturemobupdatestomobseen1: TMenuItem
-        Action = atnCaptureMobseen
-        AutoCheck = True
-      end
-      object Capturedelveinfotodelveseen1: TMenuItem
-        Action = atnCaptureDelveseen
-        AutoCheck = True
-      end
       object Dumppacketdatatolog1: TMenuItem
         Action = atnDumpPacketDataToLog
         AutoCheck = True
       end
       object atnDumpMobList1: TMenuItem
         Action = atnDumpMobList
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object Capturemobupdatestomobseen1: TMenuItem
+        Action = atnCaptureMobseen
+        AutoCheck = True
+      end
+      object Appendmobseenfile1: TMenuItem
+        Action = atnAppendMobseen
+        AutoCheck = True
+      end
+      object Capturedelveinfotodelveseen1: TMenuItem
+        Action = atnCaptureDelveseen
+        AutoCheck = True
+      end
+      object Appenddelveseenfile1: TMenuItem
+        Action = atnAppendDelveseen
+        AutoCheck = True
       end
     end
     object Windows1: TMenuItem
@@ -190,6 +201,8 @@ object frmMain: TfrmMain
     object atnDumpMobList: TAction
       Category = 'Logging'
       Caption = 'Dump current mob list to internal log'
+      Enabled = False
+      OnExecute = atnDumpMobListExecute
     end
     object atnDumpPacketDataToLog: TAction
       Category = 'Logging'
@@ -209,6 +222,13 @@ object frmMain: TfrmMain
       Caption = 'Capture mob updates to mobseen.csv'
       OnExecute = atnCaptureMobseenExecute
     end
+    object atnAppendMobseen: TAction
+      Category = 'Logging'
+      AutoCheck = True
+      Caption = 'Append mobseen file'
+      Checked = True
+      OnExecute = atnAppendMobseenExecute
+    end
     object atnCaptureDelveseen: TAction
       Category = 'Logging'
       AutoCheck = True
@@ -224,6 +244,13 @@ object frmMain: TfrmMain
       Category = 'Network'
       Caption = 'Force version check'
       OnExecute = atnForceVersionsUpdateExecute
+    end
+    object atnAppendDelveseen: TAction
+      Category = 'Logging'
+      AutoCheck = True
+      Caption = 'Append delveseen file'
+      Checked = True
+      OnExecute = atnAppendDelveseenExecute
     end
   end
 end
