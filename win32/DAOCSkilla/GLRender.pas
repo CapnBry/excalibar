@@ -141,6 +141,7 @@ type
     function SetObjectListRowCount(ACount: integer) : boolean;
     procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
     procedure RENDERPrefsMobListOptionChanged(Sender: TObject);
+    procedure RENDERPrefsMobTriangleSizeChanged(Sender: TObject);
     procedure UpdateFrameStats(ATime: integer);
     procedure InvalidateListObject(AObj: TDAOCObject);
     procedure UpdateStayOnTop;
@@ -157,6 +158,7 @@ type
     procedure AddPushPin;
     procedure SetSmoothingOpts;
     procedure CreateGLWindow;
+    procedure AdjustMobTriangleSize;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -388,25 +390,10 @@ begin
 end;
 
 procedure TfrmGLRender.slideZoomChange(Sender: TObject);
-var
-  iSize:  integer;
 begin
   FRange := slideZoom.Position;
-
-  iSize := FRange div 40;
-  if iSize > 300 then
-    iSize := 300
-  else if iSize < 25 then
-    iSize := 25;
-  FMobTriangle.Size := iSize;
-  FBoat.Size := 2 * iSize;
-  
-  if Visible then begin
-    FMobTriangle.GLCleanup;
-    FMobTriangle.GLInitialize;
-    FBoat.GLCleanup;
-    FBoat.GLInitialize;
-  end;
+  if FRenderPrefs.ScaleMobTriangle then
+    AdjustMobTriangleSize;
 
   Dirty;
 end;
@@ -745,6 +732,7 @@ begin
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
+  FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged; 
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
   FRenderPrefs.HasGLUT := Assigned(glutInit);
 
@@ -1525,15 +1513,17 @@ begin
     UpdateStayOnTop;
     tmpPrefs.Free;
   end
-  
+
   else begin
     FRenderPrefs.Free;
     FRenderPrefs := tmpPrefs;
     FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
     FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
+    FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged;
 
     RENDERPrefsObjectFilterChanged(FRenderPrefs);
     RENDERPrefsMobListOptionChanged(FRenderPrefs);
+    RENDERPrefsMobTriangleSizeChanged(FRenderPrefs);
   end;
 end;
 
@@ -2003,6 +1993,43 @@ begin
   glMap.WindowFlags := [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer];
 
   glMap.Initialize;
+end;
+
+procedure TfrmGLRender.AdjustMobTriangleSize;
+var
+  iSize:  integer;
+  dwDiv:  Cardinal;
+begin
+  if FRenderPrefs.ScaleMobTriangle then begin
+    dwDiv := 6000 div FRenderPrefs.MobTriangleNom;
+
+    if dwDiv = 0 then
+      dwDiv := 1;
+
+    iSize := FRange div dwDiv;
+    if iSize > FRenderPrefs.MobTriangleMax then
+      iSize := FRenderPrefs.MobTriangleMax
+    else if iSize < FRenderPrefs.MobTriangleMin then
+      iSize := FRenderPrefs.MobTriangleMin;
+  end
+  else
+    iSize := FRenderPrefs.MobTriangleNom;
+
+  FMobTriangle.Size := iSize;
+  FBoat.Size := 2 * iSize;
+
+  if Visible then begin
+    FMobTriangle.GLCleanup;
+    FMobTriangle.GLInitialize;
+    FBoat.GLCleanup;
+    FBoat.GLInitialize;
+    Dirty;
+  end;
+end;
+
+procedure TfrmGLRender.RENDERPrefsMobTriangleSizeChanged(Sender: TObject);
+begin
+  AdjustMobTriangleSize;
 end;
 
 end.

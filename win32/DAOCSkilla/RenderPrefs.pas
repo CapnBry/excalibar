@@ -27,9 +27,15 @@ type
     FGroupByRealm: boolean;
     FGroupByClass: boolean;
     FAlternateMobListText: boolean;
+    FOnMobTriangleSizeChanged: TNotifyEvent;
+    FScaleMobTriangle: boolean;
+    FMobTriangleMax: integer;
+    FMobTriangleNom: integer;
+    FMobTriangleMin: integer;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
+    procedure DoOnMobTriangleSizeChanged;
     procedure SetHasGLUT(const Value: boolean);
     procedure SetHasOpenGL13(const Value: boolean);
     procedure SetDrawFriendlyPlayers(const Value: boolean);
@@ -38,6 +44,10 @@ type
     procedure SetGroupByRealm(const Value: boolean);
     procedure SetGroupByClass(const Value: boolean);
     procedure SetAlternateMobListText(const Value: boolean);
+    procedure SetMobTriangleMax(const Value: integer);
+    procedure SetMobTriangleMin(const Value: integer);
+    procedure SetMobTriangleNom(const Value: integer);
+    procedure SetScaleMobTriangle(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -93,8 +103,13 @@ type
     property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
     property GroupByClass: boolean read FGroupByClass write SetGroupByClass;
     property AlternateMobListText: boolean read FAlternateMobListText write SetAlternateMobListText;
+    property MobTriangleMin: integer read FMobTriangleMin write SetMobTriangleMin;
+    property MobTriangleMax: integer read FMobTriangleMax write SetMobTriangleMax;
+    property MobTriangleNom: integer read FMobTriangleNom write SetMobTriangleNom;
+    property ScaleMobTriangle: boolean read FScaleMobTriangle write SetScaleMobTriangle;
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
     property OnMobListOptionsChanged: TNotifyEvent read FOnMobListOptionsChanged write FOnMobListOptionsChanged;
+    property OnMobTriangleSizeChanged: TNotifyEvent read FOnMobTriangleSizeChanged write FOnMobTriangleSizeChanged; 
   end;
 
   TfrmRenderPrefs = class(TForm)
@@ -176,6 +191,14 @@ type
     chkSmoothLines: TCheckBox;
     chkSmoothPolys: TCheckBox;
     chkSmoothPoints: TCheckBox;
+    Label24: TLabel;
+    chkScaleMobTriangle: TCheckBox;
+    edtMobTriangleMin: TSpinEdit;
+    edtMobTriangleNom: TSpinEdit;
+    edtMobTriangleMax: TSpinEdit;
+    Label25: TLabel;
+    Label26: TLabel;
+    Label27: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -212,6 +235,10 @@ type
     procedure chkSmoothLinesClick(Sender: TObject);
     procedure chkSmoothPolysClick(Sender: TObject);
     procedure chkSmoothPointsClick(Sender: TObject);
+    procedure chkScaleMobTriangleClick(Sender: TObject);
+    procedure edtMobTriangleMinChange(Sender: TObject);
+    procedure edtMobTriangleNomChange(Sender: TObject);
+    procedure edtMobTriangleMaxChange(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -278,6 +305,10 @@ begin
   Result.SmoothLines := SmoothLines; 
   Result.SmoothPolygons := SmoothPolygons;
   Result.SmoothPoints := SmoothPoints;
+  Result.MobTriangleMin := MobTriangleMin;
+  Result.MobTriangleMax := MobTriangleMax;
+  Result.MobTriangleNom := MobTriangleNom;
+  Result.ScaleMobTriangle := ScaleMobTriangle;
 end;
 
 constructor TRenderPreferences.Create;
@@ -290,6 +321,12 @@ procedure TRenderPreferences.DoOnMobListOptionsChanged;
 begin
   if Assigned(FOnMobListOptionsChanged) then
     FOnMobListOptionsChanged(Self);
+end;
+
+procedure TRenderPreferences.DoOnMobTriangleSizeChanged;
+begin
+  if Assigned(FOnMobTriangleSizeChanged) then
+    FOnMobTriangleSizeChanged(Self);
 end;
 
 procedure TRenderPreferences.DoOnObjectFilterChanged;
@@ -353,6 +390,10 @@ begin
     SmoothLines := ReadBool('RenderPrefs', 'SmoothLines', false);
     SmoothPolygons := ReadBool('RenderPrefs', 'SmoothPolygons', false);
     SmoothPoints := ReadBool('RenderPrefs', 'SmoothPoints', false);
+    MobTriangleMin := ReadInteger('RenderPrefs', 'MobTriangleMin', 25);
+    MobTriangleMax := ReadInteger('RenderPrefs', 'MobTriangleMax', 300);
+    MobTriangleNom := ReadInteger('RenderPrefs', 'MobTriangleNom', 150);
+    ScaleMobTriangle := ReadBool('RenderPrefs', 'ScaleMobTriangle', true);
   end;
 end;
 
@@ -399,6 +440,10 @@ begin
     WriteBool('RenderPrefs', 'SmoothLines', SmoothLines);
     WriteBool('RenderPrefs', 'SmoothPolygons', SmoothPolygons);
     WriteBool('RenderPrefs', 'SmoothPoints', SmoothPoints);
+    WriteInteger('RenderPrefs', 'MobTriangleMin', MobTriangleMin);
+    WriteInteger('RenderPrefs', 'MobTriangleMax', MobTriangleMax);
+    WriteInteger('RenderPrefs', 'MobTriangleNom', MobTriangleNom);
+    WriteBool('RenderPrefs', 'ScaleMobTriangle', ScaleMobTriangle);
   end;
 end;
 
@@ -444,6 +489,24 @@ begin
   DoOnMobListOptionsChanged;
 end;
 
+procedure TRenderPreferences.SetMobTriangleMax(const Value: integer);
+begin
+  FMobTriangleMax := Value;
+  DoOnMobTriangleSizeChanged;
+end;
+
+procedure TRenderPreferences.SetMobTriangleMin(const Value: integer);
+begin
+  FMobTriangleMin := Value;
+  DoOnMobTriangleSizeChanged;
+end;
+
+procedure TRenderPreferences.SetMobTriangleNom(const Value: integer);
+begin
+  FMobTriangleNom := Value;
+  DoOnMobTriangleSizeChanged;
+end;
+
 procedure TRenderPreferences.SetObjectClassFilter(const Value: TDAOCObjectClasses);
 begin
   FObjectClassFilter := Value;
@@ -454,6 +517,12 @@ procedure TRenderPreferences.SetObjectConFilter(const Value: TDAOCConColors);
 begin
   FObjectConFilter := Value;
   DoOnObjectFilterChanged;
+end;
+
+procedure TRenderPreferences.SetScaleMobTriangle(const Value: boolean);
+begin
+  FScaleMobTriangle := Value;
+  DoOnMobTriangleSizeChanged;
 end;
 
 procedure TRenderPreferences.XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
@@ -593,6 +662,11 @@ begin
   chkSmoothLines.Checked := FRenderPrefs.SmoothLines;
   chkSmoothPolys.Checked := FRenderPrefs.SmoothPolygons;
   chkSmoothPoints.Checked := FRenderPrefs.SmoothPoints;
+  edtMobTriangleMin.Value := FRenderPrefs.MobTriangleMin;
+  edtMobTriangleMax.Value := FRenderPrefs.MobTriangleMax;
+  edtMobTriangleNom.Value := FRenderPrefs.MobTriangleNom;
+  chkScaleMobTriangle.Checked := FRenderPrefs.ScaleMobTriangle;
+  chkScaleMobTriangleClick(nil); 
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -815,6 +889,29 @@ end;
 procedure TfrmRenderPrefs.chkSmoothPointsClick(Sender: TObject);
 begin
   FRenderPrefs.SmoothPoints := chkSmoothPoints.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkScaleMobTriangleClick(Sender: TObject);
+begin
+  FRenderPrefs.ScaleMobTriangle := chkScaleMobTriangle.Checked;
+
+  edtMobTriangleMin.Enabled := FRenderPrefs.ScaleMobTriangle;
+  edtMobTriangleMax.Enabled := FRenderPrefs.ScaleMobTriangle;
+end;
+
+procedure TfrmRenderPrefs.edtMobTriangleMinChange(Sender: TObject);
+begin
+  FRenderPrefs.MobTriangleMin := edtMobTriangleMin.Value;
+end;
+
+procedure TfrmRenderPrefs.edtMobTriangleNomChange(Sender: TObject);
+begin
+  FRenderPrefs.MobTriangleNom := edtMobTriangleNom.Value;
+end;
+
+procedure TfrmRenderPrefs.edtMobTriangleMaxChange(Sender: TObject);
+begin
+  FRenderPrefs.MobTriangleMax := edtMobTriangleMax.Value;
 end;
 
 end.

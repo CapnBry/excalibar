@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabRangeCircles
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 3
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -687,6 +687,40 @@ object frmRenderPrefs: TfrmRenderPrefs
     object tabGraphics: TTabSheet
       Caption = 'Graphics'
       ImageIndex = 5
+      object Label24: TLabel
+        Left = 8
+        Top = 112
+        Width = 135
+        Height = 13
+        Caption = 'Mob and Player triangle size:'
+      end
+      object Label25: TLabel
+        Left = 44
+        Top = 128
+        Width = 61
+        Height = 13
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Min'
+      end
+      object Label26: TLabel
+        Left = 112
+        Top = 128
+        Width = 53
+        Height = 13
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Nominal'
+      end
+      object Label27: TLabel
+        Left = 180
+        Top = 128
+        Width = 57
+        Height = 13
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Max'
+      end
       object chkSmoothLines: TCheckBox
         Left = 8
         Top = 8
@@ -713,6 +747,51 @@ object frmRenderPrefs: TfrmRenderPrefs
         Caption = 'Smooth points'
         TabOrder = 2
         OnClick = chkSmoothPointsClick
+      end
+      object chkScaleMobTriangle: TCheckBox
+        Left = 44
+        Top = 168
+        Width = 181
+        Height = 17
+        Caption = 'Adjust size with range scale'
+        TabOrder = 3
+        OnClick = chkScaleMobTriangleClick
+      end
+      object edtMobTriangleMin: TSpinEdit
+        Left = 44
+        Top = 144
+        Width = 61
+        Height = 22
+        Increment = 5
+        MaxValue = 10000
+        MinValue = 1
+        TabOrder = 4
+        Value = 25
+        OnChange = edtMobTriangleMinChange
+      end
+      object edtMobTriangleNom: TSpinEdit
+        Left = 112
+        Top = 144
+        Width = 61
+        Height = 22
+        Increment = 5
+        MaxValue = 10000
+        MinValue = 1
+        TabOrder = 5
+        Value = 150
+        OnChange = edtMobTriangleNomChange
+      end
+      object edtMobTriangleMax: TSpinEdit
+        Left = 180
+        Top = 144
+        Width = 61
+        Height = 22
+        Increment = 5
+        MaxValue = 10000
+        MinValue = 1
+        TabOrder = 6
+        Value = 300
+        OnChange = edtMobTriangleMaxChange
       end
     end
   end
