@@ -16,7 +16,7 @@ uses
   SysUtils, Types, Contnrs, Classes, INIFiles, GLRenderObjects, LinedFileStream,
   CSVLineParser, DDSImage, GL, DAOCRegion
 {$IFDEF MSWINDOWS}
-  ,BackgroundHTTP
+  ,BackgroundHTTP, DateTimeFormats
 {$ENDIF}
   ;
 
@@ -487,7 +487,8 @@ begin
   try
       { zone didn't load.  Try to get it from the woooooooorld wide web }
     if FAttemptDownload and Assigned(FHTTPFetch) then begin
-      pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
+      pHTTPRequest := TBackgroundHTTPRequest.Create;
+      pHTTPRequest.ExtraHeaders.Add('X-Local-Time: ' + DateTimeToHL7TS(Now));
       pHTTPRequest.URL := AURL;
       pHTTPRequest.Tag := ATag;
       pHTTPRequest.ResponseStream := TFileStream.Create(ADestFile, fmCreate);
