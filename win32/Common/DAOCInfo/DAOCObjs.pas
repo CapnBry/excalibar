@@ -158,12 +158,16 @@ type
   private
   protected
     FTypeTag: string;
+    FTarget:  TDAOCMovingObject;
     function GetObjectClass : TDAOCObjectClass; override;
   public
     procedure Assign(ASrc: TDAOCMob);
 
+    property Target: TDAOCMovingObject read FTarget write FTarget;
     property TypeTag: string read FTypeTag write FTypeTag;
   end;
+
+  TDAOCMobNotify = procedure (ASender: TObject; ADAOCMob: TDAOCMob) of Object;
 
   TDAOCPlayer = class(TDAOCMovingObject)
   private
