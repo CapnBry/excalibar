@@ -460,6 +460,7 @@ begin
     frmPowerskill.Left := ReadInteger('PowerskillBuy', 'Left', frmPowerskill.Left);
     frmPowerskill.Top := ReadInteger('PowerskillBuy', 'Top', frmPowerskill.Top);
     frmPowerskill.LastQuickSlot := ReadString('PowerskillBuy', 'LastQuickSlot', frmPowerskill.LastQuickSlot);
+    frmPowerskill.UngroupRecipes := ReadBool('PowerskillBuy', 'UngroupRecipes', frmPowerskill.UngroupRecipes);
 
     frmMacroTradeSkills.Progression := ReadString('MacroTradeSkills', 'Progression', '0');
     frmMacroTradeSkills.TargetQuality := ReadInteger('MacroTradeSkills', 'TargetQuality', 0);
@@ -554,6 +555,7 @@ begin
     WriteString('PowerskillBuy', 'LastQuickSlot', frmPowerskill.LastQuickSlot);
     WriteInteger('PowerskillBuy', 'Left', frmPowerskill.Left);
     WriteInteger('PowerskillBuy', 'Top', frmPowerskill.Top);
+    WriteBool('PowerskillBuy', 'UngroupRecipes', frmPowerskill.UngroupRecipes);
 
     WriteString('MacroTradeSkills', 'Progression', frmMacroTradeSkills.Progression);
     WriteInteger('MacroTradeSkills', 'TargetQuality', frmMacroTradeSkills.TargetQuality);
