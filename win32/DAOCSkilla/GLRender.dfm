@@ -98,34 +98,37 @@ object frmGLRender: TfrmGLRender
       ParentColor = False
       ParentFont = False
     end
-    object grdObjects: TDrawGrid
+    object lstObjects: TListBox
+      Left = 0
+      Top = 41
+      Width = 217
+      Height = 575
+      Style = lbVirtualOwnerDraw
+      Align = alClient
+      BorderStyle = bsNone
+      Ctl3D = False
+      ItemHeight = 16
+      ParentCtl3D = False
+      TabOrder = 0
+      OnClick = lstObjectsClick
+      OnDrawItem = lstObjectsDrawItem
+    end
+    object pnlGridHeader: TPanel
       Left = 0
       Top = 25
       Width = 217
-      Height = 591
-      Align = alClient
-      BorderStyle = bsNone
-      ColCount = 3
-      Ctl3D = False
-      DefaultRowHeight = 17
-      DefaultDrawing = False
-      FixedCols = 0
-      RowCount = 2
-      Options = [goFixedVertLine, goRowSelect, goThumbTracking]
-      ParentCtl3D = False
-      TabOrder = 0
-      OnClick = grdObjectsClick
-      OnDrawCell = grdObjectsDrawCell
-      ColWidths = (
-        145
-        33
-        37)
+      Height = 16
+      Align = alTop
+      Alignment = taLeftJustify
+      BevelOuter = bvNone
+      Caption = '  Name                                    Level   Health'
+      TabOrder = 1
     end
   end
   object tmrMinFPS: TTimer
     Interval = 500
     OnTimer = tmrMinFPSTimer
-    Left = 36
-    Top = 28
+    Left = 32
+    Top = 136
   end
 end
