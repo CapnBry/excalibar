@@ -90,6 +90,7 @@ void exConnection::setup()
     sniff = NULL;
 
     playerzone = 0;
+    playerrealm = rFriend;
 
     file = new QFile;
 
@@ -237,7 +238,6 @@ void exConnection::processPacket(exPacket * p)
     unsigned char minver;
     unsigned int head;
     unsigned int linenum;
-    unsigned int num;
     QString name;
     QString surname;
     QString guild;
@@ -259,7 +259,6 @@ void exConnection::processPacket(exPacket * p)
     int zone;
     int *intptr;
     Realm *rptr;
-    unsigned int i;
 
     if (!(p->is_udp && !p->from_server)) {
 	p->decrypt(cryptkey);
@@ -359,7 +358,6 @@ void exConnection::processPacket(exPacket * p)
 	}
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
-	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
@@ -406,7 +404,8 @@ void exConnection::processPacket(exPacket * p)
                       playerrealms.replace(name, rptr);
 		  }
 	      } while (name.length() > 0);
-	      break;
+              updateObjectTypeCounts();
+              break;
 	  case 0x88:
 	      selfid = id = p->getShort();
 	      p->seek(2);
@@ -428,7 +427,8 @@ void exConnection::processPacket(exPacket * p)
                       objs.remove((void *) ((unsigned int) mob->getID()));
                   else
 		      players.remove((void *) ((unsigned int) mob->getID()));
-	      }
+              }
+              updateObjectTypeCounts();
 	      ex->Map->dirty();
 	      break;
           case 0x71:
@@ -518,8 +518,8 @@ END_EXPERIMENTAL_CODE
 		  players.insert((void *) ((unsigned int) id), mob);
               }
 	      mobinfo.insert((void *) ((unsigned int) infoid), mob);
+              updateObjectTypeCounts();
 	      ex->Map->dirty();
-
 	      break;
 	  case 0x14:
 	      p->seek(2);
@@ -539,12 +539,7 @@ END_EXPERIMENTAL_CODE
 	      }
 	      break;
           case 0xaa:
-	      num=p->getByte();
-              p->seek(3);
-              for (i=0;i<num;i++) {
-  	        data=p->getBytes(18);
-                name=p->getPascalString();
-              }
+              parsePlayerInventoryChange(p);
               break;         
 	  case 0x6c:
 	      name=p->getPascalString();
@@ -578,6 +573,7 @@ END_EXPERIMENTAL_CODE
 		      }
 		  }
 	      }
+              updateObjectTypeCounts();
               break;
 
         case 0x49:
@@ -624,6 +620,32 @@ END_EXPERIMENTAL_CODE
 		  dumpPacket(command, p);	
 	      break;
 	}
+    }
+}
+
+void exConnection::parsePlayerInventoryChange(exPacket *p)
+{
+    int objcount;
+    int i;
+    int inv_slot;
+    int condition;
+    int durability;
+    int quality;
+    int bonus;
+    QString objname;
+
+    objcount = p->getByte();
+    p->seek(3);
+
+    for (i=0; i<objcount; i++)  {
+        inv_slot = p->getByte();
+        p->seek(7);
+        condition = p->getByte();
+        durability = p->getByte();
+        quality = p->getByte();
+        bonus = p->getByte();
+        p->seek(6);
+        objname = p->getPascalString();
     }
 }
 
@@ -845,5 +867,39 @@ void exConnection::updateProjectedPlayer(void)
   playerProjectedX = playerx - (int)(sin(player_head_rad) * projected_hyp);
   playerProjectedY = playery + (int)(cos(player_head_rad) * projected_hyp);
 
+}
+
+void exConnection::updateObjectTypeCounts(void)
+{
+    QPtrDictIterator<exMob> mob_iter(mobinfo);
+    exMob *mob;
+    int cnt_mob = 0;;
+    int cnt_players[4];
+
+    cnt_players[rFriend] = 0;
+    cnt_players[rAlbion] = 0;
+    cnt_players[rMidgaard] = 0;
+    cnt_players[rHibernia] = 0;
+
+    for (;mob_iter.current(); ++mob_iter)  {
+        mob = mob_iter.current();
+
+        if (mob)
+            if (mob->isMob()) {
+                cnt_mob++;
+            }
+            else if (!mob->isPlayer())  {
+                cnt_players[mob->getRealm()]++;
+            }
+    }  /* for each mob */
+
+
+    cnt_players[playerrealm] = cnt_players[rFriend];
+
+    ex->lblCounts->setText(QString("Albs: %1  Mids: %2\nHibs: %3  Mobs: %4").
+                           arg(cnt_players[rAlbion]).
+                           arg(cnt_players[rMidgaard]).
+                           arg(cnt_players[rHibernia]).
+                           arg(cnt_mob));
 }
 

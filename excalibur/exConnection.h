@@ -76,6 +76,7 @@ protected:
   bool writecapture;
   bool m_bMapCancel;
 
+  void parsePlayerInventoryChange(exPacket *p);
   void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
@@ -120,6 +121,7 @@ public:
   void spawnEditor();
   void setFilter( QString Filter);
   void updateProjectedPlayer(void);
+  void updateObjectTypeCounts(void);
 };
 
 #endif
