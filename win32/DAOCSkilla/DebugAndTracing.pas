@@ -217,7 +217,7 @@ var
   s:         string;
   X, Y, Z:   integer;
 begin
-  if Assigned(FMobseenFile) and (ADAOCObject.ObjectClass = ocMob) and
+  if Assigned(FMobseenFile) and (ADAOCObject.ObjectClass in [ocMob, ocVehicle]) and
     Assigned(FDControl.Zone) then begin
     X := FDControl.Zone.WorldToZoneX(ADAOCObject.X);
     Y := FDControl.Zone.WorldToZoneY(ADAOCObject.Y);
