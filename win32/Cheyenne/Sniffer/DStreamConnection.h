@@ -37,6 +37,8 @@ const uchar DPACKET_AUTH_CREDENTIALS=0x09; //  - Authentication request (DPACKET
 const uchar DPACKET_AUTH_RESPONSE=0x0a; //  - Authentication response (DPACKET_AUTH_RESPONSE) 
 const uchar DPACKET_SQUELCH=0x0b; //  - Squelch connection data (DPACKET_SQUELCH) 
 const uchar DPACKET_RESUME=0x0c; // - Resume connection data (DPACKET_RESUME) 
+const uchar DPACKET_KEYS=0x0d; // - Send keystrokes (DPACKET_KEYS)
+const uchar DPACKET_MOUSE=0x0e; // - Send mouse command (DPACKET_MOUSE)
 }; // end namespace dstream_opcodes
 
 namespace dstream
@@ -130,6 +132,18 @@ struct DPACKET_RESUME
 uint32 connectionid;
 };
 
+struct DPACKET_KEYS
+{
+uint32 connectionid;
+char keys[1];
+}; 
+
+struct DPACKET_MOUSE
+{
+uint32 connectionid;
+char mousecommand[1];
+};
+
 #pragma pack(pop,ds)
 
 }; // end namespace dstream
@@ -149,6 +163,9 @@ public:
     bool IsConnected(void)const{return(!(GetSocket()==INVALID_SOCKET));};
     std::string GetStatusString(void)const{return(IsConnected()?"connected":"disconnected");};
     sniff_map_type::size_type GetNumConnections(void)const{return(SniffMap.size());};
+    
+    // entry point for transmitting data
+    bool Transmit(const dstream::dstream_header* const packet);
     
     bool Open(const std::string& remote_addr,const std::string& remote_port);
     // this one takes "C" arguments to make it simple :/

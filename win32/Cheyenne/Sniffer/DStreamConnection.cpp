@@ -238,6 +238,12 @@ void DStreamConnection::Close(void)
     return;
 } // end Close
 
+bool DStreamConnection::Transmit(const dstream::dstream_header* const packet)
+{
+    // put on output buffer, return status
+    return(ModifyOutputBuffer().Insert(packet,packet->total_length));
+} // end Transmit
+
 DWORD DStreamConnection::Run(const bool& bContinue)
 {
     LOG_FUNC << "thread started with ID " << GetCurrentThreadId() << "\n";
@@ -432,7 +438,7 @@ void DStreamConnection::ProcessInput(buffer_space::Buffer& Input)
     // re-get header with extract
     Input.Extract(&hdr,sizeof(hdr));
 
-    // extract payload
+    // extract payload into new buffer
     const unsigned int payload_len=hdr.total_length-sizeof(hdr);
     unsigned char* payload=new unsigned char[payload_len];
     Input.Extract(payload,hdr.total_length-sizeof(hdr));
