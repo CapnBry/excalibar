@@ -50,6 +50,8 @@ HEADERS = exPrefs.h \
 		exPacket.h \
 		exMap.h \
 		exMessage.h \
+		quickmath.h \
+		exConSystem.h \
 		messages.ui.h
 SOURCES = exMob.cpp \
 		exMap.cpp \
@@ -61,6 +63,8 @@ SOURCES = exMob.cpp \
 		exConnection.cpp \
 		exMapInfo.cpp \
 		main.cpp \
+		quickmath.c \
+		exConSystem.c \
 		exMessage.cpp
 OBJECTS = .obj/exMob.o \
 		.obj/exMap.o \
@@ -75,6 +79,8 @@ OBJECTS = .obj/exMob.o \
 		.obj/exMessage.o \
 		.obj/formexcalibur.o \
 		.obj/prefsdialog.o \
+		.obj/quickmath.o \
+		.obj/exConSystem.o \
 		.obj/messages.o
 FORMS = formexcalibur.ui \
 		prefsdialog.ui \
@@ -291,6 +297,12 @@ FORCE:
 		exMessage.h \
 		.ui/messages.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o .obj/main.o main.cpp
+
+.obj/quickmath.o: quickmath.c quickmath.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o .obj/quickmath.o quickmath.c
+
+.obj/exConSystem.o: exConSystem.c exConSystem.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o .obj/exConSystem.o exConSystem.c
 
 .obj/exMessage.o: exMessage.cpp exMessage.h \
 		exPrefs.h \
