@@ -36,7 +36,7 @@ begin
     edtLabel.Text := ALabel;
 
     if ShowModal = mrOK then begin
-      Result.Name := ALabel;
+      Result.Name := edtLabel.Text;
       Result.Color := cbxColor.Selected;
     end
     else
