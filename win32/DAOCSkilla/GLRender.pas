@@ -104,7 +104,7 @@ type
     FPrescienceNode:    TGLPrescienceNode;
     FBasePath:    string;
     FMaxTXFTextWidth:   integer;
-    FHudConFlag:  TGLHudConFlag;
+    //FHudConFlag:  TGLHudConFlag;
     FDAOCConnectionList: TDAOCConnectionList;
 
     procedure GLInits;
@@ -740,6 +740,7 @@ begin
   FTxfH12.LoadFont(FBasePath + 'helvetica12.txf');
 
   FHTTPFetch := TBackgroundHTTPManager.Create;
+  FHTTPFetch.AgentVersion := frmMain.Version;
 
   FMapElementsListList := TVectorMapElementListList.Create;
   FMapElementsListList.VersionFile := FBasePath + 'versions.ini';
@@ -756,8 +757,8 @@ begin
   FMobTriangle := T3DArrowHead.Create;
   FPrescienceNode := TGLPrescienceNode.Create;
   FPrescienceNode.ImageFileName := FBasePath + 'prescience.tga';
-  FHudConFlag := TGLHudConFlag.Create;
-  FHudConFlag.ImageFileName := FBasePath + 'conflag.tga';
+  //FHudConFlag := TGLHudConFlag.Create;
+  //FHudConFlag.ImageFileName := FBasePath + 'conflag.tga';
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
   FVisibleRangeRep := TGLFlatViewFrustum.Create;
@@ -806,7 +807,7 @@ begin
   FTxfH10.Free;
   FPushPins.Free;
   FPrescienceNode.Free;
-  FHudConFlag.Free;
+  //FHudConFlag.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -824,7 +825,7 @@ begin
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
   FPrescienceNode.GLCleanup;
-  FHudConFlag.GLCleanup;
+  //FHudConFlag.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -843,7 +844,7 @@ begin
   FPushPins.GLInitialize;
   FUnknownStealther.GLInitialize;
   FPrescienceNode.GLInitialize;
-  FHudConFlag.GLInitialize;
+  //FHudConFlag.GLInitialize;
 
   FTxfH10.EstablishTexture;
   FTxfH12.EstablishTexture;
