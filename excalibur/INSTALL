@@ -128,9 +128,10 @@ at the prompt.
 Installing QT 3.0.4
 ===================
 
+** If you've installed libqt3 and libqt3-devel, you can skip this step. **
+
 Please follow these steps to the letter. If you don't, and it doesn't work,
 don't clutter the message boards or the developer's mailboxes with messages.
-If you've installed libqt3 and libqt3-devel, you can skip this step.
 
 1) Remove any vendor-supplied version of QT3
    For RedHat this is:
@@ -160,6 +161,13 @@ Downloading and compiling Excalibur
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) make
+
+===================================
+Generate Background Maps (optional)
+===================================
+
+Excalibur has support for displaying PNG map files as a backgrounds.
+See README.convert for information on how to generate the PNG maps.
 
 =================
 Running Excalibur
