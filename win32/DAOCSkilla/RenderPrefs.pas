@@ -110,6 +110,7 @@ type
     ShowPlayerInventory:  boolean;
     SwapTringleRingShade: boolean;
     DrawPlayerHighlightRing: boolean;
+    AutoMakeCurrent:      boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -401,6 +402,7 @@ begin
   Result.HighlightMobs := HighlightMobs;
   Result.SwapTringleRingShade := SwapTringleRingShade;
   Result.DrawPlayerHighlightRing := DrawPlayerHighlightRing;
+  Result.AutoMakeCurrent := AutoMakeCurrent; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -518,6 +520,7 @@ begin
     HighlightMobs := ReadBool('RenderPrefs', 'HighlightMobs', false);
     SwapTringleRingShade := ReadBool('RenderPrefs', 'SwapTringleRingShade', false);
     DrawPlayerHighlightRing := ReadBool('RenderPrefs', 'DrawPlayerHighlightRing', true);
+    AutoMakeCurrent := ReadBool('RenderPrefs', 'AutoMakeCurrent', false);
   end;
 end;
 
@@ -581,6 +584,7 @@ begin
     WriteBool('RenderPrefs', 'HighlightMobs', HighlightMobs);
     WriteBool('RenderPrefs', 'SwapTringleRingShade', SwapTringleRingShade);
     WriteBool('RenderPrefs', 'DrawPlayerHighlightRing', DrawPlayerHighlightRing);
+    WriteBool('RenderPrefs', 'AutoMakeCurrent', AutoMakeCurrent);
   end;
 end;
 
