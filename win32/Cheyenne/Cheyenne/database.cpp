@@ -966,7 +966,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                 }
             else
                 {
-                // got visiblity on an actor we don't hold! Hmmm.
+                // got delete on an actor we don't hold! Hmmm.
                 Logger << "[Database::HandleShareMessage] got hard delete on an actor we don't have!\n";
                 }
             }
@@ -1304,11 +1304,14 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // get actor
             Actor* pa=GetActorById(id);
             
-            // send hard_delete to network
-            SendNetworkUpdate(*pa,share_opcodes::hard_delete);
-            
-            // delete the actor
-            DeleteActor(id);
+            if(pa)
+                {
+                // send hard_delete to network
+                SendNetworkUpdate(*pa,share_opcodes::hard_delete);
+                
+                // delete the actor
+                DeleteActor(id);
+                }
 
             //Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
 

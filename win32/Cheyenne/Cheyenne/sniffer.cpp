@@ -16,10 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
-
 #include <assert.h>
 #include <crtdbg.h>
 #include <iostream>
@@ -32,8 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "..\..\Common\PacketStore\PacketStore.h" // include for offline packet storage
 
-//typedef DAOCConnection DAOC_CONNECTION;
-typedef StoringDAOCConnection<PacketStore<std::ofstream> > DAOC_CONNECTION;
+typedef DAOCConnection DAOC_CONNECTION;
+//typedef StoringDAOCConnection<PacketStore<std::ofstream> > DAOC_CONNECTION;
 
 Sniffer::Sniffer()
 {
