@@ -329,7 +329,7 @@ begin
   FCryptKeySet := false;
   FMasterVendorList.Clear;
   FAccountCharacters.Clear;
-  FDAOCObjs.Clear;
+  ClearDAOCObjectList;
   FVendorItems.Clear;
   FLocalPlayer.Clear;
   FTradeCommissionNPC := '';
@@ -364,7 +364,7 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectDistance(8000);
+  SetMaxObjectDistance(7500);
 end;
 
 destructor TDAOCConnection.Destroy;
