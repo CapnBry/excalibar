@@ -179,8 +179,8 @@ begin
   Result := FindConnection(ASource, AConnectionID);
   if not Assigned(Result) then begin
     Result := NewDAOCConnectionNeeded;
-    DoSetupConnectionEventsAndProperties(Result);
     FList.Add(Result);
+    DoSetupConnectionEventsAndProperties(Result);
   end
   else
     Result.Clear;
