@@ -27,9 +27,15 @@
 #endif
 
 #ifdef __FreeBSD__
- #define _BSD_SOURCE
- /* For BSD support, change INTERFACE if yours isn't fxp0 */
- #define INTERFACE "fxp0"
+  #ifdef __APPLE__
+    #define INTERFACE "en0"
+  #else
+   #define _BSD_SOURCE
+   /* For BSD support, change INTERFACE if yours isn't fxp0 */
+   #define INTERFACE "fxp0"
+  #endif
+#else
+  #define INTERFACE "any"
 #endif
 
 #undef ALPHA_QUALITY
