@@ -72,7 +72,7 @@ type
     function PlusAsInt(AType, ATier: Integer) : integer;
     function HasEffects(AType: Integer) : boolean;
     function Effects(AType: Integer) : TStrings;
-    procedure LoadGemEffects(const ARealm: string);
+    function LoadGemEffects(const ARealm: string) : boolean;
     procedure ClearGemEffects;
     procedure UpdateGemName(AIndex: integer);
     function CalcSCPoints(AType, ATier: integer) : double;
@@ -131,21 +131,23 @@ begin
     exit;
 
   iType := cbxType.ItemIndex;
-
   cbxPlus.Items.Clear;
-  with Plusses(iType) do
-    for I := 0 to Count - 1 do
-      cbxPlus.Items.Add(Values[Names[I]]);
-  if cbxPlus.Items.Count > 0 then
-    cbxPlus.ItemIndex := 0;
-
   cbxEffect.Items.Clear;
-  if HasEffects(iType) then
-    with Effects(iType) do
+
+  if iType < FGemEffects.Count then begin
+    with Plusses(iType) do
       for I := 0 to Count - 1 do
-        cbxEffect.Items.Add(Names[I]);
-  if cbxEffect.Items.Count > 0 then
-    cbxEffect.ItemIndex := 0;
+        cbxPlus.Items.Add(Values[Names[I]]);
+    if cbxPlus.Items.Count > 0 then
+      cbxPlus.ItemIndex := 0;
+
+    if HasEffects(iType) then
+      with Effects(iType) do
+        for I := 0 to Count - 1 do
+          cbxEffect.Items.Add(Names[I]);
+    if cbxEffect.Items.Count > 0 then
+      cbxEffect.ItemIndex := 0;
+  end;
 
   UpdateGemName(cbxType.Tag);
 end;
@@ -166,6 +168,9 @@ end;
 
 procedure TfrmSpellcraftHelp.cbxRealmChange(Sender: TObject);
 begin
+  if cbxRealm.ItemIndex = -1 then
+    exit;
+
   LoadGemEffects(cbxRealm.Text);
   ResetGem(cbxType1);
   ResetGem(cbxType2);
@@ -173,7 +178,7 @@ begin
   ResetGem(cbxType4);
 end;
 
-procedure TfrmSpellcraftHelp.LoadGemEffects(const ARealm: string);
+function TfrmSpellcraftHelp.LoadGemEffects(const ARealm: string) : boolean;
 var
   I:    integer;
   INI:  TINIFile;
@@ -185,7 +190,8 @@ begin
   ClearGemEffects;
   sFileName := ExtractFilePath(ParamStr(0)) + ARealm + '_SC.ini';
   if not FileExists(sFileName) then begin
-    ShowMessage('No spellcraft definition file: ' + ARealm + '_SC.ini');
+    raise Exception.Create('No spellcraft definition file: ' + ARealm + '_SC.ini');
+    Result := false;
     exit;
   end;
 
@@ -208,6 +214,8 @@ begin
 
     Free;
   end;  { with INI }
+
+  Result := true;
 end;
 
 procedure TfrmSpellcraftHelp.ClearGemEffects;
@@ -299,11 +307,10 @@ begin
   else
     sTier := '';
 
-  if HasEffects(iType) then
+  sGem := '';
+  if (cbxEffect.ItemIndex <> -1) and HasEffects(iType) then
     with Effects(iType) do
-      sGem := Values[Names[cbxEffect.ItemIndex]]
-  else
-    sGem := '';
+      sGem := Values[Names[cbxEffect.ItemIndex]];
 
   FSCGems[AIndex].Name := Trim(sTier + ' ' + sGem);
   UpdateGemCost(AIndex);
@@ -500,7 +507,10 @@ end;
 procedure TfrmSpellcraftHelp.SetCraftRealm(const Value: TCraftRealm);
 begin
   cbxRealm.ItemIndex := ord(Value) - 1;
-  cbxRealmChange(nil);
+  try
+    cbxRealmChange(nil);
+  except
+  end;
 end;
 
 procedure TfrmSpellcraftHelp.UpdateTotalMaterials;
