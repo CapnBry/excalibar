@@ -521,7 +521,7 @@ begin
 
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
-    if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
+    if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer, ocVehicle] then begin
       pMovingObj := TDAOCMovingObject(pObj);
       if pObj.Stealthed then
         clMob := clBlack
@@ -819,6 +819,11 @@ begin
         WriteMobLevelHealth;
       end;  { ocPlayer }
 
+    ocVehicle:
+      with TDAOCVehicle(pMob) do begin
+        WriteMobNameCon(Name);
+      end;  { ocVehicle }
+
     else
         glColor4fv(@TEXT_COLOR);
   end;    { case class }
@@ -1023,7 +1028,7 @@ end;
 
 function TfrmGLRender.FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
 const
-  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (4, 3, 2, 1, 0);
+  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (5, 4, 3, 2, 1, 0);
 var
   I:   integer;
   function CompareObjectClasses(A, B: TDAOCObjectClass) : integer;
