@@ -321,7 +321,7 @@ begin
   if FTurnRateCalLeft > 0 then
     ContinueTurnRateCal;
 
-  if FLastPlayerPos.SameLoc(FLocalPlayer) then
+  if FLastPlayerPos.SameLocAndHead(FLocalPlayer) then
     inc(FSamePlayerPosCount)
   else
     FSamePlayerPosCount := 0;
