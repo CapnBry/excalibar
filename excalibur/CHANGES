@@ -1,5 +1,12 @@
 Andon (07/Feb/02)
------------------
+------------------
+
+Documentation:
+ + Fixed a lingering issue with the CVS commandline listed in
+   INSTALL
+
+Andon (07/Feb/02)
+------------------
 
 Additions:
  + Added preliminary support for NVidia GLX specific optimizations

@@ -119,12 +119,11 @@ Downloading and compiling Excalibur
 ===================================
 
 1) cd ~
-2) mkdir excalibur
-3) cd excalibur
-4) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co excalibur
-5) export QTDIR=/usr/lib/qt-3.0.1
-6) $QTDIR/bin/qmake excalibur.pro
-7) make
+2) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co excalibur
+3) export QTDIR=/usr/lib/qt-3.0.1
+4) cd excalibur
+5) $QTDIR/bin/qmake excalibur.pro
+6) make
 
 ==============================
 Getting the DAoC Crypt library
