@@ -25,13 +25,27 @@ class exMob;
 
 #include <qlistview.h>
 #include <qstring.h>
-#include <iostream.h>
+#include <iostream>
 #include "excalibur.h"
 #include "exConnection.h"
 #include "exFilter.h"
 
+
+class exInventoryItem;
+
 class exMob : public QListViewItem {
-  private:
+public:
+    enum playerClass {
+        Unknown,
+        Armsman, Cabalist, Cleric, Friar, Infiltrator, Mercenary,
+        Minstrel, Paladin, Scout, Sorcerer, Theurgist, Wizard,
+        Bard, Blademaster, Champion, Druid, Eldritch, Enchanter,
+        Hero, Mentalist, Nightshade, Ranger, Warden,
+        Berserker, Healer, Hunter, Runemaster, Shadowblade, Shaman,
+        Skald, Spiritmaster, Thane, Warrior
+    };
+
+private:
     unsigned int id;
     unsigned int infoid;
     QString name;
@@ -57,10 +71,13 @@ class exMob : public QListViewItem {
     unsigned int projectedX, projectedY;
     exConnection *c;
     Realm realm;
+    QPtrDict<exInventoryItem> inventory;
+    playerClass playerclass;
+
     void exMob::setConnection( exConnection *con);
 
 
-  public:
+public:
     exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
     virtual int compare(QListViewItem *i, int col, bool ascending) const;
     virtual QString text(int column) const;
@@ -71,6 +88,7 @@ class exMob : public QListViewItem {
     QString getName() const;
     QString getSurname() const;
     QString getGuild() const;
+    QString getClassName() const;
     bool isMob() const;
     bool isObj() const;
     bool isMobOrObj() const;
@@ -104,8 +122,27 @@ class exMob : public QListViewItem {
     bool isFiltered();
     static void setFilter( QString );
     bool insideRect(QRect &r);
+    void updateInventory(exInventoryItem *ii);
+    void clearInventory(void);
 
     friend ostream& operator << (ostream& os, const exMob &p);
+};
+
+class exInventoryItem : public QObject {
+private:
+    int slot;
+    int obj_list;
+    int obj_index;
+    int obj_color;
+public:
+    exInventoryItem(int newslot, int newlist, int newindex, int newcolor);
+    QString getDescription(void);
+    QString getSlotDesc(void);
+    int getSlot(void) const;
+    int getList(void) const;
+    int getIndex(void) const;
+    int getColor(void) const;
+    exMob::playerClass getClassRestriction(void);
 };
 
 #endif

@@ -60,6 +60,8 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   current = true;
   
   realm = rFriend;
+  inventory.setAutoDelete(true);
+  playerclass = exMob::Unknown;
   
   _lasttick = exTick;
   _lastdist = 0;
@@ -165,7 +167,13 @@ QString exMob::text(int column) const {
 
   switch (column) {
     case 0:
-      return name;
+        if (playerclass != exMob::Unknown)
+            if (isInvader())
+                return getClassName() + " " + name;
+            else
+                return name + " (" + getClassName() + ")";
+        else
+            return name;
     case 1:
       return QString::number(level);
     case 2:
@@ -528,3 +536,250 @@ bool exMob::isPlayer(void) const
 {
     return !(mob || obj);
 }
+
+QString exMob::getClassName(void) const
+{
+    switch (playerclass)
+    {
+    case Unknown:     return "";
+    case Armsman:     return "Armsman";
+    case Cabalist:    return "Cabalist";
+    case Cleric:      return "Cleric";
+    case Friar:       return "Friar";
+    case Infiltrator: return "Infiltrator";
+    case Mercenary:   return "Mercenary";
+    case Minstrel:    return "Minstrel";
+    case Paladin:     return "Paladin";
+    case Scout:       return "Scout";
+    case Sorcerer:    return "Sorcerer";
+    case Theurgist:   return "Theurgist";
+    case Wizard:      return "Wizard";
+
+    case Bard:        return "Bard";
+    case Blademaster: return "Blademaster";
+    case Champion:    return "Champion";
+    case Druid:       return "Druid";
+    case Eldritch:    return "Eldritch";
+    case Enchanter:   return "Enchanter";
+    case Hero:        return "Hero";
+    case Mentalist:   return "Mentalist";
+    case Nightshade:  return "Nightshade";
+    case Ranger:      return "Ranger";
+    case Warden:      return "Warden";
+
+    case Berserker:   return "Berserker";
+    case Healer:      return "Healer";
+    case Hunter:      return "Hunter";
+    case Runemaster:  return "Runemaster";
+    case Shadowblade: return "Shadowblade";
+    case Shaman:      return "Shaman";
+    case Skald:       return "Skald";
+    case Spiritmaster: return "Spiritmaster";
+    case Thane:       return "Thane";
+    case Warrior:     return "Warrior";
+    default:
+        return "???Class";
+    }
+}
+
+void exMob::updateInventory(exInventoryItem *ii)
+{
+    void *iSlot;
+    playerClass itemclass;
+
+    iSlot = (void *)ii->getSlot();
+
+    if (inventory.find(iSlot))
+        inventory.remove(iSlot);
+
+    inventory.insert(iSlot, ii);
+
+
+    itemclass = ii->getClassRestriction();
+    if (itemclass != Unknown)
+        playerclass = itemclass;
+}
+
+void exMob::clearInventory(void)
+{
+    inventory.clear();
+}
+
+exInventoryItem::exInventoryItem(int newslot, int newlist, int newindex, int newcolor)
+{
+    slot = newslot;
+    obj_list = newlist;
+    obj_index = newindex;
+    obj_color = newcolor;
+}
+
+QString exInventoryItem::getDescription(void)
+{
+    switch (obj_list & 0x0f)  {
+    case 0x00:
+        switch (obj_index)  {
+        case 0x34:  return "bow";
+        case 0x39:  return "cloak1";
+        case 0x3a:  return "robe";
+        case 0x3f:  return "1h axe";
+        case 0x60:  return "cloak";
+        case 0xe6:  
+        case 0xe7:
+        case 0xe8:  
+        case 0xe9:  
+        case 0xea:  return "S(1) " + getSlotDesc();
+        case 0xeb:  
+        case 0xec:  
+        case 0xed:  
+        case 0xee:  
+        case 0xef:  return "C(2) " + getSlotDesc();
+        case 0xf5:  
+        case 0xf8:  
+        case 0xf9:  return "P(1) " + getSlotDesc();
+        case 0xfa:  
+        case 0xfb:  
+        case 0xfc:  
+        case 0xfd:  
+        case 0xfe:  return "S(3) " + getSlotDesc();
+        default:
+            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                     slot, obj_list, obj_index, obj_color);
+        }  /* b1=0x00 b2 */
+           
+
+    case 0x01:
+        switch (obj_index)  {
+        case 0x04:  
+        case 0x05:  
+        case 0x06:  
+        case 0x07:  
+        case 0x08:  return "L(2) " + getSlotDesc();
+        case 0x0a:  
+        case 0x0b:  return "P(1) " + getSlotDesc();
+        case 0x0e:  
+        case 0x11:  
+        case 0x12:  return "S(2) " + getSlotDesc();
+        case 0x13:  return "C(3) " + getSlotDesc();
+        case 0x18:  
+        case 0x19:  
+        case 0x1a:  
+        case 0x1b:  
+        case 0x1c:  return "L(3) " + getSlotDesc();
+        case 0x36:  
+        case 0x38:  return "sword " + getSlotDesc();
+        case 0x42:  return "hammer " + getSlotDesc();
+        case 0x46:  return "cloak";
+        case 0x47:  return "staff " + getSlotDesc();
+        case 0x50:  return "RM " + getSlotDesc();
+        case 0x51:  return "SB " + getSlotDesc();
+        case 0xb6:  return "HE " + getSlotDesc();
+        case 0xbb:  return "cloak";
+        case 0xff:  return "Pcrown " + getSlotDesc();
+        default:
+            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                     slot, obj_list, obj_index, obj_color);
+        }  /* b1=0x01 b2 */
+
+
+    case 0x02:
+        switch (obj_index)  {
+        case 0x2d:  return "cloak";
+        case 0x2f:  return "cloak";
+        case 0x36:  return "staff (spark) " + getSlotDesc();
+        case 0x3f:  return "hammer " + getSlotDesc();
+        case 0x41:  return "axe " + getSlotDesc();
+        case 0xbf:  return "RM " + getSlotDesc();
+        case 0xc2:  return "RM " + getSlotDesc();
+        case 0xc3:  return "RM " + getSlotDesc();
+        case 0xc4:  return "HE " + getSlotDesc();
+        case 0xc5:  return "HE " + getSlotDesc();
+        case 0xc7:  return "HE " + getSlotDesc();
+        case 0xc8:  return "HE " + getSlotDesc();
+        case 0xf9:  return "SB " + getSlotDesc();
+        case 0xfa:  return "SB " + getSlotDesc();
+        case 0xfb:  return "SB " + getSlotDesc();
+        case 0xfc:  return "SB " + getSlotDesc();
+        case 0xfd:  return "SB " + getSlotDesc();
+        default:           
+            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                     slot, obj_list, obj_index, obj_color);
+        }  /* b1=0x02 b2 */
+    }  /* b1 */
+
+    return "???";
+}
+
+QString exInventoryItem::getSlotDesc(void)
+{
+    switch (slot)  {
+    case 0x0a:  return "right hand";
+    case 0x0b:  return "left hand";
+    case 0x0c:  return "2h";
+    case 0x0d:  return "ranged";
+    case 0x15:  return "helm";
+    case 0x16:  return "gloves";
+    case 0x17:  return "boots";
+    case 0x19:  return "chest";
+    case 0x1a:  return "cloak";
+    case 0x1b:  return "leggings";
+    case 0x1c:  return "sleeves";
+    default:
+        return QString().sprintf("slot (0x%02x)", slot);
+    }
+}
+
+int exInventoryItem::getSlot(void) const
+{
+    return slot;
+}
+
+int exInventoryItem::getList(void) const
+{
+    return obj_list;
+}
+
+int exInventoryItem::getIndex(void) const
+{
+    return obj_index;
+}
+
+int exInventoryItem::getColor(void) const
+{
+    return obj_color;
+}
+
+exMob::playerClass exInventoryItem::getClassRestriction(void)
+{
+    switch (obj_list & 0x0f)
+    {
+    case 0x00:  return exMob::Unknown;
+    case 0x01:
+        switch (obj_index)
+        {
+        case 0x50:  return exMob::Runemaster;
+        case 0x51:  return exMob::Shadowblade;
+        case 0xb6:  return exMob::Hero;
+        default:    return exMob::Unknown;
+        }  /* case list 0x01 */
+    case 0x02:
+        switch (obj_index)
+        {
+        case 0xbf:  return exMob::Runemaster;
+        case 0xc2:  return exMob::Runemaster;
+        case 0xc3:  return exMob::Runemaster;
+        case 0xc4:  return exMob::Hero;
+        case 0xc5:  return exMob::Hero;
+        case 0xc7:  return exMob::Hero;
+        case 0xc8:  return exMob::Hero;
+        case 0xf9:  return exMob::Shadowblade;
+        case 0xfa:  return exMob::Shadowblade;
+        case 0xfb:  return exMob::Shadowblade;
+        case 0xfc:  return exMob::Shadowblade;
+        case 0xfd:  return exMob::Shadowblade;
+        default:    return exMob::Unknown;
+        } /* case list 0x02 */
+    default:
+        return exMob::Unknown;
+    }
+}
+
