@@ -815,12 +815,14 @@ var
 begin
   pStartNode := ConnectedNodeClosestToPlayerPos;
   if not Assigned(pStartNode) then begin
+    Log('PathToNode: No connected node near player position');
     Result := false;
     exit;
   end;
 
   pPath := pStartNode.FindPathTo(ANode);
   if not Assigned(pPath) then begin
+    Log('PathToNode: Can not find a path ' + pStartNode.Name + ' -> ' + ANode.Name);
     Result := false;
     exit;
   end;
