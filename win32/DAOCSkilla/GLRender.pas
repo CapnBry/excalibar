@@ -170,9 +170,13 @@ type
     procedure PreviousConnection;
     procedure NextConnection;
     procedure SetCurrentConnection(AConn: TDAOCConnection);
+    procedure AutoSelectConnection;
+    procedure UpdateCaption;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
+    procedure DAOCConnect(Sender: TObject);
+    procedure DAOCDisconnect(Sender: TObject);
     procedure DAOCAddObject(Sender: TObject; AObj: TDAOCObject);
     procedure DAOCDeleteObject(Sender: TObject; AObj: TDAOCObject);
     procedure DAOCUpdateObject(Sender: TObject; AObj: TDAOCObject);
@@ -196,7 +200,7 @@ var
 
 implementation
 
-uses Unit1, GlobalTickCounter, AddPushPin;
+uses Unit1, GlobalTickCounter, AddPushPin, Intersections;
 
 const
   COL_NAME = 0;
@@ -305,6 +309,7 @@ begin
 
   if not Assigned(FCurrConn) then begin
     DrawNoConnection;
+    FDirty := false;
     exit;
   end;
 
@@ -671,6 +676,11 @@ begin
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
+        { quick and easy cull check.  Note: object must have its center inside
+          the renderbounds }
+      if not PointInRect(FRenderBounds, pObj.X, pObj.Y) then
+        continue;
+
       pMovingObj := TDAOCMovingObject(pObj);
       if pObj.Stealthed then
         clMob := clBlack
@@ -897,19 +907,15 @@ begin
     see if this works }
   UpdateMapURLs;
   ReloadMapElementsAndTextures;
+
+  Dirty;
 end;
 
 procedure TfrmGLRender.DAOCRegionChanged(Sender: TObject);
-var
-  sCaption:   string;
 begin
   if (Sender <> FCurrConn) or not Assigned(FDAOCConnectionList) then exit;
 
-  sCaption := FCurrConn.LocalPlayer.Name + S_CAPTION_SUFFIX;
-  if FDAOCConnectionList.ActiveCount > 1 then
-    sCaption := sCaption + ' '  + IntToStr(FDAOCConnectionList.ActiveCount) +
-      ', active connections (F11 to toggle)';
-  Caption := sCaption;
+  UpdateCaption;
   FRenderPrefs.PlayerRealm := FCurrConn.LocalPlayer.Realm;
   DAOCSetGroundTarget(Sender);
   LoadRegionPushpins;
@@ -1568,6 +1574,8 @@ begin
 
   with FCurrConn.GroundTarget do
     FGroundTarget.Assign(X, Y);
+    
+  Dirty;
 end;
 
 procedure TfrmGLRender.InvalidateListObject(AObj: TDAOCObject);
@@ -2219,21 +2227,9 @@ begin
 end;
 
 procedure TfrmGLRender.SetDAOCConnectionList(const Value: TDAOCConnectionList);
-var
-  iActiveIdx: integer;
 begin
   FDAOCConnectionList := Value;
-
-    { if theres any active connections in this list, then select the last one }
-  for iActiveIdx := FDAOCConnectionList.Count - 1 downto 0 do
-    if FDAOCConnectionList[iActiveIdx].Active then begin
-      SetCurrentConnection(FDAOCConnectionList[iActiveIdx]);
-      exit;
-    end;
-
-    { else clear the current connection, because there isn't one }
-  if Assigned(FCurrConn) then
-    SetCurrentConnection(nil);
+  AutoSelectConnection;
 end;
 
 procedure TfrmGLRender.NextConnection;
@@ -2288,6 +2284,8 @@ begin
   end
   else
     tmrMinFPS.Enabled := false;
+
+  Dirty;
 end;
 
 procedure TfrmGLRender.DrawNoConnection;
@@ -2309,12 +2307,59 @@ end;
 
 procedure TfrmGLRender.RENDERPrefsMinFPSChanged(Sender: TObject);
 begin
-  AdjustMinFPSTimer;  
+  AdjustMinFPSTimer;
 end;
 
 procedure TfrmGLRender.AdjustMinFPSTimer;
 begin
   tmrMinFPS.Interval := (1000 div FRenderPrefs.MinFPS);
+end;
+
+procedure TfrmGLRender.DAOCDisconnect(Sender: TObject);
+begin
+  if FCurrConn = Sender then
+    AutoSelectConnection;
+  UpdateCaption;
+end;
+
+procedure TfrmGLRender.DAOCConnect(Sender: TObject);
+begin
+  if not Assigned(FCurrConn) then
+    AutoSelectConnection;
+  UpdateCaption;
+end;
+
+procedure TfrmGLRender.AutoSelectConnection;
+var
+  iActiveIdx:   integer;
+begin
+    { if theres any active connections in this list, then select the last one }
+  for iActiveIdx := FDAOCConnectionList.Count - 1 downto 0 do
+    if FDAOCConnectionList[iActiveIdx].Active then begin
+      SetCurrentConnection(FDAOCConnectionList[iActiveIdx]);
+      exit;
+    end;
+
+    { else clear the current connection, because there isn't one }
+  if Assigned(FCurrConn) then
+    SetCurrentConnection(nil);
+end;
+
+procedure TfrmGLRender.UpdateCaption;
+var
+  sCaption:   string;
+begin
+  if Assigned(FCurrConn) then
+    sCaption := FCurrConn.LocalPlayer.Name
+  else
+    sCaption := '';
+
+  sCaption := sCaption + S_CAPTION_SUFFIX;
+
+  if Assigned(FDAOCConnectionList) and (FDAOCConnectionList.ActiveCount > 1) then
+    sCaption := sCaption + ', '  + IntToStr(FDAOCConnectionList.ActiveCount) +
+      ' active connections (F11 to toggle)';
+  Caption := sCaption;
 end;
 
 end.

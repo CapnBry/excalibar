@@ -247,6 +247,7 @@ begin
 {$IFDEF OPENGL_RENDERER}
   if atnAutoLaunchRadar.Checked then
     ShowGLRenderer;
+  frmGLRender.DAOCConnect(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
@@ -259,6 +260,7 @@ begin
   frmGLRender.DAOCConnectionList := FDControlList;
   if atnAutoLaunchRadar.Checked then
     frmGLRender.Close;
+  frmGLRender.DAOCDisconnect(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
