@@ -46,17 +46,20 @@
 #include <sys/resource.h>
 #endif
 
+
 class exMapElement {
   protected:
     double r,g,b;
     QString text;
     GLint displist;
   public:
+    enum MapElementType { etBase, etTexture, etPoint, etLine };
     exMapElement();
     virtual ~exMapElement();
     void recache(exMap *map);
     void cached_draw();
     void setColor(QString col);
+    virtual MapElementType getElementType(void) const;
     virtual bool fromString(QStringList lst, int xadd, int yadd);
     virtual void draw(exMap *map) = 0;
     virtual bool visible(QRect &r) = 0;
@@ -69,6 +72,7 @@ class exMapElementTexture : public exMapElement {
   public:
     exMapElementTexture(int px, int py, int pw, int ph, class exMap *map, QImage img, bool bAlreadyInGLFormat = false);
     ~exMapElementTexture();
+    MapElementType getElementType(void) const;
     void draw(exMap *map);
     bool visible(QRect &r);
 };
@@ -79,6 +83,7 @@ class exMapElementPoint : public exMapElement {
     int xpos, ypos, zpos;
   public:
     exMapElementPoint();
+    MapElementType getElementType(void) const;
     bool fromString(QStringList lst, int xadd, int yadd);
     void draw(exMap *map);
     bool visible(QRect &r);
@@ -118,6 +123,7 @@ class exMapElementLine : public exMapElement {
     void tesselate();
   public:
     exMapElementLine();
+    MapElementType getElementType(void) const;
     bool fromString(QStringList lst, int xadd, int yadd);     
     void draw(exMap *map);
     bool visible(QRect &r);        
@@ -155,7 +161,7 @@ protected:
   GLuint listCircle;
   GLuint listSquares;
   exMapInfo *mi;
-  unsigned int objsize;
+  int objsize;
   exTimeType _lastDarken;
   bool mobDarken;
   QPtrList<exMapElement> map;
@@ -170,10 +176,9 @@ protected:
   exTimeType    _last_fps;
   QTimer idleTimer;
   
-  void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
+  void drawCircle(int radius, uint8_t segments);
   void drawMobName(exMob *m);
-  void drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
-                       GLfloat distfade_pct);
+  void drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pct);
 
 public slots:
   void idleTimeout(void);

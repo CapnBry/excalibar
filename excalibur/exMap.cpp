@@ -41,7 +41,7 @@
 #include <stdio.h>
 
 exMap::exMap(QWidget *parent, const char *name)
- : QGLWidget(QGLFormat(DoubleBuffer|DepthBuffer|Rgba|DirectRendering),parent,name) {
+ : QGLWidget(QGLFormat(DoubleBuffer|DirectRendering|Rgba),parent,name) {
   objsize = 150; 
   range = 16000;
   c = NULL; 
@@ -113,6 +113,7 @@ void exMap::makeObjects(bool simple) {
   glEdgeFlag(GL_TRUE);
   glNewList(listTriangle, GL_COMPILE);
 
+    /* The triangle we use to depict everyone */
   if (simple) {
     glBegin(GL_TRIANGLES);
     glNormal3f(0.0,0.0,1.0);
@@ -137,17 +138,19 @@ void exMap::makeObjects(bool simple) {
 
   glEndList();
 
+    /* The border around players */
   glNewList(listCircle, GL_COMPILE);
   glBegin(GL_TRIANGLES);
     glNormal3f(0.0,0.0,1.0);
-    glVertex3f(-w*1.5,-w*1.5,-1);
-    glVertex3f(0,l*1.5,-1);
-    glVertex3f(w*1.5,-w*1.5,-1);
+    glVertex3f(-w*1.33,-w*1.33,0.0);
+    glVertex3f(0,l*1.33,0.0);
+    glVertex3f(w*1.33,-w*1.33,0.0);
   glEnd();
   glEndList();
 
   glNewList(listSquares, GL_COMPILE);
 
+    /* The pyramid that represents an object */
   if (simple) {
     glBegin(GL_TRIANGLE_STRIP);
     glNormal3f(0.0,0.0,1.0);
@@ -210,8 +213,6 @@ void exMap::initializeGL() {
 
   if (! format().doubleBuffer())
     qWarning("Single Buffer GL only - Flicker might happen");
-  if (! format().depth())
-    qWarning("NO GL DEPTH BUFFER - No polygon sorting");
 
   if (isNVidiaModuleLoaded()) {
       qWarning("NVdriver Direct Rendering (DRI) support enabled.");
@@ -235,6 +236,7 @@ void exMap::initializeGL() {
   }
 
   glClearColor(0.0, 0.0, 0.0, 0.0);
+  glPointSize(3.0);
 
   glEnable(GL_CULL_FACE);
   glFrontFace(GL_CCW);
@@ -248,8 +250,9 @@ void exMap::initializeGL() {
   glDisable(GL_CLIP_PLANE5);
 
   glShadeModel(GL_FLAT);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  glDisable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
@@ -304,6 +307,21 @@ void exMap::resizeGL(int w, int h) {
   }
 }
 
+/***
+ In paintGL(), since we don't use the Z-buffer for performance reasons,
+ we have to draw things back to front.  This means:
+   -- Background PNGs
+   -- Vector maps
+   -- Mobs (in Z order) (z order not yet implemented)
+     -- Agro circle
+     -- Filter circle
+     -- Realm border triangle
+     -- Mob triangle
+   -- Line to selected MOB
+   -- Ruler lines
+   -- Range circles
+   -- Player triangle
+***/
 void exMap::paintGL() {
   const QPtrDict<exMob> mobs=c->getMobs();
   QPtrDictIterator<exMob> mobi(mobs);
@@ -311,7 +329,7 @@ void exMap::paintGL() {
   exMob *m;
   double playerhead;
   double playerrad;
-  int minx, maxx, miny,maxy;
+  int minx, maxx, miny, maxy;
 
   if (map_load) {
     recache = true;
@@ -321,13 +339,12 @@ void exMap::paintGL() {
     }
   }
 
-  if (prefs.map_simple) {
-    glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  if (prefs.map_simple)
     glDisable(GL_BLEND);
-  } else {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  else
     glEnable(GL_BLEND);
-  }
 
   if (prefs.gl_smooth_lines)
     glEnable(GL_LINE_SMOOTH);
@@ -364,14 +381,9 @@ void exMap::paintGL() {
   maxx=c->playerProjectedX + range + edit_xofs;
   miny=c->playerProjectedY - range + edit_yofs;
   maxy=c->playerProjectedY + range + edit_yofs;
-  glOrtho(minx, maxx, miny, maxy,0.0,-25000.0);
-
+  glOrtho(minx, maxx, miny, maxy, 500, -500); // objsize, -objsize);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
-  glColor3f(0.75, 0.75, 0.75);
-  glLineWidth(1.0);
-  glPointSize(3.0);
 
   QRect bounds;
   bounds.setCoords(minx, miny, maxx, maxy);
@@ -386,75 +398,44 @@ void exMap::paintGL() {
   lastfill = prefs.map_fill;
   lastz = c->playerz;
 
+    /* Background Pass One:  recache() and draw background PNGs */
   for (mapel=map.first(); mapel; mapel=map.next()) {
-     if (recache)
-         mapel->recache(this);
-     if (mapel->visible(bounds))
-         mapel->cached_draw();
+    if (recache)
+      mapel->recache(this);
+    if (mapel->visible(bounds) && (mapel->getElementType() == exMapElement::etTexture))
+      mapel->cached_draw();
   }
-
   recache = false;
+    /* Background Pass Two:  draw vector map */
+  for (mapel=map.first(); mapel; mapel=map.next())
+    if (mapel->visible(bounds) && (mapel->getElementType() != exMapElement::etTexture))
+      mapel->cached_draw();
 
-  if (prefs.map_rulers) {
-    qglColor( darkGray );
-    glBegin(GL_LINES);
-    glVertex3i(c->playerProjectedX - range * 2, c->playerProjectedY, 500);
-    glVertex3i(c->playerProjectedX + range * 2, c->playerProjectedY, 500);
-    glVertex3i(c->playerProjectedX, c->playerProjectedY - range * 2, 500);
-    glVertex3i(c->playerProjectedX, c->playerProjectedY + range * 2, 500);
-    glVertex3f(c->playerProjectedX * 1.0, c->playerProjectedY * 1.0, 500.0);
-    glVertex3f(c->playerProjectedX + cos(playerrad + M_PI_2) * range * 2, c->playerProjectedY + sin(playerrad + M_PI_2) * range * 2, 500.0);
-    glEnd();
-  }
-
-  if(prefs.player_circle_1 >= 226 || prefs.player_circle_2 >= 251) {
-
-    glColor3f (0.45f, 0.45f, 0.45f);
-
-    if (prefs.player_circle_1 >= 226)
-      drawCircle(c->playerProjectedX, c->playerProjectedY, prefs.player_circle_1, 20);
-
-    if (prefs.player_circle_2 >= 251)
-      drawCircle(c->playerProjectedX, c->playerProjectedY, prefs.player_circle_2, 20);
-  }
-
-  if (! prefs.map_simple ) {
+  if (!prefs.map_simple)
     glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-  } else {
-    glDisable(GL_DEPTH_TEST);
-  }
 
-  glPushMatrix();
-  glDepthFunc  (GL_LEQUAL);
-  glColor3f    (1.0f, 1.0f, 0.0f);
-  glTranslatef (c->playerProjectedX, c->playerProjectedY, c->playerz);
-  objRotate    (c->playerhead);
-  glCallList   (listTriangle);
-  glPopMatrix();
-
-
- if ((exTick - _lastDarken) > 250) {
+  if ((exTick - _lastDarken) > 250) {
     mobDarken = ! mobDarken;
     _lastDarken = exTick;
   }
 
   for(;mobi.current();++mobi) {
     m=mobi.current();
+    m->checkStale();
 
     if (m->isCurrent() && m->insideRect(bounds)) {
       glPushMatrix();
-      glTranslatef (m->getProjectedX(),m->getProjectedY(),m->getZ());
+      glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0);  // m->getZ()
       objRotate(m->getHead());
 
       /* if it is filtered draw a yellow circle around it */
       if (prefs.filter_circles && m->isFiltered())
-          drawAggroCircle(m->getZ(), 1.0, 1.0, 0.0, 0.0);
+          drawAggroCircle(1.0, 1.0, 0.0, 0.0);
 
       /* if the mob is within range, draw an agro circle around it */
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
-          drawAggroCircle(m->getZ(), 1.0, 0.0, 0.0,
-                          (prefs.agro_fading) ? m->playerDist() / 1500.0f : 0.0);
+          drawAggroCircle(1.0, 0.0, 0.0,
+                          (prefs.agro_fading) ? m->playerDist() / 1500.0f : 0.0f);
 
         /* if this is a player */
       if (!m->isMobOrObj()) {
@@ -467,7 +448,7 @@ void exMap::paintGL() {
         }
 
         glCallList(listCircle);
-      }
+      } // if is player
 
       if (m->isObj())  {
         setGLColor(1.0,1.0,1.0, m->getZ());
@@ -483,19 +464,59 @@ void exMap::paintGL() {
 
       glPopMatrix();
     }  // if isCurrent
-
-    m->checkStale();
   }  // for mobs
 
+  glDisable(GL_LIGHTING);
+
+    /* line to selected mob */
   m=mobs.find((void *)c->selectedid);
   if (m && m->isCurrent()) {
     glColor3f(1.0, 1.0, 1.0);
-    glLineWidth ( 2.0 );
+    glLineWidth(2.0);
     glBegin(GL_LINES);
-    glVertex3i(c->playerProjectedX,c->playerProjectedY,c->playerz);
-    glVertex3i(m->getProjectedX(),m->getProjectedY(),m->getZ());
+    glVertex3i(c->playerProjectedX, c->playerProjectedY, 0);  // c->playerz
+    glVertex3i(m->getProjectedX(), m->getProjectedY(), 0);  // m->getZ()
     glEnd();
   }
+
+  glPushMatrix();
+  glTranslatef (c->playerProjectedX, c->playerProjectedY, 0.0); // c->playerz);
+
+    /* Ruler lines */
+  if (prefs.map_rulers) {
+    glColor3f (0.45, 0.45, 0.45);
+    glLineWidth(1.0);
+    glBegin(GL_LINES);
+      /* mult range * 1.5 to make sure the lines can reach all the way to the corners */
+    glVertex3f(-(range * 1.5), 0.0, 0.0);  // 500
+    glVertex3f((range * 1.5), 0.0, 0.0);  // 500
+    glVertex3f(0.0, -(range * 1.5), 0.0);  // 500
+    glVertex3f(0.0, (range * 1.5), 0.0);  // 500
+    glVertex3f(0.0, 0.0, 0.0);  // 500.0
+    glVertex3f(cos(playerrad + M_PI_2) * (range * 1.5),
+               sin(playerrad + M_PI_2) * (range * 1.5), 0.0); // 500.0
+    glEnd();
+  }
+
+  /* Range Circles */
+  if ((prefs.player_circle_1 > 0) || (prefs.player_circle_2 > 0)) {
+    glColor3f (0.45, 0.45, 0.45);
+    glLineWidth(1.0);
+    if (prefs.player_circle_1 > 0)
+      drawCircle(prefs.player_circle_1, 20);
+    if (prefs.player_circle_2 > 0)
+      drawCircle(prefs.player_circle_2, 20);
+  }
+
+    /* Player triangle */
+  if (!prefs.map_simple)
+    glEnable(GL_LIGHTING);
+  glColor3f    (1.0, 1.0, 0.0);
+  objRotate    (c->playerhead);
+  glCallList   (listTriangle);
+
+    /* pop from the move to player position */
+  glPopMatrix();
 
   is_dirty = false;
 
@@ -546,10 +567,10 @@ void exMap::drawMobName(exMob *m)
     glColor3f  (1.0, 1.0, 1.0);
 
     glBegin    (GL_POINTS);
-    glVertex3f (0.0, 0.0, m->getZ() + (float)(2.5 * objsize));
+    glVertex3i (0, 0, 0); // m->getZ() + (float)(2.5 * objsize));
     glEnd();
 
-    glRasterPos3i(20, 20, m->getZ() + (3 * objsize));
+    glRasterPos3i(20, 20, 0); // m->getZ() + (3 * objsize));
     for (unsigned int i = 0; i < qsFormattedName.length(); i++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName[i].latin1());
     }
@@ -557,32 +578,24 @@ void exMap::drawMobName(exMob *m)
     glPopAttrib();
 }
 
-void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
-                            GLfloat distfade_pct)
+void exMap::drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pct)
 {
     /* This function assumes that the X, Y, and Z coordinates are
        already in the translation matrix set for the circle */
-    glPushMatrix();
-    // 600 to account for the radius of the sphere + the height of the triangle
-    if (Z >= 600.0f)
-        glTranslatef(0.0f, 0.0f, -600.0f);
-
     if (prefs.alpha_circles && ! prefs.map_simple) {
-        glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+        glPushAttrib (GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
         glEnable     (GL_BLEND);
-        glEnable     (GL_DEPTH_TEST);
         glDisable    (GL_LIGHTING);
-        glDepthFunc  (GL_LEQUAL);
 
         if (prefs.alpha_borders) {
             glColor3f  (R, G, B);
-            drawCircle (0, 0, 500, 18);
+            drawCircle (500, 18);
         }
 
         if (distfade_pct > 0)
-            glColor4f(R, G, B, 0.50f - (distfade_pct / 2.0f));
+            glColor4f(R, G, B, 0.50 - (distfade_pct / 2.0));
         else
-            glColor4f(R, G, B, 0.25f);
+            glColor4f(R, G, B, 0.25);
 
         GLUquadricObj *qoCircle;
         qoCircle = gluNewQuadric();
@@ -604,25 +617,23 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
             glColor3f(R - distfade_pct, G - distfade_pct, B - distfade_pct);
         else
             glColor3f(R, G, B);
-        drawCircle(0, 0, 500, 18);
+        drawCircle(500, 18);
         glPopAttrib();
     }
-
-    glPopMatrix();
 }
 
-void exMap::drawCircle(int center_x, int center_y, int radius, uint8_t segments)
+void exMap::drawCircle(int radius, uint8_t segments)
 {
      GLfloat angle;
      GLfloat vectorx, vectory;
 
      /* draw a circle from a bunch of short lines */
      glBegin(GL_LINE_LOOP);
-     for (angle = -M_PI; angle < M_PI; angle += (2.0f * M_PI / (GLfloat)segments))
+     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (GLfloat)segments))
      {
-         vectorx = (GLfloat)center_x + ((GLfloat)radius * sin(angle));
-         vectory = (GLfloat)center_y + ((GLfloat)radius * cos(angle));
-         glVertex3f(vectorx, vectory, 500.0f);
+         vectorx = ((GLfloat)radius * sin(angle));
+         vectory = ((GLfloat)radius * cos(angle));
+         glVertex3f(vectorx, vectory, 0.0); // 500.0);
      }
      glEnd();
 }
@@ -755,8 +766,8 @@ void exMap::setGLColor(QColor col, int z) {
 void exMap::objRotate(unsigned int daocheading) {
   GLfloat r;
   r = (GLfloat)daocheading;
-  r *= 360;
-  r /= 0x1000;
+  r *= 360.0;
+  r /= (GLfloat)0x1000;
   glRotatef(r,0.0,0.0,1.0);
 }
 
@@ -771,7 +782,6 @@ int exMap::stringInt(QStringList *sl, unsigned int sec) {
   }
   return v;
 }
-
 
 void exMap::mapRead() {
 
@@ -807,7 +817,6 @@ void exMapElement::recache(exMap *map) {
   glEndList();
 }
 
-
 void exMapElement::cached_draw() {
   glCallList(displist);
 }
@@ -833,6 +842,10 @@ bool exMapElement::fromString(QStringList lst, int, int) {
   return TRUE;
 }
 
+exMapElement::MapElementType exMapElement::getElementType(void) const
+{
+  return exMapElement::etBase;
+}
 
 exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *map, QImage img, bool bAlreadyInGLFormat) {
 
@@ -894,27 +907,27 @@ exMapElementTexture::~exMapElementTexture() {
 
 void exMapElementTexture::draw(exMap *) {
   glPushAttrib(GL_ENABLE_BIT);
-  glDisable(GL_DEPTH_TEST);
+  // glDisable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
   glEnable(GL_TEXTURE_2D);
   glEdgeFlag(GL_FALSE);
 
-  glColor4f(1.0,1.0,1.0,1.0);
+  glColor4f(1.0, 1.0, 1.0, 1.0);
 
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_QUADS);
 
   glTexCoord2f(0.0, 0.0);
-  glVertex3i(bounds.left(), bounds.bottom(), 250);
+  glVertex3i(bounds.left(), bounds.bottom(), 0); // 250);
 
   glTexCoord2f(1.0, 0.0);
-  glVertex3i(bounds.right(), bounds.bottom(), 250);
+  glVertex3i(bounds.right(), bounds.bottom(), 0); // 250);
 
   glTexCoord2f(1.0, 1.0);
-  glVertex3i(bounds.right(), bounds.top(), 250);
+  glVertex3i(bounds.right(), bounds.top(), 0); // 250);
 
   glTexCoord2f(0.0, 1.0);
-  glVertex3i(bounds.left(), bounds.top(), 250);
+  glVertex3i(bounds.left(), bounds.top(), 0); //250);
 
   glEnd();
 
@@ -925,6 +938,11 @@ bool exMapElementTexture::visible(QRect &r) {
   return r.intersects(bounds);
 }
 
+exMapElement::MapElementType exMapElementTexture::getElementType(void) const
+{
+  return exMapElement::etTexture;
+}
+
 exMapElementPoint::exMapElementPoint() {
   xpos=ypos=zpos=0;
 }
@@ -933,11 +951,11 @@ void exMapElementPoint::draw(exMap *map) {
   map->setGLColor(r, g, b, zpos);
 
   glBegin(GL_POINTS);
-  glVertex3i(xpos,ypos,zpos);
+  glVertex3i(xpos,ypos, 0); // zpos);
   glEnd();
   map->setGLColor(1.0,1.0,1.0,zpos);
 
-  glRasterPos3i(xpos+50,ypos+20,zpos);
+  glRasterPos3i(xpos+50, ypos+20, 0); // zpos);
   for (unsigned int i=0;i<text.length();i++) 
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, text[i].latin1());
 }
@@ -966,6 +984,11 @@ bool exMapElementPoint::fromString(QStringList lst, int xadd, int yadd) {
     return FALSE;
   zpos += 10;
   return TRUE;
+}
+
+exMapElement::MapElementType exMapElementPoint::getElementType(void) const
+{
+  return exMapElement::etBase;
 }
 
 exMapElementLinePoint::exMapElementLinePoint(int nx, int ny, int nz) {
@@ -1151,7 +1174,7 @@ void exMapElementLine::draw(exMap *map) {
       glBegin(t->type);
       for (p=t->points.first(); p; p=t->points.next()) {
         glColor4f(p->glcol[0] / 2, p->glcol[1] / 2, p->glcol[2] / 2, p->glcol[3]);
-        glVertex3i(p->x, p->y, p->z / 10);
+        glVertex3i(p->x, p->y, 0); // p->z / 10);
       }
       glEnd();
     }
@@ -1161,9 +1184,14 @@ void exMapElementLine::draw(exMap *map) {
   glBegin(GL_LINE_STRIP);
   for (p=points.first(); p; p=points.next()) { 
     glColor4f(p->glcol[0],p->glcol[1],p->glcol[2],p->glcol[3]);
-    glVertex3i(p->x,p->y,p->z);
+    glVertex3i(p->x,p->y,0); // p->z);
   }
   glEnd();  
+}
+
+exMapElement::MapElementType exMapElementLine::getElementType(void) const
+{
+  return exMapElement::etLine;
 }
 
 void exMap::loadVectorMap (const exMapInfo *mi) {
