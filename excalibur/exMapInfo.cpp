@@ -69,7 +69,7 @@ bool exMapInfo::adjoin(int nregion, int xbase, int ybase, int xmax, int ymax) {
 
 QString exMapInfo::getName() {
   if (*fileName == 0x0 || fileName.length() <= 4)
-    return "UNKNOWN";
+    return QString().sprintf("Zone_%03d.map", zone);
   else
     return fileName;
 }
@@ -92,7 +92,7 @@ int exMapInfo::getZoneNum() const {
 
 QString exMapInfo::getZoneName() {
   if (*fileName == 0x0 || fileName.length() <= 4)
-    return "UNKNOWN";
+    return QString("Zone %1").arg(zone);
   else
     return (QString(fileName).replace(QRegExp("_"), " ").replace(QRegExp(".map"), "")).ascii();
 }
