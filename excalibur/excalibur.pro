@@ -1,6 +1,6 @@
 SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp \
   exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp \
-  exMapInfo.cpp main.cpp
+  exMapInfo.cpp main.cpp quickmath.c
 HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h \
   exMap.h exMessage.h 
 
@@ -34,7 +34,6 @@ unix {
 }
 
 QMAKE_CXXFLAGS  += -include excalibur.h
-#QMAKE_LFLAGS   += -pg -a
 FORMS	        = formexcalibur.ui prefsdialog.ui
 TEMPLATE	= app
 CONFIG	        += qt warn_on release thread opengl network
@@ -46,3 +45,7 @@ LANGUAGE	= C++
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -mcpu=pentiumpro -march=pentiumpro \
   -fomit-frame-pointer -funroll-loops -ffast-math
+
+# QMAKE_CXXFLAGS_RELEASE -= -fomit-frame-pointer 
+# QMAKE_LFLAGS    += -pg -g -a
+# QMAKE_CXXFLAGS  += -pg -g -a
