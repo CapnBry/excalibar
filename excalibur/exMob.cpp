@@ -19,6 +19,10 @@
  */
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <qstring.h>
+#include <qregexp.h>
 #include "exMob.h"
 #include "exPrefs.h"
 
@@ -26,10 +30,15 @@ static const QColor cMidgaard(0,0,255);
 static const QColor cHibernia(0,255,0);
 static const QColor cAlbion(255,0,0);
 static const QColor cFriendly(0,255,255);
+static exFilter MobFilter;
+/* TODO: Make this not a hack */
+static exConnection* conn;
 
-exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp, bool newobj) 
+exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int
+newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny,
+int nz, int nhp, bool newobj)
  : QListViewItem(view)
-{
+{ 
   id=newid;
   infoid=newinfoid;
   name=newname;
@@ -44,16 +53,21 @@ exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid
   head=0x800;
   speed=0;
   c=con;
-
+  
   current = true;
-
+  
   realm = rFriend;
-
+  
   _lasttick = exTick;
   _lastdist = 0;
   playerDist();
+  setConnection( con);
 }
 
+void exMob::setConnection( exConnection *con)
+{
+  conn = con;
+}
 int exMob::compare(QListViewItem *i, int col, bool ascending) const {
   exMob *mob;
   int a;
@@ -146,6 +160,7 @@ QString exMob::text(int column) const {
 
 void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align) {
   QColorGroup cols(cg);
+  QRegExp rx( MobFilter.getFilter());
   QColor clr;
 
   if (! isMob() && ! isObj()) {
@@ -171,6 +186,10 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
     cols.setColor( QColorGroup::Text, clr);
     }
 
+  if( -1 != rx.search( name) && "" != MobFilter.getFilter())
+	{
+    cols.setColor(QColorGroup::Base, QColor(255,255,153));
+	}
   QListViewItem::paintCell(p,cols,column,width,align);
 }
 
@@ -364,4 +383,11 @@ void exMob::stale() {
     current = false;
     c->ex->ListViewMobs->takeItem(this);
   }
+}
+void exMob::setFilter( QString Filter)
+{
+  MobFilter.setFilter( Filter);
+  printf( "New Filter: %s\n", MobFilter.getFilter().ascii());
+
+  conn->ex->ListViewMobs->repaint();  
 }

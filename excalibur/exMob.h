@@ -24,8 +24,10 @@ class exMob;
 #define _EXMOB_H
 
 #include <qlistview.h>
+#include <qstring.h>
 #include "excalibur.h"
 #include "exConnection.h"
+#include "exFilter.h"
 
 class exMob : public QListViewItem {
   private:
@@ -50,12 +52,14 @@ class exMob : public QListViewItem {
     unsigned int projectedX, projectedY;
     exConnection *c;
     Realm realm;
+	void exMob::setConnection( exConnection *con);
+
   public:
     exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
     virtual int compare(QListViewItem *i, int col, bool ascending) const;
     virtual QString text(int column) const;
     void paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align);
-
+	
     unsigned int getID() const;
     unsigned int getInfoID() const;
     QString getName() const;
@@ -84,6 +88,7 @@ class exMob : public QListViewItem {
     void setHP(unsigned int hp);
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
+	static void setFilter( QString );
 };
 
 #endif

@@ -37,6 +37,7 @@
 #include <qcolor.h>
 #include "excalibur.h"
 #include "exItem.h"
+#include "exMob.h"
 
 void FormExcalibur::resizeEvent(QResizeEvent *e) {
     HSplitter->resize(centralWidget()->size());
@@ -139,4 +140,9 @@ void FormExcalibur::ProfileExit_activated()
 void FormExcalibur::EditorSpawn_activated()
 {
   Map->c->spawnEditor();
+}
+
+void FormExcalibur::MobFilter_returnPressed()
+{
+    exMob::setFilter( MobFilter->text());
 }
