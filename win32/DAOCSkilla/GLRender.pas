@@ -799,12 +799,11 @@ procedure TfrmGLRender.SetupRadarProjectionMatrix;
 begin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  if Assigned(FDControl.Zone) and (FDControl.Zone.Rotate > 0) then
+  if FRenderPrefs.RotateMapWithPlayer then
+    glRotatef(FDControl.LocalPlayer.Head - 180, 0, 0, 1)
+  else if Assigned(FDControl.Zone) and (FDControl.Zone.Rotate > 0) then
     glRotatef(FDControl.Zone.Rotate, 0, 0, 1);
   glRotatef(180, 1, 0, 0);
-
-  if FRenderPrefs.RotateMapToPlayer then
-    glRotatef(-FDControl.LocalPlayer.Head, 0, 0, 1);
 
   FRenderBounds.Left := FDControl.LocalPlayer.XProjected - FRange;
   inc(FRenderBounds.Left, FMapToPlayerOffset.X);
