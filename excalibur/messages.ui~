@@ -1,0 +1,238 @@
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<class>exMessagesUi</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>Messages</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>528</width>
+            <height>368</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Excalibur Messages</string>
+    </property>
+    <property name="sizeGripEnabled">
+        <bool>true</bool>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>11</number>
+        </property>
+        <property name="spacing">
+            <number>6</number>
+        </property>
+        <widget class="QTabWidget">
+            <property name="name">
+                <cstring>tabWidget</cstring>
+            </property>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>Widget8</cstring>
+                </property>
+                <attribute name="title">
+                    <string>All</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>AllText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>Widget9</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Say</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>SayText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Tell</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>TellText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Group</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>GroupText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Guild</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>GuildText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Broadcast</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>BCastText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout1</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <spacer>
+                    <property name="name" stdset="0">
+                        <cstring>Horizontal Spacing2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>buttonCancel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Close</string>
+                    </property>
+                    <property name="accel">
+                        <number>0</number>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>buttonCancel</sender>
+        <signal>clicked()</signal>
+        <receiver>Messages</receiver>
+        <slot>reject()</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
