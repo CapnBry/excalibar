@@ -531,7 +531,7 @@ end;
 
 function TDAOCPacket.EOF: boolean;
 begin
-  Result := FPacketDataPos > FPacketDataEnd;
+  Result := FPacketDataPos >= FPacketDataEnd;
 end;
 
 procedure TDAOCPacket.FreePacketData;
