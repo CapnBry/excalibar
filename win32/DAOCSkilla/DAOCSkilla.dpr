@@ -49,7 +49,8 @@ uses
   QuickSinCos in '..\Common\QuickSinCos.pas',
   Macroing in 'Macroing.pas' {frmMacroing},
   Intersections in '..\Common\Intersections.pas',
-  BackgroundHTTP in 'BackgroundHTTP.pas';
+  BackgroundHTTP in 'BackgroundHTTP.pas',
+  ConnectionConfig in 'ConnectionConfig.pas' {frmConnectionConfig};
 
 {$R *.TLB}
 
@@ -67,6 +68,7 @@ begin
   Application.CreateForm(TfrmSpellcraftHelp, frmSpellcraftHelp);
   Application.CreateForm(TfrmDebugging, frmDebugging);
   Application.CreateForm(TfrmMacroing, frmMacroing);
+  Application.CreateForm(TfrmConnectionConfig, frmConnectionConfig);
   CreateOptionalForms;
   Application.Run;
 end.
