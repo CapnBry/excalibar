@@ -74,9 +74,9 @@ type
     dwFlags:    Cardinal;
     dwHeight:   Cardinal;
     dwWidth:    Cardinal;
-    dwPitchOrLinearSize:  Cardinal;
-    dwDepth:    Cardinal;
-    dwMipMapCount:  Cardinal;
+    dwLinearSize:       Cardinal;
+    dwBackBufferCount:  Cardinal;
+    dwMipMapCount:      Cardinal;
     dwReserved1:    array[0..10] of Cardinal;
     sPixelFormat:   TDDPixelFormat;
     sCaps:      TDDCaps2;
@@ -121,6 +121,7 @@ type
     FHeight: integer;
     FWidth: integer;
     FPixelData: TMemoryStream;
+    FMipMapCount: Cardinal;
 
     function GetPixels: Pointer;
     function GetPixelsSize: integer;
@@ -135,6 +136,7 @@ type
     procedure LoadFromStream(AStream: TStream);
     function CopyChunk(X, Y, H, W: Cardinal) : TDDSImagePixelsChunk;
 
+    property MipMapCount: Cardinal read FMipMapCount;
     property Compressed: boolean read FCompressed;
     property Swap: boolean read FSwap;
     property Palettized: boolean read FPalettized;
@@ -305,14 +307,28 @@ end;
 
 procedure TDDSImage.InitializeDXT3;
 begin
+  FCompressed := true;
   FblockBytes := 16;
   FInternalFormat := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+
+  FSwap := false;
+  FPalettized := false;
+  FdivSize := 4;
+  FexternalFormat := 0;
+  FByteType := 0;
 end;
 
 procedure TDDSImage.InitializeDXT5;
 begin
+  FCompressed := true;
   FblockBytes := 16;
   FInternalFormat := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+
+  FSwap := false;
+  FPalettized := false;
+  FdivSize := 4;
+  FexternalFormat := 0;
+  FByteType := 0;
 end;
 
 procedure TDDSImage.LoadFromFile(const AFileName: string);
@@ -350,6 +366,7 @@ begin
 
   FHeight := hdr.sSurfaceDesc.dwHeight;
   FWidth := hdr.sSurfaceDesc.dwWidth;
+  FMipMapCount := hdr.sSurfaceDesc.dwMipMapCount;
 
   if PF_IS_DXT1(hdr.sSurfaceDesc.sPixelFormat) then
     InitializeDXT1
@@ -373,9 +390,13 @@ begin
   if FCompressed then begin
     if FdivSize = 0 then
       raise Exception.Create('divSize is 0 loading DDS.  Format must be DXT1');
-      
+
     iPixDataSize := (max(FdivSize, Cardinal(FWidth)) div FdivSize) *
       (max(FdivSize, Cardinal(FHeight)) div FdivSize) * FblockBytes;
+//    if FMipMapCount > 1 then
+//      iPixDataSize := hdr.sSurfaceDesc.dwLinearSize * 2
+//    else
+//      iPixDataSize := hdr.sSurfaceDesc.dwLinearSize;
     FPixelData.Size := iPixDataSize;
     FPixelData.CopyFrom(AStream, iPixDataSize);
   end;  { if compressed }
