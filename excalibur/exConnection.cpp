@@ -101,6 +101,8 @@ void exConnection::setup()
     playerrealm = rFriend;
     player_last_update = 0;
 
+    clearGroundTarget();
+
     file = new QFile;
 
     ex = new FormExcalibur;
@@ -310,10 +312,10 @@ void exConnection::processPacket(exPacket * p)
 	srcid = p->getShort();
 	p->seek(2);
 	command = p->getShort();
-	destid = p->getShort();
 	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
+              p->seek(2);
               playerspeed = p->getShort() & 0x3ff;
                 /* the bit 9 is the sign, 10 = swimming? */
               if (playerspeed & 0x200)
@@ -355,15 +357,20 @@ void exConnection::processPacket(exPacket * p)
 	      break;
 
           case 0x12:
+              p->seek(2);
 	      playerhead = (p->getShort()) & 0xfff;
 	      ex->Map->dirty();
 	      break;
 	  case 0x18:
-	      if (ex->AutoSelectTarget->isOn()) {
+              destid = p->getShort();
+              if (ex->AutoSelectTarget->isOn()) {
 		  selectID(destid);
 		  ex->Map->dirty();
 	      }
-	      break;
+              break;
+          case 0x44:
+              parseSetGroundTarget(p);
+              break;
           default:
 	      if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
@@ -544,7 +551,10 @@ END_EXPERIMENTAL_CODE
 	      intptr = playerzones.find(playername);
 	      if (intptr) {
 		*intptr = playerzone;
-	      }
+              }
+                /* clear the groundtarget when we change regions, since the
+                   target is region-specific */
+              clearGroundTarget();
 	      break;
           case 0xaa:
               parsePlayerInventoryChange(p);
@@ -629,6 +639,14 @@ END_EXPERIMENTAL_CODE
 	      break;
 	}
     }
+}
+
+void exConnection::parseSetGroundTarget(exPacket *p)
+{
+    groundtarget_x = p->getLong();
+    groundtarget_y = p->getLong();
+    groundtarget_z = p->getLong();
+    ex->Map->dirty();
 }
 
 void exConnection::parsePlayerInventoryChange(exPacket *p)
@@ -1045,5 +1063,12 @@ void exConnection::parseCharacterInfoList(exPacket *p)
 
         characters_left--;
     } // while chars left
+}
+
+void exConnection::clearGroundTarget(void)
+{
+    groundtarget_x = 0;
+    groundtarget_y = 0;
+    groundtarget_z = 0;
 }
 

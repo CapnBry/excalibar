@@ -79,6 +79,7 @@ protected:
   bool writecapture;
   bool m_bMapCancel;
 
+  void parseSetGroundTarget(exPacket *p);
   void parsePlayerInventoryChange(exPacket *p);
   void parseObjectEquipment(exPacket *p);
   void parseObjectStopped(exPacket *p);
@@ -89,6 +90,7 @@ protected:
   void parseTouchMob(exPacket *p, unsigned int id_offset); 
   void parseSelfHealthUpdate(exPacket *p);
   void dumpPacket(unsigned int command, exPacket *p);
+  void clearGroundTarget(void);
 
 public slots:
   void listSelectionChanged(QListViewItem *i);
@@ -101,6 +103,7 @@ public:
   exMessagesUi  *msgui;
   QString playername;
   int playerx, playery, playerz, playerhead, playerspeed, playerzone, playerlevel;
+  int groundtarget_x, groundtarget_y, groundtarget_z;
   exTimeType player_last_update;
   int playerProjectedX, playerProjectedY;
   int player_health, player_mana, player_endurance;

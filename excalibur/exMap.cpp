@@ -476,6 +476,38 @@ void exMap::paintGL() {
     }  // if isCurrent
   }  // for mobs
 
+  if (c->groundtarget_x && c->groundtarget_y)
+  {
+    glColor3f(0.5, 0.8, 1.0);  // light blue
+    glPushMatrix();
+    glTranslatef(c->groundtarget_x,c->groundtarget_y, 0.0);  // c->groundtarget_z
+
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glPopMatrix();
+  }
+
   glDisable(GL_LIGHTING);
 
     /* line to selected mob */
