@@ -90,6 +90,7 @@ cDStream::cDStream(void)
 {
 	pDStream = this;
 	iPort = 9867;
+	connectionid=GetCurrentProcessId();
 }
 
 void cDStream::ServerThread()
