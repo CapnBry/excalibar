@@ -107,11 +107,40 @@ class exMapElementLine : public exMapElement {
     bool visible(QRect &r);        
 };
 
+class exMapPNGLoaderDialog : public QObject, public QThread {
+	Q_OBJECT
+	public:
+	        exMapPNGLoaderDialog  (void);
+	        ~exMapPNGLoaderDialog (void);
+
+		virtual void run (void);
+	        virtual bool event (QEvent *e);
+	protected:
+	        QProgressDialog *pdProgress;
+};
+
+class exMapPNGLoader : public QObject, public QThread {
+Q_OBJECT
+public:
+        exMapPNGLoader  (void);
+        ~exMapPNGLoader (void);
+
+	void setParent (exMap *parent);
+
+	virtual void run (void);
+        virtual bool event (QEvent *e);
+
+	exMapPNGLoaderDialog empldProgress;
+	protected:
+        exMap *parent;
+};
+
+
 class exMap : public QGLWidget {
 Q_OBJECT
 protected:
   friend class exMapPNGLoader;
-  exMapPNGLoader *PNGLoader;
+  exMapPNGLoader PNGLoader;
 
   bool is_dirty;
   bool map_load;
@@ -164,32 +193,6 @@ public:
   virtual bool event (QEvent *e);
 };
 
-class exMapPNGLoaderDialog : public QObject, public QThread {
-Q_OBJECT
-public:
-	exMapPNGLoaderDialog  (void);
-	~exMapPNGLoaderDialog (void);
-	
-	virtual void run (void);
-	virtual bool event (QEvent *e);
-protected:
-	QProgressDialog *pdProgress;
-};
-
-class exMapPNGLoader : public QObject, public QThread {
-Q_OBJECT
-public:
-	exMapPNGLoader  ( exMap *parent );
-	~exMapPNGLoader (void);
-	
-	virtual void run (void);
-	virtual bool event (QEvent *e);
-
-	exMapPNGLoaderDialog empldProgress;
-protected:
-	exMap *parent;
-};
-
 #define CALLBACK_PNG_DATA (QEvent::Type)(QEvent::User + 0x01)
 #define CALLBACK_PNG_STAT (QEvent::Type)(QEvent::User + 0x02)
 #define CALLBACK_PNG_ABRT (QEvent::Type)(QEvent::User + 0x03)
@@ -209,7 +212,7 @@ protected:
 class exMapElement; 
 class exMapElementPoint;
 class exMapElementLine;
-class exMap;
-class exMapPNGLoader;
 class exMapPNGLoaderDialog;
+class exMapPNGLoader;
+class exMap;
 #endif

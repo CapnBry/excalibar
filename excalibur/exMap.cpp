@@ -32,6 +32,7 @@
 #include <qtextstream.h>
 #include <qslider.h>
 #include <qimage.h>
+#include <qpixmap.h>
 #include <qmessagebox.h>
 
 #include <stdio.h>
@@ -49,14 +50,12 @@ exMap::exMap(QWidget *parent, const char *name)
   edit_xofs = edit_yofs = 0;
   recache = true;
   map.setAutoDelete(true);
+  PNGLoader.setParent(this);
 }
 
 exMap::~exMap() {
   if (mi)
     delete mi;
-  if (PNGLoader != NULL && ! PNGLoader->running()) {
-    delete [] PNGLoader;
-  }
 }
 
 void exMap::dirty() {
@@ -618,7 +617,7 @@ void exMap::objRotate(unsigned int daocheading) {
 
 int exMap::stringInt(QStringList *sl, unsigned int sec) {
   bool ok;
-  if ((sl==NULL) || (sec >= sl->size())) {
+  if ((sl == NULL) || (sec >= sl->size())) {
     return 0;
   }
   int v=(*sl)[sec].toInt(&ok, 10);
@@ -647,20 +646,16 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  if (PNGLoader == NULL)
-    PNGLoader = new exMapPNGLoader(this);
-
-  if (PNGLoader != NULL) {
-    if (PNGLoader->running()) {
-      PNGLoader->cleanup();
-      if (PNGLoader->running())
-        qWarning("Poor Man's Mutex Error:\tUnable to ABORT PNG Loading Engine..  Multiple threads may occur!!!!!!!!!!");
+  if (PNGLoader.running()) {
+    PNGLoader.cleanup();
+    if (PNGLoader.running())
+      qWarning("Poor Man's Mutex Error:\tUnable to ABORT PNG Loading Engine..  Multiple threads may occur!!!!!!!!!!");
 BEGIN_EXPERIMENTAL_CODE
-        QMessageBox::information(0,"PNG Loading Engine", "***WARNING*** Polly needs a THREAD MUTEX! (and a cracker) ***WARNING***");
+      QMessageBox::information(0,"PNG Loading Engine", "***WARNING*** Polly needs a THREAD MUTEX! (and a cracker) ***WARNING***");
 END_EXPERIMENTAL_CODE
-    }
-    PNGLoader->start();
   }
+
+  PNGLoader.start();
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
@@ -1053,15 +1048,13 @@ void exMapElementLine::draw(exMap *map) {
   glEnd();  
 }
 
-exMapPNGLoader::exMapPNGLoader ( exMap *parent )
+exMapPNGLoader::exMapPNGLoader  (void) {}
+exMapPNGLoader::~exMapPNGLoader (void) {}
+
+void exMapPNGLoader::setParent ( exMap *parent )
 {
   this->parent = parent;
   empldProgress.start();
-  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)1));
-}
-
-exMapPNGLoader::~exMapPNGLoader (void)
-{
 }
 
 void exMapPNGLoader::run (void)
@@ -1070,6 +1063,8 @@ void exMapPNGLoader::run (void)
   int w,h;
   const int xadd = parent->mi->getBaseX();
   const int yadd = parent->mi->getBaseY();
+
+  parent->map.clear();
 
   QFile fimg(QString().sprintf("maps/zone%03d.png", parent->mi->getZoneNum()));
   if (fimg.exists()) {
@@ -1091,12 +1086,13 @@ void exMapPNGLoader::run (void)
           pc->y   = y;
 	  pc->img = QGLWidget::convertToGLFormat(img.copy( w * x / 8, h * y / 8,
                                                            w / 8, h / 8 ));
-          qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, pc));
+          qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
         }
       }
     }
   }
   qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+  cleanup();
 }
 
 bool exMap::event (QEvent *e)
@@ -1105,10 +1101,13 @@ bool exMap::event (QEvent *e)
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
     PNGCallback *pc = (PNGCallback*)PNGEvent->data();
     map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
-    if (pc->y == 7 && pc->x == 7 && PNGLoader != NULL)
+    if (pc->y == 7 && pc->x == 7)
     {
-      qApp->postEvent(&PNGLoader->empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+      qApp->postEvent(&PNGLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
     }
+
+    pc->img = (QImage)NULL;
+
     return true;
   }
   QWidget::event( e );
@@ -1132,11 +1131,13 @@ exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
 
 exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 {
+  cleanup();
+  pdProgress->reset();
 }
 
 void exMapPNGLoaderDialog::run (void)
 {
-  pdProgress->setProgress(0);
+  pdProgress->reset();
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
