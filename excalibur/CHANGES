@@ -4,6 +4,10 @@ Andon (09/Feb/02)
 Bug fixes:
  + Fixed the change to getZoneName that would cause g++ to puke
    when comparing its return to a const char*
+ + Fixed a bug in the new log unknown data patch that could
+   potentially cause some major stack corruption.  The generation
+   of a temporary QString when it wasn't even needed to begin
+   with!
 
 
 Andon (09/Feb/02)

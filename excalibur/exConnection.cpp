@@ -625,9 +625,10 @@ void exConnection::spawnEditor()
 
 void exConnection::dumpPacket(unsigned int command, exPacket *p)
 {
-    printf (QString().sprintf("Unknown %s packet %s server.  Command %02x\n", 
-			      (p->is_udp) ? "UDP" : "TCP",
-			      (p->from_server) ? "FROM" : "TO",
-			      command));
+    printf ("Unknown %s packet %s server.  Command %02x  Size %d\n", 
+	      (p->is_udp) ? "UDP" : "TCP",
+	      (p->from_server) ? "FROM" : "TO",
+	      command,
+              p->getlen());
     printf (p->getDataAsString());
 }
