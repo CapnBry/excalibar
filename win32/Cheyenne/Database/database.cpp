@@ -1049,7 +1049,7 @@ void Database::SaveChat(const daocmessages::system_message& msg)
         // save it
         if(msg.string!=NULL)
             {
-            LOG_FUNC << msg.string << std::endl;
+            //LOG_FUNC << msg.string << std::endl;
             (*ChatSaveStream) << msg.string << std::endl;
             }
         } // end if we are supposed to save
