@@ -602,8 +602,6 @@ void exConnection::parsePlayerPosUpdate(exPacket *p)
 	mob->setPosition(x, y, z);
 	mob->setHead(head);
 	mob->setSpeed(speed);
-	ex->Map->dirty();
-	if (prefs.sort_when == exPrefs::sortAlways)
 	    ex->ListViewMobs->sort();
     }
 }

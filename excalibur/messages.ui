@@ -129,10 +129,10 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>Group</cstring>
+                    <cstring>Party</cstring>
                 </property>
                 <attribute name="title">
-                    <string>Group</string>
+                    <string>Party</string>
                 </attribute>
                 <widget class="QTextEdit">
                     <property name="name">
