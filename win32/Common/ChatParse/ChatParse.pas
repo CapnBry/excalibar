@@ -560,26 +560,34 @@ const
 var
   iValue:   integer;
   sCoin:    string;
+  sWord:    string;
   bRecognizedWord: boolean;
 begin
   Result := 0;
   bRecognizedWord := true;
 
   repeat
-    iValue := ParseInt(ALine, APos);
-    sCoin := ParseWord(ALine, APos);
-    if AnsiSameText(sCoin, 'mithril') then
-      inc(Result, iValue * COPPER_PER_MITHRIL)
-    else if AnsiSameText(sCoin, 'platinum') then
-      inc(Result, iValue * COPPER_PER_PLATINUM)
-    else if AnsiSameText(sCoin, 'gold') then
-      inc(Result, iValue * COPPER_PER_GOLD)
-    else if AnsiSameText(sCoin, 'silver') then
-      inc(Result, iValue * COPPER_PER_SILVER)
-    else if AnsiSameText(sCoin, 'copper') then
-      inc(Result, iValue)
-    else
-      bRecognizedWord := false;
+      { can't use parseint because when we get past the currency list, parseint
+        will parse to the end of the line }
+    sWord := ParseWord(ALine, APos);
+    iValue := StrToIntDef(sWord, -1);
+    if iValue = -1 then
+      bRecognizedWord := false
+    else begin
+      sCoin := ParseWord(ALine, APos);
+      if AnsiSameText(sCoin, 'copper') then
+        inc(Result, iValue)
+      else if AnsiSameText(sCoin, 'silver') then
+        inc(Result, iValue * COPPER_PER_SILVER)
+      else if AnsiSameText(sCoin, 'gold') then
+        inc(Result, iValue * COPPER_PER_GOLD)
+      else if AnsiSameText(sCoin, 'platinum') then
+        inc(Result, iValue * COPPER_PER_PLATINUM)
+      else if AnsiSameText(sCoin, 'mithril') then
+        inc(Result, iValue * COPPER_PER_MITHRIL)
+      else
+        bRecognizedWord := false;
+    end;
   until not bRecognizedWord;
 end;
 
