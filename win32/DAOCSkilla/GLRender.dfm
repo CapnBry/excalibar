@@ -17,62 +17,76 @@ object frmGLRender: TfrmGLRender
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object glMap: TglWindow
-    Left = 221
-    Top = 0
-    Width = 614
-    Height = 592
-    Align = alClient
-    OnClick = glMapClick
-    ColorDepth = c16bits
-    DepthBits = c16bits
-    DepthBufferEnabled = True
-    StencBits = c16bits
-    StencBufferEnabled = False
-    AccumBits = c16bits
-    AccumBufferEnabled = False
-    WindowFlags = [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer]
-    OnResize = glMapResize
-    OnDraw = glMapDraw
-    OnInit = glMapInit
-  end
-  object slideZoom: TTrackBar
-    Left = 0
-    Top = 592
-    Width = 835
-    Height = 24
-    Align = alBottom
-    Max = 65000
-    Min = 200
-    Orientation = trHorizontal
-    Frequency = 1000
-    Position = 6000
-    SelEnd = 0
-    SelStart = 0
-    TabOrder = 1
-    TickMarks = tmBottomRight
-    TickStyle = tsNone
-    OnChange = slideZoomChange
-  end
   object grdObjects: TDrawGrid
     Left = 0
     Top = 0
     Width = 221
-    Height = 592
+    Height = 616
     Align = alLeft
+    BorderStyle = bsNone
     ColCount = 3
+    Ctl3D = False
     DefaultRowHeight = 17
     DefaultDrawing = False
     FixedCols = 0
     RowCount = 2
     Options = [goFixedVertLine, goRowSelect, goThumbTracking]
-    TabOrder = 2
+    ParentCtl3D = False
+    TabOrder = 0
     OnClick = grdObjectsClick
     OnDrawCell = grdObjectsDrawCell
     ColWidths = (
       145
       33
       37)
+  end
+  object pnlMap: TPanel
+    Left = 221
+    Top = 0
+    Width = 614
+    Height = 616
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 1
+    object glMap: TglWindow
+      Left = 0
+      Top = 0
+      Width = 614
+      Height = 592
+      Align = alClient
+      OnClick = glMapClick
+      ColorDepth = c16bits
+      DepthBits = c16bits
+      DepthBufferEnabled = True
+      StencBits = c16bits
+      StencBufferEnabled = False
+      AccumBits = c16bits
+      AccumBufferEnabled = False
+      WindowFlags = [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer]
+      OnResize = glMapResize
+      OnDraw = glMapDraw
+      OnInit = glMapInit
+    end
+    object slideZoom: TTrackBar
+      Left = 0
+      Top = 592
+      Width = 614
+      Height = 24
+      Align = alBottom
+      Ctl3D = True
+      Max = 50000
+      Min = 200
+      Orientation = trHorizontal
+      ParentCtl3D = False
+      Frequency = 1000
+      Position = 6000
+      SelEnd = 0
+      SelStart = 0
+      TabOrder = 1
+      TickMarks = tmBottomRight
+      TickStyle = tsNone
+      OnChange = slideZoomChange
+    end
   end
   object tmrMinFPS: TTimer
     Interval = 500

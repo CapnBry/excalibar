@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCControl, ComCtrls, DAOCObjs,
-  StdCtrls, GLRenderObjects, MapElementList, Grids, DAOCRegion;
+  StdCtrls, GLRenderObjects, MapElementList, Grids, DAOCRegion, GLUT;
 
 type
   TfrmGLRender = class(TForm)
@@ -13,6 +13,7 @@ type
     slideZoom: TTrackBar;
     grdObjects: TDrawGrid;
     tmrMinFPS: TTimer;
+    pnlMap: TPanel;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -38,19 +39,26 @@ type
     FMobTriangle:     T3DArrowHead;
     FObjectTriangle:  T3DPyramid;
 
-    procedure SetDControl(const Value: TDAOCControl);
-    procedure Log(const s: string);
-    procedure CheckGLError;
+    procedure GLInits;
+    procedure GLCleanups;
+    procedure SetupRadarProjectionMatrix;
+    procedure SetupScreenProjectionMatrix;
+
     procedure DrawMapRulers;
     procedure DrawRangeCircles;
     procedure DrawPlayerTriangle;
     procedure DrawLineToSelected;
     procedure DrawMobsAndPlayers;
     procedure DrawMapElements;
-    procedure GLInits;
-    procedure GLCleanups;
-    procedure GridSelectObject(ADAOCObject: TDAOCObject);
     procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
+    procedure DrawHUD;
+    function WriteGLUTText(X, Y: integer; const s: string) : integer; 
+
+    procedure SetDControl(const Value: TDAOCControl);
+    procedure Log(const s: string);
+    procedure CheckGLError;
+
+    procedure GridSelectObject(ADAOCObject: TDAOCObject);
   protected
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
@@ -100,10 +108,6 @@ end;
 
 procedure TfrmGLRender.glMapDraw(Sender: TObject);
 var
-  minx:   integer;
-  miny:   integer;
-  maxx:   integer;
-  maxy:   integer;
   dwTickCount:  DWORD;
 begin
   if not Assigned(FDControl) then
@@ -120,17 +124,7 @@ begin
 
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  if Assigned(FDControl.Zone) and (FDControl.Zone.Rotate > 0) then
-    glRotatef(FDControl.Zone.Rotate, 0, 0, 1);
-  glRotatef(180, 1, 0, 0);
-
-  minx := FDControl.LocalPlayer.X - FRange;
-  maxx := FDControl.LocalPlayer.X + FRange;
-  miny := FDControl.LocalPlayer.Y - FRange;
-  maxy := FDControl.LocalPlayer.Y + FRange;
-  glOrtho(minx, maxx, miny, maxy, 1, -300);
+  SetupRadarProjectionMatrix;
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -147,6 +141,10 @@ begin
   DrawMapRulers;
   DrawRangeCircles;
   DrawPlayerTriangle;
+
+    { in a screen-size ortho }
+  SetupScreenProjectionMatrix;
+  DrawHUD;
 
   CheckGLError();
 
@@ -245,7 +243,7 @@ var
   headrad:  GLfloat;
 begin
   glDisable(GL_LIGHTING);
-  
+
     { Draw map rulers }
   glColor3f(0.45, 0.45, 0.45);
   glLineWidth(1.0);
@@ -255,7 +253,7 @@ begin
     glVertex3f(0, -(FRange * 1.5), 0);
     glVertex3f(0, (FRange * 1.5), 0);
 
-    headrad := ((FDControl.LocalPlayer.Head - 180) * PI) / 180;
+    headrad := (FDControl.LocalPlayer.Head - 180) * (PI / 180);
     glVertex3f(0, 0, 0);
     glVertex3f(cos(headrad + PI / 2) * (FRange * 1.5),
       sin(headrad + PI / 2) * (FRange * 1.5), 0);
@@ -308,9 +306,10 @@ var
   modmatrix:  T16dArray;
   viewport:   TViewPortArray;
   x, y, z:    GLdouble;
-  pt:         TPoint;         
+  pt:         TPoint;
   pNearest:   TDAOCObject;
 begin
+  SetupRadarProjectionMatrix;
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -322,7 +321,11 @@ begin
   gluUnProject(pt.X, glMap.Height - pt.Y, 0, modmatrix, projmatrix, viewport,
     @x, @y, @z);
 
-  pNearest := FDControl.DAOCObjects.FindNearest(trunc(x), trunc(y), FDControl.LocalPlayer.Z);
+    { if this is a dungeon, use 3d distance else use 2d }
+  if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = 2) then
+    pNearest := FDControl.DAOCObjects.FindNearest3D(trunc(x), trunc(y), FDControl.LocalPlayer.Z)
+  else
+    pNearest := FDControl.DAOCObjects.FindNearest2D(trunc(x), trunc(y));
   if Assigned(pNearest) then
       { callback will update screen }
     FDControl.SelectedObject := pNearest;
@@ -559,9 +562,10 @@ begin
       end;
 
       FillRect(Rect);
-      TextOut(Rect.Left + 2, Rect.Top + 2, sText);
+      TextOut(Rect.Left + 3, Rect.Top + 2, sText);
 
       if gdSelected in State then begin
+        Pen.Width := 2;
         Pen.Color := clBlack; // $00ffcc;
         case ACol of
           COL_NAME:
@@ -654,6 +658,134 @@ end;
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
 begin
   Dirty;
+end;
+
+procedure TfrmGLRender.DrawHUD;
+const
+  TEXT_COLOR: array[0..3] of GLfloat = (0.35, 0.80, 1, 0.75);
+var
+  rastery:  integer;
+  pMob: TDAOCObject;
+
+  procedure WriteMobNameCon;
+  begin
+    with TDAOCMovingObject(pMob) do begin
+        { white background for the name }
+      glColor3f(0.4, 0.4, 0.4);
+      WriteGLUTText(4+1, rastery-1, Name);
+        { con color for name }
+      SetGLColorFromTColor(GetConColor(FDControl.LocalPlayer.Level), 1);
+      rastery := WriteGLUTText(4, rastery, Name);
+    end;
+  end;
+
+  procedure WriteMobLevelHealth;
+  var
+    s:  string;
+  begin
+    with TDAOCMovingObject(pMob) do begin
+      s := 'Level ' + IntToStr(Level);
+      if HitPoints <> 100 then
+        if IsDead then
+          s := s + ' (dead)'
+        else
+          s := s + ' (' + IntToStr(HitPoints) + ')';
+      rastery := WriteGLUTText(4, rastery, s);
+    end;
+  end;
+
+begin
+  pMob := FDControl.SelectedObject;
+  if not (Assigned(pMob) and Assigned(glutBitmapCharacter)) then
+    exit;
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity;
+
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING);
+
+  rastery := glMap.ClientHeight;
+
+  glColor4f(0, 0, 0, 0.5);
+  glBegin(GL_QUADS);
+    glVertex2i(0, rastery);
+    glVertex2i(0, rastery - 58);
+    glVertex2i(145, rastery - 58);
+    glVertex2i(145, rastery);
+  glEnd;
+
+  case pMob.ObjectClass of
+    ocObject:
+      begin
+        glColor3f(0.9, 0.9, 0.9);
+        rastery := WriteGLUTText(4, rastery, pMob.Name);
+        glColor4fv(@TEXT_COLOR);
+      end;
+
+    ocMob:
+      with TDAOCMob(pMob) do begin
+        WriteMobNameCon;
+        glColor4fv(@TEXT_COLOR);
+        if TypeTag <> '' then
+          rastery := WriteGLUTText(4, rastery, TypeTag);
+        WriteMobLevelHealth;
+      end;  { ocMob }
+
+    ocPlayer:
+      with TDAOCPlayer(pMob) do begin
+        WriteMobNameCon;
+        glColor4fv(@TEXT_COLOR);
+        if Guild <> '' then
+          rastery := WriteGLUTText(4, rastery, '<' + Guild + '>');
+        WriteMobLevelHealth;
+      end;  { ocPlayer }
+
+    else
+        glColor4fv(@TEXT_COLOR);
+  end;    { case class }
+
+  rastery := WriteGLUTText(4, rastery, 'Distance: ' +
+    FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer)));
+end;
+
+function TfrmGLRender.WriteGLUTText(X, Y: integer;
+  const s: string): integer;
+var
+  I:    integer;
+begin
+  Result := Y - 13;
+
+  glRasterPos2i(X, Result);
+  for I := 1 to Length(s) do
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(s[I]));
+end;
+
+procedure TfrmGLRender.SetupRadarProjectionMatrix;
+var
+  minx:   integer;
+  miny:   integer;
+  maxx:   integer;
+  maxy:   integer;
+begin
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  if Assigned(FDControl.Zone) and (FDControl.Zone.Rotate > 0) then
+    glRotatef(FDControl.Zone.Rotate, 0, 0, 1);
+  glRotatef(180, 1, 0, 0);
+
+  minx := FDControl.LocalPlayer.XProjected - FRange;
+  maxx := minx + (integer(FRange) * 2);
+  miny := FDControl.LocalPlayer.YProjected - FRange;
+  maxy := miny + (integer(FRange) * 2);
+  glOrtho(minx, maxx, miny, maxy, 1, -300);
+end;
+
+procedure TfrmGLRender.SetupScreenProjectionMatrix;
+begin
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity;
+  glOrtho(0, glMap.ClientWidth, 0, glMap.ClientHeight, 1, -1);
 end;
 
 end.
