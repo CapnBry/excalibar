@@ -3,100 +3,18 @@ unit DAOCConnection;
 interface
 
 uses
-  Windows, SysUtils, Classes, Dialogs,
-  PReader2, bpf, FrameFns, ExtCtrls, Contnrs, WinSock,
+  Windows, SysUtils, Classes, Dialogs, ExtCtrls, Contnrs, WinSock,
 {$IFDEF DAOC_AUTO_SERVER}
   ComObj,
 {$ENDIF}
-  DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
-  VendorItems, ChatParse, MapNavigator;
+  DAOCPackets, DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
+  VendorItems, ChatParse, MapNavigator, PReader2, FrameFns;
 
 type
-  TDAOCCryptKey = array[0..11] of byte;
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;
   TIntegerEvent = procedure (Sender: TObject; AVal: integer) of Object;
   TSheduledCallback = procedure (Sender: TObject; AParm: LPARAM) of Object;
   TChatMessageEvent = procedure (Sender: TObject; const AWho, AMsg: string) of Object;
-
-  TTCPFragment = class(TObject)
-  private
-    FEtherData:     Pointer;
-    FEtherDataLen:  DWORD;
-    FPayloadDataPtr:  Pointer;
-    FPayloadDataLen:  DWORD;
-    function GetSeqNo: DWORD;
-    function GetAckNo: DWORD;
-    function GetIsAck: boolean;
-  public
-    constructor CreateFrom(ASegment: TEthernetSegment);
-    destructor Destroy; override;
-
-    property PayloadDataPtr: Pointer read FPayloadDataPtr;
-    property PayloadDataLen: DWORD read FPayloadDataLen;
-    property SeqNo: DWORD read GetSeqNo;
-    property AckNo: DWORD read GetAckNo;
-    property IsAck: boolean read GetIsAck;
-  end;
-
-  TDAOCIPPrococol = (daocpTCP, daocpUDP);
-
-  TDAOCPacket = class(TObject)
-  private
-    FPacketData:  Pointer;
-    FSize:        integer;
-    FPosition:    integer;
-    FIsFromClient: boolean;
-    FIPProtocol:  TDAOCIPPrococol;
-    FHandlerName: string;
-    function GetIsFromServer: boolean;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure SaveToFile(const AFName: string);
-    procedure Decrypt(const AKey: TDAOCCryptKey);
-    procedure seek(iCount: integer);
-    function getByte : BYTE;
-    function getShort : WORD;
-    function getLong : DWORD;
-    function getPascalString : string;
-    function getNullTermString(AMinLen: integer) : string;
-    procedure getBytes(var dest; iBytes: integer);
-    function AsString : string;
-    function EOF : boolean;
-
-    property HandlerName: string read FHandlerName;
-    property Size: integer read FSize;
-    property Position: integer read FPosition;
-    property IsFromClient: boolean read FIsFromClient;
-    property IsFromServer: boolean read GetIsFromServer;
-    property IPProtocol: TDAOCIPPrococol read FIPProtocol;
-  end;
-
-  TDAOCTCPPacketAssembler = class(TObject)
-  private
-    FFragmentList:    TList;
-    FNextExpectedSeq: DWORD;
-    FPacketDataBuff:  Pointer;
-    FPacketDataSize:  DWORD;
-    FPacketDataPos:   DWORD;
-    FIsFromClient:    boolean;
-    FOtherSide:       TDAOCTCPPacketAssembler;
-
-    procedure ClearFragmentList;
-    procedure AppendFragmentToBuffer(AFragment: TTCPFragment);
-    procedure InsertFragmentInOrder(AFragment: TTCPFragment);
-  public
-    constructor Create(AIsClient: boolean);
-    destructor Destroy; override;
-
-    procedure Clear;
-    procedure AddFragment(AFragment: TTCPFragment);
-    function ParsePacket(AThroughSeq: DWORD; var APacket: TDAOCPacket) : boolean;
-
-    property IsFromClient: boolean read FIsFromClient;
-    property OtherSide: TDAOCTCPPacketAssembler read FOtherSide write FOtherSide;
-  end;
 
   TAccountCharInfo = class(TObject)
   private
@@ -123,8 +41,6 @@ type
     property Items[iIndex: integer]: TAccountCharInfo read GetItems; default;
     property AccountName: string read FAccountName;
   end;
-
-  TPacketEvent = procedure (Sender: TObject; APacket: TDAOCPacket) of Object;
 
   PCallbackEventInfo = ^TCallbackEventInfo;
   TCallbackEventInfo = record
@@ -155,6 +71,7 @@ type
     FTradeCommissionItem: string;
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
+    FMaxObjectDistSqr:    double;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -194,6 +111,9 @@ type
     function GetSelectedObject: TDAOCObject;
     function GetUDPServerIP: string;
     procedure SetSelectedObject(const Value: TDAOCObject);
+    procedure ClearDAOCObjectList;
+    procedure CheckObjectsOutOfRange;
+    procedure SetMaxObjectDistance(const Value: double);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -286,7 +206,6 @@ type
     procedure HookChatParseCallbacks;
     procedure MergeVendorItemsToMaster;
     procedure ScheduleCallback(ATimeout: DWORD; ACallback: TSheduledCallback; AParm: LPARAM);
-    procedure ClearDAOCObjectList;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -313,6 +232,7 @@ type
     property DAOCObjects: TDAOCObjectList read FDAOCObjs;
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: integer read FLargestDAOCPacketSeen;
+    property MaxObjectDistance: double write SetMaxObjectDistance;
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
     property RegionID: integer read FRegionID;
@@ -354,80 +274,8 @@ type
     property OnCombatStyleFailure: TNotifyEvent read FOnCombatStyleFailure write FOnCombatStyleFailure;
   end;
 
-function DAOCCryptKeyToString(const ACryptKey: TDAOCCryptKey) : string;
-procedure StringToDAOCCryptKey(const ACryptString: string; var ACryptKey: TDAOCCryptKey);
-function BytesToStr(AData: Pointer; ADataSize: integer) : string;
 
 implementation
-
-// {$DEFINE CLEAR_PACKET_BUFFER}
-
-const
-  MAX_EXPECTED_DAOC_PACKET_SIZE = 4096;
-
-procedure ODS(const s: string);
-begin
-//  WriteLn(s);
-  OutputDebugString(PChar(s));
-end;
-
-function BytesToStr(AData: Pointer; ADataSize: integer) : string;
-var
-  I:  integer;
-  sHex1:  string;
-  sHex2:  string;
-  sAscii: string;
-  b:      BYTE;
-begin
-  sHex1 := '';
-  sHex2 := '';
-  sAscii := '';
-  Result := '';
-  for I := 0 to ADataSize - 1 do begin
-    if ((I mod 16) = 0) and (I <> 0) then begin
-      Result := Result + sHex1 + '- ' + sHex2 + ' ' + sAscii + #13#10;
-      sHex1 := '';
-      sHex2 := '';
-      sAscii := '';
-    end;
-
-    b := PBYTEARRAY(AData)[I];
-    if (I mod 16) < 8 then
-        sHex1 := sHex1 + IntToHex(b, 2) + ' '
-    else
-      sHex2 := sHex2 + IntToHex(b, 2) + ' ';
-    if char(b) in [' '..'~'] then
-      sAscii := sAscii + char(b)
-    else
-      sAscii := sAscii + '.';
-  end; { for I }
-
-  while Length(sHex1) < (8 * 3) do
-    sHex1 := sHex1 + '   ';
-  while Length(sHex2) < (8 * 3) do
-    sHex2 := sHex2 + '   ';
-  Result := Result + sHex1 + '- ' + sHex2 + ' ' + sAscii;
-end;
-
-function DAOCCryptKeyToString(const ACryptKey: TDAOCCryptKey) : string;
-var
-  I:  integer;
-begin
-  Result := '';
-  for I := low(TDAOCCryptKey) to high(TDAOCCryptKey) do
-    Result := Result + IntToHex(ACryptKey[I], 2);
-end;
-
-procedure StringToDAOCCryptKey(const ACryptString: string; var ACryptKey: TDAOCCryptKey);
-var
-  I:  integer;
-begin
-  if Length(ACryptString) <> ((high(TDAOCCryptKey) - low(TDAOCCryptKey) + 1) * 2) then
-    raise Exception.Create('Invalid crypt key length');
-
-  for I := low(TDAOCCryptKey) to high(TDAOCCryptKey) do
-    ACryptKey[I] := StrToInt('$' + copy(ACryptString, (I * 2) + 1, 2));
-end;
 
 { TDAOCConnection }
 
@@ -472,6 +320,8 @@ begin
   FDAOCObjs := TDAOCObjectList.Create;
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
+
+  SetMaxObjectDistance(8000);
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -550,9 +400,9 @@ begin
   FCryptKeySet := false;
 
   FTCPFromClient.Clear;
-  FTCPFromClient.FNextExpectedSeq := ntohl(AServerSegment.AsTCP^.AckNumber);
+  FTCPFromClient.NextExpectedSeq := ntohl(AServerSegment.AsTCP^.AckNumber);
   FTCPFromServer.Clear;
-  FTCPFromServer.FNextExpectedSeq := ntohl(AServerSegment.AsTCP^.SeqNumber) + 1;
+  FTCPFromServer.NextExpectedSeq := ntohl(AServerSegment.AsTCP^.SeqNumber) + 1;
 end;
 
 procedure TDAOCConnection.Log(const s: string);
@@ -570,7 +420,7 @@ var
   iLevel:   integer;
   pAcctChar: TAccountCharInfo;
 begin
-  pPacket.FHandlerName := 'AccountCharacters';
+  pPacket.HandlerName := 'AccountCharacters';
   FAccountCharacters.FAccountName := pPacket.getNullTermString(24);
 
     { parse up to 8 characters }
@@ -602,7 +452,7 @@ var
   sName:    string;
   pAcctChar: TAccountCharInfo;
 begin
-  pPacket.FHandlerName := 'PlayerDetails';
+  pPacket.HandlerName := 'PlayerDetails';
   pPacket.Seek(1);  // count of items
   SubType := pPacket.getByte;
   if SubType = 0 then begin
@@ -626,7 +476,7 @@ var
   iItemCount:   integer;
   pTmpItem: TDAOCInventoryItem;
 begin
-  pPacket.FHandlerName := 'InventoryList';
+  pPacket.HandlerName := 'InventoryList';
   iItemCount := pPacket.getByte;
   pPacket.seek(3);
   while (iItemCount > 0) and (pPacket.Position < pPacket.Size) do begin
@@ -660,7 +510,7 @@ procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TDAOCPacket);
 var
   bZoneChanged: boolean;
 begin
-  pPacket.FHandlerName := 'LocalPosUpdateFromClient';
+  pPacket.HandlerName := 'LocalPosUpdateFromClient';
   pPacket.seek(2);
   FLocalPlayer.SpeedWord := pPacket.getShort;
   FLocalPlayer.Z := pPacket.getShort;
@@ -683,14 +533,16 @@ begin
       bZoneChanged := true;
   end;
 
-  DoOnPlayerPosUpdate;
   if bZoneChanged then
     DoOnZoneChange;
+
+  DoOnPlayerPosUpdate;
+  CheckObjectsOutOfRange;
 end;
 
 procedure TDAOCConnection.ParsePlayerStatsUpdate(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'PlayerStatsUpdate';
+  pPacket.HandlerName := 'PlayerStatsUpdate';
   case pPacket.getByte of
     $01:  ParsePlayerSpecsSpellsAbils(pPacket);
     $03:  ParsePlayerDetails(pPacket);
@@ -700,7 +552,7 @@ end;
 
 procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'SetEncryptionKey';
+  pPacket.HandlerName := 'SetEncryptionKey';
 
   pPacket.seek(1);  // ?
   pPacket.seek(4);  // Version w x.yz
@@ -710,7 +562,7 @@ end;
 
 procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'SetPlayerRegion';
+  pPacket.HandlerName := 'SetPlayerRegion';
   DoSetRegionID(pPacket.getShort);
 end;
 
@@ -850,8 +702,8 @@ begin
   if pFrag.IsAck then begin
     while pAssembler.OtherSide.ParsePacket(pFrag.AckNo, pPacket) do begin
       if pPacket.Size > 0 then begin
-        pPacket.FIsFromClient := pAssembler.OtherSide.IsFromClient;
-        pPacket.FIPProtocol := daocpTCP;
+        pPacket.IsFromClient := pAssembler.OtherSide.IsFromClient;
+        pPacket.IPProtocol := daocpTCP;
 
         ProcessDAOCPacket(pPacket);
       end;  { if packet.size }
@@ -890,7 +742,7 @@ var
   sName:  string;
   pItem:  TDAOCNameValuePair;
 begin
-  pPacket.FHandlerName := 'PlayerSpecsSpellsAbils';
+  pPacket.HandlerName := 'PlayerSpecsSpellsAbils';
   iCnt := pPacket.getByte;
   if pPacket.getByte <> $03 then
     exit;
@@ -928,7 +780,7 @@ var
   sName:  string;
   pItem:  TDAOCNameValuePair;
 begin
-  pPacket.FHandlerName := 'PlayerSkills';
+  pPacket.HandlerName := 'PlayerSkills';
   iCnt := pPacket.getByte;
   if pPacket.getByte <> $03 then
     exit;
@@ -959,7 +811,7 @@ end;
 
 procedure TDAOCConnection.ParseLocalHeadUpdateFromClient(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'LocalHeadUpdateFromClient';
+  pPacket.HandlerName := 'LocalHeadUpdateFromClient';
   pPacket.seek(2);
   FLocalPlayer.HeadWord := pPacket.getShort;
   DoOnPlayerPosUpdate;
@@ -970,7 +822,7 @@ var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
 begin
-  pPacket.FHandlerName := 'PlayerPosUpdate';
+  pPacket.HandlerName := 'PlayerPosUpdate';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
 
@@ -1022,7 +874,7 @@ var
       pZoneBase := FZoneList.FindZone(iZoneBase);
   end;
 begin
-  pPacket.FHandlerName := 'MobUpdate';
+  pPacket.HandlerName := 'MobUpdate';
 
   V162OrGreater := pPacket.Size = 27;
   if V162OrGreater then
@@ -1099,7 +951,7 @@ var
   hp:     byte;
   pDAOCObject:  TDAOCObject;
 begin
-  pPacket.FHandlerName := 'PlayerHeadUpdate';
+  pPacket.HandlerName := 'PlayerHeadUpdate';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
 
@@ -1138,7 +990,7 @@ var
   sLine:  string;
   bType:  BYTE;
 begin
-  pPacket.FHandlerName := 'LogUpdate';
+  pPacket.HandlerName := 'LogUpdate';
   pPacket.seek(4);
   bType := pPacket.getByte;
   pPacket.seek(3);
@@ -1158,20 +1010,20 @@ end;
 
 procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'LocalHealthUpdate NOTIMPL';
+  pPacket.HandlerName := 'LocalHealthUpdate NOTIMPL';
 end;
 
 procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TDAOCPacket);
 begin
     { the first packet we get which describes the character I think. }
-  pPacket.FHandlerName := 'CharacterLoginInit';
+  pPacket.HandlerName := 'CharacterLoginInit';
   FLocalPlayer.Clear;
   FLocalPlayer.InfoID := pPacket.getShort;
   pPacket.seek(2);
   FLocalPlayer.X := pPacket.getLong;
   FLocalPlayer.Y := pPacket.getLong;
 
-  FDAOCObjs.Clear;
+  ClearDAOCObjectList;
   FVendorItems.Clear;
 end;
 
@@ -1181,7 +1033,7 @@ var
   tmpObject:  TDAOCObject;
   pOldObject: TDAOCObject;
 begin
-  pPacket.FHandlerName := 'NewObject (' + DAOCObjectClassToStr(AClass) + ')';
+  pPacket.HandlerName := 'NewObject (' + DAOCObjectClassToStr(AClass) + ')';
 
   case AClass of
     ocObject:
@@ -1258,7 +1110,7 @@ procedure TDAOCConnection.ParseObjectEquipment(pPacket: TDAOCPacket);
 //  iCnt: integer;
 //  bSlot:  BYTE;
 begin
-  pPacket.FHandlerName := 'ObjectEquipment';
+  pPacket.HandlerName := 'ObjectEquipment';
 //  ID := pPacket.getShort;
 //  pPacket.seek(2);  // FF FF?  speed?
 //  iCnt := pPacket.getByte;
@@ -1279,7 +1131,7 @@ end;
 
 procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'MoneyUpdate';
+  pPacket.HandlerName := 'MoneyUpdate';
   with FLocalPlayer.Currency do begin
     Copper := pPacket.getByte;
     Silver := pPacket.getByte;
@@ -1299,12 +1151,12 @@ end;
 
 procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'RequestBuyItem NOTIMPL';
+  pPacket.HandlerName := 'RequestBuyItem NOTIMPL';
 end;
 
 procedure TDAOCConnection.ParseSelectedIDUpdate(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'SelectedIDUpdate';
+  pPacket.HandlerName := 'SelectedIDUpdate';
   FSelectedID := pPacket.getShort;
 
   DoOnSelectedObjectChanged(SelectedObject);
@@ -1315,7 +1167,7 @@ var
   iDuration:  integer;
   sMessage:   string;
 begin
-  pPacket.FHandlerName := 'ProgressMeter';
+  pPacket.HandlerName := 'ProgressMeter';
   iDuration := pPacket.getShort;
   pPacket.seek(2);  // message length? / line count?
   sMessage := pPacket.getNullTermString(0);
@@ -1337,7 +1189,7 @@ end;
 
 procedure TDAOCConnection.ParseSpellPulse(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'SpellPulse NOTIMPL';
+  pPacket.HandlerName := 'SpellPulse NOTIMPL';
 end;
 
 procedure TDAOCConnection.ParsePopupMessage(pPacket: TDAOCPacket);
@@ -1356,7 +1208,7 @@ end;
 
 procedure TDAOCConnection.ParseCommandFromClient(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'CommandFromClient NOTIMPL';
+  pPacket.HandlerName := 'CommandFromClient NOTIMPL';
 (**
 ---- TCP packet  TO  server ---- 
 00 9B 00 D1 FF FF 00 07 - 00 D1 00 00 00 C4 40 00  ..............@.
@@ -1517,7 +1369,7 @@ var
   iPage:      integer;
   pItem:      TDAOCVendorItem;
 begin
-  pPacket.FHandlerName := 'VendorWindow';
+  pPacket.HandlerName := 'VendorWindow';
 
   iItemDescs := pPacket.getByte;
   iPage := pPacket.getShort;
@@ -1562,14 +1414,14 @@ end;
 procedure TDAOCConnection.ParseRegionServerInfomation(
   pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'RegionServerInformation NOTIMPL';
+  pPacket.HandlerName := 'RegionServerInformation NOTIMPL';
 end;
 
 procedure TDAOCConnection.ParseDeleteObject(pPacket: TDAOCPacket);
 var
   iPos: integer;
 begin
-  pPacket.FHandlerName := 'DeleteObject';
+  pPacket.HandlerName := 'DeleteObject';
   iPos := FDAOCObjs.IndexOfInfoID(pPacket.getShort);
   if iPos <> -1 then begin
     DoOnDeleteDAOCObject(FDAOCObjs[iPos]);
@@ -1698,11 +1550,9 @@ begin
     end;
 
     pDAOCPacket := TDAOCPacket.Create;
-    pDAOCPacket.FIsFromClient := bIsFromClient;
-    pDAOCPacket.FIPProtocol := daocpUDP;
-    pDAOCPacket.FSize := iPacketLen; // - 2;
-    GetMem(pDAOCPacket.FPacketData, pDAOCPacket.FSize);
-    Move(pPayloadDataPtr^, pDAOCPacket.FPacketData^, pDAOCPacket.FSize);
+    pDAOCPacket.IsFromClient := bIsFromClient;
+    pDAOCPacket.IPProtocol := daocpUDP;
+    pDAOCPacket.CopyDataToPacket(pPayloadDataPtr, iPacketLen);
 
     ProcessDAOCPacket(pDAOCPacket);
     pDAOCPacket.Free;
@@ -1725,7 +1575,7 @@ begin
   if Assigned(FOnPacket) then
     FOnPacket(Self, pPacket);
 
-  pPacket.FHandlerName := '';
+  pPacket.HandlerName := '';
 
   if pPacket.IsFromClient then
     ProcessDAOCPacketFromClient(pPacket)
@@ -1738,7 +1588,7 @@ end;
 
 procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TDAOCPacket);
 begin
-  pPacket.FHandlerName := 'SetGroundTarget';
+  pPacket.HandlerName := 'SetGroundTarget';
   FGroundTarget.X := pPacket.getLong;
   FGroundTarget.Y := pPacket.getLong;
   FGroundTarget.Z := pPacket.getLong;
@@ -1868,445 +1718,26 @@ begin
   end;
 end;
 
-{ TTCPFragment }
-
-constructor TTCPFragment.CreateFrom(ASegment: TEthernetSegment);
-begin
-  inherited Create;
-
-  FEtherDataLen := ASegment.Size;
-  FEtherData := ASegment.Data;
-  ASegment.ReleaseData;  // ASegment no longer will have any data
-
-    { The payload is lotated after the ether, ip, and tcp header, so add their
-      sizes to the FEtherData pointer to get a pointer to payload }
-  FPayloadDataPtr := Pointer(
-    DWORD(FEtherData) +
-    sizeof(TEthernetHeader) +
-    GetIPHeaderLen(PIPHeader(FEtherData)) +
-    GetTCPHeaderLen(PTCPHeader(FEtherData))
-  );
-
-   { This was: FEtherDataLen - (DWORD(FPayloadDataPtr) - DWORD(FEtherData));
-     but that does not take into account Ethernet Trailer which may come
-     at the end of the packet }
-  FPayloadDataLen := ntohs(PIPHeader(FEtherData)^.TotalLength) -
-    GetIPHeaderLen(PIPHeader(FEtherData)) -
-    GetTCPHeaderLen(PTCPHeader(FEtherData));
-
-    { if the ethernet data len is less than the combined size of
-      (EHeader + IHeader + THeader + DataLen) then throw it out
-      and wait for the tcp stack to send it again }
-  if FEtherDataLen < (FPayloadDataLen + sizeof(TEthernetHeader) +
-    GetIPHeaderLen(PIPHeader(FEtherData)) +
-    GetTCPHeaderLen(PTCPHeader(FEtherData))) then begin
-    OutputDebugString('Ethernet frame does not have enough data to hold tcp data.  Dropped.');
-    FPayloadDataLen := 0;
-  end;
-
-end;
-
-destructor TTCPFragment.Destroy;
-begin
-  if Assigned(FEtherData) then
-    FreeMem(FEtherData);
-
-  inherited Destroy;
-end;
-
-function TTCPFragment.GetAckNo: DWORD;
-begin
-  if Assigned(FEtherData) then
-    Result := ntohl(PTCPHeader(FEtherData)^.AckNumber)
-  else
-    Result := 0;
-end;
-
-function TTCPFragment.GetIsAck: boolean;
-begin
-  if Assigned(FEtherData) then
-    Result := FrameFns.IsAck(PTCPHeader(FEtherData))
-  else
-    Result := false;
-end;
-
-function TTCPFragment.GetSeqNo: DWORD;
-begin
-  if Assigned(FEtherData) then
-    Result := ntohl(PTCPHeader(FEtherData)^.SeqNumber)
-  else
-    Result := 0;
-end;
-
-{ TDAOCTCPPacketAssembler }
-
-procedure TDAOCTCPPacketAssembler.AddFragment(AFragment: TTCPFragment);
-begin
-  if AFragment.PayloadDataLen = 0 then begin
-    AFragment.Free;
-    exit;
-  end;
-
-  if AFragment.SeqNo < FNextExpectedSeq then begin
-    ODS(Format('Old packet received (%u,%d) when expecting (%u).  Discarding.',
-      [AFragment.SeqNo, AFragment.PayloadDataLen, FNextExpectedSeq]));
-    AFragment.Free;
-    exit;
-  end;
-
-  InsertFragmentInOrder(AFragment);
-
-    { if we've got more than 50 fragments unassembled then for some reason
-      we're off or something.  Either these are old retransmits, or we've
-      dropped a packet in the stream }
-  if (FFragmentList.Count > 50) and (FFragmentList.Count mod 50 = 0) then
-    ODS(IntToStr(FFragmentList.Count) + ' tcp fragments unassembled.');
-
-(****
-  if (AFragment.SeqNo + AFragment.PayloadDataLen) < FNextExpectedSeq then begin
-    ODS('Old packet received.  Discarding.');
-    AFragment.Free;
-    exit;
-  end;
-
-  if FragmentIsNext(AFragment) then begin
-    AppendFragmentToBuffer(AFragment);
-    AFragment.Free;
-
-      { if we added a Fragment to the buffer, we may be able to add the other
-        fragments too.  Run through the list and check }
-    AFragment := FindNextFragmentInList;
-    while Assigned(AFragment) do begin
-      AppendFragmentToBuffer(AFragment);
-      AFragment.Free;
-      AFragment := FindNextFragmentInList;
-    end;
-  end
-
-  else
-      { fragment arrived early.  Wait until we can put it in order }
-    FFragmentList.Add(AFragment);
-
-    { if we've got more than 50 fragments unassembled then for some reason
-      we're off or something.  Either these are old retransmits, or we've
-      dropped a packet in the stream }
-  if (FFragmentList.Count > 50) and (FFragmentList.Count mod 50 = 0) then
-    ODS(IntToStr(FFragmentList.Count) + ' tcp fragments unassembled.');
-
-//  if FFragmentList.Count > 20 then begin
-//    FFragmentList.SaveToFile('C:\Fragmentlist.log');
-//    FFragmentList.Clear;
-//    raise Exception.Create('Too many fragments, saved to log');
-//  end;
-***)
-end;
-
-procedure TDAOCTCPPacketAssembler.AppendFragmentToBuffer(AFragment: TTCPFragment);
-begin
-  if (FPacketDataPos + AFragment.PayloadDataLen) < FPacketDataSize then begin
-    Move(AFragment.PayloadDataPtr^,
-      Pointer(DWORD(FPacketDataBuff) + FPacketDataPos)^,
-      AFragment.PayloadDataLen);
-    inc(FPacketDataPos, AFragment.PayloadDataLen);
-  end
-
-  else
-    raise Exception.Create('Out of PacketDataBuffer in PacketAssembler');
-
-  FNextExpectedSeq := AFragment.SeqNo + AFragment.PayloadDataLen;
-end;
-
-procedure TDAOCTCPPacketAssembler.Clear;
-begin
-  FPacketDataPos := 0;
-  FNextExpectedSeq := 0;
-  ClearFragmentList;
-end;
-
-procedure TDAOCTCPPacketAssembler.ClearFragmentList;
+procedure TDAOCConnection.CheckObjectsOutOfRange;
 var
-  I:  integer;
+  I:      integer;
+  fDist:  double;
 begin
-  for I := 0 to FFragmentList.Count - 1 do
-    TTCPFragment(FFragmentList[I]).Free;
-  FFragmentList.Clear;
-end;
-
-constructor TDAOCTCPPacketAssembler.Create(AIsClient: boolean);
-begin
-  inherited Create;
-
-  FFragmentList := TList.Create;
-
-  FIsFromClient := AIsClient;
-  FNextExpectedSeq := 0;
-    { use a static buffer size.  If they send us any packet > 512k we'll drop data }
-  FPacketDataSize := 512 * 1024;
-  GetMem(FPacketDataBuff, FPacketDataSize);
-  FPacketDataPos := 0;
-{$IFDEF CLEAR_PACKET_BUFFER}
-  FillChar(FPacketDataBuff^, FPacketDataSize, 0);
-{$ENDIF}
-end;
-
-destructor TDAOCTCPPacketAssembler.Destroy;
-begin
-  ClearFragmentList;
-  FFragmentList.Free;
-  inherited Destroy;
-end;
-
-procedure TDAOCTCPPacketAssembler.InsertFragmentInOrder(
-  AFragment: TTCPFragment);
-var
-  I:  integer;
-  dwSeqNo:    DWORD;
-begin
-  for I := 0 to FFragmentList.Count - 1 do begin
-    dwSeqNo := TTCPFragment(FFragmentList[I]).SeqNo;
-    if AFragment.SeqNo = dwSeqNo then begin
-      ODS('Replacing fragment: ' + IntToStr(dwSeqNo));
-      TTCPFragment(FFragmentList[I]).Free;
-      FFragmentList[I] := AFragment;
-      exit;
+  I := FDAOCObjs.Count - 1;
+  while I >= 0 do begin
+    fDist := FDAOCObjs[I].DistanceSqr3D(FLocalPlayer);
+    if fDist > FMaxObjectDistSqr then begin
+      DoOnDeleteDAOCObject(FDAOCObjs[I]);
+      FDAOCObjs.Delete(I);
     end;
 
-    if AFragment.SeqNo < dwSeqNo then begin
-      ODS('Fragment ' + IntToStr(AFragment.SeqNo) + ' arrived after ' + IntToStr(dwSeqNo));
-      FFragmentList.Insert(I, AFragment);
-      exit;
-    end;
-  end;
-
-  FFragmentList.Add(AFragment);
+    dec(I);
+  end;  { while I > 0 }
 end;
 
-function TDAOCTCPPacketAssembler.ParsePacket(AThroughSeq: DWORD; var APacket: TDAOCPacket): boolean;
-var
-  wExpectedPackSize:  WORD;
-  dwNewSize:          DWORD;
-  I:    DWORD;
-  pFragment:  TTCPFragment;
+procedure TDAOCConnection.SetMaxObjectDistance(const Value: double);
 begin
-  APacket := nil;
-  Result := false;
-
-  while FFragmentList.Count > 0 do begin
-    pFragment := TTCPFragment(FFragmentList[0]);
-    if pFragment.SeqNo >= AThroughSeq then
-      break;
-
-    if pFragment.SeqNo <> FNextExpectedSeq then begin
-      ODS('Missing fragments: ' + IntToStr(FNextExpectedSeq) + ' - ' + IntToStr(pFragment.SeqNo));
-      FPacketDataPos := 0;
-    end;
-
-      { also updates NextExpectedSeq }
-    AppendFragmentToBuffer(pFragment);
-
-    pFragment.Free;
-    FFragmentList.Delete(0);
-  end;  { while fragments to be assembled }
-
-  if FPacketDataPos < 2 then
-    exit;
-
-    { The first two bytes of every DAoC application-layer packet is the size
-      if the data which follows (in network byte order).  This value is not
-      self-inclusive, so we need to read two more bytes than indicated. }
-  wExpectedPackSize := ntohs(PWORD(FPacketDataBuff)^);
-
-  if wExpectedPackSize > MAX_EXPECTED_DAOC_PACKET_SIZE then begin
-    ODS('Suspiciously large packet expected, attempting resync');
-    ClearFragmentList;
-    FPacketDataPos := 0;
-    exit;
-  end;
-
-    { clients have 10+2 unstated bytes, server has 1+2 }
-  if FIsFromClient then
-    inc(wExpectedPackSize, 12)
-  else
-    inc(wExpectedPackSize, 3);
-
-  if FPacketDataPos < wExpectedPackSize then
-    exit;
-
-  APacket := TDAOCPacket.Create;
-    { the first 2 bytes be we added above to account for the ExpectedPacketSize }
-  APacket.FSize := wExpectedPackSize - 2;
-  GetMem(APacket.FPacketData, APacket.FSize);
-  Move((PChar(FPacketDataBuff) + 2)^, APacket.FPacketData^, APacket.FSize);
-  Result := true;
-
-  if wExpectedPackSize >= FPacketDataPos then
-    FPacketDataPos := 0
-  else begin
-      { scoot all the data after this packet down to the beginning }
-    dwNewSize := FPacketDataPos - wExpectedPackSize;
-    for I := 0 to dwNewSize - 1 do
-      PChar(FPacketDataBuff)[I] := PChar(FPacketDataBuff)[I + wExpectedPackSize];
-    FPacketDataPos := dwNewSize;
-  end;
-
-{$IFDEF CLEAR_PACKET_BUFFER}
-  FillChar(Pointer(DWORD(FPacketDataBuff) + FPacketDataPos)^, FPacketDataSize - FPacketDataPos, 0);
-{$ENDIF}
-end;
-
-{ TDAOCPacket }
-
-function TDAOCPacket.AsString: string;
-begin
-  Result := BytesToStr(FPacketData, FSize);
-end;
-
-
-constructor TDAOCPacket.Create;
-begin
-  inherited Create;
-end;
-
-procedure TDAOCPacket.Decrypt(const AKey: TDAOCCryptKey);
-var
-  data_pos: integer;
-  key_pos:  integer;
-  status_vect:  integer;
-  seed_1:   integer;
-  seed_2:   integer;
-  work_val: integer;
-  pData:    PChar;
-begin
-  if not Assigned(FPacketData) then
-    exit;
-  if FSize = 0 then
-    exit;
-
-  pData := PChar(FPacketData);
-  data_pos := 0;
-  key_pos := 0;
-  status_vect := 0;
-  seed_1 := 1;
-  seed_2 := 2;
-
-  repeat
-    if key_pos = sizeof(TDAOCCryptKey) then
-      key_pos := 0;
-
-    work_val := AKey[key_pos];
-    work_val := work_val + data_pos;
-    work_val := work_val + key_pos;
-    seed_2 := seed_2 + work_val;
-    work_val := work_val * seed_1;
-    seed_1 := work_val + 1;
-    work_val := seed_1;
-    work_val := work_val * seed_2;
-
-    status_vect := status_vect + work_val;
-    pData[data_pos] := Char((BYTE(pData[data_pos]) xor status_vect) and $ff);
-
-    inc(data_pos);
-    inc(key_pos);
-  until data_pos = FSize;
-end;
-
-destructor TDAOCPacket.Destroy;
-begin
-  if Assigned(FPacketData) then
-    FreeMem(FPacketData);
-
-  inherited Destroy;
-end;
-
-function TDAOCPacket.EOF: boolean;
-begin
-  Result := FPosition >= FSize;
-end;
-
-function TDAOCPacket.getByte: BYTE;
-begin
-  Result := BYTE(PChar(FPacketData)[FPosition]);
-  seek(1);
-end;
-
-procedure TDAOCPacket.getBytes(var dest; iBytes: integer);
-begin
-  Move((PChar(FPacketData) + FPosition)^, dest, iBytes);
-  seek(iBytes);
-end;
-
-function TDAOCPacket.GetIsFromServer: boolean;
-begin
-  Result := not FIsFromClient;
-end;
-
-function TDAOCPacket.getLong: DWORD;
-begin
-  Result := (BYTE(PChar(FPacketData)[FPosition]) shl 24) or
-    (BYTE(PChar(FPacketData)[FPosition + 1]) shl 16) or
-    (BYTE(PChar(FPacketData)[FPosition + 2]) shl 8) or
-    BYTE(PChar(FPacketData)[FPosition + 3]);
-  seek(4);
-end;
-
-function TDAOCPacket.getNullTermString(AMinLen: integer): string;
-begin
-  Result := '';
-  while FPosition < FSize do begin
-    if PChar(FPacketData)[FPosition] = #0 then
-      break;
-
-    Result := Result + PChar(FPacketData)[FPosition];
-    inc(FPosition);
-    dec(AMinLen);
-  end;    { while }
-
-  if FPosition < FSize then begin
-      { skip trailing null }
-    inc(FPosition);
-    dec(AMinLen);
-      { enforce minimum bytes read requirement }
-    if AMinLen > 0 then
-      seek(AMinLen);
-  end;  { if pos < size }
-end;
-
-function TDAOCPacket.getPascalString: string;
-var
-  iLen: integer;
-begin
-  iLen := getByte;
-  if iLen = 0 then
-    Result := ''
-  else begin
-    SetString(Result, PChar(FPacketData) + FPosition, iLen);
-    seek(iLen);
-  end;
-end;
-
-function TDAOCPacket.getShort: WORD;
-begin
-  Result := (BYTE(PChar(FPacketData)[FPosition]) shl 8) or
-    BYTE(PChar(FPacketData)[FPosition + 1]);
-  seek(2);
-end;
-
-procedure TDAOCPacket.SaveToFile(const AFName: string);
-var
-  fs:  TFileStream;
-begin
-  fs := TFileStream.Create(AFName, fmCreate or fmShareDenyWrite);
-  fs.Write(FPacketData^, FSize);
-  fs.Free;
-end;
-
-procedure TDAOCPacket.seek(iCount: integer);
-begin
-  FPosition := FPosition + iCount;
-  if FPosition < 0 then
-    raise Exception.Create('DAOCPacket: Seek before BOF');
-  if FPosition > FSize then
-    raise Exception.Create('DAOCPacket: Seek after EOF');
+  FMaxObjectDistSqr := Value * Value; 
 end;
 
 { TAccountCharInfoList }
