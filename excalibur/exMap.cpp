@@ -301,7 +301,7 @@ void exMap::paintGL() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   if (mi)
-    glRotatef(1.0,0.0,0.0,1.0);
+    glRotatef(0.0,0.0,0.0,1.0);
   if (prefs.map_rotate)
     glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
   glRotatef(180.0,1.0,0.0,0.0);
@@ -355,8 +355,6 @@ void exMap::paintGL() {
   } else {
     glDisable(GL_DEPTH_TEST);
   }
-
-  qglColor( darkGray );
 
   glPushMatrix();
   qglColor( yellow );
@@ -420,14 +418,17 @@ void exMap::paintGL() {
 
       glPopMatrix();
 
+      glPushMatrix();
       /* if it is filtered draw a yellow circle around it */
       if( m->isFiltered() && prefs.filter_circles ) {
-        glPushMatrix();
 
         if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushMatrix();
-          glEnable     (GL_DEPTH_TEST);
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
+          glCullFace   (GL_BACK);
+
         
           glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f); 
 
@@ -446,28 +447,27 @@ void exMap::paintGL() {
 
           else
             gluSphere (qoCircle, 500, 32, 32);
-          glPopMatrix();
+          glPopAttrib();
         }
 
         else {
-          glPushMatrix();
+          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
           glLineWidth(1.0);
           qglColor(yellow);
-          drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
-          glPopMatrix();
+          drawCircle(0, 0, 500, 18);
         }
         
-        glPopMatrix();
       }
 
       /* if the mob is within range, draw an agro circle around it */
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
-        glPushMatrix();
 
         if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushMatrix();
-          glEnable     (GL_DEPTH_TEST);
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
+          glCullFace   (GL_BACK);
 
           glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
 
@@ -492,11 +492,11 @@ void exMap::paintGL() {
 
           else
             gluSphere (qoCircle, 500, 32, 32);
-          glPopMatrix();
+          glPopAttrib();
         }
 
         else {
-          glPushMatrix();
+          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
           glLineWidth(1.0);
 
           if (prefs.agro_fading) {
@@ -508,13 +508,11 @@ void exMap::paintGL() {
             qglColor( darkRed );
           }
 
-          drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
-          glPopMatrix();
+          drawCircle(0, 0, 500, 18);
         }
-
-        glPopMatrix();
       }
     }
+    glPopMatrix();
 
     m->checkStale();
   }
