@@ -41,7 +41,7 @@ void exMessage::parseMsg()
 	QRegExp rxTell( ".*send[s]?\\,\\ \\\".*");
 	QRegExp rxBCast( ".*\\*\\*.*\\*\\*$");
 	QRegExp rxSay( ".*say[s]?\\,\\ \\\".*");
-	QRegExp rxPML( "^The\\ .*\\ drops\\ [A-Z]+.*");
+	QRegExp rxPML( "^The\\ .*\\ drops[\\ ]+[A-Z]+.*");
 	int p;
 
 	if( -1 != rxGuild.search( Msg))
