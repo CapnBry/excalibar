@@ -104,6 +104,7 @@ class exMob : public QListViewItem {
     void setStealth(bool stealth);
     bool isFiltered();
     static void setFilter( QString );
+    bool insideRect(QRect &r);
 
 };
 

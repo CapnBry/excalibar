@@ -216,7 +216,7 @@ void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
 void exMob::setHead(unsigned int nhead) {
   head=nhead & 0xfff;
   /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
-  headrad = (head / 2048.0) * M_PI;
+  headrad = ((head / 2048.0) * M_PI);
   touch();
 }
 
@@ -470,4 +470,9 @@ void exMob::setStealth(bool bstealth)
 {
     stealth = bstealth;
     touch();
+}
+
+bool exMob::insideRect(QRect &r)
+{
+    return r.contains(x, y);
 }
