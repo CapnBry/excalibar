@@ -352,7 +352,7 @@ bool cMsgProc::HandleGeneralPacket
             from_server==true?0:1, // 0==from server, 1==from client
             tcp==true?0:1, // 0==tcp, 1==udp
             buf->UserStorage.DAOCMessageSize,
-            buf->ShowTheBuffer(2)
+            buf->ShowTheBuffer() // the x07 function will offset for the ushort size prepended to the message
             );
         
         // remove all data regarding the message we just sent
