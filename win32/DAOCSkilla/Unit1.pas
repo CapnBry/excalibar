@@ -47,6 +47,7 @@ type
     lblUpdates: TLabel;
     tmrUpdateCheck: TTimer;
     httpUpdateChecker: TIdHTTP;
+    cbxAutoLoginProfile: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -87,6 +88,7 @@ type
     FLastUpdateCheck:   TDateTime;
     FProcessPackets:    boolean;
     FSegmentFromCollector:    TEthernetSegment;
+    FChatLogXIEnabled:  boolean;
 
 {$IFDEF WINPCAP}
     procedure OpenAdapter(const AAdapterName: string);
@@ -110,6 +112,7 @@ type
     function UseCollectionClient : boolean;
     function SetServerNet : boolean;
     procedure UpdateQuickLaunchList;
+    procedure UpdateQuickLaunchProfileList;
     procedure ChatLogXI(const s: string);
     procedure LogLocalPlayerXI;
   protected
@@ -283,7 +286,7 @@ begin
   FPReader.Free;
 {$ENDIF WINPCAP}
 
-  CloseChatLog;
+  CloseChatLog
 end;
 
 procedure TfrmMain.EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -394,6 +397,7 @@ begin
   if not frmConnectionConfig.ProcessLocally then
     OpenCollectionClient;
   UpdateQuickLaunchList;
+  UpdateQuickLaunchProfileList;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -412,6 +416,7 @@ end;
 procedure TfrmMain.LoadSettings;
 begin
   FConnection.QuickLaunchChars.LoadFromFile(GetConfigFileName);
+  FConnection.QuickLaunchProfiles.LoadFromFile(GetConfigFileName);
 
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
@@ -427,9 +432,11 @@ begin
     FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', Now);
-    FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
+    FChatLogXIEnabled := ReadBool('Main', 'ChatLogXIEnabled', true);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
+    FConnection.SendKeysSlashDelay := ReadInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
+    FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
     FConnection.KeyQuickSell := ReadString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     FConnection.KeySelectFriendly := ReadString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
     FConnection.KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
@@ -516,9 +523,11 @@ begin
     WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
     WriteBool('Main', 'TrackLogins', chkTrackLogins.Checked);
     WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
+    WriteBool('Main', 'ChatLogXIEnabled', FChatLogXIEnabled);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
     WriteString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
+    WriteInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
     WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
     WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
@@ -1089,6 +1098,12 @@ end;
 
 procedure TfrmMain.btnLoginClick(Sender: TObject);
 begin
+  if cbxAutoLoginProfile.ItemIndex > 0 then
+    TQuickLaunchProfile(
+      cbxAutoLoginProfile.Items.Objects[
+        cbxAutoLoginProfile.ItemIndex
+      ]).Activate(FConnection.DAOCPath);
+
   FConnection.LaunchCharacterIdx(cbxAutoLogin.ItemIndex);
 end;
 
@@ -1193,7 +1208,8 @@ end;
 
 procedure TfrmMain.ChatLogXI(const s: string);
 begin
-  DAOCChatLog(nil, CHAT_XI_PREFIX + s);
+  if FChatLogXIEnabled then
+    DAOCChatLog(nil, CHAT_XI_PREFIX + s);
 end;
 
 procedure TfrmMain.LogLocalPlayerXI;
@@ -1207,6 +1223,19 @@ end;
 procedure TfrmMain.DAOCLocalHealthUpdate(ASender: TObject);
 begin
   frmMacroing.DAOCLocalHealthUpdate;
+end;
+
+procedure TfrmMain.UpdateQuickLaunchProfileList;
+var
+  I:    integer;
+begin
+  cbxAutoLoginProfile.Clear;
+  cbxAutoLoginProfile.Items.Add('Normal Profile (none)');
+  cbxAutoLoginProfile.ItemIndex := 0;
+
+  for I := 0 to FConnection.QuickLaunchProfiles.Count - 1 do 
+    cbxAutoLoginProfile.Items.AddObject(
+      FConnection.QuickLaunchProfiles[I].ProfileName, FConnection.QuickLaunchProfiles[I]);
 end;
 
 end.

@@ -75,20 +75,20 @@ object frmMain: TfrmMain
     OnClick = lblUpdatesClick
   end
   object btnLogin: TBitBtn
-    Left = 368
-    Top = 108
+    Left = 364
+    Top = 128
     Width = 75
     Height = 25
     Caption = 'Launch DAoC'
     Enabled = False
-    TabOrder = 1
+    TabOrder = 2
     OnClick = btnLoginClick
   end
   object Memo1: TMemo
     Left = 4
-    Top = 164
+    Top = 180
     Width = 493
-    Height = 137
+    Height = 121
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -99,7 +99,7 @@ object frmMain: TfrmMain
       'Memo1')
     ParentFont = False
     ScrollBars = ssVertical
-    TabOrder = 2
+    TabOrder = 6
   end
   object btnDebugging: TButton
     Left = 76
@@ -107,7 +107,7 @@ object frmMain: TfrmMain
     Width = 75
     Height = 25
     Caption = '&Debugging'
-    TabOrder = 3
+    TabOrder = 10
     OnClick = btnDebuggingClick
   end
   object chkAutolaunchExcal: TCheckBox
@@ -118,20 +118,20 @@ object frmMain: TfrmMain
     Caption = 'Autolaunch Excalibur windows'
     Checked = True
     State = cbChecked
-    TabOrder = 4
+    TabOrder = 8
   end
   object chkChatLog: TCheckBox
     Left = 4
-    Top = 138
+    Top = 158
     Width = 105
     Height = 17
     Caption = 'Realtime chat.log'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = chkChatLogClick
   end
   object edtChatLogFile: TEdit
     Left = 116
-    Top = 136
+    Top = 156
     Width = 381
     Height = 22
     Font.Charset = ANSI_CHARSET
@@ -140,7 +140,7 @@ object frmMain: TfrmMain
     Font.Name = 'Courier New'
     Font.Style = []
     ParentFont = False
-    TabOrder = 6
+    TabOrder = 5
     Text = 'c:\mythic\isles\realchat.log'
   end
   object btnResume: TButton
@@ -149,7 +149,7 @@ object frmMain: TfrmMain
     Width = 145
     Height = 17
     Caption = 'Resume last connection'
-    TabOrder = 7
+    TabOrder = 12
     OnClick = btnResumeClick
   end
   object btnConnectionOpts: TBitBtn
@@ -157,7 +157,7 @@ object frmMain: TfrmMain
     Top = 12
     Width = 45
     Height = 41
-    TabOrder = 8
+    TabOrder = 7
     OnClick = btnConnectionOptsClick
     Glyph.Data = {
       1A040000424D1A040000000000005A00000028000000200000001E0000000100
@@ -209,7 +209,7 @@ object frmMain: TfrmMain
     Width = 69
     Height = 25
     Caption = 'Macroing'
-    TabOrder = 10
+    TabOrder = 11
     OnClick = btnMacroingClick
   end
   object cbxAutoLogin: TComboBox
@@ -230,18 +230,27 @@ object frmMain: TfrmMain
     Caption = 'Track character logins'
     Checked = True
     State = cbChecked
-    TabOrder = 11
+    TabOrder = 13
     OnClick = chkTrackLoginsClick
   end
   object btnDeleteChar: TBitBtn
-    Left = 444
-    Top = 108
+    Left = 440
+    Top = 128
     Width = 55
     Height = 25
     Caption = 'Remove'
     Enabled = False
-    TabOrder = 12
+    TabOrder = 3
     OnClick = btnDeleteCharClick
+  end
+  object cbxAutoLoginProfile: TComboBox
+    Left = 304
+    Top = 104
+    Width = 197
+    Height = 21
+    Style = csDropDownList
+    ItemHeight = 13
+    TabOrder = 1
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
