@@ -60,7 +60,7 @@ public:
 }; // end class VmTextProxy
 
 GLPPI::GLPPI() :
-    ActorXScale(0.01f),ActorYScale(0.0149f),
+    ActorXScale(0.01f),ActorYScale(0.0175f),//ActorYScale(0.0149f),
     XLimit(2000000.0f),YLimit(2000000.0f)
 {
     Wrapped=false;
@@ -380,6 +380,7 @@ void GLPPI::InitFonts(void)
     try
         {
         TextEngine.LoadFont("CheyenneFont",AppendFileToPath(InitialDir,"fonts\\arial.fnt"));
+        TextEngine.LoadFont("CheyenneSmallFont",AppendFileToPath(InitialDir,"fonts\\tahoma.fnt"));
         TextEngine.SetActiveFont("CheyenneFont");
         TextEngine.SetHeight(14);
         TextEngine.SetWidthScale(1.0f);
@@ -724,6 +725,55 @@ bool GLPPI::GetScreenPosition
     return(success);
 } // end GetScreenPosition
 
+void GLPPI::GetConColor
+    (
+    const Actor::RelativeCon& ConColor,
+    GLfloat& r,
+    GLfloat& g,
+    GLfloat& b
+    )const
+{
+    switch(ConColor)
+        {
+        case Actor::Green:
+            r=0;
+            g=1;
+            b=0;
+            break;
+        case Actor::Blue:
+            r=0;
+            g=0;
+            b=1;
+            break;
+        case Actor::Yellow:
+            r=1;
+            g=1;
+            b=0;
+            break;
+        case Actor::Orange:
+            r=1;
+            g=0.5f;
+            b=0.25f;
+            break;
+        case Actor::Red:
+            r=1;
+            g=0;
+            b=0;
+            break;
+        case Actor::Purple:
+            r=0.5f;
+            g=0.0f;
+            b=1.0f;
+            break;
+        case Actor::Gray:
+        default:
+            r=0.75f;
+            g=0.75f;
+            b=0.75f;
+            break;
+        } // end switch
+} // end GetConColor
+
 void GLPPI::AdjustPositionByRegion(Motion& Position,const unsigned char Region)const
 {
     // offset position by region offsets (loaded from regionoffsets.txt)
@@ -767,7 +817,13 @@ void GLPPI::RenderBegin(void)
     return;
 } // end RenderBegin
 
-void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,const ActorRenderPrefs& Prefs)
+void GLPPI::RenderActor
+    (
+    const Actor& ThisActor,
+    const GLPPI::TextureId& TexId,
+    const ActorRenderPrefs& Prefs,
+    const Actor::RelativeCon& ConColor
+    )
 {
     // push matrix stack
     glPushMatrix();
@@ -778,8 +834,83 @@ void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,con
     
     glTranslatef(RenderPosition.GetXPos(),RenderPosition.GetYPos(),0.0f);
 
-    // bind the texture
-    BindTexture(TexId);
+    // draw text
+    if(Prefs.GetNumSet() != 0)
+        {
+        // set text color
+        GLfloat Color[3];
+        GetConColor(ConColor,Color[0],Color[1],Color[2]);
+        TextEngine.SetColor(Color[0],Color[1],Color[2]);
+        
+        // draw text
+        float StartX=ActorVertexX + (0.5f*ActorVertexX);
+        const float YInc=(float)TextEngine.GetHeight();
+        float StartY=0;
+
+        // get screen coordinates
+        GLdouble x,y,z;
+        GetScreenPosition(StartX,StartY,0,&x,&y,&z);
+        
+        // save 'em
+        StartX=(float)x;
+        StartY=(float)y;
+        
+        // offset to make text start above actor and end below actors
+        StartY -= ((float)Prefs.GetNumSet())*0.5f * YInc;
+        
+        std::ostringstream oss;
+        
+        if(Prefs.GetRenderName())
+            {
+            oss << ThisActor.GetName();
+            
+            if(Prefs.GetRenderSurname())
+                {
+                oss << " " << ThisActor.GetSurname();
+                }
+
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+        else if(Prefs.GetRenderSurname())
+            {
+            TextEngine.StringOut(StartX,StartY,ThisActor.GetSurname());
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderGuild())
+            {
+            oss << "<" << ThisActor.GetGuild() << ">";
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderHealth())
+            {
+            oss << "HP: " << (unsigned int)ThisActor.GetHealth() << "%";
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderLevel())
+            {
+            oss << "Level: " << (unsigned int)ThisActor.GetLevel();
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+        } // end if there is text to render
 
     // rotate for heading (all heading in daoc are 180° off)
     glRotatef(180.0f+RenderPosition.GetHeading()*57.295779513082320876798154814105f,0.0f,0.0f,1.0f);
@@ -798,6 +929,11 @@ void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,con
         
         // bind to invalid texture
         BindTexture(GLPPI::invalid_texture_id);
+        }
+    else
+        {
+        // bind the texture
+        BindTexture(TexId);
         }
 
     // store current color
@@ -838,54 +974,6 @@ void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,con
     // restore colors
     glColor4fv(&PreAlphaColors[0]);
     
-    if(Prefs.GetNumSet() != 0)
-        {
-        // draw text
-        const float StartX=ActorVertexX + (0.5f*ActorVertexX);
-        const float YInc=TextEngine.GetHeight() + (TextEngine.GetHeight()*0.1f);
-        float StartY=(Prefs.GetNumSet()*YInc) + (Prefs.GetNumSet()*0.5f);
-        
-        if(Prefs.GetRenderName())
-            {
-            TextEngine.StringOut(StartX,StartY,ThisActor.GetName());
-            StartY+=YInc;
-            }
-
-        if(Prefs.GetRenderSurname())
-            {
-            TextEngine.StringOut(StartX,StartY,ThisActor.GetSurname());
-            StartY+=YInc;
-            }
-
-        if(Prefs.GetRenderGuild())
-            {
-            TextEngine.StringOut(StartX,StartY,ThisActor.GetGuild());
-            StartY+=YInc;
-            }
-
-        std::ostringstream oss;
-        
-        if(Prefs.GetRenderHealth())
-            {
-            oss << (unsigned int)ThisActor.GetHealth();
-            TextEngine.StringOut(StartX,StartY,oss.str());
-            oss.seekp(0);
-            oss.str("");
-            oss.clear();
-            StartY+=YInc;
-            }
-
-        if(Prefs.GetRenderLevel())
-            {
-            oss << (unsigned int)ThisActor.GetLevel();
-            TextEngine.StringOut(StartX,StartY,oss.str());
-            oss.seekp(0);
-            oss.str("");
-            oss.clear();
-            StartY+=YInc;
-            }
-        } // end if there is text to render
-
     // pop matrix stack
     glPopMatrix();
     
@@ -998,6 +1086,9 @@ void GLPPI::RenderEnd(void)
     glFlush();
     glFinish();
     SwapBuffers(WrappedDC);
+    
+    // unassign last bound texture
+    LastBoundTexture=GLPPI::invalid_texture_id;
 
     // done
     return;

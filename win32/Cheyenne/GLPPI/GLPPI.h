@@ -251,7 +251,13 @@ public:
 
     // rendering functions
     void RenderBegin(void);
-        void RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,const ActorRenderPrefs& Prefs);
+        void RenderActor
+            (
+            const Actor& ThisActor,
+            const GLPPI::TextureId& TexId,
+            const ActorRenderPrefs& Prefs,
+            const Actor::RelativeCon& ConColor
+            );
         void RenderVectorMap(const VectorMap& Map);
         void RenderZone
             (
@@ -369,6 +375,16 @@ private:
             return(false);
             }
     }
+    
+    // color helpers
+    void GetConColor
+        (
+        const Actor::RelativeCon& ConColor,
+        GLfloat& r,
+        GLfloat& g,
+        GLfloat& b
+        )const;
+    
     // private data
     bool Wrapped; // flag: wrapped or not
     HWND WrappedWindow; // window that we wrapped
