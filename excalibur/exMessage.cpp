@@ -121,7 +121,7 @@ void exMessage::parseMsg()
 		{
 		this->MsgType = "PML";
 		this->Sender = "None";
-		this->MsgText = this->Msg.mid( 2, this->Msg.length());
+		this->MsgText = this->Msg;
 		this->FormattedText = this->MsgText;
 		}
 
