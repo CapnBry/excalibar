@@ -973,13 +973,14 @@ bool exMapElementPoint::fromString(QStringList lst, int xadd, int yadd) {
   zpos=abs(lst[5].toInt(&ok, 10));
   if (! ok)
     return FALSE;
+  zpos += 10;
   return TRUE;
 }
 
 exMapElementLinePoint::exMapElementLinePoint(int nx, int ny, int nz) {
   x=nx;
   y=ny;
-  z=nz;
+  z=nz + 10;
 }
 
 exMapElementLineTess::exMapElementLineTess(GLenum gltype) {
@@ -1021,8 +1022,10 @@ bool exMapElementLine::fromString(QStringList lst, int xadd, int yadd) {
   num=lst[3].toInt(&ok, 10);
   if (!ok || (num < 2))
     return FALSE;
-  if (lst.size() != (4 + (unsigned int)num * 3))
+  if (lst.size() != (4 + (unsigned int)num * 3)) {
+    printf("Error: %d elements expected, %d found", (4 + (unsigned int)num * 3), lst.size());
     return FALSE;
+  }
 
   for(i=0;i<num;i++) {
     x=abs(lst[4 + i * 3].toInt(&ok, 10))+xadd;
@@ -1041,7 +1044,7 @@ bool exMapElementLine::fromString(QStringList lst, int xadd, int yadd) {
   for(ps=s.points.first(); ps; ps=s.points.next()) {
     x = (int) ps->x;
     y = (int) ps->y;
-    z = (int) ps->z;
+    z = (int) ps->z + 10;
     p=new exMapElementLinePoint(x, y, z);
     allpoints.append(p);
     points.append(p);
@@ -1232,7 +1235,7 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
         }
 
         if (! ok) {
-          qWarning("Map element %s was not accepted", (const char *)line);
+          qWarning("\nSub-Element: %d\n>>   %s\n>>>  %s\n>>>> was not accepted.\n", i, (const char*)line.left(line.length() -1), (const char *) mi->getName()); 
           if (elem)
             delete elem;
         }

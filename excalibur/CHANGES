@@ -1,3 +1,36 @@
+Andon (03/Mar/03)
+-----------------
+Changes:
+ + Map elements that fail to pass the sanity
+   checks are now printed to stderr with USEFUL
+   info!
+ + All vector map elements have been given a
+   "safety boost" of 10 meters.. This ought to
+    fix all issues where elements with a Z co-
+    ord close to 0 would intersect with the XY
+    plane when zoomed to an unusal ratio.
+
+Additions:
+ + Added SEVERAL new vector maps, derived from
+   my experimental vector map auto-gen.. The
+   auto-gen for vector maps is similar to the
+   PNG auto-gen, but it's written in PERL and
+   it's a lot faster :)
+ + Added bounds info to ALL Hibernian zones,
+   Midgard and Albion are on the way.. So be
+   patient :)
+
+Documentation:
+ + Changed the compiler requirements in INSTALL
+   to gcc 3.0+
+ + Changed the OS requirements to reflect all
+   known workable UNIX distributions.
+ + Added a section to the FAQ relating to WHY
+   you NEED gcc 3.0 for the new exCrypt lib...
+
+ * Version bumped to 1.2.1a
+
+
 Andon (02/Mar/02)
 -----------------
 Changes:
