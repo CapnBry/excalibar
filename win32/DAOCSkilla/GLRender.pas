@@ -414,14 +414,15 @@ begin
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
       clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
-      if pObj.Stealthed then
-        clMob := clGreen;
 
         { if the mob is on the move, draw a line to its destination }
       if FRenderPrefs.DrawAIDestination and
         (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
         glLineWidth(3.0);
-        SetGLColorFromTColor(clMob, 0.33);
+//        if pMovingObj.DestinationAhead then
+          SetGLColorFromTColor(clMob, 0.33);
+//        else
+//          SetGLColorFromTColor(clRed, 1.0);
         glBegin(GL_LINES);
           glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
           glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
@@ -437,7 +438,10 @@ begin
       else if FRenderPrefs.DrawTypeTag and (pObj.ObjectClass = ocMob) then
         DrawMobTypeTag(TDAOCMob(pObj));
 
-      glColor3ubv(PGLubyte(@clMob));
+      if pObj.Stealthed then
+        SetGLColorFromTColor(clMob, 0.5)
+      else
+        glColor3ubv(PGLubyte(@clMob));
       FMobTriangle.GLRender;
 
       glPopMatrix();
@@ -723,6 +727,7 @@ const
 var
   rastery:  integer;
   pMob: TDAOCObject;
+  s:    string;
 
   procedure WriteMobNameCon;
   begin
@@ -805,8 +810,10 @@ begin
         glColor4fv(@TEXT_COLOR);
   end;    { case class }
 
-  rastery := WriteGLUTTextH12(4, rastery, 'Distance: ' +
-    FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer)));
+  s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer));
+  if pMob is TDAOCMovingObject then
+    s := s + '  Speed: ' + IntToStr(TDAOCMovingObject(pMob).Speed);
+  rastery := WriteGLUTTextH12(4, rastery, s);
 end;
 
 procedure TfrmGLRender.SetupRadarProjectionMatrix;
