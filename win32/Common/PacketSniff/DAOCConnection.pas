@@ -106,6 +106,7 @@ type
     FOnLocalHealthUpdate: TNotifyEvent;
     FOnGroupMembersChanged: TNotifyEvent;
     FOnDoorPositionUpdate: TDAOCObjectNotify;
+    FOnMobInventoryChanged: TDAOCMovingObjectNotify;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -257,7 +258,8 @@ type
     procedure DoOnLocalHealthUpdate; virtual;
     procedure DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem); virtual;
     procedure DoOnGroupMembersChanged; virtual;
-    procedure DoOnDoorPositionUpdate(AObj: TDAOCObject); virtual; 
+    procedure DoOnDoorPositionUpdate(AObj: TDAOCObject); virtual;
+    procedure DoMobInventoryChanged(AObj: TDAOCMovingObject); virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -339,6 +341,7 @@ type
     property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
     property OnLocalHealthUpdate: TNotifyEvent read FOnLocalHealthUpdate write FOnLocalHealthUpdate;
     property OnLog: TStringEvent read FOnLog write FOnLog;
+    property OnMobInventoryChanged: TDAOCMovingObjectNotify read FOnMobInventoryChanged write FOnMobInventoryChanged;
     property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
     property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
     property OnPacket: TGNPacketEvent read FOnPacket write FOnPacket;
@@ -1286,7 +1289,7 @@ begin
     dec(iCnt);
   end;  { while cnt and !EOF }
 
-  TDAOCMovingObject(pMob).InventoryChanged;
+  DoMobInventoryChanged(TDAOCMovingObject(pMob));
 end;
 
 procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TGameNetPacket);
@@ -2047,7 +2050,7 @@ begin
   while not pPacket.EOF do begin
     pPacket.getByte; // level
     pPacket.getByte; // health
-    bMana := pPacket.getByte; 
+    bMana := pPacket.getByte;
     pPacket.seek(1);
     wID := pPacket.getShort;
 
@@ -2331,6 +2334,7 @@ begin
 end;
 
 procedure TDAOCConnection.DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem);
+{ called once for every object added to inventory }
 begin
   AMob.Inventory.TakeItem(AItem);
 end;
@@ -2571,6 +2575,15 @@ begin
     AObj.DestinationX := pZoneBase.ZoneToWorldX(AObj.DestinationX);
     AObj.DestinationY := pZoneBase.ZoneToWorldY(AObj.DestinationY);
   end;
+end;
+
+procedure TDAOCConnection.DoMobInventoryChanged(AObj: TDAOCMovingObject);
+{ called once after entire inventory is updated }
+begin
+  TDAOCMovingObject(AObj).InventoryChanged;
+  
+  if Assigned(FOnMobInventoryChanged) then
+    FOnMobInventoryChanged(Self, AObj);
 end;
 
 end.
