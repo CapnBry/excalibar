@@ -53,6 +53,7 @@ type
     FRangeCircles:  TRangeCircleList;
     FMobTriangle:   T3DArrowHead;
     FObjectTriangle:    T3DPyramid;
+    FGroundTarget:      TGLBullsEye;
     FMapToPlayerOffset: TPoint;
     FFilteredObjects:   TDAOCObjectList;
     FRenderPrefs:   TRenderPreferences;
@@ -89,6 +90,7 @@ type
     procedure SetObjectListRowCount(ACount: integer);
     procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
     procedure UpdateFrameStats(ATime: integer);
+    procedure InvalidateListObject(AObj: TDAOCObject);
   protected
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
@@ -97,6 +99,7 @@ type
     procedure DAOCSelectedObjectChanged(AObj: TDAOCObject);
     procedure DAOCRegionChanged;
     procedure DAOCZoneChanged;
+    procedure DAOCSetGroundTarget;
 
     procedure Dirty;
     property DAOCControl: TDAOCControl read FDControl write SetDControl;
@@ -393,6 +396,7 @@ end;
 
 procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
 begin
+  InvalidateListObject(AObj);
   if FRenderPrefs.RedrawOnUpdate then
     Dirty;
 end;
@@ -535,6 +539,7 @@ begin
   FMapTextures := TTextureMapElementList.Create;
   FMobTriangle := T3DArrowHead.Create;
   FObjectTriangle := T3DPyramid.Create;
+  FGroundTarget := TGLBullsEye.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
@@ -546,6 +551,7 @@ begin
   GLCleanups;
   FFilteredObjects.Free;
   FMobTriangle.Free;
+  FGroundTarget.Free;
   FObjectTriangle.Free;
   FMapElements.Free;
   FMapTextures.Free;
@@ -560,6 +566,9 @@ begin
   FRangeCircles.GLCleanup;
   FMapElements.GLCleanup;
   FMapTextures.GLCleanup;
+  FGroundTarget.GLCleanup;
+
+  FGLInitsCalled := false;
 end;
 
 procedure TfrmGLRender.GLInits;
@@ -570,6 +579,7 @@ begin
   FRangeCircles.GLInitialize;
   FMapElements.GLInitialize;
   FMapTextures.GLInitialize;
+  FGroundTarget.GLInitialize;
   
   CheckGLError;
 end;
@@ -619,7 +629,7 @@ end;
 
 procedure TfrmGLRender.DAOCRegionChanged;
 begin
-  ;
+  DAOCSetGroundTarget;
 end;
 
 procedure TfrmGLRender.GridSelectObject(ADAOCObject: TDAOCObject);
@@ -1107,32 +1117,20 @@ begin
 end;
 
 procedure TfrmGLRender.DrawGroundTarget;
-var
-  cl:   TColor;
 begin
-  if (FDControl.GroundTarget.X = 0) or (FDControl.GroundTarget.Y = 0) then
-    exit;
-
-  glEnable(GL_LIGHTING);
-  glDisable(GL_BLEND);
-
-  glPushMatrix();
-  glTranslatef(FDControl.GroundTarget.X, FDControl.GroundTarget.Y, 0);
-  cl := FObjectTriangle.Color;
-  FObjectTriangle.Color := RealmColor(FDControl.LocalPlayer.Realm); 
-  FObjectTriangle.GLRender(FRenderBounds);
-  FObjectTriangle.Color := cl;
-  glPopMatrix();
+  FGroundTarget.GLRender(FRenderBounds);
 end;
 
 procedure TfrmGLRender.DrawFrameStats;
 begin
   if not FRenderPrefs.DrawFrameStats then
     exit;
-    
-  glColor3f(1, 1, 0);
-  if FFrameStats <> '' then
+
+  if FFrameStats <> '' then begin
+    glDisable(GL_LIGHTING);
+    glColor3f(1, 1, 0);
     WriteGLUTTextH10(3, 15, FFrameStats);
+  end;
 end;
 
 procedure TfrmGLRender.UpdateFrameStats(ATime: integer);
@@ -1144,5 +1142,24 @@ begin
   FDirtyCount := 0;
   FInvalidateCount := 0;
 end;
+
+procedure TfrmGLRender.DAOCSetGroundTarget;
+begin
+  with FDControl.GroundTarget do
+    FGroundTarget.Assign(X, Y);
+end;
+
+procedure TfrmGLRender.InvalidateListObject(AObj: TDAOCObject);
+var
+  I:    integer;
+  R:    TRect;
+begin
+  I := FFilteredObjects.IndexOf(AObj);
+  if I <> -1 then begin
+    R := lstObjects.ItemRect(I);
+    InvalidateRect(lstObjects.Handle, @R, false);
+  end;
+end;
+
 end.
 
