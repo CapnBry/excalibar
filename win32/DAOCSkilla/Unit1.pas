@@ -440,7 +440,7 @@ begin
     btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
-    FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', Now);
+    FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
     FChatLogXIEnabled := ReadBool('Main', 'ChatLogXIEnabled', true);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
