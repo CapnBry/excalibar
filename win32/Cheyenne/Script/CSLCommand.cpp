@@ -2101,10 +2101,6 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
     id.params.a0x=params.followed_actor->GetMotion().GetXPos();
     id.params.a0y=-(params.followed_actor->GetMotion().GetYPos());
     id.params.s=float(reference_velocity);
-    
-    // this is wierd: the heading stored in Actor is opposite
-    // of what we would expect. A heading of 0 causes Y to 
-    // decrease. For this reason, we negate Y here.
     id.params.tvx=Target.GetMotion().GetSpeed() * sin(Target.GetMotion().GetHeading());
     id.params.tvy=-(Target.GetMotion().GetSpeed() * cos(Target.GetMotion().GetHeading()));
     
@@ -2118,6 +2114,12 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
         } // end if no intercept
     else
         {
+        // this is wierd: the heading stored in Actor is opposite
+        // of what we would expect. A heading of 0 causes Y to 
+        // decrease. For this reason, we negate Y here. The heading is correct though
+        id.YDotToIntercept=-id.YDotToIntercept;
+        id.YIntercept=-id.YIntercept;
+        
         // debug 
         ::Logger
             << "t0x=" << id.params.t0x << "\n"
@@ -2139,7 +2141,7 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
             // time we have computed an intercept, kick off
             // move_to with new parameters
             intercept_x=id.XIntercept; // these are in global coordinates
-            intercept_y=id.YIntercept; // move to needs local coordinates
+            intercept_y=id.YIntercept; // move-to needs local coordinates
             
             unsigned int move_to_x;
             unsigned int move_to_y;
@@ -2147,7 +2149,7 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
             unsigned short curr_z;
             unsigned char zone;
             
-            // get zone relative coordinates
+            // get zone-relative (local) coordinates
             ::Zones.GetZoneFromGlobal
                 (
                 Target.GetRegion(),
