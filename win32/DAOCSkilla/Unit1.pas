@@ -395,21 +395,19 @@ end;
 procedure TfrmMain.LoadSettings;
 begin
   FConnection.QuickLaunchChars.LoadFromFile(GetConfigFileName);
-  
+
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
+    FConnection.WindowManager.UIStyle := ReadString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
     FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8500);
     FConnection.MaxObjectStaleTime := ReadInteger('Main', 'MaxObjectStaleTime', 300) * 1000;
-    Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
     chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
     chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
-    chkChatLogClick(nil);
     edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
     btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
-    chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', Now);
     FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
@@ -470,6 +468,11 @@ begin
     frmMacroing.Top := ReadInteger('Macroing', 'Top', frmMacroing.Top);
     Free;
   end;  { with INI }
+
+  Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
+  chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
+    { set up chat log if applicable }
+  chkChatLogClick(nil);
 end;
 
 procedure TfrmMain.SaveSettings;
@@ -486,6 +489,7 @@ begin
     WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
+    WriteString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
     WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
     WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
