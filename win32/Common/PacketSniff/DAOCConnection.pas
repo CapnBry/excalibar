@@ -403,8 +403,8 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectDistance(8000);
-  FMaxObjectStaleTime := 300000;  // 300,000ms = 5min
+  SetMaxObjectDistance(8500);
+  FMaxObjectStaleTime := 240000;  // 240,000ms = 4min
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -772,6 +772,7 @@ begin
     $88:  ParseCharacterLoginInit(pPacket);
     $aa:  ParseInventoryList(pPacket);
     $b3:  ParsePlayerCenteredSpellEffect(pPacket);
+    $ba:  ParseNewObject(pPacket, ocVehicle);
     $bd:  ParseObjectEquipment(pPacket);
     $be:  ParsePlayerStatsUpdate(pPacket);
     $bf:  ParseVendorWindow(pPacket);
@@ -867,6 +868,7 @@ begin
 
   FMasterVendorList.Clear;
   ClearDAOCObjectList;
+  FDAOCObjsStale.Clear;  // we can just clear because we have notified
 
   if Assigned(FOnRegionChanged) then
     FOnRegionChanged(Self);
@@ -1282,6 +1284,22 @@ begin
         end;  { with TDAOCPlayer }
       end;  { ocPlayer }
 
+      ocVehicle:
+        begin
+          tmpObject := TDAOCVehicle.Create;
+          with TDAOCVehicle(tmpObject) do begin
+            InfoID := pPacket.getShort;
+            PlayerID := 0;
+            pPacket.Seek(2);
+            SpeedWord := pPacket.getShort;
+            HeadWord := pPacket.getShort;
+            X := pPacket.getLong;
+            Y := pPacket.getLong;
+            Z := pPacket.getShort;
+            pPacket.seek(10);
+            Name := pPacket.getPascalString;
+          end;  { with TDAOCVehicle }
+        end;  { ocVehicle }
     else
       tmpObject := nil;
   end;  { case AClass }
@@ -1958,11 +1976,14 @@ begin
   I := FDAOCObjs.Count - 1;
   while I >= 0 do begin
     pObj := FDAOCObjs[I];
-    fDist := pObj.DistanceSqr3D(FLocalPlayer);
-    if fDist > FMaxObjectDistSqr then begin
-      DoOnDeleteDAOCObject(pObj);
-      FDAOCObjs.Delete(I);
-    end;
+    if pObj.ObjectClass = ocObject then begin
+      fDist := pObj.DistanceSqr3D(FLocalPlayer);
+        { if object is just a base object }
+      if fDist > FMaxObjectDistSqr then begin
+        DoOnDeleteDAOCObject(pObj);
+        FDAOCObjs.Delete(I);
+      end;
+    end;  { if object is a base non-moving DAOC object }
 
     dec(I);
   end;  { while I > 0 }
