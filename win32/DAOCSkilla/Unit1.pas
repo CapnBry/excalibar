@@ -114,6 +114,7 @@ type
     procedure DAOCObjectMoved(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCSkillLevelChanged(ASender: TObject; AItem: TDAOCNameValuePair);
     procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
+    procedure DAOCSetGroundTarget(ASender: TObject);
   public
     procedure UpdateGLRender;
     procedure Log(const s: string);
@@ -379,6 +380,7 @@ begin
   FConnection.OnSkillLevelChanged := DAOCSkillLevelChanged;
   FConnection.OnSelectedObjectChange := DAOCSelectedObjectChanged;
   FConnection.OnRegionChanged := DAOCRegionChanged;
+  FConnection.OnSetGroundTarget := DAOCSetGroundTarget;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -937,8 +939,12 @@ begin
   FLastConnection.ServerIP := FConnection.ServerIP;
   FLastConnection.ClientIP := FConnection.ClientIP;
   FLastConnection.RegionID := FConnection.RegionID;
-  
+
   SaveConnectionState;
+  
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCRegionChanged;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.SaveConnectionState;
@@ -973,6 +979,13 @@ begin
     FConnection.RegionID := FLastConnection.RegionID;
   end;
 ***)
+end;
+
+procedure TfrmMain.DAOCSetGroundTarget(ASender: TObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCSetGroundTarget;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.
