@@ -63,7 +63,7 @@ type
   public
     function IndexOf(AName: string) : integer;
     function Has(AName: string) : boolean;
-    
+
     property Items[Index: integer]: TMPKDirectoryEntry read GetItems; default;
   end;
 
@@ -74,6 +74,7 @@ type
     FFileName:      string;
     FInternalName:  string;
     FDirectory:     TMPKDirectoryEntryList;
+    FReadBuffer:    array[0..4095] of char;
     procedure SetFileName(const Value: string);
   public
     constructor Create(const AFileName: string);
@@ -135,7 +136,6 @@ procedure TMPKFile.ExtractIdxToStream(AIndex: integer; strm: TStream);
 var
   iRead:  integer;
   zDS:    TDecompressionStream;
-  aBuffer:  array[0..4095] of byte;
 begin
   if AIndex = -1 then
     raise Exception.Create('Source stream not found in archive');
@@ -145,9 +145,9 @@ begin
 //Write(GetTickCount);
   try
     repeat
-      iRead := zDS.Read(aBuffer, sizeof(aBuffer));
+      iRead := zDS.Read(FReadBuffer, sizeof(FReadBuffer));
       if iRead <> 0 then
-        strm.Write(aBuffer, iRead);
+        strm.Write(FReadBuffer, iRead);
     until iRead = 0;
 //WriteLn(' ', GetTickCount);
   finally
@@ -215,7 +215,6 @@ end;
 procedure TMPKFile.Open;
 var
   aSIG: array[0..3] of char;
-  aBuffer: array[0..1023] of char;
   zDS:  TDecompressionStream;
   iRead:  integer;
   ms:   TMemoryStream;
@@ -233,17 +232,16 @@ begin
 
     { first stream = name of file? }
   zDS := TDecompressionStream.Create(FS);
-  iRead := zDS.Read(aBuffer, sizeof(aBuffer));
-  zDS.Free;
-  SetString(FInternalName, aBuffer, iRead);
+  iRead := zDS.Read(FReadBuffer, sizeof(FReadBuffer));
+  SetString(FInternalName, FReadBuffer, iRead);
 
-    { read the dirctory }
-  zDS := TDecompressionStream.Create(FS);
+    { read the directory }
+  zDS.ResetInflateState;
   ms := TVCLMemoryStream.Create;
   repeat
-    iRead := zDS.Read(aBuffer, sizeof(aBuffer));
+    iRead := zDS.Read(FReadBuffer, sizeof(FReadBuffer));
     if iRead > 0 then
-      ms.Write(aBuffer, iRead);
+      ms.Write(FReadBuffer, iRead);
   until iRead = 0;
   zDS.Free;
 
@@ -292,7 +290,7 @@ end;
 procedure TMPKDirectoryEntry.RecalcCompressRatio;
 begin
   if FUncompressedSize <> 0 then
-    FCompressRatio := trunc((FUncompressedSize - FCompressedSize) * 100 / FUncompressedSize)
+    FCompressRatio := round((FUncompressedSize - FCompressedSize) * 100 / FUncompressedSize)
   else
     FCompressRatio := 0;
 end;
