@@ -171,10 +171,79 @@ bool MoveToPoint::Extract(std::istream& arg_stream)
     // init to -
     start_time=-1.0;
     moving=false;
+    turning=false;
+    close=false;
     
-    // done
-    return(true);
+    if(!head_point)
+        {
+        // create our head to point proxy
+        head_point=new csl::HeadPoint;
+        }
+    
+    // make arguments for headpoint, always give it 10 seconds
+    std::stringstream ss;
+    ss << x << " " << y << " " << 10.0 << std::endl;
+    
+    // done, return extract status for head_point
+    return(head_point->Extract(ss));
 } // end MoveToPoint::Extract
+
+float MoveToPoint::GetDistanceFromGoal(const Actor* reference)const
+{
+    // see if we are there yet
+    unsigned int curr_x,curr_y;
+    unsigned short curr_z;
+    unsigned char zone;
+    
+    // get zone relative current coordinates
+    ::Zones.GetZoneFromGlobal
+        (
+        reference->GetRegion(),
+        unsigned int(reference->GetMotion().GetXPos()),
+        unsigned int(reference->GetMotion().GetYPos()),
+        unsigned short(reference->GetMotion().GetZPos()),
+        curr_x,
+        curr_y,
+        curr_z,
+        zone
+        );
+        
+    // get distance from target
+    const float delta_x=float(curr_x)-float(x);
+    const float delta_y=float(curr_y)-float(y);
+    
+    // return distance 
+    return(sqrt(delta_x*delta_x + delta_y*delta_y));
+} // end GetDistanceFromGoal
+
+void MoveToPoint::Reinit(csl::EXECUTE_PARAMS& params)
+{
+    // clear these
+    start_time=-1.0;
+    last_heading_check=0.0;
+
+    if(moving)
+        {
+        // release move key
+        params.keyboard->PressAndReleaseVK("VK_UP");
+        }
+    
+    if(turning)
+        {
+        // release any turning keys
+        params.keyboard->PressAndReleaseVK("VK_LEFT");
+        params.keyboard->PressAndReleaseVK("VK_RIGHT");
+        }
+
+    // clear flag
+    moving=false;
+    turning=false;
+    close=false;
+    
+    // done with this
+    delete head_point;
+    head_point=0;
+} // end Reinit
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& params)
 {
@@ -184,17 +253,11 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
         ::Logger << "[MoveToPoint::Execute] move to <" << x << "," << y << "> failed to complete in "
                  << time_limit << " seconds because there is no followed (reference) actor" << std::endl;
         
-        // clear these
-        start_time=-1.0;
-        last_heading_check=0.0;
-
-        // release move key
-        params.keyboard->PressAndReleaseVK("VK_UP");
-
-        // clear flag
-        moving=false;
-
-        return(std::make_pair(true,true));
+        // reinit
+        Reinit(params);
+        
+        // return error
+        return(std::make_pair(false,true));
         } // end if no followed actor
     
     // check start time
@@ -203,124 +266,120 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
         // we have not been executed before, init start time to now
         start_time=params.current_time->Seconds();
         
-        // face our destination
-        std::ostringstream face_cmd;
-        face_cmd << "/faceloc " << x << " " << y;
-        
-        params.keyboard->String(face_cmd.str());
-        params.keyboard->PressAndReleaseVK("VK_RETURN");
-
-        // done with this iteration, 
-        // but we need to execute again
-        return(std::make_pair(true,false));
+        // start turning
+        turning=true;
         } // end if first iteration
         
     // check to see if time limit expired
     if(start_time+time_limit < params.current_time->Seconds())
         {
         // time limit expired!
-        if(moving)
-            {
-            // release move key
-            params.keyboard->PressAndReleaseVK("VK_UP");
 
-            // clear flag
-            moving=false;
-            }
+        // reinit
+        Reinit(params);
         
-        // reset this to initial value
-        start_time=-1.0;
-        last_heading_check=0.0;
-        
-        // do not halt the script because of this error, but print 
-        // alert in log file
+        // print alert in log file
         ::Logger << "[MoveToPoint::Execute] move to <" << x << "," << y << "> failed to complete in "
                  << time_limit << " seconds!" << std::endl;
                  
-        return(std::make_pair(true,true));
-        }
-    else if(!moving)
-        {
-        // start moving
-        moving=true;
-        
-        params.keyboard->PressVK("VK_UP");
+        // return error
+        return(std::make_pair(false,true));
+        } // end if time limit expired
+
+    // status for current action
+    csl::CSLCommandAPI::EXECUTE_STATUS status;
     
-        // we need to execute again
-        return(std::make_pair(true,false));
-        } // end else if not moving
-    else if(params.current_time->Seconds()-last_heading_check > 5.0)
+    // see how far away we are
+    const float distance=GetDistanceFromGoal(params.followed_actor);
+    if(distance < 750.0f)
         {
-        // last time we checked heading was more than 5 seconds ago, redo 
-        // the heading
-        
-        // save time
-        last_heading_check=params.current_time->Seconds();
-        
-        // release move key
-        params.keyboard->PressAndReleaseVK("VK_UP");
-        // clear flag
-        moving=false;
-
-        // face our destination
-        std::ostringstream face_cmd;
-        face_cmd << "/faceloc " << x << " " << y;
-        
-        params.keyboard->String(face_cmd.str());
-        params.keyboard->PressAndReleaseVK("VK_RETURN");
-
-        // done with this iteration, 
-        // but we need to execute again
-        return(std::make_pair(true,false));
-        }
-    else
-        {
-        // see if we are there yet
-        unsigned int curr_x,curr_y;
-        unsigned short curr_z;
-        unsigned char zone;
-        
-        // get zone relative current coordinates
-        ::Zones.GetZoneFromGlobal
-            (
-            params.followed_actor->GetRegion(),
-            unsigned int(params.followed_actor->GetMotion().GetXPos()),
-            unsigned int(params.followed_actor->GetMotion().GetYPos()),
-            unsigned short(params.followed_actor->GetMotion().GetZPos()),
-            curr_x,
-            curr_y,
-            curr_z,
-            zone
-            );
-          
-        // get distance from target
-        unsigned int delta_x,delta_y;
-        delta_x=curr_x-x;
-        delta_y=curr_y-y;
-        
-        // check distance (don't bother with the sqrt)
-        if(((delta_x*delta_x) + (delta_y*delta_y)) <= 10000) // 100*100 world units
+        // see if we were close before
+        if(close)
             {
-            // we're there, reset variables
-            // release move key
-            params.keyboard->PressAndReleaseVK("VK_UP");
-
-            // clear flag
-            moving=false;
-            
-            // reset this to initial value
-            start_time=-1.0;
-            last_heading_check=0.0;
-            
-            // we don't need to execute again
-            return(std::make_pair(true,true));
-            } // end if we're there
+            if(distance < 100.0f)
+                {
+                // reinit
+                Reinit(params);
+                
+                // return success and go to next command
+                return(std::make_pair(true,true));
+                } // we're done!
+            } // end if we're close now, and we were close before
         else
             {
-            // we need to execute again
-            return(std::make_pair(true,false));
-            } // end else we're not there yet
-        } // end else we need to check our distance from the goal
+            // stop moving
+            if(moving)
+                {
+                // release move key
+                params.keyboard->PressAndReleaseVK("VK_UP");
+                // clear flag
+                moving=false;
+                } // end if moving
+
+            // do final heading while standing still
+            
+            // proxy heading change
+            status=head_point->Execute(params);
+            
+            if(!status.first)
+                {
+                // error!
+                // reinit
+                Reinit(params);
+                // return error
+                return(std::make_pair(false,true));
+                } // end if turn error
+            else if(status.second)
+                {
+                // clear turning flag
+                turning=false;
+                
+                // set close flag, we will go straight in
+                // from here
+                close=true;
+                
+                // turn complete, start moving
+                moving=true;
+                // press move key
+                params.keyboard->PressVK("VK_UP");
+                } // end else turn completed
+            } // end else we're close now, but weren't close before
+        } // end if we are close
+    else
+        {
+        if(turning)
+            {
+            // proxy heading change
+            status=head_point->Execute(params);
+            
+            if(!status.first)
+                {
+                // error
+
+                // reinit
+                Reinit(params);
+
+                // return error
+                return(std::make_pair(false,true));
+                } // end if turn error
+            else if(status.second)
+                {
+                turning=false;
+                } // end else turn completed
+            } // end if turning
+            
+        if(!moving)
+            {
+            // start moving
+            moving=true;
+
+            // press move key
+            params.keyboard->PressVK("VK_UP");
+            } // end if not moving
+        } // end else we aren't close
+
+    // done, we need to execute again
+    return(std::make_pair(true,false));
 } // end MoveToPoint::Execute
 
 bool MoveToActor::Extract(std::istream& arg_stream)

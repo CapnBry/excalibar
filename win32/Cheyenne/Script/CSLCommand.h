@@ -96,17 +96,24 @@ private:
 class MoveToPoint : public CSLCommandAPI
 {
 public:
+    MoveToPoint(){head_point=0;};
+    ~MoveToPoint(){delete head_point;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToPoint(*this));};
 protected:
 private:
+    float GetDistanceFromGoal(const Actor* reference)const;
+    void Reinit(csl::EXECUTE_PARAMS& params);
     int x;
     int y;
     double time_limit;
     double start_time;
     double last_heading_check;
     bool moving;
+    bool turning;
+    bool close;
+    csl::CSLCommandAPI* head_point;
 }; // end class MoveToPoint
 
 class MoveToActor : public CSLCommandAPI
