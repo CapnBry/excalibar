@@ -433,7 +433,8 @@ void exMap::paintGL() {
     m->checkStale();
 
     if (m->isCurrent() && m->insideRect(bounds) &&
-       (!m->isObj() || prefs.render_objects)) {
+        (!m->isObj() || prefs.render_objects) &&
+        (!m->isDead() || prefs.render_dead)) {
       glPushMatrix();
       glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0);  // m->getZ()
       objRotate(m->getHead());
@@ -545,9 +546,9 @@ void exMap::paintGL() {
     glColor3f (0.45, 0.45, 0.45);
     glLineWidth(1.0);
     if (prefs.player_circle_1 > 0)
-      drawCircle(prefs.player_circle_1, 20);
+      drawCircle(prefs.player_circle_1, 32);
     if (prefs.player_circle_2 > 0)
-      drawCircle(prefs.player_circle_2, 20);
+      drawCircle(prefs.player_circle_2, 32);
   }
 
     /* Player triangle */
