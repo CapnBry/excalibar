@@ -2408,7 +2408,7 @@ void Central::RenderWorld(void)const
     for(unsigned char i=0;i<=254;++i)
         {
         // only render valid zones (XOffset==0 is a special case of an invalid zone)
-        if(Zones.GetZone(i).bValid && Zones.GetLimitsFromRegion(Zones.GetZone(i).Region).XOffset!=0)
+        if(Zones.GetZone(i).bValid)// && Zones.GetLimitsFromRegion(Zones.GetZone(i).Region).XOffset!=0)
             {
             // alias 
             const MapInfo::ZoneInfo& zone=Zones.GetZone(i);
@@ -2453,6 +2453,7 @@ void Central::RenderWorld(void)const
                 glBegin(GL_QUADS);
 
                 glColor3f(0.5f,0.5f,0.5f);
+                //glColor3f(0.1f,0.1f,0.1f);
 
                 glTexCoord2i(0,1);
                 glVertex3i(0,MaxY-BaseY,0);
