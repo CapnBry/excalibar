@@ -536,6 +536,7 @@ END_EXPERIMENTAL_CODE
 	      mob = mobinfo.find((void *) ((unsigned int) infoid));
 	      if (mob) {
 		  mob->setHP(hp);
+                  updateObjectTypeCounts();
 	      }
 	      break;
 	  case 0x1f:
