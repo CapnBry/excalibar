@@ -21,17 +21,19 @@ type
   private
     FTag: integer;
     FURL: string;
-    FResponseStream: TStream;
+    FResponseStream:  TStream;
     FMethod: TIdHTTPMethod;
     FOnHTTPError: THTTPErrorEvent;
     FOnRequestComplete: THTTPCompletionEvent;
+    FExtraHeaders:    TStrings;
 
     procedure DoOnRequestComplete;
     procedure DoOnHTTPError(const AErr: string);
   public
-    constructor CreateGET;
+    constructor Create;
     destructor Destroy; override;
 
+    property ExtraHeaders: TStrings read FExtraHeaders;
     property Method: TIdHTTPMethod read FMethod write FMethod;
     property URL: string read FURL write FURL;
     property ResponseStream: TStream read FResponseStream write FResponseStream;
@@ -223,6 +225,7 @@ begin
       exit;
 
     try
+      FIdHTTP.Request.ExtraHeaders.Assign(pRequest.ExtraHeaders);
       FIdHTTP.DoRequest(pRequest.Method, pRequest.URL, nil, pRequest.ResponseStream);
       DoOnHTTPComplete(pRequest);
     except
@@ -257,14 +260,16 @@ end;
 
 { TBackgroundHTTPRequest }
 
-constructor TBackgroundHTTPRequest.CreateGET;
+constructor TBackgroundHTTPRequest.Create;
 begin
   inherited;
+  FExtraHeaders := TStringList.Create;
   FMethod := hmGet;
 end;
 
 destructor TBackgroundHTTPRequest.Destroy;
 begin
+  FExtraHeaders.Free;
   FResponseStream.Free;
   inherited;
 end;
