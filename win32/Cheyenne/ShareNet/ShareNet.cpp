@@ -26,16 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 extern CheyenneClock Clock;
 extern logger_t Logger;
 
-class AlertableWaitSingleFunctor
-{
-public:
-    typedef DWORD return_type;
-    DWORD operator()(HANDLE hEvent,unsigned int timeout_ms) const
-    {
-        return(WaitForSingleObjectEx(hEvent,timeout_ms,TRUE));
-    }
-}; // end class WaitSingleFunctor
-
 template <typename MSG_T> CheyenneMessage* ShareMsgPopulate
     (
     const unsigned char* opcode_msg_ptr // points to the opcode in the message
