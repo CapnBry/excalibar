@@ -115,12 +115,14 @@ end;
 
 function TDAOCZoneInfo.AsString: string;
 begin
-  Result := Format('Zone Info for zone %d region %d [%s]:'#13#10 +
+  Result := Format('Zone Info for zone %d region %d:'#13#10 +
+    '  Name: %s'#13#10 +
+    '  Map name: %s'#13#10 +
     '  BaseLoc (x,y):  %d,%d'#13#10 +
     '  MaxLoc (x,y):  %d,%d'#13#10 +
     '  Zone type: %d'#13#10 +
     '  Rotate: %d'#13#10,
-    [FZoneNum, FRegion, FMapName, FBaseLoc.X, FBaseLoc.Y,
+    [FZoneNum, FRegion, FName, FMapName, FBaseLoc.X, FBaseLoc.Y,
     MaxLoc.X, MaxLoc.Y, ord(FZoneType), FRotate]); 
 end;
 
