@@ -79,7 +79,7 @@ object frmMacroing: TfrmMacroing
   end
   object chkAutosell: TCheckBox
     Left = 280
-    Top = 52
+    Top = 48
     Width = 205
     Height = 17
     Caption = 'Autosell all powerskill items and trinkets'
@@ -170,7 +170,7 @@ object frmMacroing: TfrmMacroing
   object tmrTimeoutDelay: TTimer
     Enabled = False
     OnTimer = tmrTimeoutDelayTimer
-    Left = 376
-    Top = 20
+    Left = 28
+    Top = 4
   end
 end

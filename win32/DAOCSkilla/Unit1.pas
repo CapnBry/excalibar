@@ -149,6 +149,7 @@ type
     procedure DAOCLocalHealthUpdate(Sender: TObject);
     procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
     procedure DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
+    procedure DAOCTradeskillCapped(Sender: TObject);
 
     procedure DSTREAMDAOCConnect(Sender: TObject;
       AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
@@ -324,6 +325,7 @@ begin
     OnLocalHealthUpdate := DAOCLocalHealthUpdate;
     OnDoorPositionUpdate := DAOCDoorPositionUpdate;
     OnMobInventoryChanged := DAOCMobInventoryChanged;
+    OnTradeSkillCapped := DAOCTradeskillCapped;
 
     DAOCPath := FDAOCPath;
     MainHWND := Handle;
@@ -425,6 +427,7 @@ begin
     frmMacroTradeSkills.OddsLoadPct := ReadFloat('MacroTradeSkills', 'OddsLoadPct', 2.0);
     frmMacroTradeSkills.Left := ReadInteger('MacroTradeSkills', 'Left', frmMacroTradeSkills.Left);
     frmMacroTradeSkills.Top := ReadInteger('MacroTradeSkills', 'Top', frmMacroTradeSkills.Top);
+    frmMacroTradeSkills.QuitOnCapped := ReadBool('MacroTradeSkills', 'QuitOnCapped', false);
 
     frmAFK.AFKMessage := ReadString('AFKMessage', 'Message', 'I am AFK!');
     frmAFK.Left := ReadInteger('AFKMessage', 'Left', frmAFK.Left);
@@ -507,6 +510,7 @@ begin
     WriteFloat('MacroTradeSkills', 'OddsLoadPct', frmMacroTradeSkills.OddsLoadPct);
     WriteInteger('MacroTradeSkills', 'Left', frmMacroTradeSkills.Left);
     WriteInteger('MacroTradeSkills', 'Top', frmMacroTradeSkills.Top);
+    WriteBool('MacroTradeSkills', 'QuitOnCapped', frmMacroTradeSkills.QuitOnCapped);
 
     WriteString('AFKMessage', 'Message', frmAFK.AFKMessage);
     WriteInteger('AFKMessage', 'Left', frmAFK.Left);
@@ -1081,6 +1085,11 @@ begin
     frmMacroing.Close
   else
     frmMacroing.Show;
+end;
+
+procedure TfrmMain.DAOCTradeskillCapped(Sender: TObject);
+begin
+  frmMacroing.DAOCTradeskillCapped(Sender);
 end;
 
 end.

@@ -3,7 +3,7 @@ object frmMacroTradeSkills: TfrmMacroTradeSkills
   Top = 193
   BorderStyle = bsDialog
   Caption = 'Macro Tradeskills'
-  ClientHeight = 115
+  ClientHeight = 134
   ClientWidth = 266
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -139,7 +139,7 @@ object frmMacroTradeSkills: TfrmMacroTradeSkills
     Top = 24
     Width = 33
     Height = 21
-    TabOrder = 4
+    TabOrder = 5
     Text = '1'
     OnKeyPress = edtStackOddsProgressionKeyPress
   end
@@ -148,7 +148,7 @@ object frmMacroTradeSkills: TfrmMacroTradeSkills
     Top = 72
     Width = 33
     Height = 21
-    TabOrder = 5
+    TabOrder = 6
     Text = '50'
     OnKeyPress = edtStackOddsCountKeyPress
   end
@@ -157,8 +157,16 @@ object frmMacroTradeSkills: TfrmMacroTradeSkills
     Top = 48
     Width = 33
     Height = 21
-    TabOrder = 6
+    TabOrder = 7
     Text = '20'
     OnKeyPress = edtStackOddsPctKeyPress
+  end
+  object chkQuitOnCapped: TCheckBox
+    Left = 0
+    Top = 116
+    Width = 197
+    Height = 17
+    Caption = 'Quit if tradeskill capped (x99)'
+    TabOrder = 4
   end
 end

@@ -96,6 +96,7 @@ type
     procedure DAOCSelectNPCFailed(Sender: TObject);
     procedure DAOCAttemptNPCRightClickFailed(Sender: TObject);
     procedure DAOCLocalHealthUpdate(Sender: TObject);
+    procedure DAOCTradeskillCapped(Sender: TObject);
 
     property DAOCControlList: TDAOCControlList read FDAOCControlList write SetDAOCControlList;
     property TrinketList: string read GetTrinketList write SetTrinketList;
@@ -811,6 +812,13 @@ procedure TfrmMacroing.cbxUIStyleChange(Sender: TObject);
 begin
   if Assigned(FCurrConn) and (cbxUIStyle.Text <> '') then
     FCurrConn.WindowManager.UIStyle := cbxUIStyle.Text;
+end;
+
+procedure TfrmMacroing.DAOCTradeskillCapped(Sender: TObject);
+begin
+  if Sender <> FCurrConn then
+    exit;
+  frmMacroTradeSkills.DAOCTradeskillCapped(Sender);
 end;
 
 end.

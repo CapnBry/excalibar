@@ -34,6 +34,7 @@ type
     Label4: TLabel;
     lblStackOddsPct: TLabel;
     edtStackOddsPct: TEdit;
+    chkQuitOnCapped: TCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure edtProgressionKeyPress(Sender: TObject; var Key: Char);
     procedure edtTargetQualKeyPress(Sender: TObject; var Key: Char);
@@ -61,7 +62,11 @@ type
     procedure SetOddsLoadKey(const Value: string);
     function GetOddsLoadPct: double;
     procedure SetOddsLoadPct(const Value: double);
+    function GetQuitOnCapped: boolean;
+    procedure SetQuitOnCapped(const Value: boolean);
   public
+    procedure DAOCTradeskillCapped(Sender: TObject);
+    
     procedure StartProgression;
 
     property DAOCControl: TDAOCControl read FDControl write SetDControl;
@@ -69,6 +74,7 @@ type
     property TargetQuality: integer read GetTargetQuality write SetTargetQuality;
     property TargetSound: string read GetTargetSound write SetTargetSound;
     property StopIfFull: boolean read GetStopIfFull write SetStopIfFull;
+    property QuitOnCapped: boolean read GetQuitOnCapped write SetQuitOnCapped; 
     property OddsLoadKey: string read GetOddsLoadKey write SetOddsLoadKey;
     property OddsLoadCount: integer read GetOddsLoadCount write SetOddsLoadCount;
     property OddsLoadPct: double read GetOddsLoadPct write SetOddsLoadPct;
@@ -286,6 +292,24 @@ end;
 procedure TfrmMacroTradeSkills.FormShow(Sender: TObject);
 begin
   SetDControl(FDControl);
+end;
+
+function TfrmMacroTradeSkills.GetQuitOnCapped: boolean;
+begin
+  Result := chkQuitOnCapped.Checked;
+end;
+
+procedure TfrmMacroTradeSkills.SetQuitOnCapped(const Value: boolean);
+begin
+  chkQuitOnCapped.Checked := Value;
+end;
+
+procedure TfrmMacroTradeSkills.DAOCTradeskillCapped(Sender: TObject);
+begin
+  if Visible and chkQuitOnCapped.Checked then begin
+    Close;
+    TDAOCControl(Sender).QuitDAOC;
+  end;
 end;
 
 end.
