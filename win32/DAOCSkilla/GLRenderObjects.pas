@@ -143,6 +143,7 @@ type
   end;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
+procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
 
 implementation
 
@@ -150,6 +151,7 @@ uses Types;
 
 const
   D_TO_R = PI / 180;
+  RGB_SCALE = 1 / 255;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 var
@@ -158,7 +160,16 @@ begin
   R := GetRValue(AColor);
   G := GetGValue(AColor);
   B := GetBValue(AColor);
-  glColor4f(R / 255, G / 255, B / 255, AAlpha);
+  glColor4f(R * RGB_SCALE, G  * RGB_SCALE, B  * RGB_SCALE, AAlpha);
+end;
+
+procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
+begin
+  glColor4f(
+    GetRValue(AColor) * ADark * RGB_SCALE,
+    GetGValue(AColor) * ADark * RGB_SCALE,
+    GetBValue(AColor) * ADark * RGB_SCALE,
+    AAlpha);
 end;
 
 { TRangeCircle }
