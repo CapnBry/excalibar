@@ -47,6 +47,7 @@ type
     FOnMinFPSChanged: TNotifyEvent;
     FMobFilterList: TMobFilterList;
     FUseMobFilter:    boolean;
+    FHighlightMobs: boolean;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
@@ -66,6 +67,7 @@ type
     procedure SetScaleMobTriangle(const Value: boolean);
     procedure SetMinFPS(const Value: integer);
     procedure SetUseMobFilter(const Value: boolean);
+    procedure SetHighlightMobs(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -124,6 +126,7 @@ type
     property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
     property HasOpenGL13: boolean read FHasOpenGL13 write SetHasOpenGL13;
     property HasGLUT: boolean read FHasGLUT write SetHasGLUT;
+    property HighlightMobs: boolean read FHighlightMobs write SetHighlightMobs;
     property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
     property GroupByClass: boolean read FGroupByClass write SetGroupByClass;
     property MinFPS: integer read FMinFPS write SetMinFPS;
@@ -256,6 +259,7 @@ type
     chkAutoScrollMoblist: TCheckBox;
     chkShowPlayerInventory: TCheckBox;
     Label35: TLabel;
+    chkMobHighlight: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -311,6 +315,7 @@ type
     procedure rbnFilterSubstringClick(Sender: TObject);
     procedure chkAutoScrollMoblistClick(Sender: TObject);
     procedure chkShowPlayerInventoryClick(Sender: TObject);
+    procedure chkMobHighlightClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -391,6 +396,7 @@ begin
   Result.AlertInterval := AlertInterval;
   Result.AutoScrollMoblist := AutoScrollMoblist;
   Result.ShowPlayerInventory := ShowPlayerInventory;
+  Result.HighlightMobs := HighlightMobs;
 end;
 
 constructor TRenderPreferences.Create;
@@ -505,13 +511,14 @@ begin
     MinFPS := ReadInteger('RenderPrefs', 'MinFPS', 2);
     AutoScrollMoblist := ReadBool('RenderPrefs', 'AutoScrollMoblist', true);
     ShowPlayerInventory := ReadBool('RenderPrefs', 'ShowPlayerInventory', true);
+    HighlightMobs := ReadBool('RenderPrefs', 'HighlightMobs', false);
   end;
 end;
 
 procedure TRenderPreferences.SaveSettings(const AFileName: string);
 begin
   MobFilterList.SaveToINI(AFileName);
-  
+
   with TINIFile.Create(AFileName) do begin
     WriteInteger('RenderPrefs', 'Left', Left);
     WriteInteger('RenderPrefs', 'Top', Top);
@@ -565,6 +572,7 @@ begin
     WriteInteger('RenderPrefs', 'MinFPS', MinFPS);
     WriteBool('RenderPrefs', 'AutoScrollMoblist', AutoScrollMoblist);
     WriteBool('RenderPrefs', 'ShowPlayerInventory', ShowPlayerInventory);
+    WriteBool('RenderPrefs', 'HighlightMobs', HighlightMobs);
   end;
 end;
 
@@ -673,6 +681,12 @@ end;
 procedure TRenderPreferences.SetUseMobFilter(const Value: boolean);
 begin
   FUseMobFilter := Value;
+  DoOnMobListOptionsChanged;
+end;
+
+procedure TRenderPreferences.SetHighlightMobs(const Value: boolean);
+begin
+  FHighlightMobs := Value;
   DoOnMobListOptionsChanged;
 end;
 
@@ -795,6 +809,7 @@ begin
   chkGroupByClass.Checked := FRenderPrefs.GroupByClass;
   grpListSort.ItemIndex := ord(FRenderPrefs.MobListSortOrder);
   chkUseMobFilter.Checked := FRenderPrefs.UseMobFilter;
+  chkMobHighlight.Checked := FRenderPrefs.HighlightMobs;
   chkPlayAlert.Checked := FRenderPrefs.PlayAlert;
   edtAlertInterval.Text := IntToStr(FRenderPrefs.AlertInterval div 1000);
   frmMobFilerList1.MobFilterList := FRenderPrefs.MobFilterList;
@@ -1158,6 +1173,11 @@ procedure TfrmRenderPrefs.chkShowPlayerInventoryClick(Sender: TObject);
 begin
   FRenderPrefs.ShowPlayerInventory := chkShowPlayerInventory.Checked;
   FRenderPrefs.DoOnMobListOptionsChanged;
+end;
+
+procedure TfrmRenderPrefs.chkMobHighlightClick(Sender: TObject);
+begin
+  FRenderPrefs.HighlightMobs := chkMobHighlight.Checked;
 end;
 
 end.

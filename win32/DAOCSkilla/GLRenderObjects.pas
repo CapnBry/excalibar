@@ -232,7 +232,7 @@ type
     property Alpha: GLfloat read FAlpha write FAlpha;  // only for boat not sail
   end;
 
-  TGLUnkownStealther = class(TGLCallListObject)
+  TGLUnknownStealther = class(TGLCallListObject)
   private
     FAlpha: GLfloat;
     FSize: integer;
@@ -244,6 +244,12 @@ type
 
     property Size: integer read FSize write SetSize;
     property Alpha: GLfloat read FAlpha write FAlpha;
+  end;
+
+  TGLObjectHighlight = class(TGLUnknownStealther)
+  public
+    constructor Create; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
   end;
 
   TGLImageCallListObject = class(TGLCallListObject)
@@ -1124,7 +1130,7 @@ end;
 
 { TGLUnkownStealther }
 
-constructor TGLUnkownStealther.Create;
+constructor TGLUnknownStealther.Create;
 begin
   inherited;
   FSize := 1100;
@@ -1135,7 +1141,7 @@ begin
   FUseColor := false;
 end;
 
-procedure TGLUnkownStealther.GLInitialize;
+procedure TGLUnknownStealther.GLInitialize;
 var
   pQuadric:   PGLUquadric;
 begin
@@ -1146,19 +1152,20 @@ begin
   gluQuadricOrientation(pQuadric, GLU_INSIDE);
 
   glNewList(FGLList, GL_COMPILE);
+    glNormal3f(0, 0, 1);
     gluDisk(pQuadric, 0, FSize, 20, 1);
   glEndList();
 
   gluDeleteQuadric(pQuadric);
 end;
 
-procedure TGLUnkownStealther.GLRender(const ARenderBounds: TRect);
+procedure TGLUnknownStealther.GLRender(const ARenderBounds: TRect);
 begin
   SetGLColorFromTColor(FColor, FAlpha);
   inherited;
 end;
 
-procedure TGLUnkownStealther.SetSize(const Value: integer);
+procedure TGLUnknownStealther.SetSize(const Value: integer);
 begin
   FSize := Value;
 end;
@@ -1274,6 +1281,24 @@ begin
     glTexCoord2f(0, 0);
     glVertex3f(160, 0, 0);
   glEnd();
+end;
+
+{ TGLObjectHighlight }
+
+constructor TGLObjectHighlight.Create;
+begin
+  inherited;
+  FAlpha := 0.8;
+  FSize := 500;
+  FColor := clYellow;
+end;
+
+procedure TGLObjectHighlight.GLRender(const ARenderBounds: TRect);
+begin
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
+  inherited;
+  glPopAttrib;
 end;
 
 end.

@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabOptions
+    ActivePage = tabMobList
     Align = alTop
     MultiLine = True
-    TabIndex = 0
+    TabIndex = 4
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -702,21 +702,21 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label29: TLabel
         Left = 382
-        Top = 137
+        Top = 149
         Width = 5
         Height = 13
         Caption = 's'
       end
       object Label30: TLabel
         Left = 278
-        Top = 136
+        Top = 148
         Width = 61
         Height = 13
         Caption = 'Alert interval:'
       end
       object Label31: TLabel
         Left = 144
-        Top = 115
+        Top = 111
         Width = 30
         Height = 13
         Caption = 'Mode:'
@@ -753,44 +753,44 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkUseMobFilter: TCheckBox
         Left = 12
-        Top = 114
+        Top = 110
         Width = 105
         Height = 17
-        Caption = 'Use mob filter list'
+        Caption = 'Filter mob list'
         TabOrder = 3
         OnClick = chkUseMobFilterClick
       end
       inline frmMobFilerList1: TfrmMobFilerList
         Left = 6
-        Top = 152
+        Top = 164
         Width = 384
-        Height = 124
-        TabOrder = 9
+        Height = 112
+        TabOrder = 10
         inherited pnlBottom: TPanel
-          Height = 35
+          Height = 23
         end
       end
       object edtAlertInterval: TEdit
         Left = 345
-        Top = 130
+        Top = 142
         Width = 33
         Height = 21
-        TabOrder = 8
+        TabOrder = 9
         OnExit = edtAlertIntervalExit
         OnKeyPress = edtAlertIntervalKeyPress
       end
       object chkPlayAlert: TCheckBox
         Left = 12
-        Top = 134
+        Top = 146
         Width = 249
         Height = 17
         Caption = 'Play alerts (can be used w/o Use mob filter list)'
-        TabOrder = 7
+        TabOrder = 8
         OnClick = chkPlayAlertClick
       end
       object rbnFilterSubstring: TRadioButton
         Left = 184
-        Top = 114
+        Top = 110
         Width = 81
         Height = 17
         Hint = 
@@ -805,7 +805,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       object rbnFilterWildcard: TRadioButton
         Tag = 1
         Left = 260
-        Top = 114
+        Top = 110
         Width = 73
         Height = 17
         Hint = 
@@ -820,7 +820,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       object rbnFilterRegex: TRadioButton
         Tag = 2
         Left = 336
-        Top = 114
+        Top = 110
         Width = 69
         Height = 17
         Hint = 
@@ -831,6 +831,15 @@ object frmRenderPrefs: TfrmRenderPrefs
         ShowHint = True
         TabOrder = 6
         OnClick = rbnFilterSubstringClick
+      end
+      object chkMobHighlight: TCheckBox
+        Left = 12
+        Top = 128
+        Width = 149
+        Height = 17
+        Caption = 'Highlight matching mobs'
+        TabOrder = 7
+        OnClick = chkMobHighlightClick
       end
     end
     object tabGraphics: TTabSheet

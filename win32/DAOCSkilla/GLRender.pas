@@ -165,7 +165,8 @@ type
     FTxfH12:      TTexFont;
     lstObjects:   TLockableListBox;
     FPushPins:    TVectorMapElementList;
-    FUnknownStealther:  TGLUnkownStealther;
+    FUnknownStealther:  TGLUnknownStealther;
+    FObjectHighlight:   TGLObjectHighlight;
     FPrescienceNode:    TGLPrescienceNode;
     FBasePath:    string;
     FMaxTXFTextWidth:   integer;
@@ -601,6 +602,9 @@ begin
   if Sender <> FCurrConn then exit;
 
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
+    AObj.Highlight := FRenderPrefs.HighlightMobs and
+      FRenderPrefs.MobFilterList.Matches(AObj.Name, AObj.Level);
+
     iPos := FilteredObjectInsert(AObj);
 
     UpdateObjectCounts;
@@ -784,6 +788,9 @@ begin
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
+      if pObj.Highlight then 
+        FObjectHighlight.GLRender(FRenderBounds);
+
       if pObj.ObjectClass = ocPlayer then
         DrawPlayerHighlightRing(TDAOCPlayer(pObj))
       else if FRenderPrefs.DrawTypeTag and (pObj.ObjectClass = ocMob) then
@@ -878,7 +885,8 @@ begin
   FBoat := TGLBoat.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FPushPins := TVectorMapElementList.Create;
-  FUnknownStealther := TGLUnkownStealther.Create;
+  FUnknownStealther := TGLUnknownStealther.Create;
+  FObjectHighlight := TGLObjectHighlight.Create;
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
@@ -940,6 +948,7 @@ begin
   FTxfH12.CleanupCallLists;
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
+  FObjectHighlight.GLCleanup;
   FPrescienceNode.GLCleanup;
   //FHudConFlag.GLCleanup;
 
@@ -959,6 +968,7 @@ begin
   FBoat.GLInitialize;
   FPushPins.GLInitialize;
   FUnknownStealther.GLInitialize;
+  FObjectHighlight.GLInitialize;
   FPrescienceNode.GLInitialize;
   //FHudConFlag.GLInitialize;
 
@@ -1078,6 +1088,7 @@ begin
     SetGLColorFromTColor(cl, fAlphaMax * ADAOCObject.LiveDataConfidencePct);
   end;
 
+  glDisable(GL_LIGHTING);
   glBegin(GL_TRIANGLES);
     glNormal3f(0, 0, 1);
     glVertex3F(0, 2 * fSize, 0);
@@ -1090,6 +1101,7 @@ begin
   glEnd();
 
   glShadeModel(GL_FLAT);
+  glEnable(GL_LIGHTING);
 end;
 
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
@@ -1297,6 +1309,8 @@ begin
   while Assigned(pObj) do begin
     if FRenderPrefs.IsObjectInFilter(pObj) then
       FilteredObjectInsert(pObj);
+    pObj.Highlight := FRenderPrefs.HighlightMobs and
+      FRenderPrefs.MobFilterList.Matches(pObj.Name, pObj.Level);
     pObj := pObj.Next;
   end;
 
@@ -1415,8 +1429,14 @@ begin
     with lstObjects.Canvas do begin
       pMob := FFilteredObjects[Index];
 
+        { highlight overrules everything }
+      if pMob.Highlight then begin
+        Font.Color := clBlack;
+        Brush.Color := clYellow;
+      end
+
         { objects are gray on white }
-      if pMob.ObjectClass = ocObject then begin
+      else if pMob.ObjectClass = ocObject then begin
         Font.Color := clGray;
         Brush.Color := clWhite;
       end  { object }
