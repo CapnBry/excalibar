@@ -256,6 +256,9 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
 	    break;
+	  case 0x05:
+	    parseSelfHealthUpdate(p);
+	    break;
           case 0x07:
             parseSystemMessage(p);
             break;
@@ -270,7 +273,7 @@ BEGIN_EXPERIMENTAL_CODE
 	    parseObjectStopped(p);
 END_EXPERIMENTAL_CODE
 	    break;
-	  default:
+          default:
 	    if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
 	    break;
@@ -329,6 +332,9 @@ END_EXPERIMENTAL_CODE
 	switch (command) {
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
+	    break;
+	  case 0x05:
+	    parseSelfHealthUpdate(p);
 	    break;
           case 0x07:
             parseSystemMessage(p);
@@ -552,7 +558,7 @@ END_EXPERIMENTAL_CODE
 void exConnection::parseObjectStopped(exPacket *p)
 {
     unsigned int infoid = p->getShort();
-    exMob *mob = mobinfo.take((void *) ((unsigned int) infoid));
+    exMob *mob = mobinfo.take((void *)infoid);
     if (mob)  
 	mob->setSpeed(0);
 }
@@ -568,7 +574,7 @@ void exConnection::parseMobPosUpdate(exPacket *p)
     unsigned int id = p->getShort();
     p->skip(2);
     unsigned int hp = p->getByte();
-    exMob *mob = mobs.find((void *) ((unsigned int) id));
+    exMob *mob = mobs.find((void *)id);
     if (mob) {
 	mob->setPosition(x, y, z);
 	mob->setHead(head);
@@ -589,7 +595,7 @@ void exConnection::parsePlayerPosUpdate(exPacket *p)
     unsigned int x = p->getLong();
     unsigned int y = p->getLong();
     unsigned int head = p->getShort();
-    exMob *mob = players.find((void *) ((unsigned int) id));
+    exMob *mob = players.find((void *)id);
     if (mob) {
 	mob->setPosition(x, y, z);
 	mob->setHead(head);
@@ -606,7 +612,7 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
     unsigned int head = p->getShort();
     p->skip(4);
     unsigned int hp = p->getByte();
-    exMob *mob = players.find((void *) ((unsigned int) id));
+    exMob *mob = players.find((void *)id);
     if (mob) {
 	mob->setHead(head);
 	if (hp < 100)
@@ -629,6 +635,27 @@ void exConnection::parseSystemMessage (exPacket *p)
     qWarning("Type: %x - Message: %s", MessageType, Message);
 
 */
+}
+
+void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)
+{
+    p->skip(id_offset);
+    unsigned int infoid = p->getShort();
+    exMob *mob = mobinfo.find((void *)infoid);
+    if (mob)
+	mob->touch();
+BEGIN_EXPERIMENTAL_CODE
+    if (!mob)
+	qWarning("parseTouchMob: mobinfo not found infoid %04x", infoid);
+END_EXPERIMENTAL_CODE
+}
+
+void exConnection::parseSelfHealthUpdate(exPacket *p)
+{
+    player_health = p->getByte();
+    player_mana = p->getByte();
+    p->skip(3);
+    player_endurance = p->getByte();
 }
 
 void exConnection::selectID(unsigned int id)
@@ -682,7 +709,7 @@ void exConnection::spawnEditor()
 
 void exConnection::dumpPacket(unsigned int command, exPacket *p)
 {
-    printf ("Unknown %s packet %s server.  Command %02x  Size %d\n", 
+    printf ("%s packet %s server.  Command %02x  Size %d\n", 
 	      (p->is_udp) ? "UDP" : "TCP",
 	      (p->from_server) ? "FROM" : "TO",
 	      command,

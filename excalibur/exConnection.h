@@ -69,6 +69,8 @@ protected:
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);
   void parseSystemMessage(exPacket *p);
+  void parseTouchMob(exPacket *p, unsigned int id_offset); 
+  void parseSelfHealthUpdate(exPacket *p);
   void dumpPacket(unsigned int command, exPacket *p);
 
 public slots:
@@ -78,6 +80,7 @@ public:
   FormExcalibur *ex;
   QString playername;
   int playerx, playery, playerz, playerhead, playerspeed,playerzone, playerlevel;
+  int player_health, player_mana, player_endurance;
   Realm playerrealm;
   int numPaints;
   bool alive;
