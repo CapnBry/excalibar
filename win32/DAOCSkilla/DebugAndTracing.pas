@@ -215,7 +215,7 @@ end;
 procedure TfrmDebugging.CheckWriteMobseen(ADAOCObject: TDAOCObject);
 var
   s:         string;
-  X, Y, Z:   integer;
+  X, Y, Z:   DWORD;
 begin
   if Assigned(FMobseenFile) and (ADAOCObject.ObjectClass in [ocMob, ocVehicle]) and
     Assigned(FDControl.Zone) then begin
