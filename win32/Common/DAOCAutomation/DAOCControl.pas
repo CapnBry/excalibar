@@ -82,6 +82,7 @@ type
     FTradeSkillOddsloadKey: string;
     FTradeSkillOddsloadPct: integer;
     FTrackCharacterLogins:  boolean;
+    FSelectNPCFirstID:      WORD;
     FSelectNPCInfoID:       WORD;
     FSelectNPCCount:        integer;
     FQuickLaunchChars:      TQuickLaunchCharList;
@@ -1441,9 +1442,14 @@ begin
     else if SelectedID <> 0 then begin
       inc(FSelectNPCCount);
 
-        { if this is more than the first person selected and it is us again
+        { if this is the first thing we've selected, save the ID
+          so we can tell if we select him again }
+      if FSelectNPCCount = 1 then
+        FSelectNPCFirstID := SelectedID;
+
+        { if this is more than the first person selected and it is FirstID again
           then we've gone around the horn and not found our guy }
-      if (FSelectNPCCount > 1) and (SelectedID = LocalPlayer.InfoID) then
+      if (FSelectNPCCount > 1) and (SelectedID = FSelectNPCFirstID) then
         DoOnSelectNPCFailed
       else
         DoSendKeys(KeySelectFriendly);
@@ -1704,6 +1710,7 @@ begin
   Log('SelectNPC: Trying to select [' + ANPCName + ']');
   FSelectNPCInfoID := pObj.InfoID;
   FSelectNPCCount := 0;
+  FSelectNPCFirstID := 0;
 
     { start by selecting nothing }
   DoSendKeys('[esc]');
