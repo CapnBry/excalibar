@@ -78,6 +78,7 @@ protected:
   bool m_bMapCancel;
 
   void parsePlayerInventoryChange(exPacket *p);
+  void parseObjectEquipment(exPacket *p);
   void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);

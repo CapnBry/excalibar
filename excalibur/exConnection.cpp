@@ -297,8 +297,8 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;
-	  case 0xbd:
-	    parseObjectStopped(p);
+          case 0xbd:
+            parseObjectEquipment(p);
 	    break;
           default:
 	    if (prefs.dump_unknown_packets)
@@ -389,8 +389,8 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;
-	  case 0xbd:               
-	    parseObjectStopped(p);
+	  case 0xbd:
+            parseObjectEquipment(p);
 	    break;
 	  case 0x8a:
 	      p->seek(2);
@@ -645,6 +645,127 @@ void exConnection::parsePlayerInventoryChange(exPacket *p)
         p->seek(6);
         objname = p->getPascalString();
     }
+}
+
+void exConnection::parseObjectEquipment(exPacket *p)
+{
+    unsigned int infoid;
+    int objcount;
+    int slot;
+    int obj_list, obj_index, obj_color;
+    exMob *mob;
+
+    infoid = p->getShort();
+    mob = mobinfo.find((void *)infoid);
+    if (!mob)
+        return;
+
+    mob->setSpeed(0);
+
+    p->seek(2);  // FF FF for mobs?
+    objcount = p->getByte();
+    slot = 0;
+
+    if (objcount)
+        cout << mob->getName() << ": ";
+
+    while (objcount)  {
+        slot = p->getByte();
+        switch (slot)  {
+        case 0x0a:  // right hand
+        case 0x0b:  // left hand
+        case 0x0c:  // 2h slot
+        case 0x0d:  // ranged
+        case 0x15:  // helm
+        case 0x16:  // gloves
+        case 0x17:  // boots
+        case 0x19:  // chest
+        case 0x1a:  // cloak
+        case 0x1b:  // leggings
+        case 0x1c:  // sleeves
+            obj_list = p->getByte();
+            obj_index = p->getByte();
+            if (obj_list & 0xf0)  
+                obj_color = p->getByte();
+            else  
+                obj_color = 0;
+            break;
+        default:
+            obj_list = 0;
+            obj_index = 0;
+            obj_color = 0;
+        }  /* select slot */
+
+        switch (obj_list & 0x0f)  {
+        case 0x00:
+            switch (obj_index)  {
+            case 0x34:  cout << "bow "; break;
+            case 0x39:  cout << "cloak1 "; break;
+            case 0x3a:  cout << "robe "; break;
+            case 0x3f:  cout << "1h axe "; break;
+            case 0xe6:  cout << "S BP (1) "; break;
+            case 0xe7:  cout << "S legs (1) "; break;
+            case 0xe8:  cout << "S sleeves (1) "; break;
+            case 0xe9:  cout << "S gloves (1) "; break;
+            case 0xea:  cout << "S boots (1) "; break;
+            case 0xeb:  cout << "C HB (2) "; break;
+            case 0xec:  cout << "C legs (2) "; break;
+            case 0xed:  cout << "C sleeves (2) "; break;
+            case 0xee:  cout << "C gloves (2) "; break;
+            case 0xef:  cout << "C boots (2) "; break;
+            case 0xfa:  cout << "S BP (3) "; break;
+            case 0xfb:  cout << "S legs (3) "; break;
+            case 0xfc:  cout << "S sleeves (3) "; break;
+            case 0xfd:  cout << "S gloves (3) "; break;
+            case 0xfe:  cout << "S boots (3) "; break;
+            default:
+                cout << QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                          slot, obj_list, obj_index, obj_color);
+            }  /* b1=0x00 b2 */
+            break;
+
+        case 0x01:
+            switch (obj_index)  {
+            case 0x04:  cout << "L BP (2) "; break;
+            case 0x05:  cout << "L legs (2) "; break;
+            case 0x06:  cout << "L sleeves (2) "; break;
+            case 0x07:  cout << "L gloves (2) "; break;
+            case 0x08:  cout << "L boots (2) "; break;
+            case 0x0e:  cout << "S BP (2) "; break;
+            case 0x11:  cout << "S gloves (2) "; break;
+            case 0x12:  cout << "S boots (2) "; break;
+            case 0x18:  cout << "L BP (3) "; break;
+            case 0x19:  cout << "L legs (3) "; break;
+            case 0x1a:  cout << "L sleeves (3) "; break;
+            case 0x1b:  cout << "L gloves (3) "; break;
+            case 0x1c:  cout << "L boots (3) "; break;
+            case 0x36:  cout << "1h sword "; break;
+            case 0x38:  cout << "1h sword "; break;
+            case 0x42:  cout << "1h hammer "; break;
+            case 0x46:  cout << "cloak2 "; break;
+            case 0x47:  cout << "2h staff "; break;
+            default:
+                cout << QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                          slot, obj_list, obj_index, obj_color);
+            }  /* b1=0x01 b2 */
+            break;
+
+        case 0x02:
+            switch (obj_index)  {
+            case 0x3f:  cout << "1h hammer "; break;
+            case 0x41:  cout << "2h axe "; break;
+            default:
+                cout << QString().sprintf("slot (0x%02x) %02x %02x %02x ",
+                                          slot, obj_list, obj_index, obj_color);
+            }  /* b1=0x02 b2 */
+            break;
+        }  /* b1 */
+
+        objcount--;
+    }  /* while objcount */
+
+    if (slot)
+        cout << endl;
 }
 
 void exConnection::parseObjectStopped(exPacket *p)
