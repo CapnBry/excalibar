@@ -442,6 +442,9 @@ DWORD CSLScriptHost::Run(const bool& bContinue)
     MessageInputFifo=param->first;
     MessageOutputFifo=param->second;
     
+    // don't need this anymore
+    delete param;
+    
     // timing variables
     CheyenneTime LastRefresh=::Clock.Current();
     const CheyenneTime RefreshInterval(0.25);
