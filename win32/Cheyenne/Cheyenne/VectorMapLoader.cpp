@@ -62,7 +62,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             {
             // open the .map file
             std::stringstream filename;
-            filename << "maps\\" << Zones.GetZone(map_cnt).ZoneFile << ".map";
+            filename << "maps\\" << Zones.GetZone(map_cnt).ZoneFile;
             
             // clear mapfile status and pointers
             map_file.seekg(0);
@@ -72,7 +72,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             map_file.open(filename.str().c_str(),std::ios::in);
 
             // make sure it opened
-            if(!map_file.is_open() || filename.str()=="maps\\Tir_na_Nog.map")
+            if(!map_file.is_open())// || filename.str()=="maps\\Tir_na_Nog.map")
                 {
                 map_file.close();
                 // go to next one

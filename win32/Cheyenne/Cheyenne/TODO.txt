@@ -8,14 +8,10 @@ very tough one :(
 
 - Test out sniffing multiple connections from the same instance of Cheyenne
 
-- Fix health not always updated problem
-
 - Fix "follow heading" display option
 
 - Move png map load to a background thread like the vector map load. Texture generation must be done with an active
 render context, so that will still have to be done in the GUI thread.
-
-- Fix vector map loader: Tir Na Nog map file does not load, and the loader intentionally omits this one.
 
 - Add stealther detected "bubble" since we can potentially know when a stealther is around even though we can't see them
 

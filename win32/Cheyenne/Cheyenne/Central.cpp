@@ -58,8 +58,10 @@ Central::Central() :
     XLimit(2000000.0f),YLimit(2000000.0f),ProjectionWidthX(10000.0f),ProjectionWidthY(10000.0f),
     ZoomIncrement(5000.0f),PanIncrement(5000.0f),
     IDToFollowZone(255),IDToFollowLevel(0),
-    ActorXScale(0.009f),ActorYScale(0.0135f),
-    GroundTargetXScale(0.018f),GroundTargetYScale(0.018f)
+    ActorXScale(0.01f),ActorYScale(0.0149f),
+    //ActorXScale(0.0135f),ActorYScale(0.0135f),
+    GroundTargetXScale(0.018f),GroundTargetYScale(0.018f),
+    WindowPosFileName("windowpos.txt")
 {
     hMainWnd=NULL;
     hDataWnd=NULL;
@@ -78,6 +80,7 @@ Central::Central() :
     FollowedActorHeadingDegrees=0.0f;
     hTahoma=NULL;
     hTahomaBig=NULL;
+    LastActorConTexture=0;
     ZeroMemory(&TahomaTextMetric,sizeof(TahomaTextMetric));
 
 } // end Central
@@ -306,6 +309,10 @@ bool Central::Init(void)
         return(false);
         }
 
+    // get initial window position
+    RECT rMain;
+    InitWindowPosition(rMain);
+
     // create window
     hMainWnd=CreateWindowEx
         (
@@ -313,10 +320,10 @@ bool Central::Init(void)
         "CheyenneMainClass",
         "Cheyenne",
         WS_OVERLAPPEDWINDOW|WS_VISIBLE|WS_CLIPCHILDREN,
-        0,
-        0,
-        640,
-        480,
+        rMain.left,
+        rMain.top,
+        rMain.right-rMain.left,
+        rMain.bottom-rMain.top,
         NULL,
         NULL,
         hInstance,
@@ -388,10 +395,130 @@ bool Central::Init(void)
     UpdateWindow(hPPIWnd);
     GetClientRect(hPPIWnd,&rPPIClient);
 
-    MoveWindow(hMainWnd,0,0,800,600,TRUE);
-
     return(true);
 } // end Init
+
+void Central::InitWindowPosition(RECT& r)const
+{
+    std::fstream pos_file(WindowPosFileName.c_str(),std::ios::in);
+    
+    if(!pos_file.is_open())
+        {
+        // done
+        r.left=0;
+        r.top=0;
+        r.right=800;
+        r.bottom=600;
+        return;
+        }
+
+    // load stored position
+    int x,y,w,h;
+    pos_file >> x >> y >> w >> h;
+    
+    Logger << "[Central::InitWindowPosition] stored coordinates are "  
+        << x << " "
+        << y << " "
+        << w << " "
+        << h << "\n";
+    
+    // get virtual display rect
+    ZeroMemory(&r,sizeof(r));
+    EnumDisplayMonitors(NULL,NULL,Central::MonitorEnumProc,(LPARAM)&r);
+    
+    Logger << "[Central::InitWindowPosition] virtual desktop is "  
+           << r.right-r.left << "x"
+           << r.bottom-r.top << "\n";
+    
+    // make sure stored position will fit
+    if(x+w <= r.right-r.left && y+h <= r.bottom-r.top)
+        {
+        // stored position is valid, use it
+        Logger << "[Central::InitWindowPosition] Cheyenne will be "  
+            << w << "x"
+            << h
+            << " if this is incorrect, delete the windowpos.txt file\n";
+
+        r.left=x;
+        r.top=y;
+        r.right=x+w;
+        r.bottom=y+h;
+        }
+    else
+        {
+        Logger << "[Central::InitWindowPosition] (default) Cheyenne will be "  
+            << 800 << "x"
+            << 600
+            << "\n";
+        // stored position is no longer valid, set to default
+        r.left=0;
+        r.top=0;
+        r.right=800;
+        r.bottom=600;
+        }
+    
+    // done
+    return;
+} // end InitWindowPosition
+
+BOOL CALLBACK Central::MonitorEnumProc
+    (
+    HMONITOR hMonitor,
+    HDC hdcMonitor,
+    LPRECT lprcMonitor,
+    LPARAM dwData
+    )
+{
+    // get the rect pointer
+    RECT* pr=(RECT*)dwData;
+    
+    // inflate by the display area of this monitor
+    if(pr->left > lprcMonitor->left)
+        {
+        pr->left=lprcMonitor->left;
+        }
+    
+    if(pr->top > lprcMonitor->top)
+        {
+        pr->top=lprcMonitor->top;
+        }
+
+    if(pr->right < lprcMonitor->right)
+        {
+        pr->right=lprcMonitor->right;
+        }
+
+    if(pr->bottom < lprcMonitor->bottom)
+        {
+        pr->bottom=lprcMonitor->bottom;
+        }
+    // done
+    return(TRUE);
+} // end MonitorEnumProc
+
+void Central::StoreWindowPosition(void)const
+{
+    // get window rect
+    RECT r;
+    GetWindowRect(hMainWnd,&r);
+    
+    // save
+    std::fstream pos_file(WindowPosFileName.c_str(),std::ios::out);
+    
+    pos_file << r.left << std::endl
+             << r.top << std::endl
+             << r.right-r.left << std::endl
+             << r.bottom-r.top << std::endl;
+    
+    Logger << "[Central::StoreWindowPosition] Cheyenne will be "  
+        << r.left << " "
+        << r.top << " "
+        << r.right-r.left << " "
+        << r.bottom-r.top << "\n";
+
+    // done
+    return;
+} // end StoreWindoePosition
 
 LRESULT CALLBACK Central::DataWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
@@ -798,6 +925,14 @@ LRESULT CALLBACK Central::WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lP
             pMe->HandleCommand(hWnd,uMsg,wParam,lParam);
             break;
 
+        case WM_CLOSE:
+            // store window position
+            pMe->StoreWindowPosition();
+            
+            // let default handle it
+            return(::DefWindowProc(hWnd,uMsg,wParam,lParam));
+            break;
+            
         default:
             return(::DefWindowProc(hWnd,uMsg,wParam,lParam));
         } // end switch message
@@ -948,6 +1083,9 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     switch(LOWORD(wParam))
         {
         case ID_SYSTEM_EXIT:
+            // save window position
+            StoreWindowPosition();
+            
             // bye!
             DestroyWindow(hMainWnd);
             break;
@@ -2079,7 +2217,12 @@ void Central::RenderActor(const Actor& ThisActor)const
         glTranslatef(Position.GetXPos(),Position.GetYPos(),0.0f);
 
         // set texture by realm and con
-        glBindTexture(GL_TEXTURE_2D,GetConTexture(ThisActor,true));
+        ConTextureMapValueType::second_type CurrentActorConTexture=GetConTexture(ThisActor,true);
+        if(CurrentActorConTexture != LastActorConTexture)
+            {
+            glBindTexture(GL_TEXTURE_2D,CurrentActorConTexture);
+            LastActorConTexture=CurrentActorConTexture;
+            }
 
         if(Config.GetPPIText())
             {
@@ -2418,7 +2561,12 @@ void Central::RenderCloseControl(void)const
     
     // name
     oss << FollowedTargetPair.GetTarget().GetName() << " " << FollowedTargetPair.GetTarget().GetSurname();
-    glRasterPos3f(10.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),0.0f);
+    glRasterPos3f
+        (
+        ProjectionWidthX - (ProjectionWidthX*fractional_line_width),
+        ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),
+        0.0f
+        );
     DrawGLFontString(oss.str());
     oss.str("");
     oss.seekp(0);
@@ -2428,7 +2576,12 @@ void Central::RenderCloseControl(void)const
     oss << "<" << unsigned int(rng_az.first) << ",";
     oss.precision(3);
     oss << RadToDeg(rng_az.second) << "°>";
-    glRasterPos3f(10.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),0.0f);
+    glRasterPos3f
+        (
+        ProjectionWidthX - (ProjectionWidthX*fractional_line_width),
+        ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),
+        0.0f
+        );
     DrawGLFontString(oss.str());
 
     // disable alpha blending
@@ -2442,7 +2595,7 @@ void Central::RenderCloseControl(void)const
 
 void Central::DrawPPI(void)
 {
-    if(!hRenderContext)
+    if(!hRenderContext || IsIconic(hMainWnd))
         {
         // nothing to do
         return;
@@ -2459,7 +2612,7 @@ void Central::DrawPPI(void)
     
     // move camera back a bit
     glTranslatef(0.0f,0.0f,-3.0f);
-
+    
     if(Config.GetMatchFollowedHeading())
         {
         // rotate for followed actors heading
@@ -2511,6 +2664,10 @@ void Central::DrawPPI(void)
         // disable alpha blending
         glDisable(GL_BLEND);
         } // end if ground target is set
+
+    // reset this so that we are guaranteed to 
+    // set the actor texture at least once each rendering pass
+    LastActorConTexture=0;
 
     // see which database iteration function we are supposed to use
     if(Config.GetUpdateWhenRendered())

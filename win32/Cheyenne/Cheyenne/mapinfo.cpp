@@ -155,7 +155,7 @@ bool MapInfo::ReadZoneFile(void)
         mapinfo >> std::hex >> cur.MaxY;
         mapinfo >> std::dec >> cur.ZoneType;
         mapinfo >> std::ws; // skip whitespace for this one
-        mapinfo.width(26); // set max width for next field
+        mapinfo.width(32); // set max width for next field
         mapinfo >> cur.ZoneFile;
         mapinfo >> cur.ZoneNum;
         mapinfo >> cur.RotateRadians;

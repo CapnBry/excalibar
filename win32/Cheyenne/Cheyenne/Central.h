@@ -85,6 +85,7 @@ public:
     const float GroundTargetXScale;
     const float GroundTargetYScale;
     const unsigned int NumVectorMapLists;
+    const std::string WindowPosFileName;
 
     enum ConAssociations
     {
@@ -178,6 +179,9 @@ protected:
 
 private:
     bool Init(void);
+    void InitWindowPosition(RECT& r)const;
+    void StoreWindowPosition(void)const;
+    static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,HDC hdcMonitor,LPRECT lprcMonitor,LPARAM dwData);
     
     Database& GetDatabase(void){return(db);};
     const Database& GetDatabase(void)const{return(db);};
@@ -341,6 +345,7 @@ private:
     ZoneTextureMapType ZoneTextureMap;
     ConTextureMapType ConTextureMap;
     GeneralTextureMapType GeneralTextureMap;
+    mutable ConTextureMapValueType::second_type LastActorConTexture; // "conceptually const" for render actors function
 
     // database statistics
     DatabaseStatistics stats;

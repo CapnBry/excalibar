@@ -100,4 +100,5 @@ template<class container> typename container::value_type::second_type PngBindCon
     // done
     return(id);
 }; // end PngBindContainer
+
 #endif // GLOBAL_H

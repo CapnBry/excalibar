@@ -60,7 +60,7 @@ DWORD Database::Run(const bool& bContinue)
     const CheyenneTime MaintenanceInterval(0.250f);
     unsigned int WaitAmount;
 
-    /* fake character for display testing*/
+    /* fake character for display testing
     {
     daocmessages::player_identity* msg=new daocmessages::player_identity;
 
@@ -95,7 +95,7 @@ DWORD Database::Run(const bool& bContinue)
     //msg->heading=1024; // 90°
     msg->heading=0; // 0°
     // get realm
-    msg->realm=2;
+    msg->realm=1;
     // get level
     msg->level=20;
     // get name
@@ -129,7 +129,7 @@ DWORD Database::Run(const bool& bContinue)
     msg->target_id=3;
     MessageInputFifo->Push(msg);
     }
-    //*/
+    */
         
     while(bContinue)
         {
@@ -916,8 +916,11 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(bye)
                 {
-                Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
-                       << " because it's id conflicts with " << p->name << "\n";
+                if(bye->GetName() != p->name)
+                    {
+                    Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
+                           << " because it's id conflicts with " << p->name << "\n";
+                    }
                 DeleteActor(bye->GetId());
                 }
 
@@ -985,8 +988,11 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(bye)
                 {
-                Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
-                       << " because it's id conflicts with " << p->name << "\n";
+                if(bye->GetName() != p->name)
+                    {
+                    Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
+                        << " because it's id conflicts with " << p->name << "\n";
+                    }
                 DeleteActor(bye->GetInfoId());
                 }
 
@@ -1060,8 +1066,11 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(bye)
                 {
-                Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
-                       << " because it's id conflicts with " << p->name << "\n";
+                if(bye->GetName() != p->name)
+                    {
+                    Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
+                        << " because it's id conflicts with " << p->name << "\n";
+                    }  
                 DeleteActor(bye->GetInfoId());
                 }
 
