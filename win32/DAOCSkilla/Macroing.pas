@@ -302,7 +302,7 @@ begin
       iIdx := FindNearestMerchantNodeIdx;
       if (iIdx <> -1) and
         (iIdx < (FPSItemList.MerchantNodeCount - 1)) then begin
-        FPSItemList.MerchantNodeIndex := FPSItemList.MerchantNodeIndex + 1;
+        FPSItemList.MerchantNodeIndex := iIdx + 1;
         ShowMacroState('Heading to merchant node ' + FPSItemList.MerchantNodeName);
         FCurrConn.PathToNodeName(FPSItemList.MerchantNodeName);
       end
