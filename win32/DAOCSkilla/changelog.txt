@@ -1,0 +1,116 @@
+2003 Sep 17 - v1.35
+-------------------
+  + TCP Assemblers allocate 992kB less memory.
+  + Fix for trying to create realtime chat log in a directory
+    that didn't exist crashing daocskilla on login.
+  + Added server ping time to main screen.
+  + Moved macro commands to a "Macroing" dialog (untested).
+  + Fixed some confusing heading calculations.
+  + Added basic connection "resume" feature for if daocskilla crashes.
+  + Fixed exception closing while still receiving data (again).
+
+2003 Sep 15 - v1.33
+-------------------
+  + Excalibur form now gets its own taskbar item
+  + Added "Stay on Top" function to excal map
+  + Added "Rotate map with player"
+  + Object list now lightens the realm color for dead players
+  + Invaders now flash with alpha instead of decreasing luminosity
+  + Optimized quantized sin and cos
+  + Optimized packet getShort and getLong
+  + Added global timer to prevent multiple recalculations of Projected
+    X and Y
+  + Fixed access violation when shutting down while still receiving data
+  + Writing "mobseen" now works
+  + Fixed problem causing object list to clear every time you level
+  + Removed ini from zip, to prevent wiping out preferences every update
+
+2003 Sep 12 - v1.30
+-------------------
+  + Fixed "catostrophic failure" closing
+  + Moved all "log packets" buttons and checks to a "Debugging and
+    Tracing" dialog
+  + Added "Autolaunch Excalibur windows" check
+  + Integrated CamelotChatRT realtime chat logging
+  + Fixed Main/ServerNet not setting properly for class A nets
+    over 128.0.0.0. Users with a ServerNet need to edit the INI and
+    enter the ServerNet in conventional notation like:
+    ServerNet=218.145.56.0
+  + Main screen cleanup
+  + MacroScript button operational again (oops)
+  + 7% more fun added
+
+2003 Sep 11 - v1.26
+-------------------
+  + Fixes some screwy realm identification of objects always showing
+    up as "Neutral"
+  + Ground target now 350' bullseye
+  + Max object range now 6000
+  + Fix for object list not updating health consistently
+  + Mobs who do not receive and update and pass their destination will
+    be placed at their destination and shaded as stale.
+  + Players who are moving and do not get an update are marked as stale
+    at their last known position.
+  + Ground target now ortho culled
+  + Fix for frameinfo dimming when no object is selected
+
+2003 Sep 10
+-----------
+  + Fixed big bug causing Access Violations and Daocskilla suddenly
+    closing (related to getting updates to players we don't have)
+  + Fixed a few "unknown object" occurances (also related to Player
+    updates for non-existant players)
+  + Regcognition of 2 new client packets, RequestPlayerByPlayerID
+    and RequestObjectByInfoID
+  + Stealthers now black when stealthed
+  + HUD speed indicates in %
+  + Class guessing copied from excalibur identifies classic characters
+    wearing epic armor.
+  + Simple orthographic culling for terrain textures and point text
+    (performance increase)
+  + Decreased default MaxObjectRange to 7000
+  + Replaced ghey object grid with list (draws faster)
+  + Fixed selection not updating in list when clicking map
+  + Added ground target square (like an object but the color of your realm)
+
+2003 Sep 09
+-----------
+  + Correct cons!!! (hooray)
+  + Stealthers now gray out when they're stealthed
+  + HUD now includes object speed if object is moving
+  + Fixed saving of render preferences when closing daocskilla
+
+2003 Sep 08
+-----------
+  + Properly sorted mob list
+  + Selected object "HUD"
+  + Rasterized merchant names
+  + Ability to filter what is displayed by object class (mob, player, object)
+  + Fixed map element points not showing up
+  + Added total counts of albs / mids / hibs / mobs
+  + Options dialog.
+  + Map saves preferences and position
+  + Fixed memory leak crossing zone boundaries when DDS files are used
+
+2003 Sep 06
+-----------
+  + Fixes bug which was preventing mobs from moving once they were displayed.
+	+ Use predicted mob locations based on speed
+	+ Shows a AI mob's destinaton while they are moving.
+  + Added graves and non-moving objects to display
+  + Nicer grid for object list.
+  + Selection now syncronized between grid and map
+  + Sooner loading of initial texture and vector map
+  + Added realm-colored player indicator, flashes for invaders.
+  + A bunch of other stuff, check CVS if you're intrested.
+
+2003 Sep 05
+-----------
+  + Work begun on glrender.
+  + Added vector map support (excal's *.map files)
+  + Added background texture support, dds file format, DXTC1, no
+    mipmaps
+
+2003 Aug 06
+-----------
+  + First binaries posted
