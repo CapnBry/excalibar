@@ -694,9 +694,9 @@ begin
     Log('OpenGL 1.3:  NOT FOUND');
 
   if FRenderPrefs.HasGLUT then
-    Log('GLUT:  Available')
+    Log('OpenGL GLUT:  Available')
   else
-    Log('GLUT:  NOT FOUND');
+    Log('OpenGL GLUT:  NOT FOUND');
 
   UpdateObjectCounts;
   CreateObjectListBox;
