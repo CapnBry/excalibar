@@ -93,8 +93,10 @@ type
     FAttemptingNPCRightClick: boolean;
     FOnAttemptNPCRightClickSuccess: TNotifyEvent;
     FOnAttemptNPCRightClickFailed: TNotifyEvent;
-    FKeyStrafeRight: string;
-    FKeyStrafeLeft: string;
+    FKeyStrafeRight:  string;
+    FKeyStrafeLeft:   string;
+    FSendKeysSlashDelay:  integer;
+    FQuickLaunchProfiles: TQuickLaunchProfileList;
 
     function BearingToDest: integer;
     procedure SetArrowDown(const Value: boolean);
@@ -164,7 +166,7 @@ type
     procedure DoOnSelectedObjectChanged(AObject: TDAOCObject); override;
     procedure DoOnCombatStyleSuccess(AStyle: string); override;
     procedure DoOnCombatStyleFailure; override;
-    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); override; 
+    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); override;
     procedure DoOnSelectNPCFailed; virtual;
     procedure DoOnSelectNPCSuccess; virtual;
     procedure DoOnAttemptNPCRightClickSuccess; virtual;
@@ -260,6 +262,7 @@ type
     property WindowManager: TDAOCWindowManager read FWindowManager;
     property TradeRecipes: TUniversalRecipeCollection read GetTradeRecipes;
     property QuickLaunchChars: TQuickLaunchCharList read FQuickLaunchChars;
+    property QuickLaunchProfiles: TQuickLaunchProfileList read FQuickLaunchProfiles;
       { internal props }
     property MainHWND: HWND read FMainHWND write FMainHWND;
       { Configuration tweaks }
@@ -269,6 +272,7 @@ type
     property GotoDistTolerance: integer read FGotoDistTolerance write FGotoDistTolerance;
     property ForceStationaryTurnDegrees: integer read FForceStationaryTurnDegrees
       write FForceStationaryTurnDegrees;
+    property SendKeysSlashDelay: integer read FSendKeysSlashDelay write FSendKeysSlashDelay;
     property TurnUsingFaceLoc: boolean read FTurnUsingFaceLoc write FTurnUsingFaceLoc;
     property TradeSkillProgression: string read FTradeSkillProgression write SetTradeSkillProgression;
     property TradeSkillStopIfFull: boolean read FTradeSkillStopIfFull write FTradeSkillStopIfFull;
@@ -354,6 +358,7 @@ begin
   FLastPlayerPos.Free;
   FMapNodes.Free;
   FQuickLaunchChars.Free;
+  FQuickLaunchProfiles.Free;
   
   inherited Destroy;
 end;
@@ -396,9 +401,18 @@ begin
   if hFore = MainHWND then
     exit;
 
-  if hFore = FDAOCHWND then
-    SndKey32.SendKeys(PChar(S), false)
-  else 
+  if hFore = FDAOCHWND then begin
+    if (FSendKeysSlashDelay > 0) and (S[1] = '/') then begin
+      SendVKDown(ord('/'), true);
+      sleep(FSendKeysSlashDelay);
+      SendVKDown(ord('/'), false);
+      sleep(FSendKeysSlashDelay);
+      SndKey32.SendKeys(PChar(S)+1, false)
+    end
+    else
+      SndKey32.SendKeys(PChar(S), false)
+  end
+  else
     for I := 1 to Length(S) do begin
       SendOneKeyNoFocus(S[I]);
       sleep(10);
@@ -477,9 +491,10 @@ begin
   FKeyStrafeLeft := 'q';
   FKeyStrafeRight := 'w';
 
-  FTurnRate := 700;
   FForceStationaryTurnDegrees := 50;
+  FSendKeysSlashDelay := 100;
   FTurnUsingFaceLoc := false;
+  FTurnRate := 700;
 
   FLastPlayerPos := TDAOCMovingObject.Create;
   FMapNodes := TMapNodeList.Create;
@@ -492,6 +507,7 @@ begin
 
   FQuickLaunchChars := TQuickLaunchCharList.Create;
   FQuickLaunchChars.ServerNameFile := ExtractFilePath(ParamStr(0)) + 'servers.ini';
+  FQuickLaunchProfiles := TQuickLaunchProfileList.Create;
 {$IFNDEF DAOC_AUTO_SERVER}
   Initialize;
 {$ENDIF DAOC_AUTO_SERVER}
