@@ -35,8 +35,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "..\Sniffer\DStreamConnection.h" // for the data connection
 #include "..\Sharenet\sharenet.h" // for sharenet
 #include "..\Sharenet\MiniShareServer.h" // for server definition
-#include "..\Sharenet\TelnetClient.h" // for telnet server definition
-#include "..\Script\CSLScriptHost.h" // for the script host
 #include "config.h" // for the global configuration
 #include "main.h"
 #include "resource.h"
