@@ -58,6 +58,7 @@ type
     procedure tcpCollectorServerDisconnect(AThread: TIdPeerThread);
     procedure tmrUpdateCheckTimer(Sender: TObject);
     procedure lblUpdatesClick(Sender: TObject);
+    procedure chkTrackLoginsClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
@@ -365,7 +366,8 @@ begin
     chkChatLogClick(nil);
     edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
     btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
-    chkTrackLogins.Checked := ReadBool('Main', 'TrackLogins', true);
+    FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
+    chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
 
@@ -1021,6 +1023,11 @@ procedure TfrmMain.lblUpdatesClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', 'http://capnbry.net/daoc/daocskilla.php', nil, nil, SW_SHOWNORMAL);
   lblUpdates.Visible := false;
+end;
+
+procedure TfrmMain.chkTrackLoginsClick(Sender: TObject);
+begin
+  FConnection.TrackCharacterLogins := chkTrackLogins.Checked;
 end;
 
 end.

@@ -19,7 +19,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    297)
+    304)
   PixelsPerInch = 96
   TextHeight = 13
   object lblServerPing: TLabel
@@ -230,6 +230,7 @@ object frmMain: TfrmMain
     Checked = True
     State = cbChecked
     TabOrder = 11
+    OnClick = chkTrackLoginsClick
   end
   object btnDeleteChar: TBitBtn
     Left = 444
@@ -243,6 +244,7 @@ object frmMain: TfrmMain
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
+    MaxLineAction = maException
     OnDisconnected = tcpCollectorClientDisconnected
     Host = '127.0.0.1'
     Port = 9867
@@ -252,10 +254,16 @@ object frmMain: TfrmMain
   object tcpCollectorServer: TIdTCPServer
     OnStatus = tcpCollectorServerStatus
     Bindings = <>
+    CommandHandlers = <>
     DefaultPort = 9867
+    Greeting.NumericCode = 0
+    MaxConnectionReply.NumericCode = 0
     OnConnect = tcpCollectorServerConnect
     OnExecute = tcpCollectorServerExecute
     OnDisconnect = tcpCollectorServerDisconnect
+    ReplyExceptionCode = 0
+    ReplyTexts = <>
+    ReplyUnknownCommand.NumericCode = 0
     Left = 224
     Top = 104
   end
@@ -271,12 +279,17 @@ object frmMain: TfrmMain
     Top = 72
   end
   object httpUpdateChecker: TIdHTTP
-    Request.Accept = 'text/html, */*'
+    MaxLineAction = maException
+    AllowCookies = True
+    ProxyParams.BasicAuthentication = False
+    ProxyParams.ProxyPort = 0
     Request.ContentLength = -1
     Request.ContentRangeEnd = 0
     Request.ContentRangeStart = 0
-    Request.ProxyPort = 0
+    Request.Accept = 'text/html, */*'
+    Request.BasicAuthentication = False
     Request.UserAgent = 'Mozilla/3.0 (compatible; DaocSkilla)'
+    HTTPOptions = [hoForceEncodeParams]
     Left = 284
     Top = 104
   end
