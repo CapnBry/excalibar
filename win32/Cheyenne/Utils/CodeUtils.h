@@ -132,7 +132,8 @@ template<typename T> struct INTERCEPT_DATA
         For intercept at time t, At==Tt
         Setting At and Tt to be equal and rearranging to solve for t:
         
-        t=((A0-T0)/Tv-Av)+t0
+        {equation 0}
+            t=((A0-T0)/Tv-Av)+t0
         
         This is the time-of-intercept
     
@@ -174,7 +175,8 @@ template<typename T> struct INTERCEPT_DATA
         3. Solve f(c) for all critical points
         4. Solve for f(-s) and f(+s)
         5. The minimum of f() over the range [-s,+s] is 
-           the largest value computed in steps 3 and 4.
+           the value computed in steps 3 and 4 that, when
+           plugged in to equation 0, gives the smallest result.
            
         d/dAvx for equation 2 (f'()) is:
         {equation 3}
