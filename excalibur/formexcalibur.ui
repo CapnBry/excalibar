@@ -230,7 +230,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
-        <pixmap>image0</pixmap>
     </customwidget>
 </customwidgets>
 <actions>
@@ -540,5 +539,4 @@
     <slot>showMsgs()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
-<pixmapinproject/>
 </UI>

@@ -420,7 +420,7 @@ void exMap::paintGL() {
       glPopMatrix();
 
       /* if it is filtered draw a yellow circle around it */
-	  if( m->isFiltered())
+	  if( m->isFiltered() && prefs.filter_circles) 
          {
          qglColor( yellow );
          drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);

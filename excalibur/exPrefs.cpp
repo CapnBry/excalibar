@@ -89,6 +89,7 @@ void exPrefs::show() {
   dlg->GLMapFill->setChecked(map_fill);
   dlg->LoadAdjacentPNGs->setChecked(map_loadadjacentpngs);
   dlg->AgroCircles->setChecked(agro_circles);
+  dlg->FilterCircles->setChecked(filter_circles);
   dlg->AgroFading->setChecked(agro_fading);
 
 
@@ -149,6 +150,7 @@ void exPrefs::accept() {
 
 
   agro_circles=dlg->AgroCircles->isOn();
+  filter_circles=dlg->FilterCircles->isOn();
   agro_fading=dlg->AgroFading->isOn();
 
   player_circle_1=dlg->PlayerCircle1->value();
@@ -217,6 +219,7 @@ void exPrefs::loadSettings() {
   player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 250);
 
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
+  filter_circles=s.readBoolEntry("/Excalibur/FilterCircles", TRUE);
   agro_fading=s.readBoolEntry("Excalibur/AgroFading", TRUE);
 
 
@@ -274,6 +277,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/PlayerCircle2", player_circle_2);
 
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
+  s.writeEntry("/Excalibur/FilterCircles", filter_circles);
   s.writeEntry("/Excalibur/AgroFading", agro_fading);
 
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);

@@ -61,6 +61,7 @@ public:
   bool map_fill;
   bool map_loadadjacentpngs;
   bool agro_circles;
+  bool filter_circles;
   bool agro_fading;
   bool dump_unknown_packets;
   bool MobListColors;

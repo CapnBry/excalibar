@@ -18,78 +18,6 @@
     <property name="sizeGripEnabled">
         <bool>true</bool>
     </property>
-    <widget class="QLayoutWidget">
-        <property name="name">
-            <cstring>Layout1</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>190</y>
-                <width>610</width>
-                <height>40</height>
-            </rect>
-        </property>
-        <hbox>
-            <property name="name">
-                <cstring>unnamed</cstring>
-            </property>
-            <property name="margin">
-                <number>0</number>
-            </property>
-            <property name="spacing">
-                <number>6</number>
-            </property>
-            <spacer>
-                <property name="name" stdset="0">
-                    <cstring>Horizontal Spacing2</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Horizontal</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>20</height>
-                    </size>
-                </property>
-            </spacer>
-            <widget class="QPushButton">
-                <property name="name">
-                    <cstring>buttonOk</cstring>
-                </property>
-                <property name="text">
-                    <string>OK</string>
-                </property>
-                <property name="accel">
-                    <number>0</number>
-                </property>
-                <property name="autoDefault">
-                    <bool>true</bool>
-                </property>
-                <property name="default">
-                    <bool>true</bool>
-                </property>
-            </widget>
-            <widget class="QPushButton">
-                <property name="name">
-                    <cstring>buttonCancel</cstring>
-                </property>
-                <property name="text">
-                    <string>Cancel</string>
-                </property>
-                <property name="accel">
-                    <number>0</number>
-                </property>
-                <property name="autoDefault">
-                    <bool>true</bool>
-                </property>
-            </widget>
-        </hbox>
-    </widget>
     <widget class="QTabWidget">
         <property name="name">
             <cstring>MiscTab</cstring>
@@ -417,17 +345,17 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>Layout5_2</cstring>
+                        <cstring>Layout10</cstring>
                     </property>
                     <property name="geometry">
                         <rect>
                             <x>10</x>
                             <y>20</y>
-                            <width>150</width>
-                            <height>92</height>
+                            <width>159</width>
+                            <height>86</height>
                         </rect>
                     </property>
-                    <vbox>
+                    <grid>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
@@ -437,15 +365,7 @@
                         <property name="spacing">
                             <number>6</number>
                         </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>AgroCircles</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Draw Agro Circles</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
+                        <widget class="QCheckBox" row="2" column="0">
                             <property name="name">
                                 <cstring>AgroFading</cstring>
                             </property>
@@ -453,7 +373,23 @@
                                 <string>Distance Fading</string>
                             </property>
                         </widget>
-                    </vbox>
+                        <widget class="QCheckBox" row="1" column="0">
+                            <property name="name">
+                                <cstring>FilterCircles</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Draw Filter Circles</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox" row="0" column="0">
+                            <property name="name">
+                                <cstring>AgroCircles</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Draw Agro Circles</string>
+                            </property>
+                        </widget>
+                    </grid>
                 </widget>
             </widget>
             <widget class="QGroupBox">
@@ -1123,6 +1059,78 @@
             </widget>
         </widget>
     </widget>
+    <widget class="QLayoutWidget">
+        <property name="name">
+            <cstring>Layout1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>190</y>
+                <width>610</width>
+                <height>40</height>
+            </rect>
+        </property>
+        <hbox>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <property name="margin">
+                <number>0</number>
+            </property>
+            <property name="spacing">
+                <number>6</number>
+            </property>
+            <spacer>
+                <property name="name" stdset="0">
+                    <cstring>Horizontal Spacing2</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>20</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QPushButton">
+                <property name="name">
+                    <cstring>buttonOk</cstring>
+                </property>
+                <property name="text">
+                    <string>OK</string>
+                </property>
+                <property name="accel">
+                    <number>0</number>
+                </property>
+                <property name="autoDefault">
+                    <bool>true</bool>
+                </property>
+                <property name="default">
+                    <bool>true</bool>
+                </property>
+            </widget>
+            <widget class="QPushButton">
+                <property name="name">
+                    <cstring>buttonCancel</cstring>
+                </property>
+                <property name="text">
+                    <string>Cancel</string>
+                </property>
+                <property name="accel">
+                    <number>0</number>
+                </property>
+                <property name="autoDefault">
+                    <bool>true</bool>
+                </property>
+            </widget>
+        </hbox>
+    </widget>
 </widget>
 <connections>
     <connection>
@@ -1185,6 +1193,5 @@
     <slot>PrefsDialog_destroyed(QObject *)</slot>
     <slot>TextLabel1_3_destroyed(QObject *)</slot>
 </slots>
-<pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>
