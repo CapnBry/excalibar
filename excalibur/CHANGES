@@ -11,6 +11,12 @@ Changes:
  + Added projected player position to move player
    smoothly across map rather than updating every
    second.
+ + Added console line describing connection on new 
+   connect.
+ + Changed FPS calculation.  Now shows actual FPS
+   rather than a theorectical maximum FPS it was
+   before.  Not finished with this yet, will re-
+   introduce the max FPS.
 
 Teerex (07/Apr/02)
 ------------------
