@@ -1412,6 +1412,9 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 
 void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 {
+    // save if requested
+    SaveMessage(*msg);
+
     // lock database
     AutoLock al(DBMutex);
 
