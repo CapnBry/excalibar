@@ -268,3 +268,10 @@ void FormExcalibur::atnCrafting_toggled( bool ena )
   prefs.crafting_alerts = ena;
   prefs.activate();
 }
+
+
+void FormExcalibur::AutoSelectTarget_toggled( bool ena )
+{
+  prefs.select_target = ena;
+  prefs.activate();
+}

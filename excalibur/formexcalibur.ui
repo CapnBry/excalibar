@@ -419,7 +419,7 @@ Hibs: 0  Mobs: 0</string>
 <customwidgets>
     <customwidget>
         <class>exMap</class>
-        <header location="local">../exMap.h</header>
+        <header location="local">exMap.h</header>
         <sizehint>
             <width>-1</width>
             <height>-1</height>
@@ -953,6 +953,12 @@ Hibs: 0  Mobs: 0</string>
         <receiver>FormExcalibur</receiver>
         <slot>atnCrafting_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>AutoSelectTarget</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>AutoSelectTarget_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -986,6 +992,7 @@ Hibs: 0  Mobs: 0</string>
     <slot>atnRenderObjects_toggled( bool ena )</slot>
     <slot>atnRenderDead_toggled( bool ena )</slot>
     <slot>atnCrafting_toggled( bool ena )</slot>
+    <slot>AutoSelectTarget_toggled( bool ena )</slot>
 </slots>
 <layoutdefaults spacing="2" margin="0"/>
 </UI>
