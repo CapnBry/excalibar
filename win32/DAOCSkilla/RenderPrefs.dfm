@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabFilter
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 2
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -351,7 +351,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Left = 8
         Top = 44
         Width = 189
-        Height = 193
+        Height = 213
         Caption = '  By object type  '
         TabOrder = 0
         object chkRenderFriendlies: TCheckBox
@@ -420,6 +420,16 @@ object frmRenderPrefs: TfrmRenderPrefs
           Caption = 'Anonymous stealthers'
           TabOrder = 6
           OnClick = chkRenderUnkStealthersClick
+        end
+        object chkRenderDoors: TCheckBox
+          Tag = 6
+          Left = 8
+          Top = 188
+          Width = 97
+          Height = 17
+          Caption = 'Doors'
+          TabOrder = 7
+          OnClick = ObjectFilterClick
         end
       end
       object grpFilterByCon: TGroupBox

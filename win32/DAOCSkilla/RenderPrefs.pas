@@ -203,6 +203,7 @@ type
     Label27: TLabel;
     chkDrawInfoPoints: TCheckBox;
     chkEasyMouseOvers: TCheckBox;
+    chkRenderDoors: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -635,6 +636,7 @@ begin
   chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectClassFilter;
   chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
   chkRenderUnkStealthers.Checked := FRenderPrefs.AnonymousStealthers;
+  chkRenderDoors.Checked := ocDoor in FRenderPrefs.ObjectClassFilter;
 
   chkShowGrays.Checked := ccGray in FRenderPrefs.ObjectConFilter;
   chkShowGreens.Checked := ccGreen in FRenderPrefs.ObjectConFilter;
