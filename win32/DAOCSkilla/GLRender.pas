@@ -285,6 +285,7 @@ begin
     Height := FRenderPrefs.Height;
     FRange := FRenderPrefs.Range;
     slideZoom.Position := FRange;
+    UpdateStayOnTop;
   end
   else
     slideZoomChange(Self);
