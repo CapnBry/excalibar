@@ -7,7 +7,7 @@ uses
   QForms, QControls, QGraphics,
 {$ELSE}
   Windows, Messages, Controls, Forms, Graphics, MMSystem,
-  StdCtrls, ExtCtrls, ComCtrls,
+  StdCtrls, ExtCtrls, ComCtrls, Dialogs,
 {$ENDIF !LINUX}
   SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCObjs,
   GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
@@ -160,6 +160,7 @@ type
     procedure CreateGLWindow;
     procedure AdjustMobTriangleSize;
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
+    procedure DisplaySelectedObjectInventory;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -1146,6 +1147,7 @@ end;
 procedure TfrmGLRender.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   case Key of
+    '?':    DisplaySelectedObjectInventory;
     'a', 'A':
       begin
         FRenderPrefs.InvaderWarning := not FRenderPrefs.InvaderWarning;
@@ -2062,6 +2064,20 @@ begin
     else
       Result := IntToStr(iZDelta);
   end;
+end;
+
+procedure TfrmGLRender.DisplaySelectedObjectInventory;
+var
+  pSelected:  TDAOCObject;
+  s:    string;
+begin
+  if FDControl.SelectedID <> 0 then begin
+    pSelected := FDControl.SelectedObject;
+    if pSelected.ObjectClass in [ocMob, ocPlayer, ocLocalPlayer] then begin
+      s := TDAOCMovingObject(pSelected).Inventory.AsString(false);
+      ShowMessage(s);
+    end;
+  end;  { if object selected }
 end;
 
 end.
