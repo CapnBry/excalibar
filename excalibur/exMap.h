@@ -23,6 +23,10 @@
 
 #include <qgl.h>
 #include <qfile.h>
+#include <qobject.h>
+#include <qimage.h>
+#include <qevent.h>
+#include <qprogressdialog.h>
 #include "exConnection.h"
 #include "exMapInfo.h"
 
@@ -47,7 +51,7 @@ class exMapElementTexture : public exMapElement {
     QRect bounds;
     GLuint texture;
   public:
-    exMapElementTexture(int px, int py, int pw, int ph, QImage img, class exMap *map);
+    exMapElementTexture(int px, int py, int pw, int ph, class exMap *map, QImage img, bool bAlreadyInGLFormat = false);
     ~exMapElementTexture();
     void draw(exMap *map);
     bool visible(QRect &r);
@@ -65,6 +69,7 @@ class exMapElementPoint : public exMapElement {
 };
 
 class exMapElementLinePoint : public QObject {
+Q_OBJECT
   public:
     int x, y, z;
     GLdouble glcol[4];
@@ -103,7 +108,11 @@ class exMapElementLine : public exMapElement {
 };
 
 class exMap : public QGLWidget {
+Q_OBJECT
 protected:
+  friend class exMapPNGLoader;
+  exMapPNGLoader *PNGLoader;
+
   bool is_dirty;
   bool map_load;
   GLuint listTriangle;
@@ -151,12 +160,56 @@ public:
   void makeObjects(bool simple);
 
   void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
+
+  virtual bool event (QEvent *e);
 };
 
+class exMapPNGLoaderDialog : public QObject, public QThread {
+Q_OBJECT
+public:
+	exMapPNGLoaderDialog  (void);
+	~exMapPNGLoaderDialog (void);
+	
+	virtual void run (void);
+	virtual bool event (QEvent *e);
+protected:
+	QProgressDialog *pdProgress;
+};
+
+class exMapPNGLoader : public QObject, public QThread {
+Q_OBJECT
+public:
+	exMapPNGLoader  ( exMap *parent );
+	~exMapPNGLoader (void);
+	
+	virtual void run (void);
+	virtual bool event (QEvent *e);
+
+	exMapPNGLoaderDialog empldProgress;
+protected:
+	exMap *parent;
+};
+
+#define CALLBACK_PNG_DATA (QEvent::Type)(QEvent::User + 0x01)
+#define CALLBACK_PNG_STAT (QEvent::Type)(QEvent::User + 0x02)
+#define CALLBACK_PNG_ABRT (QEvent::Type)(QEvent::User + 0x03)
+#define CALLBACK_PNG_FNSH (QEvent::Type)(QEvent::User + 0x04)
+
+ struct PNGCallback {
+	int a;
+	int b;
+	int c;
+	int d;
+	int x;
+	int y;
+	QImage img;
+};
 
 #else
 class exMapElement; 
 class exMapElementPoint;
 class exMapElementLine;
 class exMap;
+class exMapPNGLoader;
+class exMapPNGLoaderDialog;
 #endif

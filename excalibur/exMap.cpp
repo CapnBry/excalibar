@@ -53,6 +53,8 @@ exMap::exMap(QWidget *parent, const char *name)
 exMap::~exMap() {
   if (mi)
     delete mi;
+  if (PNGLoader != NULL)
+    delete [] PNGLoader;
 }
 
 void exMap::dirty() {
@@ -633,10 +635,7 @@ void exMap::mapRead() {
   exMapElement *elem;
   int xadd;
   int yadd;
-  int x;
-  int y;
   unsigned int i;
-  int w,h;
 
   map.clear();
   recache = true;
@@ -646,20 +645,11 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
-  if (fimg.exists()) {
-    QImage img;
-    if (img.load(fimg.name())) {
-      w=img.width();
-      h=img.height();
-      ignore_fill = true;
-      for(y=0;y<8;y++) {
-        for(x=0;x<8;x++) {
-          map.append(new exMapElementTexture(x * 8192 + xadd, y * 8192 + yadd, 8192, 8192, img.copy(w * x / 8, h * y / 8, w / 8, h / 8), this));
-        }
-      }
-    }
-  }
+  if (PNGLoader != NULL)
+    delete [] PNGLoader;
+  
+  PNGLoader = new exMapPNGLoader(this);
+  PNGLoader->start();
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
@@ -752,9 +742,14 @@ bool exMapElement::fromString(QStringList lst, int, int) {
   return TRUE;
 }
 
-exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, QImage img, exMap *map) {
+
+exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *map, QImage img, bool bAlreadyInGLFormat) {
+
   bounds.setRect(px, py, pw+1, ph+1);
-  QImage tex=QGLWidget::convertToGLFormat(img);
+
+  if (! bAlreadyInGLFormat)
+    img=QGLWidget::convertToGLFormat(img);
+
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -763,11 +758,11 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, QImage 
   if (map->has_direct) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB16, tex.width(), tex.height(), GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB16, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
   } else {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
   }
 }
 
@@ -1043,4 +1038,99 @@ void exMapElementLine::draw(exMap *map) {
     glVertex3i(p->x,p->y,p->z);
   }
   glEnd();  
+}
+
+exMapPNGLoader::exMapPNGLoader ( exMap *parent )
+{
+  this->parent = parent;
+  empldProgress.start();
+  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)1));
+}
+
+exMapPNGLoader::~exMapPNGLoader (void) { }
+
+void exMapPNGLoader::run (void)
+{
+  int x,y;
+  int w,h;
+  const int xadd = parent->mi->getBaseX();
+  const int yadd = parent->mi->getBaseY();
+
+  QFile fimg(QString().sprintf("maps/zone%03d.png", parent->mi->getZoneNum()));
+  if (fimg.exists()) {
+    QImage img;
+    if (img.load(fimg.name())) {
+      w=img.width();
+      h=img.height();
+      for(y=0;y<8;y++) {
+        for(x=0;x<8;x++) {
+          qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
+          struct PNGCallback *pc;
+          pc = new struct PNGCallback;
+          pc->a   = x * 8192 + xadd;
+	  pc->b   = y * 8192 + yadd;
+	  pc->c   = 8192;
+	  pc->d   = 8192;
+          pc->x   = x;
+          pc->y   = y;
+	  pc->img = QGLWidget::convertToGLFormat(img.copy( w * x / 8, h * y / 8,
+                                                           w / 8, h / 8 ));
+          qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, pc));
+        }
+      }
+    }
+  }
+  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+}
+
+bool exMap::event (QEvent *e)
+{
+  if (e->type() == CALLBACK_PNG_DATA) {
+    QCustomEvent *PNGEvent = (QCustomEvent*) e;
+    PNGCallback *pc = (PNGCallback*)PNGEvent->data();
+    map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
+    if (pc->y == 7 && pc->x == 7)
+      qApp->postEvent(&PNGLoader->empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    return true;
+  }
+  QWidget::event( e );
+  return false;
+}
+
+bool exMapPNGLoader::event (QEvent *e)
+{
+  if (e->type() == CALLBACK_PNG_ABRT) {
+/*  Not Implimented yet.  You're lucky I did this much, muhahah
+      - Andon */
+    return true;
+  }
+  return false;
+}
+
+exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
+{
+  pdProgress = new QProgressDialog("Loading PNG map...", "Cancel loading", 64);
+}
+
+exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
+{
+  if (pdProgress != NULL)
+    delete [] pdProgress;
+}
+
+void exMapPNGLoaderDialog::run (void)
+{
+  pdProgress->setProgress(0);
+}
+
+bool exMapPNGLoaderDialog::event (QEvent *e)
+{
+  if (e->type() == CALLBACK_PNG_STAT) {
+    QCustomEvent *PNGEvent = (QCustomEvent*) e;
+    pdProgress->setProgress((int)PNGEvent->data());
+    return true;
+  }
+  else if (e->type() == CALLBACK_PNG_FNSH)
+    pdProgress->reset();
+  return false;
 }
