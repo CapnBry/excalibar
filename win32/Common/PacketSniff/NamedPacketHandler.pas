@@ -13,7 +13,7 @@ unit NamedPacketHandler;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, INIFiles, GenericNetPackets;
+  Classes, SysUtils, Contnrs, INIFiles, GameNetPackets;
 
 type
   TNamedPacketHandler = class(TObject)
