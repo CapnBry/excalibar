@@ -23,7 +23,7 @@ it is, adjust as required.
 
 - Pentium 233Mhz
 - SVGA Graphics card with at least 512 KiB memory, supported by your
-- A recent UNIX release.. (i.e. Linux, Solaris, BSD or IRIX)
+- A recent UNIX release.. (i.e. Linux, Solaris, BSD, IRIX, or OSX)
 - 64 MB Main Memory
 - 256 MB Virtual Memory
 - 750 MB free HD space (550 of which is for X11 / QT 3.0.4)
@@ -55,14 +55,29 @@ You absolutely, 100% sure, without a doubt need:
 - Libpcap. A version recent enough that it handles the cooked-mode "any" device.
 - QT X11 Free version 3.0.1+
 
-Prequsite packages for Mandrake 8.2
+Prequsite packages for Mandrake 9.1
 -----------------------------------
 This is the distribution of choice for one of the developers (teerex). 
 To begin with, you'll need a working X server and all of it's requisite
 packages.  If you've installed KDE or GNOME as part of your install, you
-most likely have a good base.  In addition, you'll need the following 
-packages from your distro CDs to build Excalibur:
+most likely have a good base including QT.  In addition, you'll need the 
+following packages from your distro CDs to build Excalibur:
 
+  glibc-devel (cd1)
+  gcc (cd1)
+  gcc-cpp (cd1)
+  gcc-c++ (cd1)
+  libpcap0 (cd1)
+  libpcap0-devel (cd2)
+  Mesa (cd1)
+  libMesaGL1 (cd1)
+  libMesaGLU1 (cd1)
+  libMesaGLU1-devel (cd3)
+  libMesaglut3 (cd1)
+  libMesaglut3-devel (cd3)
+  XFree86-devel (cd1)
+
+Under Mandrake 8.2:
   glibc-devel
   gcc-2.96
   gcc-cpp-2.96
@@ -83,7 +98,7 @@ Under Mandrake 8.1, the libMesa* rpms are called:
   
 In addition, if you want to skip building qt 3, grab the qt3 packages from
 ftp://ftp.kde.org/pub/kde/stable/3.0.3/Mandrake/8.2/ or your friendly local 
-kde mirror:
+kde mirror (note Mandrake 9.0 and above already have qt3):
 
   libqt3
   libqt3-devel
@@ -154,7 +169,8 @@ Downloading and compiling Excalibur
 2) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co excalibur
 3) export QTDIR=/usr/lib/qt-3.0.4
    If you're using your distribution's version of QT, then the above line
-   is dependant on where your distro installed QT.  Usually /usr/lib/qt.
+   is dependant on where your distro installed QT.  Usually /usr/lib/qt or
+   /usr/lib/qt3.
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) make
@@ -256,7 +272,6 @@ selecting the suggested option.
   Depthfade map: Off (med)
   Render rulers: Off (none)
   
-
 ======================
 Running the Map Editor
 ======================
