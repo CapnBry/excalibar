@@ -1,5 +1,23 @@
-  + Fix mobseen not having CRLF at the end of each line.
+2003 Oct 08 - v1.51
+-------------------
+  + Added character quicklaunch function.
+  + Fixed DDS maps not ever downloading.
 
+2003 Oct 07 - v1.50
+-------------------
+  + Fix mobseen not having CRLF at the end of each line.
+  + Fix for negative numbers coming out in mobseen.
+  + Objects now show heath in mob list when available.
+  + PageUp / PageDn now zoom in and out on radar.  Clicking on either
+    side of the trackbar thumb now scrolls it in 500 unit chunks.
+  + Fixed navigation to work with new heading system.  Heading for NOD
+    files should be in Zone-local coordinates.  TurnTo, TurnToNode,
+    GotoXY, GotoNode, and PathTo should all be working again.
+  + Added a playback speed slider to the Debug and Tracing dialog.
+  + Added border to HUDs.
+  + InvaderWarnMinTicks now set from RenderPrefs.  No UI yet, set to 0
+    to disable.
+  
 2003 Oct 03 - v1.49
 -------------------
   + Fixed Powerskil Buy /mbuy not selecting the icon each time

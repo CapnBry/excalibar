@@ -52,7 +52,8 @@ uses
   BackgroundHTTP in 'BackgroundHTTP.pas',
   ConnectionConfig in 'ConnectionConfig.pas' {frmConnectionConfig},
   RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
-  zlib2 in '..\Components\ZLib\zlib2.pas';
+  zlib2 in '..\Components\ZLib\zlib2.pas',
+  QuickLaunchChars in 'QuickLaunchChars.pas';
 
 {$R *.TLB}
 
