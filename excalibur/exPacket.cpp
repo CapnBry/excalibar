@@ -169,7 +169,9 @@ QString exPacket::getDataAsString()
     }  // for i in size
 
     while (ascii.length() < 16)  {
-        hex.append("   ");
+	if ((ascii.length() % 16) == 8) 
+	    hex.append(" - ");
+	hex.append("   ");
         ascii.append(" ");
     }
 
