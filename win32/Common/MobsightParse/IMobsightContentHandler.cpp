@@ -22,6 +22,7 @@ MobsightContentHandler::~MobsightContentHandler()
 } // end ~MobsightContentHandler
 bool MobsightContentHandler::BuildMobList
     (
+    const std::wstring& MobsightURL,
     const REALM realm,
     const unsigned char MinLevel,
     const unsigned char MaxLevel,
@@ -61,7 +62,8 @@ bool MobsightContentHandler::BuildMobList
         }
         
     // build url
-    url << L"http://capnbry.net/daoc/mobs.php?f=xml"
+    url << MobsightURL
+        << L"?f=xml"
         << L"&r=" << realm
         << L"&minlevel=" << MinLevel
         << L"&maxlevel=" << MaxLevel

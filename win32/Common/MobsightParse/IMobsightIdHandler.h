@@ -31,7 +31,12 @@ public:
     MobsightIdHandler();
     virtual ~MobsightIdHandler();
 
-    bool GetMobInfo(const int Id,NarrowIdDef& MobInfo);
+    bool GetMobInfo
+        (
+        const std::wstring& MobsightURL,
+        const int Id,
+        NarrowIdDef& MobInfo
+        );
     void FreeMobInfo(NarrowIdDef& MobInfo)const;
 
 protected:

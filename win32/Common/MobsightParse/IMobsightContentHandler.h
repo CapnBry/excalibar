@@ -40,6 +40,7 @@ public:
     
     bool BuildMobList
         (
+        const std::wstring& MobsightURL,
         const REALM realm,
         const unsigned char MinLevel,
         const unsigned char MaxLevel,

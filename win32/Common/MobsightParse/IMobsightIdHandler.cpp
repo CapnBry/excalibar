@@ -41,6 +41,7 @@ MobsightIdHandler::~MobsightIdHandler()
 
 bool MobsightIdHandler::GetMobInfo
     (
+    const std::wstring& MobsightURL,
     const int Id,
     NarrowIdDef& MobInfo
     )
@@ -78,7 +79,8 @@ bool MobsightIdHandler::GetMobInfo
         }
         
     // build url
-    url << L"http://capnbry.net/daoc/mobs.php?f=xml"
+    url << MobsightURL
+        << L"?f=xml"
         << L"&m=" << Id
         << L"&agent=cheyenne";
     

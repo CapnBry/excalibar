@@ -42,21 +42,23 @@ MOBSIGHTPARSE_API void DestroyMobsightIdHandler(MobsightIdHandler* p)
 MOBSIGHTPARSE_API bool GetMobInfo
     (
     MobsightIdHandler& obj,
+    const std::wstring& MobsightURL,
     const int Id,
     NarrowIdDef& MobInfo
     )
 {
-    return(obj.GetMobInfo(Id,MobInfo));
+    return(obj.GetMobInfo(MobsightURL,Id,MobInfo));
 } // end GetMobInfo
 
 MOBSIGHTPARSE_API bool BuildMobList
     (
     MobsightContentHandler& obj,
+    const std::wstring& MobsightURL,
     const MobsightContentHandler::REALM realm,
     const unsigned char MinLevel,
     const unsigned char MaxLevel,
     std::list<NarrowMobDef>& List
     )
 {
-    return(obj.BuildMobList(realm,MinLevel,MaxLevel,List));
+    return(obj.BuildMobList(MobsightURL,realm,MinLevel,MaxLevel,List));
 } // end GetMobInfo
