@@ -1,3 +1,18 @@
+@003 Nov 20 - v1.64
+-------------------
+  + Map lists now make sure destination directory exists before
+    requesting a map.
+  + Increased packet reassembly buffer sizes to 16k.
+  + Added OpenGL version to the log message on startup.
+  + Removed some of the optimization of the mob list to fix blank
+    areas not being repainted.
+  + Helvetica TXF files now contain a full set of 255 characters to
+    avoid unavailable font characters on non-US systems.
+  + Fixed bug in Powerskill Buy not going back to the merchant node unless
+    AutoSell was on and sucessful.
+  + Added Prescience Node range indicator.  Look for the No Prancing Feet
+    symbol.
+
 2003 Nov 17 - v1.62
 -------------------
   + Fix "Format '%c' invalid or incompatable with argument"
