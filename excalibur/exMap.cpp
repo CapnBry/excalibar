@@ -1190,11 +1190,7 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
   QString qsName;
   try {
     qsName = ((exMapInfo*)mi)->getName();
-
-    if (qsName == NULL) {
-      Q_ASSERT(qsName != NULL);
-      return;
-    }
+    Q_ASSERT(qsName != NULL);
   } catch (...) {
     qWarning("Error:\texMapInfo == NULL!");
     return;
