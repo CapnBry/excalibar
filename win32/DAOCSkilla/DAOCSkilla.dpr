@@ -47,7 +47,8 @@ uses
   DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging},
   GlobalTickCounter in '..\Common\GlobalTickCounter.pas',
   QuickSinCos in '..\Common\QuickSinCos.pas',
-  Macroing in 'Macroing.pas' {frmMacroing};
+  Macroing in 'Macroing.pas' {frmMacroing},
+  Intersections in '..\Common\Intersections.pas';
 
 {$R *.TLB}
 
