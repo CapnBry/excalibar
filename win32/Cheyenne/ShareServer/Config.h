@@ -79,8 +79,10 @@ private:
     {
         MEMBER_ASSIGN(ConfigFileName);
         MEMBER_ASSIGN(AllowedHostsList);
+        MEMBER_ASSIGN(ListenPort);
     }
 
     DECL_MEMBER(std::string,ConfigFileName);
     DECL_MEMBER(host_list_type,AllowedHostsList);
+    DECL_MEMBER(unsigned short,ListenPort);
 }; // end class ShareNetConfig

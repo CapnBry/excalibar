@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ShareNetConfig::ShareNetConfig() : m_ConfigFileName("sharenet.cfg")
 {
+    SetListenPort(10001);
 } // end ShareNetConfig
 
 bool ShareNetConfig::Load(void)
@@ -48,6 +49,8 @@ bool ShareNetConfig::Load(void)
         ModifyAllowedHostsList().insert(ModifyAllowedHostsList().end(),host_mask_pair);
         } // end for all hosts
 
+    file >> ModifyListenPort(); 
+
     return(true);
 } // end Load
 
@@ -69,6 +72,8 @@ bool ShareNetConfig::Save(void)const
         {
         file << it->first << " " << it->second << std::endl;
         } // end for each allowed host
+    
+    file << GetListenPort() << std::endl;
     
     // done
     return(true);
