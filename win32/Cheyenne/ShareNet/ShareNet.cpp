@@ -584,6 +584,34 @@ void ShareNetClientData::BuildShareMessage
                 );
             break;
             
+        case share_opcodes::heading_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::heading_update>(message)
+                );
+            break;
+            
+        case share_opcodes::speed_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::speed_update>(message)
+                );
+            break;
+            
+        case share_opcodes::target_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::target_update>(message)
+                );
+            break;
+            
+        case share_opcodes::ground_target_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::ground_target_update>(message)
+                );
+            break;
+            
         default:
             Logger << "[ShareNetClientData::BuildShareMessage] unknown opcode: " 
                    << unsigned int(opcode) << "\n";
