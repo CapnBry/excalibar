@@ -41,7 +41,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mapinfo.h"
 #include "times.h"
 #include "config.h"
-#include "gl\glut.h"
+#include "gl\gl.h"
 #include "gl\glpng.h"
 
 // the logger
@@ -56,12 +56,9 @@ EXTERN CheyenneConfig Config;
 // global functions
 // the imlpementations of the global graphics functions are in 
 // central.cpp
-void DrawGLUTFontString(const std::string& text,void* font);
 void DrawWGLFontString(const std::string& text);
-inline void DrawGLFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
+inline void DrawGLFontString(const std::string& text)
 {
-    // do GLUT
-    //DrawGLUTFontString(text,font);
     // do WGL
     DrawWGLFontString(text);
 }

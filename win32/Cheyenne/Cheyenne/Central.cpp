@@ -36,16 +36,6 @@ const UINT RENDER_NOW=WM_USER+3;
 // init font list base statically
 const int Central::FontListBase=1000;
 
-// global graphics functions
-void DrawGLUTFontString(const std::string& text,void* font)
-{
-    std::string::const_iterator it;
-    for(it=text.begin();it!=text.end();++it)
-        {
-        glutBitmapCharacter(font,int(*it));
-        }
-}
-
 void DrawWGLFontString(const std::string& text)
 {
     glListBase(Central::FontListBase);

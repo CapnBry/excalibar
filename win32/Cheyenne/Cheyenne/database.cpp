@@ -210,8 +210,8 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
     float yvel=(ThisActor.GetMotion().GetSpeed() * -cos(ThisActor.GetMotion().GetHeading()));
 
     // update with velocity & heading & delta time
-    x = x + (CurrentAge.Seconds()*xvel);
-    y = y + (CurrentAge.Seconds()*yvel);
+    x = x + ((float)CurrentAge.Seconds()*xvel);
+    y = y + ((float)CurrentAge.Seconds()*yvel);
 
     // store back
     ThisActor.ModifyMotion().SetXPos(x);
@@ -1206,7 +1206,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             Actor& ThisActor=*pa;
 
             // save region
-            ThisActor.SetRegion(p->region);
+            ThisActor.SetRegion(unsigned char(p->region));
 
             Logger << "[Database::HandleSniffedMessage] got self_zone_change to region " << unsigned int(p->region) << "\n";
 
@@ -1346,9 +1346,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             
             // the ground-target is region specific, we need to adjust 
             // for the region this target was detected in
-            GroundTarget.SetXPos(p->x);
-            GroundTarget.SetYPos(p->y);
-            GroundTarget.SetZPos(p->z);
+            GroundTarget.SetXPos(float(p->x));
+            GroundTarget.SetYPos(float(p->y));
+            GroundTarget.SetZPos(float(p->z));
             GroundTargetRegion=p->detected_region;
             bGroundTargetSet=true;
             

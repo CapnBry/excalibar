@@ -32,7 +32,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include <gl\glut.h>
 #include "database.h"
 #include "VectorMapLoader.h"
 #include "soundspool.h"
@@ -70,7 +69,7 @@ public:
         // determine this
         
         RECT rZone={BaseX,BaseY,MaxX,MaxY};
-        RECT rDisplay={ProjectionX,ProjectionY,ProjectionX+ProjectionWidthX,ProjectionY+ProjectionWidthY};
+        RECT rDisplay={(LONG)ProjectionX,(LONG)ProjectionY,(LONG)(ProjectionX+ProjectionWidthX),(LONG)(ProjectionY+ProjectionWidthY)};
         RECT rIntersect;
 
         return(IntersectRect(&rIntersect,&rZone,&rDisplay) ? true:false);

@@ -739,7 +739,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             self_id=msg->self_id;
 
             // save my region
-            msg->detected_region=self_region;
+            msg->detected_region=unsigned char(self_region);
 
             // save my realm
             msg->realm=player_realm;
@@ -810,7 +810,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             daocmessages::object_identity* msg=ParseObjectIdentity(ndx,buffer);
 
             // save my region
-            msg->detected_region=self_region;
+            msg->detected_region=unsigned char(self_region);
 
             // push it onto fifo for the database
             fifo->Push(msg);
@@ -822,7 +822,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             daocmessages::mob_identity* msg=ParseMobIdentity(ndx,buffer);
 
             // save my region
-            msg->detected_region=self_region;
+            msg->detected_region=unsigned char(self_region);
 
             // push it onto fifo for the database
             fifo->Push(msg);
@@ -834,7 +834,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             daocmessages::player_identity* msg=ParsePlayerIdentity(ndx,buffer);
 
             // save my region
-            msg->detected_region=self_region;
+            msg->detected_region=unsigned char(self_region);
 
             // push it onto fifo for the database
             fifo->Push(msg);
@@ -897,7 +897,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
                 }
             
             // save region
-            msg->region=self_region;
+            msg->region=unsigned char(self_region);
 
             Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
                    << (unsigned short)opcode 
@@ -1049,7 +1049,7 @@ void DAOCConnection::BuildMessagesFromTCPClient
             msg->player_id=self_id;
             
             // set detected region
-            msg->detected_region=self_region;
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for server
             fifo->Push(msg);
