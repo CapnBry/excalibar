@@ -11,11 +11,13 @@ type
 
   TDAOCObject = class(TObject)
   private
+    FDestinationZ: WORD;
     procedure SetX(const Value: DWORD);
     procedure SetY(const Value: DWORD);
     procedure SetZ(const Value: DWORD);
     procedure SetDestinationX(const Value: DWORD);
     procedure SetDestinationY(const Value: DWORD);
+    procedure SetDestinationZ(const Value: WORD);
     procedure SetLevel(const Value: integer);
     procedure SetRealm(const Value: TDAOCRealm);
     procedure SetName(const Value: string);
@@ -65,6 +67,7 @@ type
     property Z: DWORD read FZ write SetZ;
     property DestinationX: DWORD read FDestinationX write SetDestinationX;
     property DestinationY: DWORD read FDestinationY write SetDestinationY;
+    property DestinationZ: WORD read FDestinationZ write SetDestinationZ;
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
     property Level: integer read FLevel write SetLevel;
@@ -556,6 +559,12 @@ end;
 procedure TDAOCObject.SetStealthed(const Value: boolean);
 begin
   FStealthed := Value;
+  Touch;
+end;
+
+procedure TDAOCObject.SetDestinationZ(const Value: WORD);
+begin
+  FDestinationZ := Value;
   Touch;
 end;
 
