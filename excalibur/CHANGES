@@ -4,6 +4,7 @@ Teerex (07/Jun/02)
    list would prevent Excal from being able to ascertain your realm
    and starting zone.
  + Added exPacket.isAtEOF().
+ + Changed to use randomly.org source for creating backgroung PNGs.
 
 Teerex (05/Jun/02)
 ------------------
