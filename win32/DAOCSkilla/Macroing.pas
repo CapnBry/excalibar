@@ -18,6 +18,7 @@ type
     btnSpellcraftHlp: TButton;
     btnShowMapModes: TButton;
     tmrTimeoutDelay: TTimer;
+    btnLowOnStat: TButton;
     procedure btnShowMapModesClick(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);
@@ -28,6 +29,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrTimeoutDelayTimer(Sender: TObject);
+    procedure btnLowOnStatClick(Sender: TObject);
   private
     FDControl: TDAOCControl;
     FAutoSell:      boolean;
@@ -59,6 +61,7 @@ type
     procedure DAOCSelectNPCSuccess;
     procedure DAOCSelectNPCFailed;
     procedure DAOCAttemptNPCRightClickFailed;
+    procedure DAOCLocalHealthUpdate;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -72,7 +75,7 @@ uses
   ShowMapNodes, PowerSkillSetup, SpellcraftHelp, MacroTradeSkill,
   AFKMessage, DAOCWindows, DAOCInventory, Unit1
 {$IFDEF DAOC_AUTO_SERVER}
-  ,TellMacro
+  ,TellMacro, LowOnStat
 {$ENDIF DAOC_AUTO_SERVER}
   ;
 
@@ -468,6 +471,22 @@ begin
     FDControl.StrafeRight(500);
     ArrivedAtMerchant(nil, 0);
   end;
+end;
+
+procedure TfrmMacroing.btnLowOnStatClick(Sender: TObject);
+begin
+  frmLowOnStat.DAOCControl := FDControl;
+  
+  if frmLowOnStat.Visible then
+    frmLowOnStat.Close
+  else
+    frmLowOnStat.Show;
+end;
+
+procedure TfrmMacroing.DAOCLocalHealthUpdate;
+begin
+  if frmLowOnStat.Visible then
+    frmLowOnStat.DAOCLocalHealthUpdate;
 end;
 
 end.
