@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
-  DAOCWindows, DAOCInventory, Buttons, PowerSkill, DAOCSkilla_TLB,
+  Buttons, DAOCSkilla_TLB,
   DAOCObjs, DAOCPlayerAttributes, Recipes, Dialogs, DAOCPackets;
 
 type
@@ -21,61 +21,38 @@ type
     Memo1: TMemo;
     lblPlayerPos: TLabel;
     lblPlayerHeadSpeed: TLabel;
-    tmrTimeoutDelay: TTimer;
-    chkAutosell: TCheckBox;
-    btnPowerskillBuy: TSpeedButton;
     imgAdapter: TImage;
-    Bevel1: TBevel;    btnMacroTradeskill: TButton;
-    btnAFK: TButton;
     btnGLRender: TButton;
     lblZone: TLabel;
-    btnTellMacro: TButton;
-    btnSpellcraftHlp: TButton;
     btnDebugging: TButton;
     chkAutolaunchExcal: TCheckBox;
-    btnShowMapModes: TButton;
-    Label1: TLabel;
     chkChatLog: TCheckBox;
     edtChatLogFile: TEdit;
+    btnMacroing: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure tmrTimeoutDelayTimer(Sender: TObject);
-    procedure btnPowerskillBuyClick(Sender: TObject);
-    procedure btnShowMapModesClick(Sender: TObject);
-    procedure chkAutosellClick(Sender: TObject);
     procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure btnMacroTradeskillClick(Sender: TObject);
-    procedure btnAFKClick(Sender: TObject);
     procedure btnGLRenderClick(Sender: TObject);
     procedure lstAdaptersClick(Sender: TObject);
-    procedure btnTellMacroClick(Sender: TObject);
-    procedure btnSpellcraftHlpClick(Sender: TObject);
     procedure btnDebuggingClick(Sender: TObject);
     procedure chkChatLogClick(Sender: TObject);
+    procedure btnMacroingClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
-    FAutoSell:      boolean;
-    FInSellOff:     boolean;
     FChatLog:       TFileStream;
-    FPSItemList:    TPowerSkillItemList;
-
+    FProcessPackets:  boolean;
     FLastConnection:  TSavedCaptureState;
 
-    FProcessPackets:  boolean;
     procedure LoadSettings;
     procedure SaveSettings;
     function GetConfigFileName : string;
     procedure SetupDAOCConnectionObj;
     procedure UpdatePlayer;
-    procedure DoAutoSell;
-    procedure DoAutoBuy;
-    procedure CheckNeedMorePSMaterials;
-    function CheckConflictingWindows(AWindowList: array of const) : boolean;
     procedure SaveConnectionState;
     procedure LoadConnectionState;
     procedure RestoreConnectionState;
@@ -117,7 +94,7 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing
+  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing, Macroing
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -127,10 +104,6 @@ uses
   ;
 
 {$R *.dfm}
-
-const
-  TIMEOUT_AUTOSELL = 1;
-  TIMEOUT_AUTOBUY = 2;
 
 var
     { ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) }
@@ -226,8 +199,6 @@ begin
   FPReader := TPacketReader2.CreateInst;
   FPReader.OnEthernetSegment := EthernetSegment;
 
-  FPSItemList := TPowerSkillItemList.Create;
-
   lstAdapters.Items.Assign(FPReader.AdapterList);
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
 
@@ -243,7 +214,6 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FPSItemList);
   FPReader.Free;
   CloseChatLog;
 end;
@@ -417,6 +387,9 @@ begin
     frmDebugging.CaptureFile := ReadString('Debugging', 'CaptureFile', 'c:\savedcap.cap');
     frmDebugging.Left := ReadInteger('Debugging', 'Left', frmDebugging.Left);
     frmDebugging.Top := ReadInteger('Debugging', 'Top', frmDebugging.Top);
+
+    frmMacroing.Left := ReadInteger('Macroing', 'Left', frmMacroing.Left);
+    frmMacroing.Top := ReadInteger('Macroing', 'Top', frmMacroing.Top);
     Free;
   end;  { with INI }
 end;
@@ -469,6 +442,8 @@ begin
     WriteInteger('Debugging', 'Left', frmDebugging.Left);
     WriteInteger('Debugging', 'Top', frmDebugging.Top);
 
+    WriteInteger('Macroing', 'Left', frmMacroing.Left);
+    WriteInteger('Macroing', 'Top', frmMacroing.Top);
     Free;
   end;  { with INI }
 end;
@@ -480,126 +455,12 @@ end;
 
 procedure TfrmMain.DAOCInventoryChanged(Sender: TObject);
 begin
-  if not FAutoSell then
-    exit;
-
-  if FConnection.SelectedID = 0 then
-    exit;
-
-  tmrTimeoutDelay.Tag := TIMEOUT_AUTOSELL;
-  // Log('Setting timer to TIMEOUT_AUTOSELL');
-  tmrTimeoutDelay.Enabled := false;
-  tmrTimeoutDelay.Enabled := true;
-end;
-
-procedure TfrmMain.tmrTimeoutDelayTimer(Sender: TObject);
-begin
-  tmrTimeoutDelay.Enabled := false;
-
-  case tmrTimeoutDelay.Tag of
-    TIMEOUT_AUTOSELL:
-      DoAutoSell;
-    TIMEOUT_AUTOBUY:
-      DoAutoBuy;
-  end;
-end;
-
-procedure TfrmMain.btnPowerskillBuyClick(Sender: TObject);
-begin
-  frmPowerSkill.DAOCControl := FConnection;
-  frmPowerSkill.PSItemList := FPSItemList;
-
-  if not CheckConflictingWindows([frmSpellcraftHelp]) then
-    exit;
-
-  if frmPowerSkill.Visible then
-    frmPowerSkill.Close
-  else
-    frmPowerSkill.Show;
+  frmMacroing.DAOCInventoryChanged;
 end;
 
 procedure TfrmMain.DAOCVendorWindow(Sender: TObject);
 begin
-  if frmPowerskill.Visible or frmSpellcraftHelp.Visible then begin
-    // Log('Setting timer to TIMEOUT_AUTOBUY');
-    tmrTimeoutDelay.Tag := TIMEOUT_AUTOBUY;
-    tmrTimeoutDelay.Enabled := false;
-    tmrTimeoutDelay.Enabled := true;
-  end;
-end;
-
-procedure TfrmMain.DoAutoSell;
-var
-  I:    integer;
-  pWnd: TStatsWindow;
-  iCnt: integer;
-  pFirstItem:   TDAOCInventoryItem;
-begin
-  if FConnection.SelectedID = 0 then begin
-//    Log('InvChg: Timer popped with noone selected');
-    exit;
-  end;
-
-  iCnt := 0;
-  pFirstItem := nil;
-  with FConnection.LocalPlayer.Inventory do
-    for I := 0 to Count - 1 do
-      if Items[I].IsInBag and (Items[I].Quality <> 100) and
-        (Assigned(FPSItemList.Find(Items[I].CountlessDescription)) or
-        (Pos('cloak', Items[I].Description) > 0) or
-        (Pos('hinge', Items[I].Description) > 0)) then begin
-        inc(iCnt);
-        if not Assigned(pFirstItem) then
-          pFirstItem := Items[I];
-      end;  { If match }
-
-  if (FInSellOff or (iCnt >= Random(7) + 1)) and Assigned(pFirstItem) then begin
-    // emo1.Lines.Add('InvChg: Found item - ' + Items[I].Description);
-    pWnd := TStatsWindow.Create(FConnection.WindowManager);
-    pWnd.SelectInventoryBag(pFirstItem.BagPage);
-    sleep(200);
-    pWnd.SelectInventoryItem(pFirstItem.BagItemIndex);
-    pWnd.Free;
-    sleep(500);
-    FConnection.DoSendKeys('[f2]');
-    FInSellOff := iCnt > 0;
-    exit;
-  end;
-
-  FInSellOff := false;
-//  Log('InvChg: could not find N items');
-  CheckNeedMorePSMaterials;
-end;
-
-procedure TfrmMain.DoAutoBuy;
-var
-  bWasAutoSell:   boolean;
-begin
-  bWasAutoSell := FAutoSell;
-  FAutoSell := false;
-
-  if frmPowerskill.Visible then begin
-    frmPowerskill.ExecutePurchases;
-
-    if frmPowerskill.KeepBuying and
-      AnsiSameText(FConnection.NodeClosestToPlayerPos.Name, FPSItemList.MerchantNodeName) then
-      FConnection.PathToNodeName(FPSItemList.ForgeNodeName);
-  end
-
-  else if frmSpellcraftHelp.Visible then
-    frmSpellcraftHelp.ExecutePurchases;
-
-  FAutoSell := bWasAutoSell;
-  Log('Purchase complete');
-end;
-
-procedure TfrmMain.btnShowMapModesClick(Sender: TObject);
-begin
-  if frmShowMapNodes.Visible then
-    frmShowMapNodes.Close
-  else
-    frmShowMapNodes.Show;
-  frmShowMapNodes.ShowMapNodes(FConnection.MapNodes);
+  frmMacroing.DAOCVendorWindow;
 end;
 
 procedure TfrmMain.Log(const s: string);
@@ -607,26 +468,9 @@ begin
   Memo1.Lines.Add(s);
 end;
 
-procedure TfrmMain.chkAutosellClick(Sender: TObject);
-begin
-  FAutoSell := chkAutoSell.Checked;
-end;
-
-procedure TfrmMain.CheckNeedMorePSMaterials;
-begin
-  if frmPowerskill.Visible then begin
-    if not AnsiSameText(FConnection.NodeClosestToPlayerPos.Name, FPSItemList.ForgeNodeName) then
-      exit;
-
-    if not frmPowerskill.HasMaterialsForItem then
-      FConnection.PathToNodeName(FPSItemList.MerchantNodeName)
-  end;
-end;
-
 procedure TfrmMain.DAOCPathChanged(Sender: TObject);
 begin
-  if frmShowMapNodes.Visible then
-    frmShowMapNodes.PathChanged(FConnection.CurrentPath);
+  frmMacroing.DAOCPathChanged;
 end;
 
 procedure TfrmMain.lstAdaptersDrawItem(Control: TWinControl;
@@ -673,28 +517,6 @@ begin
   FIConnection := nil;  // interface release frees obj
 end;
 
-procedure TfrmMain.btnMacroTradeskillClick(Sender: TObject);
-begin
-  frmMacroTradeSkills.DAOCControl := FConnection;
-
-//  if not CheckConflictingWindows([frmSpellcraftHelp]) then
-//    exit;
-
-  if frmMacroTradeSkills.Visible then
-    frmMacroTradeSkills.Close
-  else
-    frmMacroTradeSkills.Show;
-end;
-
-procedure TfrmMain.btnAFKClick(Sender: TObject);
-begin
-  frmAFK.DAOCControl := FConnection;
-  if frmAFK.Visible then
-    frmAFK.Close
-  else
-    frmAFK.Show;
-end;
-
 procedure TfrmMain.btnGLRenderClick(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
@@ -718,17 +540,6 @@ begin
   Log('Adapter opened: ');
   Log('  ' + lstAdapters.Items[lstAdapters.ItemIndex]);
   Log('  ' + FPReader.DeviceName);
-end;
-
-procedure TfrmMain.btnTellMacroClick(Sender: TObject);
-begin
-{$IFDEF DAOC_AUTO_SERVER}
-  frmTellMacro.DAOCControl := FConnection;
-  if frmTellMacro.Visible then
-    frmTellMacro.Close
-  else
-    frmTellMacro.Show;
-{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
@@ -761,45 +572,6 @@ procedure TfrmMain.DAOCSkillLevelChanged(ASender: TObject;
 begin
   if frmPowerskill.Visible then
     frmPowerskill.SkillLevelChanged(AItem);
-end;
-
-procedure TfrmMain.btnSpellcraftHlpClick(Sender: TObject);
-begin
-  frmSpellcraftHelp.DAOCControl := FConnection;
-
-  if not CheckConflictingWindows([frmPowerskill]) then
-    exit;
-
-  if frmSpellcraftHelp.Visible then
-    frmSpellcraftHelp.Close
-  else
-    frmSpellcraftHelp.Show;
-end;
-
-function TfrmMain.CheckConflictingWindows(AWindowList: array of const): boolean;
-var
-  I:    integer;
-  sVisWindows:  string;
-begin
-  sVisWindows := '';
-  for I := low(AWindowList) to high(AWindowList) do
-    if TForm(AWindowList[I].VObject).Visible then
-      sVisWindows := sVisWindows + #9 + TForm(AWindowList[I].VObject).Caption + #13;
-
-  if sVisWindows = '' then begin
-    Result := true;
-    exit;
-  end;
-
-  Result := MessageDlg('That function conflicts with the operation of the following windows:'#13 +
-    sVisWindows +
-    'If you continue, those windows will be closed.',
-    mtWarning, [mbOk, mbCancel], 0) = mrOK;
-
-  if Result then
-    for I := low(AWindowList) to high(AWindowList) do
-      if TForm(AWindowList[I].VObject).Visible then
-        TForm(AWindowList[I].VObject).Close;
 end;
 
 function TfrmMain.GetConfigFileName: string;
@@ -900,15 +672,30 @@ end;
 procedure TfrmMain.CreateChatLog;
 var
   sOpenLine:    string;
+  sDirectory:   string;
 begin
   if Assigned(FChatLog) then
     CloseChatLog;
 
     { make sure we have a file, Delphi 6 will not respect the share mode on an fmCreate }
   if not FileExists(edtChatLogFile.Text) then begin
-    FChatLog := TFileStream.Create(edtChatLogFile.Text, fmCreate);
+    sDirectory := ExtractFilePath(edtChatLogFile.Text);
+      { make sure the directory exists }
+    if sDirectory <> '' then
+      ForceDirectories(sDirectory);
+    try
+      FChatLog := TFileStream.Create(edtChatLogFile.Text, fmCreate);
+    except
+      on E: Exception do begin
+          { if we get an exception, log it and turn off the chat file }
+        chkChatLog.Checked := false;
+        chkChatLogClick(nil);
+        Log(e.Message);
+        exit;
+      end;
+    end;
     FreeAndNil(FChatLog);
-  end;
+  end;  { if creating a new file }
 
   FChatLog := TFileStream.Create(edtChatLogFile.Text, fmOpenWrite or fmShareDenyNone);
   FChatLog.Seek(0, soFromEnd);
@@ -946,6 +733,15 @@ begin
       FChatLog.Write(sChatLogLine[1], Length(sChatLogLine))
     end;
   end;
+end;
+
+procedure TfrmMain.btnMacroingClick(Sender: TObject);
+begin
+  frmMacroing.DAOCControl := FConnection;
+  if frmMacroing.Visible then
+    frmMacroing.Close
+  else
+    frmMacroing.Show;
 end;
 
 end.

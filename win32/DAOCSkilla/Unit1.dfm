@@ -1,8 +1,8 @@
 object frmMain: TfrmMain
-  Left = 716
-  Top = 201
+  Left = 550
+  Top = 223
   Width = 510
-  Height = 507
+  Height = 307
   Caption = 'DAOC Skilla'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    480)
+    280)
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
@@ -39,14 +39,6 @@ object frmMain: TfrmMain
     AutoSize = False
     Caption = 'lblPlayerHeadSpeed'
   end
-  object btnPowerskillBuy: TSpeedButton
-    Left = 8
-    Top = 188
-    Width = 117
-    Height = 25
-    Caption = 'Powerskill Buy'
-    OnClick = btnPowerskillBuyClick
-  end
   object imgAdapter: TImage
     Left = 284
     Top = 64
@@ -64,13 +56,6 @@ object frmMain: TfrmMain
     Transparent = True
     Visible = False
   end
-  object Bevel1: TBevel
-    Left = 4
-    Top = 136
-    Width = 497
-    Height = 10
-    Shape = bsTopLine
-  end
   object lblZone: TLabel
     Left = 340
     Top = 92
@@ -79,21 +64,6 @@ object frmMain: TfrmMain
     Alignment = taRightJustify
     AutoSize = False
     Caption = 'lblZone'
-  end
-  object Label1: TLabel
-    Left = 8
-    Top = 144
-    Width = 477
-    Height = 13
-    Caption = 
-      'Macroing is active while the appropriate window is open.  Do not' +
-      ' use if you have not read the source.'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clMaroon
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
   end
   object lstAdapters: TListBox
     Left = 4
@@ -116,9 +86,9 @@ object frmMain: TfrmMain
   end
   object Memo1: TMemo
     Left = 4
-    Top = 216
+    Top = 136
     Width = 493
-    Height = 261
+    Height = 141
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -131,59 +101,14 @@ object frmMain: TfrmMain
     ScrollBars = ssVertical
     TabOrder = 1
   end
-  object chkAutosell: TCheckBox
-    Left = 132
-    Top = 164
-    Width = 205
-    Height = 17
-    Caption = 'Autosell hinges and all powerskill items'
-    TabOrder = 2
-    OnClick = chkAutosellClick
-  end
-  object btnMacroTradeskill: TButton
-    Left = 132
-    Top = 188
-    Width = 101
-    Height = 25
-    Caption = 'Macro Tradeskill'
-    TabOrder = 3
-    OnClick = btnMacroTradeskillClick
-  end
-  object btnAFK: TButton
-    Left = 240
-    Top = 188
-    Width = 89
-    Height = 25
-    Caption = 'AFK Message'
-    TabOrder = 4
-    OnClick = btnAFKClick
-  end
   object btnGLRender: TButton
     Left = 8
     Top = 76
     Width = 75
     Height = 25
     Caption = 'E&xcalibur'
-    TabOrder = 5
+    TabOrder = 2
     OnClick = btnGLRenderClick
-  end
-  object btnTellMacro: TButton
-    Left = 336
-    Top = 188
-    Width = 75
-    Height = 25
-    Caption = 'MacroScript'
-    TabOrder = 6
-    OnClick = btnTellMacroClick
-  end
-  object btnSpellcraftHlp: TButton
-    Left = 416
-    Top = 188
-    Width = 75
-    Height = 25
-    Caption = 'Spellcrft Help'
-    TabOrder = 7
-    OnClick = btnSpellcraftHlpClick
   end
   object btnDebugging: TButton
     Left = 84
@@ -191,7 +116,7 @@ object frmMain: TfrmMain
     Width = 75
     Height = 25
     Caption = '&Debugging'
-    TabOrder = 8
+    TabOrder = 3
     OnClick = btnDebuggingClick
   end
   object chkAutolaunchExcal: TCheckBox
@@ -202,16 +127,7 @@ object frmMain: TfrmMain
     Caption = 'Autolaunch Excalibur windows'
     Checked = True
     State = cbChecked
-    TabOrder = 9
-  end
-  object btnShowMapModes: TButton
-    Left = 8
-    Top = 162
-    Width = 117
-    Height = 22
-    Caption = 'Show nav map nodes'
-    TabOrder = 10
-    OnClick = btnShowMapModesClick
+    TabOrder = 4
   end
   object chkChatLog: TCheckBox
     Left = 8
@@ -219,7 +135,7 @@ object frmMain: TfrmMain
     Width = 105
     Height = 17
     Caption = 'Realtime chat.log'
-    TabOrder = 11
+    TabOrder = 5
     OnClick = chkChatLogClick
   end
   object edtChatLogFile: TEdit
@@ -233,13 +149,16 @@ object frmMain: TfrmMain
     Font.Name = 'Courier New'
     Font.Style = []
     ParentFont = False
-    TabOrder = 12
+    TabOrder = 6
     Text = 'c:\mythic\isles\realchat.log'
   end
-  object tmrTimeoutDelay: TTimer
-    Enabled = False
-    OnTimer = tmrTimeoutDelayTimer
-    Left = 300
-    Top = 60
+  object btnMacroing: TButton
+    Left = 160
+    Top = 76
+    Width = 75
+    Height = 25
+    Caption = 'Macroing'
+    TabOrder = 7
+    OnClick = btnMacroingClick
   end
 end
