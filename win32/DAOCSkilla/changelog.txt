@@ -1,5 +1,5 @@
-IN TESTING
-----------
+2004 Jan 16 - v1.78
+-------------------
   + Fixed typo in naming of Eldritch recipes.
   + Added AutoDeselectMerchant, AutoStartProgression, AutoQuickbarSlot
     to powerskillbuy profiles.
@@ -40,6 +40,9 @@ IN TESTING
   + Added low on stat macroing dialog to send a message when a specific
     stat (Health, End, Mana) drops below a set percentage. Thanks to
     drmctchr for the idea.
+  + Fixed PowerSkillBuy showing recipes from your current tier as
+    purple if they were over the next 100 boundary. (neelm)
+  + Re-added aggro indicator based on MobUpdate packet. (peonslayer)
 
 2004 Jan 05 - v1.72
 -------------------
