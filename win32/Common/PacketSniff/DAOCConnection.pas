@@ -107,6 +107,7 @@ type
     FRealmRanks:          TStringList;
     FSelectedObjectCached:  TDAOCObject;
     FPacketHandlerDefFile: string;
+    FLastUDPSeq:    WORD;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -852,15 +853,26 @@ end;
 procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
 var
   command:  BYTE;
+  iSeqNo:   integer;
   pHandler: TNamedPacketHandler;
 begin
-  if pPacket.IPProtocol = daocpUDP then
-    pPacket.seek(2);  // seqno
+  iSeqNo := pPacket.getShort;
+//  if pPacket.IPProtocol = daocpUDP then
+
+    { check for mislabeled UDP }
+  if pPacket.IPProtocol = daocpTCP then
+    if iSeqNo = (FLastUDPSeq + 1) then
+      pPacket.IPProtocol := daocpUDP
+    else
+      pPacket.seek(-2);
 
   command := pPacket.getByte;
   pHandler := FServerPacketHandlers.HandlerByID(command);
   if Assigned(pHandler) then
     pHandler.Handler(pPacket);
+
+  if pPacket.IPProtocol = daocpUDP then
+    FLastUDPSeq := iSeqNo;
 end;
 
 procedure TDAOCConnection.ProcessEthernetSegment(ASegment: TEthernetSegment);
@@ -909,8 +921,6 @@ begin
 
       else if FActive then
         ProcessTCPSegment(ASegment);
-
-    CheckScheduledTimeoutCallback;
   finally
     pDecapSegment.Free;
   end;
@@ -936,10 +946,6 @@ begin
     exit;
 
   pFrag := TTCPFragment.CreateFrom(ASegment);
-
-{$IFDEF GLOBAL_TICK_COUNTER}
-  UpdateGlobalTickCount;
-{$ENDIF GLOBAL_TICK_COUNTER}
 
   if pFrag.IsAck then begin
     while pAssembler.OtherSide.ParsePacket(pFrag.AckNo, pPacket) do begin
@@ -1399,9 +1405,8 @@ begin
           pPacket.seek(1);
           Z := pPacket.getShort;
           HeadWord := pPacket.getShort;
-          pPacket.seek(2);
+          pPacket.seek(4);
           Realm := TDAOCRealm(pPacket.getByte);
-          pPacket.seek(2);
           Level := pPacket.getByte;
           pPacket.seek(2);
           Name := pPacket.getPascalString;
@@ -1944,10 +1949,6 @@ begin
     exit;
   end;
 
-{$IFDEF GLOBAL_TICK_COUNTER}
-  UpdateGlobalTickCount;
-{$ENDIF GLOBAL_TICK_COUNTER}
-
     { DataLen is the (declared UDP total len) - (UDP Header len) }
   iDataLen := wUDPDatagramLen - (sizeof(TUDPHeader) - sizeof(TIPHeader));
   pPayloadDataPtr := Pointer(Cardinal(ASegment.Data) + sizeof(TUDPHeader));
@@ -1986,6 +1987,10 @@ end;
 
 procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TDAOCPacket);
 begin
+{$IFDEF GLOBAL_TICK_COUNTER}
+  UpdateGlobalTickCount;
+{$ENDIF GLOBAL_TICK_COUNTER}
+
   if not FActive then begin
     FActive := true;
     FCryptKeySet := false;
@@ -2012,6 +2017,8 @@ begin
 
   if Assigned(FOnAfterPacket) then
     FOnAfterPacket(Self, pPacket);
+
+  CheckScheduledTimeoutCallback;
 end;
 
 procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TDAOCPacket);
@@ -2875,7 +2882,7 @@ begin
 
   if Assigned(pZoneBase) then begin
     AObj.X := pZoneBase.ZoneToWorldX(AObj.X);
-    AObj.Y := pZoneBase.ZoneToWorldX(AObj.Y);
+    AObj.Y := pZoneBase.ZoneToWorldY(AObj.Y);
   end;
 end;
 
