@@ -1,5 +1,15 @@
 unit DAOCObjs;
 
+(****************************************************************************
+**
+** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation.
+**
+****************************************************************************)
+
 interface
 
 uses
@@ -1070,25 +1080,25 @@ begin
   case FRealm of
     drAlbion:
       begin
-        if FLastName = 'Guardian' then
+        if (FLastName = 'Guardian') or (FLastName = 'Wächter') then
           FRealmRank := rr1
-        else if FLastName = 'Warder' then
+        else if (FLastName = 'Warder') or (FLastName = 'Bewahrer') then
           FRealmRank := rr2
         else if FLastName = 'Myrmidon' then
           FRealmRank := rr3
-        else if FLastName = 'Gryphon Knight' then
+        else if (FLastName = 'Gryphon Knight') or (FLastName = 'Greifenritter') then
           FRealmRank := rr4
-        else if FLastName = 'Eagle Knight' then
+        else if (FLastName = 'Eagle Knight') or (FLastName = 'Adlerritter') then
           FRealmRank := rr5
-        else if FLastName = 'Phoenix Knight' then
+        else if (FLastName = 'Phoenix Knight') or (FLastName = 'Phönixritter') then
           FRealmRank := rr6
-        else if FLastName = 'Alerion Knight' then
+        else if (FLastName = 'Alerion Knight') or (FLastName = 'Alerionritter') then
           FRealmRank := rr7
-        else if FLastName = 'Unicorn Knight' then
+        else if (FLastName = 'Unicorn Knight') or (FLastName = 'Einhornritter') then
           FRealmRank := rr8
-        else if FLastName = 'Lion Knight' then
+        else if (FLastName = 'Lion Knight') or (FLastName = 'Löwenritter') then
           FRealmRank := rr9
-        else if FLastName = 'Dragon Knight' then
+        else if (FLastName = 'Dragon Knight') or (FLastName = 'Drachenritter') then
           FRealmRank := rr10
         else
           FRealmRank := rrUnknown;
@@ -1122,25 +1132,25 @@ begin
 
     drHibernia:
       begin
-        if FLastName = 'Savant' then
+        if (FLastName = 'Savant') or (FLastName = 'Weiser') then
           FRealmRank := rr1
         else if FLastName = 'Cosantoir' then
           FRealmRank := rr2
         else if FLastName = 'Brehon' then
           FRealmRank := rr3
-        else if FLastName = 'Grove Protector' then
+        else if (FLastName = 'Grove Protector') or (FLastName = 'Forstbewahrer') then
           FRealmRank := rr4
-        else if FLastName = 'Raven Ardent' then
+        else if (FLastName = 'Raven Ardent') or (FLastName = 'Rabenjünger') then
           FRealmRank := rr5
-        else if FLastName = 'Silver Hand' then
+        else if (FLastName = 'Silver Hand') or (FLastName = 'Silberhand') then
           FRealmRank := rr6
-        else if FLastName = 'Thunderer' then
+        else if (FLastName = 'Thunderer') or (FLastName = 'Donnerer') then
           FRealmRank := rr7
-        else if FLastName = 'Gilded Spear' then
+        else if (FLastName = 'Gilded Spear') or (FLastName = 'Vergoldeter Speer') then
           FRealmRank := rr8
         else if FLastName = 'Tiarna' then
           FRealmRank := rr9
-        else if FLastName = 'Emerald Ridere' then
+        else if (FLastName = 'Emerald Ridere') or (FLastName = 'Smaragdreiter') then
           FRealmRank := rr10
         else
           FRealmRank := rrUnknown;

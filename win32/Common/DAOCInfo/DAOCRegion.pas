@@ -1,5 +1,15 @@
 unit DAOCRegion;
 
+(****************************************************************************
+**
+** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation.
+**
+****************************************************************************)
+
 (****
   Note that a region is a large area and a zone is a subarea of that.
   For example the land of midgard is region 100, then that region is
