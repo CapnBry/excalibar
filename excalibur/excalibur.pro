@@ -1,13 +1,29 @@
-SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp \
-  exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp \
-  exMapInfo.cpp main.cpp quickmath.c exConSystem.c
-HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h \
-  exMap.h exMessage.h exConSystem.h
+SOURCES	+= exMob.cpp \
+	exMap.cpp \
+	exLink.cpp \
+	exLineSimplify.cpp \
+	exPrefs.cpp \
+	exSniffer.cpp \
+	exPacket.cpp \
+	exConnection.cpp \
+	exMapInfo.cpp \
+	exXP.cpp \
+	main.cpp \
+	quickmath.c \
+	exConSystem.c
+HEADERS	+= exPrefs.h \
+	exSniffer.h \
+	exConnection.h \
+	exLink.h \
+	exPacket.h \
+	exMap.h \
+	exXP.h \
+	exMessage.h \
+	exConSystem.h
 
-# SOURCES += exMessage.cpp
-# HEADERS += messages.ui.h
-# FORMS   += messages.ui
-#
+#SOURCES += exMessage.cpp
+#HEADERS += messages.ui.h
+# #
 # Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
 #
 # Portions of this software are based on the work of Slicer/Hackersquest.
@@ -34,13 +50,6 @@ unix {
 }
 
 QMAKE_CXXFLAGS  += -include excalibur.h
-FORMS	        = formexcalibur.ui prefsdialog.ui
-TEMPLATE	= app
-CONFIG	        += qt warn_on release thread opengl network
-INCLUDEPATH	+= /usr/include/pcap/
-LIBS	        += -lpcap -lglut -lGLU -lXi
-DBFILE	        = excalibur.db
-LANGUAGE	= C++
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -mcpu=pentium -march=pentium \
@@ -49,3 +58,14 @@ QMAKE_CXXFLAGS_RELEASE += -O3 -mcpu=pentium -march=pentium \
 # QMAKE_CXXFLAGS_RELEASE -= -fomit-frame-pointer 
 # QMAKE_LFLAGS    += -pg -g -a
 # QMAKE_CXXFLAGS  += -pg -g -a
+FORMS	= messages.ui \
+	prefsdialog.ui \
+	formexcalibur.ui
+FORMS	= messages.ui \
+	prefsdialog.ui \
+	formexcalibur.ui
+TEMPLATE	=app
+CONFIG	+= qt warn_on release thread opengl network
+INCLUDEPATH	+= /usr/include/pcap/
+LIBS	+= -lpcap -lglut -lGLU -lXi
+LANGUAGE	= C++
