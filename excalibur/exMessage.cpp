@@ -41,6 +41,7 @@ void exMessage::parseMsg()
 	QRegExp rxTell( ".*send[s]?\\,\\ \\\".*");
 	QRegExp rxBCast( ".*\\*\\*.*\\*\\*$");
 	QRegExp rxSay( ".*say[s]?\\,\\ \\\".*");
+	QRegExp rxPML( "^The\\ .*\\ drops\\ [A-Z]+.*");
 	int p;
 
 	if( -1 != rxGuild.search( Msg))
@@ -116,6 +117,13 @@ void exMessage::parseMsg()
             this->Sender == "You" ? " say " : " says ";
         this->FormattedText += this->MsgText;
         }
+    else if( -1 != rxPML.search( Msg))
+		{
+		this->MsgType = "PML";
+		this->Sender = "None";
+		this->MsgText = this->Msg.mid( 2, this->Msg.length());
+		this->FormattedText = this->MsgText;
+		}
 
 	if( this->MsgText)
 		printf("[%s] %s\n", 
