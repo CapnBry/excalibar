@@ -1325,16 +1325,20 @@ end;
 procedure TfrmMain.PIPEData(ASender: TObject; AData: Pointer;
   ADataLen: integer);
 var
-  wDataSize:    WORD;
+  wDataSize:      WORD;
   bIPType:      BYTE;
-  pData:      PChar;
+  pData:        PChar;
 begin
   // Log('PipeData: ' + IntToStr(ADataLen) + ' bytes');
   pData := AData;
-  while ADataLen >= 3 do begin
+  while ADataLen >= 8 do begin
     wDataSize := PWORD(pData)^;
     dec(ADataLen, 2);
     inc(pData, 2);
+
+    FPacket.ConnectionID := PCardinal(pData)^;
+    dec(ADataLen, 4);
+    inc(pData, 4);
 
     bIPType := PBYTE(pData)^;
     dec(ADataLen);
@@ -1410,6 +1414,7 @@ end;
 procedure TfrmMain.PIPEConnected(ASender: TObject);
 begin
   Log('Pipe to client connected');
+  FConnection.WatchedConnectionID := 0;
 end;
 
 procedure TfrmMain.PIPEDisconnected(ASender: TObject);
