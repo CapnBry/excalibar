@@ -480,9 +480,10 @@ void exMap::paintGL() {
           (prefs.map_rasterize_player_names && !m->isMobOrObj()))
           drawMobName(m);
 
-      m->checkStale();
       glPopMatrix();
     }  // if isCurrent
+
+    m->checkStale();
   }  // for mobs
 
   m=mobs.find((void *)c->selectedid);
