@@ -73,8 +73,6 @@ private:
     Realm realm;
     QPtrDict<exInventoryItem> inventory;
     playerClass playerclass;
-    QColor lastconcolor;
-    unsigned int lastconcolortolevel;
     exTimeType lastDist2DL1Ticks;
     unsigned int lastDist2DL1;
 

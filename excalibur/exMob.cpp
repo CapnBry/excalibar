@@ -58,8 +58,6 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   speed=0;
   stealth = 0;
   c=con;
-  lastconcolor = gray;
-  lastconcolortolevel = 0;
   lastDist2DL1Ticks = 0;
   lastDist2DL1 = 0;
 
