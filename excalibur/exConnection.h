@@ -79,6 +79,7 @@ protected:
   bool writecapture;
   bool m_bMapCancel;
 
+  void parseCraftingTimer(exPacket *p)
   void parseSetGroundTarget(exPacket *p);
   void parsePlayerInventoryChange(exPacket *p);
   void parseObjectEquipment(exPacket *p);

@@ -371,7 +371,9 @@ void exConnection::processPacket(exPacket * p)
           case 0x44:
               parseSetGroundTarget(p);
               break;
-          default:
+          case 0x45: /* request crafting begin */
+              break;
+        default:
 	      if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
 	      break;
@@ -409,6 +411,8 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x55:
               parseCharacterInfoList(p);
               break;
+          case 0x5b: /* Crafting timer */
+              parseCraftingTimer(p);
 	  case 0x88:
 	      selfid = id = p->getShort();
 	      p->seek(2);
@@ -638,6 +642,29 @@ END_EXPERIMENTAL_CODE
 		  dumpPacket(command, p);	
 	      break;
 	}
+    }
+}
+
+void exConnection::parseCraftingTimer(exPacket *p)
+{
+    int time_count;
+    QString product;
+
+    if ( prefs.crafting_alerts )
+    {
+        time_count = p->getShort();
+        p->seek(2);
+        product = p->getNullString();
+
+        if ( time_count > 0 )
+        {
+            printf( "Crafting timer begin (%i secs): %s\n",
+                    time_count, product.ascii() );
+        }
+        else
+        {
+            printf( "Crafting finished.\007\n" );
+        }
     }
 }
 
