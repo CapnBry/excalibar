@@ -85,6 +85,8 @@ public:
   bool exclude_local;
   bool vader_warn;
   bool render_objects;
+  bool render_dead;
+  bool crafting_alerts;
 
   int win_width;
   int win_height;
