@@ -50,6 +50,7 @@ type
     procedure SetAutoAdvance(const Value: boolean);
     procedure SetProfile(const Value: string);
     procedure UpdateCurrentSkillLevel;
+    function MBuyQuantity(ACountNeeded, AVendorQuantity: integer): integer;
   public
     procedure ExecutePurchases;
     procedure SelectItemForSkill;
@@ -142,7 +143,8 @@ begin
     pnlLoading.Visible := true;
     pnlLoading.Update;
     try
-      FPSItemList.LoadFromFile('.\' + edtProfile.Text + '.ini', FDControl.TradeRecipes);
+      FPSItemList.LoadFromFile(ExtractFilePath(ParamStr(0)) + edtProfile.Text +
+        '.ini', FDControl.TradeRecipes);
     finally
       pnlLoading.Visible := false;
     end;
@@ -168,17 +170,31 @@ begin
     Result := nil;
 end;
 
+function TfrmPowerSkill.MBuyQuantity(ACountNeeded, AVendorQuantity: integer) : integer;
+begin
+  if ACountNeeded = 0 then
+    Result := 0
+  else
+    Result := (ACountNeeded + AVendorQuantity - 1) div AVendorQuantity;
+    
+    { can only buy 100 at a time }
+  if Result > 100 then
+    Result := 100;
+end;
+
 procedure TfrmPowerskill.ExecutePurchases;
 var
   I:      integer;
   pItem:  TPowerSkillItemDef;
+  iMBuyQuantity:  integer;
+  bShouldMBuy:    boolean;
   iCountNeeded:   integer;
   iCountHeld:     integer;
   pVendorWnd:   TVendorWindow;
   pVendorItem:  TDAOCVendorItem;
 begin
   FKeepBuying := true;
-  
+
   if chkAutoAdvance.Checked then
     SelectItemForSkill;
 
@@ -196,17 +212,30 @@ begin
         dec(iCountNeeded, iCountHeld);
 
         if iCountNeeded > 0 then begin
+          iMBuyQuantity := MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
+          bShouldMBuy := FPSItemList.UseMBuy and (iMBuyQuantity > 1);
+
           pVendorWnd.SetPage(pVendorItem.Page, true);
           sleep(500);
           pVendorWnd.SelectItem(pVendorItem.Position);
           sleep(500);
-          pVendorWnd.SelectItem(pVendorItem.Position);
+
           while (iCountNeeded > 0) and FKeepBuying do begin
-            pVendorWnd.Buy;
-            dec(iCountNeeded, pVendorItem.Quantity);
+            if bShouldMBuy then begin
+              pVendorWnd.BuyMultiple(iMBuyQuantity);
+              dec(iCountNeeded, iMBuyQuantity * pVendorItem.Quantity);
+              iMBuyQuantity := MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
+              sleep(500);
+            end
+
+            else begin
+              pVendorWnd.Buy;
+              dec(iCountNeeded, pVendorItem.Quantity);
+              sleep(250);
+            end;
+
             Application.ProcessMessages;  // This may cause us to be re-entrant
                                           // Since the packet capture is still running
-            sleep(250);
           end;
         end;  { if countneeded > 0 }
       end  { if vendor has item }
