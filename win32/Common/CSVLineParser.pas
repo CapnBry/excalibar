@@ -16,6 +16,7 @@ type
     procedure SetDataString(const Value: string);
     procedure SetDelimiter(const Value: char);
     function GetFields(I: integer): string;
+    function GetFieldCount: integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -24,6 +25,7 @@ type
     
     property Delimiter: char read FDelimiter write SetDelimiter;
     property DataString: string read FDataString write SetDataString;
+    property FieldCount: integer read GetFieldCount;
     property Fields[I: integer]: string read GetFields; default;
   end;
 
@@ -46,6 +48,11 @@ end;
 function TCSVLineParser.FieldAsInt(AFldNum, ADefault: integer): integer;
 begin
   Result := StrToIntDef(Trim(FFields[AFldNum]), ADefault);
+end;
+
+function TCSVLineParser.GetFieldCount: integer;
+begin
+  Result := FFields.Count;
 end;
 
 function TCSVLineParser.GetFields(I: integer): string;
