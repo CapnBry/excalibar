@@ -204,14 +204,14 @@ bool ShareNetManager::MaintainClients(MultiWaitSignal& signals)
     if(wait_result.first != NULL)
         {
         // at least 1 is set, and process it
-        // we do NOT need to reset the signal -- 
-        // the signals are built from the Client's input buffer,
-        // the signal will be reset when we extract the data
         //std::cout << "[ShareNetManager::MaintainClients] got data from Clients[" << wait_result.second << "]\n";
         
         // see how big it needs to be
         unsigned short sz=0;
         unsigned char data[TempBufferSize];
+        
+        // lock client's buffer
+        Clients[wait_result.second].ModifyInputBuffer().Lock();
         
         // peek for size
         if(Clients[wait_result.second].ModifyInputBuffer().Peek(&sz,sizeof(sz)))
@@ -247,7 +247,17 @@ bool ShareNetManager::MaintainClients(MultiWaitSignal& signals)
                     //std::cout << &data[2] << std::endl;
                     } // end else not a ping
                 } // end if we have an entire message available
+            else
+                {
+                // reset the data signal if we need more
+                // data. The signal will be set again when more data
+                // arrives
+                Clients[wait_result.second].ModifyInputBuffer().GetSignalReference().reset();
+                } // end else we don't have an entire message available
             } // end if we got a size
+        
+        // unlock buffer
+        Clients[wait_result.second].ModifyInputBuffer().Unlock();
         return(true);
         } // end if at least 1 signal was set
     else
@@ -280,6 +290,8 @@ VOID CALLBACK ShareNetClientData::ReadCompletionRoutine
         return;
         }
     
+    //std::cout << "[ShareNetClientData::ReadCompletionRoutine] got " 
+              //<< dwNumberOfBytesTransfered << " bytes" << std::endl;
     // we got some data,
     // maintain the statistics and put it on the input buffer
     pMe->IntervalBytes += dwNumberOfBytesTransfered;
@@ -362,6 +374,9 @@ bool ShareNetClientData::DoInputMaintenance(void)
 
 DWORD ShareNetClientData::Run(const bool& bContinue)
 {
+    // init to now
+    SetLastPingTime(::Clock.Current());
+    
     while(bContinue)
         {
         while(!IsInUse() && bContinue)

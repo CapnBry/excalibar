@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib ws2_32.lib version.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\Cheyenne\Cheyenne_exe\ShareServer.exe"
+				OutputFile="..\Cheyenne_exe\ShareServer.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
@@ -104,7 +104,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib ws2_32.lib version.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\Cheyenne\Cheyenne_exe\ShareServer.exe"
+				OutputFile="..\Cheyenne_exe\ShareServer.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/ShareServer.pdb"

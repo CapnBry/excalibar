@@ -144,7 +144,7 @@ bool Central::Init(void)
     ShowWindow(hMainWnd,SW_SHOW);
     UpdateWindow(hMainWnd);
 
-    MoveWindow(hMainWnd,0,0,800,600,TRUE);
+    MoveWindow(hMainWnd,0,0,320,200,TRUE);
 
     return(true);
 } // end Init

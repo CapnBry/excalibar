@@ -68,6 +68,9 @@ public:
     EventSignal* GetSignalPointer(void)const{return(&signal);};
     EventSignal& GetSignalReference(void)const{return(signal);};
 
+    bool Lock(void){return(l.lock());};
+    bool Unlock(void){return(l.unlock());};
+
 protected:
 
 private:
