@@ -179,6 +179,20 @@ type
     property FOVy: integer read FFOVy write FFOVy; // degrees!
   end;
 
+  TGLBoat = class(TGLCallListObject)
+  private
+    FSize: integer;
+    FAlpha: GLfloat;
+    procedure SetSize(const Value: integer);
+  public
+    constructor Create; override;
+    procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
+
+    property Size: integer read FSize write SetSize;
+    property Alpha: GLfloat read FAlpha write FAlpha;  // only for boat not sail
+  end;
+
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
 function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
@@ -783,6 +797,81 @@ begin
   inherited;
 
   glPopAttrib();
+end;
+
+{ TGLBoat }
+
+constructor TGLBoat.Create;
+begin
+  inherited;
+  FSize := 150;
+  FColor := $336699;
+  FAlpha := 1;
+
+    { we need to do our own alpha so don't use color }
+  FUseColor := false;
+end;
+
+procedure TGLBoat.GLInitialize;
+var
+  l:    GLfloat;
+begin
+  inherited;
+
+  l := FSize;
+
+  glNewList(FGLList, GL_COMPILE);
+      { the basis of the boat is a flat [ ]>  (pointing up though) }
+    glBegin(GL_TRIANGLE_FAN);
+      glNormal3f(0, 0, 1);
+      glVertex3f(0, 0, 0);  // center
+      glVertex3f(-l, -l, 0);
+      glVertex3f(-l, 2 * l, 0);
+      glVertex3f(0, 3 * l, 0);  // top
+      glVertex3f(l, 2 * l, 0);
+      glVertex3f(l, -l, 0);
+      glVertex3f(-l, -l, 0);
+    glEnd();
+
+      { then we put an inverted version inside with some normals to make
+        it look spiffy }
+    glBegin(GL_TRIANGLE_FAN);
+      glNormal3f(0, 0, 1);
+      glVertex3f(0, 0, 0);  // center
+      glNormal3f(1, 0, 1);
+      glVertex3f(-0.8 * l, -0.8 * l, 0);
+      glVertex3f(-0.8 * l, 1.8 * l, 0);
+      glNormal3f(1, -1, 1);
+      glVertex3f(0, 2.8 * l, 0);  // top
+      glNormal3f(-1, -1, 1);
+      glVertex3f(0.8 * l, 1.8 * l, 0);
+      glNormal3f(-1, 0, 1);
+      glVertex3f(0.8 * l, -0.8 * l, 0);
+      glNormal3f(0, -1, 1);
+      glVertex3f(-0.8 * l, -0.8 * l, 0);
+    glEnd();
+
+      { now add a little sail like /  \  }
+    glColor3f(1, 1, 1);
+    glBegin(GL_QUADS);
+      glNormal3f(0, 1, 1);
+      glVertex3f(-1.5 * l, 0, 0);
+      glVertex3f(-l, l, 0);
+      glVertex3f(l, l, 0);
+      glVertex3f(1.5 * l, 0, 0);
+    glEnd();
+  glEndList();
+end;
+
+procedure TGLBoat.GLRender(const ARenderBounds: TRect);
+begin
+  SetGLColorFromTColor(FColor, FAlpha);
+  inherited;
+end;
+
+procedure TGLBoat.SetSize(const Value: integer);
+begin
+  FSize := Value;
 end;
 
 end.
