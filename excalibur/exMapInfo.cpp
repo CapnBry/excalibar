@@ -64,8 +64,11 @@ bool exMapInfo::adjoin(int nregion, int xbase, int ybase, int xmax, int ymax) {
   return (false);
 }
 
-QString exMapInfo::getName() const {
-  return fileName;
+QString exMapInfo::getName() {
+  if (*fileName == 0x0 || fileName.length() <= 4)
+    return "UNKNOWN";
+  else
+    return fileName;
 }
 
 int exMapInfo::getBaseX() const {
@@ -84,13 +87,19 @@ int exMapInfo::getZoneNum() const {
   return zone;
 }
 
-QString exMapInfo::getZoneName() const {
-  QString temp(fileName);
-  temp.replace(QRegExp("_"), " ");
-  return temp.replace(QRegExp(".map"), "");
+QString exMapInfo::getZoneName() {
+  if (*fileName == 0x0 || fileName.length() <= 4)
+    return "UNKNOWN";
+  else
+    return (QString(fileName).replace(QRegExp("_"), " ").replace(QRegExp(".map"), "")).ascii();
 }
 
-exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck = -1) const {
+exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck = -1) {
+  if (&maps == NULL || maps.isEmpty() || &region == NULL) {
+    Q_ASSERT (true);
+    return NULL;
+  }
+
   exMapInfoList *mil;
   exMapInfo *mi;
   mil=maps.find((void *)region);
@@ -130,6 +139,9 @@ void exMapInfo::setup(QString infofile) {
   int zt;
   QString fname;
   int zn;
+
+  if (&maps == NULL)
+    Q_ASSERT(true);
 
   maps.setAutoDelete(TRUE);
   maps.clear();
@@ -184,7 +196,7 @@ void exMapInfo::setup(QString infofile) {
       continue;
     }
 
-    mi=new exMapInfo(nregion,bx,by,mx,my,zt,fname,zn);    
+    mi=new exMapInfo(nregion,bx,by,mx,my,zt,fname,zn);
 
     mil=maps.find((void *)nregion);
     if (! mil) {

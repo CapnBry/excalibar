@@ -45,13 +45,13 @@ class exMapInfo {
     exMapInfo(int nregion, int bx, int by, int mx, int my, int type, QString fname, int nzone);
     bool right(int nregion, int x, int y);
     bool adjoin(int nregion, int xbase, int ybase, int xmax, int ymax);
-    QString getName() const;
+    QString getName();
     int getBaseX() const;
     int getBaseY() const;
     int getZoneType() const;
     int getZoneNum() const;
-    QString getZoneName() const;
-    exMapInfo *getAdjacentZones (int iZoneCheck = -1) const;
+    QString getZoneName();
+    exMapInfo *getAdjacentZones (int iZoneCheck = -1);
     static void setup(QString infofile);
     static exMapInfo *get(int region, int x, int y);
 };

@@ -154,6 +154,9 @@ QString exMob::text(int column) const {
 }
 
 void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align) {
+  if (p == NULL)
+    return;
+
   QColorGroup cols(cg);
   QColor clr;
 

@@ -26,6 +26,9 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <qpixmap.h>
+#include <qpushbutton.h>
+#include <qprogressbar.h>
+#include <qlabel.h>
 #include <qaction.h>
 #include <qinputdialog.h>
 #include <qregexp.h>
@@ -74,13 +77,19 @@ void exMap::dirty() {
 }
 
 void exMap::setConnection(exConnection *nc) {
-  c=nc;
+  c = nc;
+
+  c->ex->MapStatus->setText("");
+  c->ex->MapProgress->setProgress(0);
+  c->ex->MapStatus->hide();
+  c->ex->MapProgress->hide();
+  c->ex->MapCancel->hide();
 }
 
 void exMap::setMap(exMapInfo *m) {
   if (mi)
     delete mi;
- 
+
   mi=m;
   map_load=true;
 }
@@ -287,35 +296,18 @@ void exMap::resizeGL(int w, int h) {
   GLint miny = (c->playery - range + edit_yofs);
   GLint maxy = (c->playery + range + edit_yofs);
 
-/*  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  GLdouble aspect = (GLdouble) w / h;
-
-  if ( aspect < 1.0 ) { // Taller
-    miny /= aspect;
-    maxy /= aspect;
-  } else {
-    minx *= aspect;
-    maxx *= aspect;
-  }
-
-  glOrtho(minx, maxx, miny, maxy, 0, 25000);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity(); */
-  
   GLdouble AspectRatio = (GLdouble)((maxx - minx) / (maxy - miny));
 
   if (AspectRatio > (w / h)) {            // Taller
-    int iTemp = (int)(h - (w / AspectRatio));
+    int iTemp = (int)(h - (int)(w / AspectRatio));
     w += iTemp;
     h += iTemp;
-    glViewport(0,0,  w,(int)w / AspectRatio);
+    glViewport(0,0,  w,(int)(w / AspectRatio));
   } if (AspectRatio < (w / h)) {          // Wider
     int iTemp = (int)(w - (h * AspectRatio));
     h += iTemp;
     w += iTemp;
-    glViewport(0,0,  (int)h * AspectRatio, h);
+    glViewport(0,0,  (int)(h * AspectRatio), h);
   }
 }
 
@@ -657,6 +649,8 @@ void exMap::paintGL() {
     glPopMatrix();
   }
 
+  glColor3f(1.0,1.0,1.0);
+
   m=mobs.find((void *)c->selectedid);
   if (m && m->isCurrent()) {
     glColor3f(1.0, 1.0, 1.0);
@@ -679,7 +673,7 @@ void exMap::paintGL() {
   if ((exTick - _last_fps) >= 1000) {
 
     if (frames > 0) {
-      if (((int)fps / frames) >= 250)
+      if (((int)fps / frames) >= 333)
         c->ex->FPS->setText("??? FPS");
        else
          c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
@@ -1247,6 +1241,9 @@ void exMapElementLine::draw(exMap *map) {
 }
 
 void exMap::loadVectorMap (const exMapInfo *mi) {
+  if (mi == NULL)
+    return;
+
   QString line;
   QString cmd;
   QString color;
@@ -1261,14 +1258,31 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
   xadd=mi->getBaseX();
   yadd=mi->getBaseY();
 
+
+  /* Not sure what the issue here is.. Something isn't thread safe!!! */
+
+  const char* chName;
+  try {
+    chName = ((exMapInfo*)mi)->getName().latin1();
+
+    if (chName == NULL || sizeof(chName) <= 4) {
+      Q_ASSERT(chName == NULL || sizeof(chName) <= 4);
+      return;
+    }
+  } catch (...) {
+    qWarning("Error:\texMapInfo == NULL!");
+    return;
+  }
+
+
   QFile f;
-  f.setName(QString("usermaps/").append(mi->getName()));
+  f.setName(QString("usermaps/").append(chName));
 
   if (! f.open(IO_ReadOnly)) {
-    f.setName(QString("maps/").append(mi->getName()));
+    f.setName(QString("maps/").append(chName));
 
     if (! f.open(IO_ReadOnly)) {
-      qWarning("Failed to open map named %s",(const char *) mi->getName());
+      qWarning("Failed to open map named %s",chName);
       elem = new exMapElementPoint();
       elem->fromString("NO MAP LOADED", xadd, yadd);
       map.append(elem);
@@ -1308,7 +1322,7 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
         }
 
         if (! ok) {
-          qWarning("\nSub-Element: %d\n>>   %s\n>>>  %s\n>>>> was not accepted.\n", i, (const char*)line.left(line.length() -1), (const char *) mi->getName()); 
+          qWarning("\nSub-Element: %d\n>>   %s\n>>>  %s\n>>>> was not accepted.\n", i, (const char*)line.left(line.length() -1), chName); 
           if (elem)
             delete elem;
         }
@@ -1336,8 +1350,6 @@ BeginMapLoaderThread:
   setpriority(PRIO_PROCESS, getpid(), 7);
 #endif
 
-  parent->m_bNeedMapReload = false;
-
   if (parent == NULL) {
     m_bGhettoMutex = false;
     return;
@@ -1346,15 +1358,15 @@ BeginMapLoaderThread:
   else
     m_bGhettoMutex = true;
 
-  if (empldProgress.running())
-    empldProgress.pdProgress.setProgress(0);
+  parent->m_bNeedMapReload = false;
+  parent->c->resetMap();
 
   parent->map.clear();
 
   exMapInfo *mi;
-
   mi = parent->mi->getAdjacentZones(-1);
-  for  (int i = -1; i < 300 && mi && m_bGhettoMutex && !parent->m_bNeedMapReload; mi = parent->mi->getAdjacentZones(i)) {
+
+  for  (int i = -1; i < 300 && mi && m_bGhettoMutex && parent && !parent->m_bNeedMapReload; mi = parent->mi->getAdjacentZones(i)) {
     if (i != -1 && parent->mi->getZoneNum() == mi->getZoneNum())
       mi = parent->mi->getAdjacentZones(mi->getZoneNum());
 
@@ -1378,7 +1390,7 @@ BEGIN_EXPERIMENTAL_CODE
     printf("Loading Adjacent Zone:\t(ID - %3d)\n", mi->getZoneNum());
 END_EXPERIMENTAL_CODE
 
-    if (empldProgress.running() && empldProgress.pdProgress.wasCancelled()) {
+    if (parent->c->checkMap()) {
       m_bGhettoMutex = false;
       break;
     }
@@ -1387,11 +1399,7 @@ END_EXPERIMENTAL_CODE
 
     if (prefs.map_load_png_maps && fimg.exists()) {
 
-      if (! empldProgress.running())
-        empldProgress.start();
-
-      if (empldProgress.running())
-        qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi)); 
+      qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_INFO, mi));
 
       QImage img;
 
@@ -1408,11 +1416,11 @@ END_EXPERIMENTAL_CODE
         for(   int y = 0; y < 8 && m_bGhettoMutex && !parent->m_bNeedMapReload; y++ ) {
           for( int x = 0; x < 8 && m_bGhettoMutex && !parent->m_bNeedMapReload; x++ ) {
 
-            if (empldProgress.running())
-              qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
+            qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
 
-            struct PNGCallback *pc;
-            pc = new struct PNGCallback;
+           struct PNGCallback *pc;
+           pc = new struct PNGCallback;
+
 
             pc->a   = x * 8192 + xadd;
             pc->b   = y * 8192 + yadd;
@@ -1426,7 +1434,7 @@ END_EXPERIMENTAL_CODE
             if (parent != NULL)
               qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
 
-            if (empldProgress.running() && empldProgress.pdProgress.wasCancelled())
+            if (parent->c->checkMap())
               m_bGhettoMutex = false;
           }
         }
@@ -1445,20 +1453,18 @@ END_EXPERIMENTAL_CODE
     else
       i = 300;
 
-    if (empldProgress.running())
-      qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
+    qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
 
     if (! prefs.map_load_adjacent_zones)
       return;
   }
 
-  if (empldProgress.running() && empldProgress.pdProgress.wasCancelled()) {
+  if (parent->c->checkMap()) {
     m_bGhettoMutex = false;
     printf("NOTE:\tThe PNG Loader has been cancelled at the request of the user.\n");
   }
 
-  if (empldProgress.running())
-    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
+  qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
 
   if (parent->m_bNeedMapReload)
     goto BeginMapLoaderThread;
@@ -1477,8 +1483,40 @@ bool exMap::event (QEvent *e)
     }
 
     if (! MapLoader.running()) {
-      if (MapLoader.empldProgress.running())
-        qApp->postEvent(&MapLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+      qApp->postEvent(this,new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    }
+
+    return true;
+  }
+  else if (e->type() == CALLBACK_PNG_INFO) {
+    QCustomEvent *PNGEvent = (QCustomEvent*) e;
+
+    if (! c->ex->MapStatus->isVisible())
+    {
+      c->ex->MapStatus->show();
+      c->ex->MapProgress->show();
+      c->ex->MapCancel->show();
+    }
+
+    c->ex->MapProgress->setTotalSteps(64);
+    c->ex->MapStatus->setText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().latin1()));
+    c->ex->MapProgress->setProgress(0);
+    
+    return true;
+  }
+  if (e->type() == CALLBACK_PNG_STAT) {
+    QCustomEvent *PNGEvent = (QCustomEvent*) e;
+    c->ex->MapProgress->setProgress((int)PNGEvent->data());
+    return true;
+  }
+  else if (e->type() == CALLBACK_PNG_FNSH) {
+    c->ex->MapStatus->setText("");
+    c->ex->MapProgress->setProgress(0);
+
+    if (c->ex->MapStatus->isVisible()) {
+      c->ex->MapStatus->hide();
+      c->ex->MapProgress->hide();
+      c->ex->MapCancel->hide();
     }
 
     return true;
@@ -1507,55 +1545,7 @@ bool exMapLoader::event (QEvent *e)
 void exMapLoader::abort (void)
 {
   m_bGhettoMutex = false;
-  if (empldProgress.running())
-    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+
+  if (parent != NULL)
+    qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
 }
-
-exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
-{
-  pdProgress.setCancelButtonText ("Abort PNG load");
-  pdProgress.setTotalSteps       (64);
-
-  pdProgress.setAutoReset        (false);
-  pdProgress.setAutoClose        (true);
-}
-
-exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void) { }
-
-void exMapPNGLoaderDialog::run (void)
-{
-#ifndef _WIN32
-  struct sched_param sp;
-  memset(&sp, 0, sizeof(sp)); 
-  sp.sched_priority=sched_get_priority_min(SCHED_RR) + 1;
-  setpriority(PRIO_PROCESS, getpid(), 15);
-#endif
-
-  while (true)
-    msleep(150);
-}
-
-bool exMapPNGLoaderDialog::event (QEvent *e)
-{
-  if (e->type() == CALLBACK_PNG_STAT) {
-    QCustomEvent *PNGEvent = (QCustomEvent*) e;
-    pdProgress.setProgress((int)PNGEvent->data());
-    return true;
-  }
-  else if (e->type() == CALLBACK_PNG_FNSH) {
-    pdProgress.reset();
-    return true;
-  }
-  else if (e->type() == CALLBACK_PNG_INFO) {
-    QCustomEvent *PNGEvent = (QCustomEvent*) e;
-    pdProgress.setLabelText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().ascii()));
-
-    if (! pdProgress.isVisible())
-      pdProgress.show();
-
-    pdProgress.setProgress(0);
-
-    return true;
-  }
-  return false;
-} 

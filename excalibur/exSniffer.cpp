@@ -46,6 +46,9 @@
 #include <sys/resource.h>
 #endif
 
+#ifndef __FreeBSD__
+#define INTERFACE "any"
+#endif
 
 /*
  * Important notes for would be hackers :)
@@ -263,11 +266,8 @@ void exSniffer::run() {
   }
 #endif
 
-#ifdef __FreeBSD__  
-  pcap=pcap_open_live(INTERFACE, 2000, 0x0100, 250, buff);
-#else
-  pcap=pcap_open_live("any", 2000, 0x100, 250, buff);
-#endif
+  pcap=pcap_open_live((char*)INTERFACE, 2000, 0x0100, 250, buff);
+
   if (!pcap) {
     qFatal(QString("pcap failed open: %1").arg(buff));
     return;

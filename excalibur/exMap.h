@@ -26,7 +26,6 @@
 #include <qobject.h>
 #include <qimage.h>
 #include <qevent.h>
-#include <qprogressdialog.h>
 #include "exConnection.h"
 #include "exMapInfo.h"
 
@@ -124,19 +123,6 @@ class exMapElementLine : public exMapElement {
     bool visible(QRect &r);        
 };
 
-class exMapPNGLoaderDialog : public QObject, public QThread {
-Q_OBJECT
-public:
-        exMapPNGLoaderDialog  (void);
-        ~exMapPNGLoaderDialog (void);
-
-	virtual void run (void);
-        virtual bool event (QEvent *e);
-protected:
-	friend class exMapLoader;
-        QProgressDialog pdProgress;
-};
-
 class exMapLoader : public QObject, public QThread {
 Q_OBJECT
 public:
@@ -150,7 +136,6 @@ public:
 
 	void abort (void);
 
-	exMapPNGLoaderDialog empldProgress;
 protected:
 	bool m_bGhettoMutex;
         exMap *parent;

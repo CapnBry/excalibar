@@ -1,3 +1,33 @@
+Andon (07/Mar/02)
+-----------------
+Changes:
+ + The Map Loader progress indicator has been
+   moved to the status bar to conserve valued
+   window space...
+
+Bug Fixes:
+ + Several SEGV potentials have been fixed...
+ + Thread safety has been improved slightly.
+ + Some legacy code has been removed.
+
+
+NOTES:
+       The 1.2 series will be wrapping up soon
+       to make way for 1.3.0! 1.3.0 is going
+       to add SEVERAL new map features. The
+       more notable features include:
+
+        + FULL 3D Terrain Mapping
+        + FULL S3 Texture Compression support
+        + The ability to capture map screen-
+          shots to .tga files
+        + Group mate player circles
+        + Experience packet decoding
+
+
+ * Version bumped to 1.2.2a
+
+
 Andon (03/Mar/02)
 -----------------
 Changes:
@@ -29,10 +59,10 @@ Changes:
    checks are now printed to stderr with USEFUL
    info!
  + All vector map elements have been given a
-   "safety boost" of 10 meters.. This ought to
-    fix all issues where elements with a Z co-
-    ord close to 0 would intersect with the XY
-    plane when zoomed to an unusal ratio.
+  "safety boost" of 10 meters.. This ought to
+   fix all issues where elements with a Z co-
+   ord close to 0 would intersect with the XY
+   plane when zoomed to an unusal ratio.
 
 Additions:
  + Added SEVERAL new vector maps, derived from

@@ -57,9 +57,6 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->HSplitter->setSizes(sz);
 
     sz.clear();
-    sz.append(vsplit_size1);
-    sz.append(vsplit_size2);
-    frm->VSplitter->setSizes(sz);
 
     frm->Map->range = map_range;  
     frm->GLRulers->setOn(map_rulers);
@@ -207,9 +204,6 @@ void exPrefs::accept() {
     sz=frm->HSplitter->sizes();
     hsplit_size1=sz[0];
     hsplit_size2=sz[1];
-    sz=frm->VSplitter->sizes();
-    vsplit_size1=sz[0];
-    vsplit_size2=sz[1];
     map_range=frm->MapSlider->value();
     map_fade=frm->GLMapFade->isOn();
   }
@@ -226,8 +220,6 @@ void exPrefs::loadSettings() {
   win_height=s.readNumEntry("/Excalibur/MainWindowH",550);
   hsplit_size1=s.readNumEntry("/Excalibur/SplitH1",200);
   hsplit_size2=s.readNumEntry("/Excalibur/SplitH2",550);
-  vsplit_size1=s.readNumEntry("/Excalibur/SplitV1",100);
-  vsplit_size2=s.readNumEntry("/Excalibur/SplitV2",450);
 
   map_simple=s.readBoolEntry("/Excalibur/GLSimpleObjects",TRUE);
   map_maintain_aspect=s.readBoolEntry("/Excalibur/MaintainAspectRatio",FALSE);
@@ -288,8 +280,6 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/MainWindowH",win_height);
   s.writeEntry("/Excalibur/SplitH1",hsplit_size1);
   s.writeEntry("/Excalibur/SplitH2",hsplit_size2);
-  s.writeEntry("/Excalibur/SplitV1",vsplit_size1);
-  s.writeEntry("/Excalibur/SplitV2",vsplit_size2);
   s.writeEntry("/Excalibur/GLSimpleObjects",map_simple);
   s.writeEntry("/Excalibur/MaintainAspectRatio",map_maintain_aspect);
   s.writeEntry("/Excalibur/GLSmoothPoints",gl_smooth_points);

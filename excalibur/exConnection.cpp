@@ -781,3 +781,17 @@ void exConnection::setFilter( QString Filter)
   this->ex->ListViewMobs->repaint();
 }
 
+void exConnection::cancelMap (void)
+{
+  m_bMapCancel = true;
+}
+
+void exConnection::resetMap (void)
+{
+  m_bMapCancel = false;
+}
+
+bool exConnection::checkMap (void)
+{
+  return m_bMapCancel;
+}

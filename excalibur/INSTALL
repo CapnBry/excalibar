@@ -17,7 +17,7 @@ it is, adjust as required.
 
 - Pentium 233Mhz
 - SVGA Graphics card with at least 512 KiB memory, supported by your
-  A recent UNIX release.. (i.e. Linux, Solaris, BSD or IRIX)
+- A recent UNIX release.. (i.e. Linux, Solaris, BSD or IRIX)
 - 64 MB Main Memory
 - 256 MB Virtual Memory
 - 750 MB free HD space (550 of which is for X11 / QT 3.0.1)

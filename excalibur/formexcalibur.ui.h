@@ -32,9 +32,11 @@
 #include <qmessagebox.h>
 #include <qstatusbar.h>
 #include <qlabel.h>
-#include <qlabel.h>
+#include <qpushbutton.h>
+#include <qprogressbar.h>
 #include <qaction.h>
 #include <qcolor.h>
+#include <qframe.h>
 #include "excalibur.h"
 #include "exItem.h"
 #include "exMob.h"
@@ -53,25 +55,46 @@ void FormExcalibur::init()
 {
     prefs.addWindow(this);
 
-    FPS       = new QLabel( statusBar(), "FPS" );
-    Zone      = new QLabel( statusBar(), "Zone" );
-    xyzstatus = new QLabel( statusBar(), "xyzstatus" );
+    FPS         = new QLabel( statusBar(), "FPS" );
+    Zone        = new QLabel( statusBar(), "Zone" );
+    xyzstatus   = new QLabel( statusBar(), "xyzstatus" );
+    MapStatus   = new QLabel( statusBar(), "MapStatus" );
+    MapProgress = new QProgressBar( statusBar(), "MapProgress" );
+    MapCancel   = new QPushButton( "Cancel", statusBar(), "MapCancel" );
 
     xyzstatus->setMinimumWidth(125);
-    xyzstatus->setAlignment(AlignHCenter);
+    xyzstatus->setAlignment(AlignHCenter | AlignVCenter);
     Zone->setMinimumWidth(110);
-    Zone->setAlignment(AlignHCenter);
-    FPS->setMinimumWidth(50);
-    FPS->setAlignment(AlignHCenter);
+    Zone->setAlignment(AlignHCenter | AlignVCenter);
+    FPS->setMinimumWidth(60);
+    FPS->setAlignment(AlignHCenter | AlignVCenter);
+    MapStatus->setMinimumWidth(150);
+    MapStatus->setAlignment(AlignHCenter | AlignVCenter);
+    MapProgress->setMinimumWidth(100);
+    MapCancel->setMinimumWidth(40);
+    
+    connect(MapCancel, SIGNAL(pressed()), this, SLOT(MapCancel_pressed()));
 
-    statusBar()->addWidget(FPS,       0, TRUE);
-    statusBar()->addWidget(Zone,      0, TRUE);
-    statusBar()->addWidget(xyzstatus, 0, TRUE);
+    statusBar()->addWidget(MapStatus  , 0, TRUE);
+    statusBar()->addWidget(MapProgress, 0, TRUE);
+    statusBar()->addWidget(MapCancel,   0, TRUE);
+    statusBar()->addWidget(FPS,         0, TRUE);
+    statusBar()->addWidget(Zone,        0, TRUE);
+    statusBar()->addWidget(xyzstatus,   0, TRUE);
 
 }
 
 void FormExcalibur::destroy()
 {
+    if (MapCancel != NULL)
+        delete MapCancel;
+
+    if (MapProgress != NULL)
+        delete MapProgress;
+    
+    if (MapStatus != NULL)
+        delete MapStatus;
+
     if (FPS != NULL)
         delete FPS;
 
@@ -198,4 +221,13 @@ void FormExcalibur::MobFilter_returnPressed()
 void FormExcalibur::showMsgs( )
 {
     Map->c->msgui->show( );
+}
+
+
+void FormExcalibur::MapCancel_pressed()
+{
+  if( Map->c == NULL)
+    return;
+
+  Map->c->cancelMap();
 }

@@ -67,6 +67,7 @@ protected:
   exPacket *nextpacket;
   exLink *link;
   bool writecapture;
+  bool m_bMapCancel;
 
   void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
@@ -80,6 +81,9 @@ protected:
 public slots:
   void listSelectionChanged(QListViewItem *i);
   void replaytimer();
+  void cancelMap (void);
+  void resetMap  (void);
+  bool checkMap  (void);
 public:
   FormExcalibur *ex;
   exMessagesUi  *msgui;
