@@ -424,14 +424,12 @@ void exMap::paintGL() {
       if( m->isFiltered() && prefs.filter_circles ) {
         glPushMatrix();
 
-        if (prefs.alpha_circles) {
-          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
-
+        if (prefs.alpha_circles && ! prefs.map_simple) {
+          glPushMatrix();
           glEnable     (GL_DEPTH_TEST);
           glDepthFunc  (GL_LEQUAL);
         
-          setGLColor( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
-                      ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255), 0.0f, (int)0.25f );
+          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f); 
 
           if (prefs.alpha_borders) {
             qglColor   (darkRed);
@@ -448,6 +446,7 @@ void exMap::paintGL() {
 
           else
             gluSphere (qoCircle, 500, 32, 32);
+          glPopMatrix();
         }
 
         else {
@@ -462,11 +461,11 @@ void exMap::paintGL() {
       }
 
       /* if the mob is within range, draw an agro circle around it */
-      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))  {
+      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
         glPushMatrix();
 
-        if (prefs.alpha_circles) {
-
+        if (prefs.alpha_circles && ! prefs.map_simple) {
+          glPushMatrix();
           glEnable     (GL_DEPTH_TEST);
           glDepthFunc  (GL_LEQUAL);
 
@@ -493,6 +492,7 @@ void exMap::paintGL() {
 
           else
             gluSphere (qoCircle, 500, 32, 32);
+          glPopMatrix();
         }
 
         else {
