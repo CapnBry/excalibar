@@ -1,3 +1,10 @@
+Teerex (03/Apr/03)
+------------------
+ + Return of the preference code to OSX users.  This is reported to 
+   work under QT 3.1.1 and above now.
+ + Fixed not being able to turn off 'Select in-game target' option
+   except by editing the file.
+
 Teerex (25/Feb/03)
 ------------------
  + Player region should now update properly when you log each character
