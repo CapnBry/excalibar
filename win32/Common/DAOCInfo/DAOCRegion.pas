@@ -120,12 +120,12 @@ end;
 
 function TDAOCZoneInfo.ZoneConvertX(AX: DWORD): DWORD;
 begin
-  Result := AX - DWORD(FBaseLoc.X);
+  Result := AX + DWORD(FBaseLoc.X);
 end;
 
 function TDAOCZoneInfo.ZoneConvertY(AY: DWORD): DWORD;
 begin
-  Result := AY - DWORD(FBaseLoc.Y);
+  Result := AY + DWORD(FBaseLoc.Y);
 end;
 
 function TDAOCZoneInfo.ZoneConvertZ(AZ: DWORD): DWORD;
