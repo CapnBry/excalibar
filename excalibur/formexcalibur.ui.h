@@ -239,3 +239,16 @@ void FormExcalibur::MaxFPS_toggled( bool ena )
 {
     prefs.maxfps = ena;
 }
+
+void FormExcalibur::atnDumpMobInfo_activated()
+{
+    if(!Map->c) return;
+
+    const exMobList<exMob> mobs = Map->c->getMobs();
+    QPtrDictIterator<exMob> mobi(mobs);
+
+    for (;mobi.current(); ++mobi)
+        cout << *mobi.current();
+    cout << flush;
+    //cout << mobs << flush;
+}

@@ -28,7 +28,7 @@
             </rect>
         </property>
         <property name="alignment">
-            <set>AlignTop</set>
+            <set>AlignTop|AlignHCenter</set>
         </property>
     </widget>
     <widget class="QLabel">
@@ -43,11 +43,8 @@
                 <height>1</height>
             </rect>
         </property>
-        <property name="textFormat">
-            <enum>AutoText</enum>
-        </property>
         <property name="alignment">
-            <set>AlignTop</set>
+            <set>AlignTop|AlignHCenter</set>
         </property>
     </widget>
     <widget class="QLabel">
@@ -63,7 +60,7 @@
             </rect>
         </property>
         <property name="alignment">
-            <set>AlignTop</set>
+            <set>AlignTop|AlignHCenter</set>
         </property>
     </widget>
     <widget class="QLabel">
@@ -79,7 +76,7 @@
             </rect>
         </property>
         <property name="alignment">
-            <set>AlignTop</set>
+            <set>AlignTop|AlignHCenter</set>
         </property>
     </widget>
     <widget class="QProgressBar">
@@ -326,7 +323,7 @@ Hibs: 0  Mobs: 0</string>
                             </property>
                         </widget>
                         <spacer>
-                            <property name="name">
+                            <property name="name" stdset="0">
                                 <cstring>Spacer1</cstring>
                             </property>
                             <property name="orientation">
@@ -416,9 +413,6 @@ Hibs: 0  Mobs: 0</string>
     <property name="name">
         <cstring>menubar</cstring>
     </property>
-    <property name="frameShape">
-        <enum>Box</enum>
-    </property>
     <item text="Settings" name="PopupMenu_2">
         <action name="AutoSelectTarget"/>
         <action name="GroupPlayers"/>
@@ -445,6 +439,9 @@ Hibs: 0  Mobs: 0</string>
         <separator/>
         <action name="MapReload"/>
         <action name="MapRecache"/>
+    </item>
+    <item text="Debugging" name="PopupMenu_3">
+        <action name="atnDumpMobInfo"/>
     </item>
 </menubar>
 <toolbars>
@@ -782,6 +779,14 @@ Hibs: 0  Mobs: 0</string>
             <string>Maximum FPS</string>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>atnDumpMobInfo</cstring>
+        </property>
+        <property name="text">
+            <string>Dump MobInfo</string>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -903,6 +908,12 @@ Hibs: 0  Mobs: 0</string>
         <receiver>FormExcalibur</receiver>
         <slot>MaxFPS_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>atnDumpMobInfo</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>atnDumpMobInfo_activated()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -932,6 +943,7 @@ Hibs: 0  Mobs: 0</string>
     <slot>MapCancel_pressed()</slot>
     <slot>GroupItems_toggled( bool ena )</slot>
     <slot>MaxFPS_toggled( bool ena )</slot>
+    <slot>atnDumpMobInfo_activated()</slot>
 </slots>
 <layoutdefaults spacing="2" margin="0"/>
 </UI>
