@@ -179,6 +179,51 @@ The first time the window opens, you probably want to go to the "Settings"
 menu and customize your configuration options.. There are numerous options
 to be configured, I won't go into detail here.
 
+For Best Performance, set your preferences like this.  The text in 
+parentheses is how much of a performance hit you'll take for not 
+selecting the suggested option.
+  GL Smoothing 
+    (note that enabling smoothing on 3dfx cards reverts to software renderer)
+    Points: Off (low)
+    Lines: Off (low-med)
+    Polygons: Off (low-med)
+  Drawing Options:
+    Rotate Displey: Off (low)
+    Fill Map Polygons: Off (med)
+    Player Names: Off (med)
+    Merchant Types: Off (med)
+  Map Loader Options:
+    Load Adjacent Zones: Off (high)
+    Load PNG Maps: Off (high)
+    Use MIP mapping: Off (high)
+    Use Linear Filtering: Off (high)
+  Auto Simplify:
+    Simplify: On (low-med)
+    Slider does nothing
+  Aspect Ratio
+    Maintain: Off (low)
+  Map Circles:
+    Draw Agro Circles: Off (none-low)
+    Draw Filter Circles: Off (none-low)
+    Alpha Blending: Off (low)
+    Distance Fading: Off (low)
+    Range Circles: Don't Draw (almost none)
+  Mob List:
+    Re-sort: Never (low)
+  Packet Logging:
+    Log Unknown packets: Off (low)
+    Debug OpenGL calls: Off (low)
+  Select Ingame Target: Off (none)
+  Group players: Off (none)
+  Group items: Off (none)
+  Sort by distance: Off (none-low)
+  Maximum FPS: Off (will slow down the rest of your system)
+  Vader warning: Off (none)
+  Object sizes: Small (none-low)
+  Depthfade map: Off (med)
+  Render rulers: Off (none)
+  
+
 ==================
 Running the Editor
 ==================
