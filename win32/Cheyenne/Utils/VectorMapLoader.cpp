@@ -94,7 +94,7 @@ void VectorMapItem::Draw(void)const
         */
         }
 
-    if(GetType() == 'P')
+    if(GetType() == 'P' || GetType() == 'I')
         {
         // end current drawing operation
         glEnd();
@@ -229,7 +229,7 @@ bool VectorMapLoader::LoadMap(const std::string& filename,const unsigned char ma
         std::getline(file,line_color,',');
         
         int num_triplets;
-        if(Type == 'P')
+        if(Type == 'P' || Type == 'I')
             {
             // this is a point, get a single triplet
             num_triplets=1;
