@@ -94,11 +94,11 @@ IDI_A                   ICON                    "icon1.ico"
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,1
  PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x17L
+ FILEFLAGSMASK 0x37L
 #ifdef _DEBUG
- FILEFLAGS 0x1L
+ FILEFLAGS 0x21L
 #else
- FILEFLAGS 0x0L
+ FILEFLAGS 0x20L
 #endif
  FILEOS 0x4L
  FILETYPE 0x1L
@@ -117,6 +117,7 @@ BEGIN
             VALUE "OriginalFilename", "Cheyenne.exe"
             VALUE "ProductName", " Cheyenne Radar"
             VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "SpecialBuild", "1.0"
         END
     END
     BLOCK "VarFileInfo"
