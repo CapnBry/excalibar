@@ -42,8 +42,8 @@ uses
   VCLMemStrms in '..\Common\VCLMemStrms.pas',
   DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
   RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
-  DAOCConSystem in '\\benny\c\utils\Excalibar\win32\Common\DAOCInfo\DAOCConSystem.pas',
-  DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas';
+  DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas',
+  DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas';
 
 {$R *.TLB}
 
