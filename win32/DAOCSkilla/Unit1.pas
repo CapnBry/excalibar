@@ -129,6 +129,7 @@ type
     procedure DAOCSelectNPCSuccess(ASender: TObject);
     procedure DAOCSelectNPCFailed(ASender: TObject);
     procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
+    procedure DAOCLocalHealthUpdate(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -145,7 +146,7 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  SpellcraftHelp, DebugAndTracing, Macroing,
+  SpellcraftHelp, DebugAndTracing, Macroing, LowOnStat,
   ConnectionConfig, VCLMemStrms, RemoteAdmin
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
@@ -353,6 +354,7 @@ begin
   FConnection.OnSelectNPCSuccess := DAOCSelectNPCSuccess;
   FConnection.OnSelectNPCFailed := DAOCSelectNPCFailed;
   FConnection.OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
+  FConnection.OnLocalHealthUpdate := DAOCLocalHealthUpdate;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
@@ -471,6 +473,18 @@ begin
 
     frmMacroing.Left := ReadInteger('Macroing', 'Left', frmMacroing.Left);
     frmMacroing.Top := ReadInteger('Macroing', 'Top', frmMacroing.Top);
+
+    frmLowOnStat.Left := ReadInteger('LowOnStat', 'Left', frmLowOnStat.Left);
+    frmLowOnStat.Top := ReadInteger('LowOnStat', 'Top', frmLowOnStat.Top);
+    frmLowOnStat.LowHealthEnabled := ReadBool('LowOnStat', 'LowHealthEnabled', frmLowOnStat.LowHealthEnabled);
+    frmLowOnStat.LowHealthPct := ReadInteger('LowOnStat', 'LowHealthPct', frmLowOnStat.LowHealthPct);
+    frmLowOnStat.LowHealthMessage := ReadString('LowOnStat', 'LowHealthMessage', frmLowOnStat.LowHealthMessage);
+    frmLowOnStat.LowEnduranceEnabled := ReadBool('LowOnStat', 'LowEnduranceEnabled', frmLowOnStat.LowEnduranceEnabled);
+    frmLowOnStat.LowEndurancePct := ReadInteger('LowOnStat', 'LowEndurancePct', frmLowOnStat.LowEndurancePct);
+    frmLowOnStat.LowEnduranceMessage := ReadString('LowOnStat', 'LowEnduranceMessage', frmLowOnStat.LowEnduranceMessage);
+    frmLowOnStat.LowManaEnabled := ReadBool('LowOnStat', 'LowManaEnabled', frmLowOnStat.LowManaEnabled);
+    frmLowOnStat.LowManaPct := ReadInteger('LowOnStat', 'LowManaPct', frmLowOnStat.LowManaPct);
+    frmLowOnStat.LowManaMessage := ReadString('LowOnStat', 'LowManaMessage', frmLowOnStat.LowManaMessage);
     Free;
   end;  { with INI }
 
@@ -1178,6 +1192,11 @@ begin
     ChatLogXI(Format(
       'Local Player: "%s" Level: %d Health: %d%% Endurance: %d%% Mana: %d%%',
       [Name, Level, HitPoints, EndurancePct, ManaPct]));
+end;
+
+procedure TfrmMain.DAOCLocalHealthUpdate(ASender: TObject);
+begin
+  frmMacroing.DAOCLocalHealthUpdate;
 end;
 
 end.
