@@ -33,7 +33,6 @@ type
     FZ:     DWORD;
     FDestinationX:  DWORD;
     FDestinationY:  DWORD;
-    FReam:  TDAOCRealm;
     FName:  string;
     FLastUpdate:  DWORD;
     FLevel: integer;
@@ -80,7 +79,7 @@ type
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
     property Level: integer read FLevel write SetLevel;
-    property Realm: TDAOCRealm read FReam write SetRealm;
+    property Realm: TDAOCRealm read FRealm write SetRealm;
     property Stale: boolean read FStale;
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
@@ -475,7 +474,7 @@ begin
   FDestinationY := ASrc.DestinationY;
   FLastUpdate := ASrc.FLastUpdate;
   FName := ASrc.Name;
-  FReam := ASrc.Realm;
+  FRealm := ASrc.Realm;
   FLevel := ASrc.Level;
   FHeadWord := ASrc.HeadWord;
 end;
@@ -568,7 +567,7 @@ begin
   FZ := AReader.ReadInteger;
   // FLastUpdate :=
   FName := AReader.ReadString;
-  FReam := TDAOCRealm(AReader.ReadInteger);
+  FRealm := TDAOCRealm(AReader.ReadInteger);
   FLevel := AReader.ReadInteger;
   FHeadWord := AReader.ReadInteger;
 end;
@@ -586,7 +585,7 @@ begin
   AWriter.WriteInteger(FZ);
   // FLastUpdate :=
   AWriter.WriteString(FName);
-  AWriter.WriteInteger(ord(FReam));
+  AWriter.WriteInteger(ord(FRealm));
   AWriter.WriteInteger(FLevel);
   AWriter.WriteInteger(FHeadWord);
 end;
@@ -611,7 +610,7 @@ end;
 
 procedure TDAOCObject.SetRealm(const Value: TDAOCRealm);
 begin
-  FReam := Value;
+  FRealm := Value;
   Touch;
 end;
 
