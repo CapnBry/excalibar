@@ -63,3 +63,29 @@ void PrefsDialog::MapSimplifyRange_valueChanged( int val)
 {
     MapSimplifyRangeLabel->setText(QString("Tolerance: ").append(QString::number(val)));
 }
+
+
+void PrefsDialog::PrefsDialog_destroyed( QObject * )
+{
+
+}
+
+void PrefsDialog::TextLabel1_3_destroyed( QObject * )
+{
+
+}
+
+void PrefsDialog::PlayerCircle1_valueChanged( int )
+{
+
+}
+
+void PrefsDialog::PlayerCircle1_destroyed( QObject * )
+{
+
+}
+
+void PrefsDialog::PlayerCircle1_valueChanged( const QString & )
+{
+
+}
