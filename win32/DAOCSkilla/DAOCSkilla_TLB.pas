@@ -12,16 +12,16 @@ unit DAOCSkilla_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : $Revision$
-// File generated on 5/4/2003 11:46:29 AM from Type Library described below.
+// File generated on 11/17/2003 9:51:22 AM from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: C:\utils\excalibar\win32\DAOCSkilla\DAOCSkilla.tlb (1)
+// Type Lib: B:\utils\Excalibar\win32\DAOCSkilla\DAOCSkilla.tlb (1)
 // LIBID: {E66F5430-EDF3-4527-A88E-8B326F061A6D}
 // LCID: 0
 // Helpfile: 
 // DepndLst: 
-//   (1) v2.0 stdole, (C:\WINNT\System32\stdole2.tlb)
-//   (2) v4.0 StdVCL, (C:\WINNT\System32\stdvcl40.dll)
+//   (1) v2.0 stdole, (C:\WINNT\System32\STDOLE2.TLB)
+//   (2) v4.0 StdVCL, (C:\WINNT\System32\STDVCL40.DLL)
 // ************************************************************************ //
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
 {$WARN SYMBOL_PLATFORM OFF}
@@ -91,6 +91,13 @@ type
     procedure ChatAlliance(const bsMessage: WideString); safecall;
     procedure ChatChat(const bsMessage: WideString); safecall;
     procedure ChatGroup(const bsMessage: WideString); safecall;
+    procedure SetPlayerHeading(iHead: Integer; iMaxTurnTime: Integer); safecall;
+    procedure GotoXY(dwX: LongWord; dwY: LongWord); safecall;
+    procedure PathToNode(const bsNodeName: WideString); safecall;
+    procedure FocusDAOCWindow; safecall;
+    procedure CloseDialog; safecall;
+    procedure NodeLoad(const bsFileName: WideString); safecall;
+    procedure NodeSave(const bsFileName: WideString); safecall;
   end;
 
 // *********************************************************************//
@@ -119,6 +126,13 @@ type
     procedure ChatAlliance(const bsMessage: WideString); dispid 17;
     procedure ChatChat(const bsMessage: WideString); dispid 18;
     procedure ChatGroup(const bsMessage: WideString); dispid 19;
+    procedure SetPlayerHeading(iHead: Integer; iMaxTurnTime: Integer); dispid 20;
+    procedure GotoXY(dwX: LongWord; dwY: LongWord); dispid 21;
+    procedure PathToNode(const bsNodeName: WideString); dispid 22;
+    procedure FocusDAOCWindow; dispid 23;
+    procedure CloseDialog; dispid 24;
+    procedure NodeLoad(const bsFileName: WideString); dispid 25;
+    procedure NodeSave(const bsFileName: WideString); dispid 26;
   end;
 
 // *********************************************************************//

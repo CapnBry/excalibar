@@ -1,7 +1,17 @@
+2003 Nov 17 - v1.62
+-------------------
   + Fix "Format '%c' invalid or incompatable with argument"
   + Added exception handler to GL render to log rather than MsgBox.
   + Fix for not being able to turn off "Send packets..." if there is an
     error ocurring.
+  + Fixed pushpins always having the default name.
+  + Fixed apostophe not being in font TXFs.
+  + Added support for "Anonymous Stealthers".  A golden circle is
+    displayed where the information was received.
+  + Fixed issue where items deleted off the bottom of the mob list
+    would not be erased.
+  + Added SetPlayerHeading, GotoXY, PathToNode, FocusDAOCWindow,
+    CloseDialog, NodeLoad, and NodeSave to IDAOCControl.
 
 2003 Nov 14 - v1.61
 -------------------
