@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabRangeCircles
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 3
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'

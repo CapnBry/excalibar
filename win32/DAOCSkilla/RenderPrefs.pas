@@ -832,6 +832,9 @@ procedure TfrmRenderPrefs.edtRangeSmoothnessChange(Sender: TObject);
 var
   pCircle:  TRangeCircle;
 begin
+  if edtRangeSmoothness.Value > edtRangeSmoothness.MaxValue then
+    exit;
+    
   pCircle := CurrentRangeCircle;
   if not Assigned(pCircle) then
     exit;
