@@ -5,6 +5,7 @@
 unsigned char* search_string=NULL;
 size_t sizeof_search_string=0;
 size_t search_size=0;
+bool allocated_search_string=false;
 
 cMemory::cMemory()
 {
@@ -13,30 +14,37 @@ cMemory::cMemory()
     std::string line;
     if(f.is_open())
         {
-        f >> std::hex 
-          >> std::ws 
+        f >> std::hex // use hex
+          >> std::ws // skip whitespace
           >> search_size // get search size then
-          >> std::ws 
-          >> sizeof_search_string // get sizeof search string then
-          >> std::ws;
+          >> std::ws // skip whitespace
+          >> sizeof_search_string; // get sizeof search string then
           
+        // sanity check
         if(sizeof_search_string > 4096)
             {
             throw "sizeof_search_string > 4096!";
             }
+        
+        // allocate space for search string
         search_string=new unsigned char[sizeof_search_string];
-        // get the search string
+        allocated_search_string=true;
+        
+        // finally, get the search string
         unsigned int d;
         for(size_t i=0;i<sizeof_search_string;++i)
             {
-            f >> std::ws >> d >> std::ws;
+            f >> std::ws >> d;
             search_string[i]=(unsigned char)d;
             }
         } // end if file opened successfully
 } 
 cMemory::~cMemory()
 {
-    delete[] search_string;
+    if(allocated_search_string)
+        {
+        delete[] search_string;
+        }
 }
 
 //decrypt source from dol project, thx :p
@@ -132,46 +140,63 @@ unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 	    
 	    search_string=&(string[0]);
 	    sizeof_search_string=sizeof(string);
-	    search_size=0x30000;
+	    search_size=0x10000;
 	    }
 	else
 	    {
-        std::cerr << "[cMemory::FindMemOffset] using key_search file for search string\n";
-        std::cerr << "search size=" << search_size << "\n"
+	    #ifdef _DEBUG
+        std::cout << "[cMemory::FindMemOffset] using key_search file for search string\n";
+        std::cout << "search size=" << search_size << "\n"
                   << "sizeof(search_string)=" << sizeof_search_string << "\n"
                   << "search string=\n";
-        std::cerr << std::hex;
+        std::cout << std::hex;
         for(size_t xx=0;xx<sizeof_search_string;++xx)
             {
-            std::cerr << (unsigned int)(search_string[xx]) << "\n";
+            std::cout << (unsigned int)(search_string[xx]) << "\n";
             }
-        std::cerr << std::dec;
+        std::cout << std::dec;
+        #endif
 	    }
 
 	unsigned char *ptr = (unsigned char *)VirtualAlloc(NULL,search_size,MEM_COMMIT,PAGE_READWRITE);	
+	unsigned char *const original_mem=ptr;
 	ZeroMemory(ptr,search_size);
+	unsigned char *BaseAddr=(unsigned char *)0x400000;
 
-	ReadProcessMemory(hProcess,(LPCVOID)0x400000,ptr,search_size,0);
+	while(ReadProcessMemory(hProcess,BaseAddr,ptr,search_size,0)==TRUE)
+	    {
+	    ptr=original_mem; // init to the original
+	    
+	    for(i = 0;i < search_size;i++)
+    	    {
+		    for(i2 = 0;i2 < sizeof_search_string;i2++)
+	    	    {
+			    if(ptr[i2] != search_string[i2])
+			        {
+				    break;
+				    }
+		        }
+		    if(i2 == sizeof_search_string)
+		        {			
+			    char tbuf[4];
+			    tbuf[0] = ptr[i2];
+			    tbuf[1] = ptr[i2+1];
+			    tbuf[2] = ptr[i2+2];
+			    tbuf[3] = ptr[i2+3];
+    			
+			    // don't forget to free the memory
+			    VirtualFree(original_mem,0,MEM_RELEASE);
+			    return ((unsigned long *)tbuf)[0];			
+		        }
+		    ptr++;
+	        } // end for i
+	    
+	    // move along
+	    BaseAddr+=search_size;
+	    } // end while ReadProcessMemory
 
-	for(i = 0;i < search_size;i++)
-	{
-		for(i2 = 0;i2 < sizeof_search_string;i2++)
-		{
-			if(ptr[i2] != search_string[i2])
-				break;
-		}
-		if(i2 == sizeof_search_string)
-		{			
-			char tbuf[4];
-			tbuf[0] = ptr[i2];
-			tbuf[1] = ptr[i2+1];
-			tbuf[2] = ptr[i2+2];
-			tbuf[3] = ptr[i2+3];
-			return ((unsigned long *)tbuf)[0];			
-		}
-		ptr++;
-	}
-
+	// don't forget to free the memory
+	VirtualFree(original_mem,0,MEM_RELEASE);
 	return 0;
 }
 
