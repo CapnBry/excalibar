@@ -1936,6 +1936,7 @@ function TDAOCConnection.SetActiveCharacterByName(const ACharacterName: string) 
 begin
   Result := FAccountCharacters.FindOrAddChar(ACharacterName);
 
+  FDefaultLocalPlayerLevel := Result.Level;
   FLocalPlayer.Level := Result.Level;
   FLocalPlayer.Realm := Result.Realm;
   FLocalPlayer.Name := Result.Name;
