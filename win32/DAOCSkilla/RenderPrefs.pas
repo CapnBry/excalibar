@@ -4,9 +4,12 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, INIFiles, DAOCObjs, DAOCRegion, StdCtrls, Buttons;
+  Dialogs, INIFiles, DAOCObjs, DAOCRegion, StdCtrls, Buttons, ComCtrls,
+  DAOCConSystem, ColorGrd, Spin, GLRenderObjects, ExtCtrls;
 
 type
+  TMobListSortOrder = (msoName, msoDistance);
+
   TRenderPreferences = class(TObject)
   private
     FObjectClassFilter: TDAOCObjectClasses;
@@ -14,11 +17,21 @@ type
     FHasOpenGL13: boolean;
     FHasGLUT: boolean;
     FDrawFriendlyPlayers:  boolean;
+    FObjectConFilter: TDAOCConColors;
+    FMobListSortOrder: TMobListSortOrder;
+    FOnMobListOptionsChanged: TNotifyEvent;
+    FGroupByRealm: boolean;
+    FGroupByClass: boolean;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
+    procedure DoOnMobListOptionsChanged;
     procedure SetHasGLUT(const Value: boolean);
     procedure SetHasOpenGL13(const Value: boolean);
     procedure SetDrawFriendlyPlayers(const Value: boolean);
+    procedure SetObjectConFilter(const Value: TDAOCConColors);
+    procedure SetMobListSortOrder(const Value: TMobListSortOrder);
+    procedure SetGroupByRealm(const Value: boolean);
+    procedure SetGroupByClass(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -48,8 +61,8 @@ type
     MapBaseURL:       string;
     InvaderWarning:   boolean;
     InvaderWarnMinTicks:  DWORD;
-    GroupByRealm:     boolean;
     PlayerRealm:      TDAOCRealm;
+    PlayerLevel:      integer;
     DrawGrid:         boolean;
 
     constructor Create;
@@ -59,21 +72,25 @@ type
     function Clone : TRenderPreferences;
     function IsObjectInFilter(AObj: TDAOCObject) : boolean;
     procedure XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
+    procedure XORObjectConFilter(AObjectCon: TDAOCConColor);
 
     property HasOpenGL13: boolean read FHasOpenGL13 write SetHasOpenGL13;
     property HasGLUT: boolean read FHasGLUT write SetHasGLUT;
     property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
     property ObjectClassFilter: TDAOCObjectClasses read FObjectClassFilter write SetObjectClassFilter;
+    property ObjectConFilter: TDAOCConColors read FObjectConFilter write SetObjectConFilter;
+    property MobListSortOrder: TMobListSortOrder read FMobListSortOrder write SetMobListSortOrder;
+    property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
+    property GroupByClass: boolean read FGroupByClass write SetGroupByClass; 
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
+    property OnMobListOptionsChanged: TNotifyEvent read FOnMobListOptionsChanged write FOnMobListOptionsChanged;
   end;
 
   TfrmRenderPrefs = class(TForm)
-    grpObjects: TGroupBox;
     chkRenderPlayers: TCheckBox;
     chkRenderMobs: TCheckBox;
     chkRenderObjects: TCheckBox;
     chkRenderUnknown: TCheckBox;
-    grpExtras: TGroupBox;
     chkVectorMaps: TCheckBox;
     Label1: TLabel;
     chkTextureMaps: TCheckBox;
@@ -88,7 +105,6 @@ type
     Label6: TLabel;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
-    grpUIOptions: TGroupBox;
     chkTrackMapClick: TCheckBox;
     chkTrackGameSelection: TCheckBox;
     chkTypeTag: TCheckBox;
@@ -102,6 +118,44 @@ type
     Label8: TLabel;
     chkRenderFriendlies: TCheckBox;
     chkDrawGrid: TCheckBox;
+    pagePrefs: TPageControl;
+    tabFilter: TTabSheet;
+    tabOptions: TTabSheet;
+    tabExtras: TTabSheet;
+    grpFilterByType: TGroupBox;
+    grpFilterByCon: TGroupBox;
+    chkShowGrays: TCheckBox;
+    chkShowGreens: TCheckBox;
+    chkShowBlues: TCheckBox;
+    chkShowYellows: TCheckBox;
+    chkShowOranges: TCheckBox;
+    chkShowReds: TCheckBox;
+    chkShowPurples: TCheckBox;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
+    tabRangeCircles: TTabSheet;
+    Label16: TLabel;
+    lstRangeCircles: TListBox;
+    GroupBox1: TGroupBox;
+    btnAddCircle: TBitBtn;
+    btnDelCircle: TBitBtn;
+    edtRangeDistance: TSpinEdit;
+    colorRange: TColorGrid;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
+    edtRangeSmoothness: TSpinEdit;
+    tabMobList: TTabSheet;
+    chkGroupByRealm: TCheckBox;
+    grpListSort: TRadioGroup;
+    chkGroupByClass: TCheckBox;
+    edtInvaderWarnTicks: TEdit;
+    Label20: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -120,13 +174,32 @@ type
     procedure chkRenderFriendliesClick(Sender: TObject);
     procedure chkRenderPlayersClick(Sender: TObject);
     procedure chkDrawGridClick(Sender: TObject);
+    procedure ObjectConClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure lstRangeCirclesClick(Sender: TObject);
+    procedure btnAddCircleClick(Sender: TObject);
+    procedure btnDelCircleClick(Sender: TObject);
+    procedure colorRangeChange(Sender: TObject);
+    procedure edtRangeDistanceChange(Sender: TObject);
+    procedure edtRangeSmoothnessChange(Sender: TObject);
+    procedure grpListSortClick(Sender: TObject);
+    procedure chkGroupByRealmClick(Sender: TObject);
+    procedure chkGroupByClassClick(Sender: TObject);
+    procedure edtInvaderWarnTicksExit(Sender: TObject);
+    procedure edtInvaderWarnTicksKeyPress(Sender: TObject; var Key: Char);
   private
     FRenderPrefs:   TRenderPreferences;
+    FRangeCircles:  TRangeCircleList;
     procedure SyncFormToPrefs;
+    procedure RefreshRangeCircleList;
+    procedure UpdateRangeCircleDetails;
+    function CurrentRangeCircle : TRangeCircle;
+    procedure SelectFirstRangeCircle;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
-    class function Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences) : boolean;
+    class function Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences;
+      ARangeCircles: TRangeCircleList) : boolean;
   end;
 
 implementation
@@ -171,12 +244,22 @@ begin
   Result.GroupByRealm := GroupByRealm;
   Result.HasGLUT := HasGLUT;
   Result.DrawFriendlyPlayers := DrawFriendlyPlayers;
-  Result.DrawGrid := DrawGrid; 
+  Result.DrawGrid := DrawGrid;
+  Result.ObjectConFilter := ObjectConFilter;
+  Result.MobListSortOrder := MobListSortOrder;
+  Result.GroupByClass := GroupByClass; 
 end;
 
 constructor TRenderPreferences.Create;
 begin
   ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
+  ObjectConFilter := [ccGray, ccGreen, ccBlue, ccYellow, ccOrange, ccRed, ccPurple];
+end;
+
+procedure TRenderPreferences.DoOnMobListOptionsChanged;
+begin
+  if Assigned(FOnMobListOptionsChanged) then
+    FOnMobListOptionsChanged(Self);
 end;
 
 procedure TRenderPreferences.DoOnObjectFilterChanged;
@@ -187,12 +270,14 @@ end;
 
 function TRenderPreferences.IsObjectInFilter(AObj: TDAOCObject): boolean;
 var
-  oc:   TDAOCObjectClass;
+  ocl:  TDAOCObjectClass;
+  ocn:  TDAOCConColor;
 begin
-  oc := AObj.ObjectClass;
-  Result := (oc in ObjectClassFilter) and (
-    (oc <> ocPlayer) or FDrawFriendlyPlayers or (AObj.Realm <> PlayerRealm)
-    );
+  ocl := AObj.ObjectClass;
+  ocn := GetConColor(PlayerLevel, AObj.Level);
+   
+  Result := (ocl in ObjectClassFilter) and (ocn in ObjectConFilter) and
+    ((ocl <> ocPlayer) or FDrawFriendlyPlayers or (AObj.Realm <> PlayerRealm));
 end;
 
 procedure TRenderPreferences.LoadSettings(const AFileName: string);
@@ -203,7 +288,8 @@ begin
     Width := ReadInteger('RenderPrefs', 'Width', 640);
     Height := ReadInteger('RenderPrefs', 'Height', 480);
     Range := ReadInteger('RenderPrefs', 'Range', 6000);
-    // ObjectFilter := TDAOCObjectClasses(ReadInteger('RenderPrefs', 'Scale', 0));
+    ObjectClassFilter := IntToObjectClasses(ReadInteger('RenderPrefs', 'ObjectClassFilter', $7fffffff));
+    ObjectConFilter := IntToConColors(ReadInteger('RenderPrefs', 'ObjectConFilter', $7fffffff));
     DrawHUD := ReadBool('RenderPrefs', 'DrawHUD', true);
     DrawMapVector := ReadBool('RenderPrefs', 'DrawMapVector', true);
     DrawMapTexture := ReadBool('RenderPrefs', 'DrawMapTexture', true);
@@ -224,12 +310,14 @@ begin
     ViewFrustum := ReadBool('RenderPrefs', 'ViewFrustum', true);
     AlternateMobListText := DrawTypeTag; //ReadBool('RenderPrefs', 'AlternateMobListText', false);
     AttemptMapDownload := ReadBool('RenderPrefs', 'AttemptMapDownload', true);
-    MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%d');
+    MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?');
     InvaderWarning := ReadBool('RenderPrefs', 'InvaderWarning', true);
     InvaderWarnMinTicks := ReadInteger('RenderPrefs', 'InvaderWarnMinTicks', 5000);
     GroupByRealm := ReadBool('RenderPrefs', 'GroupByRealm', true);
     DrawFriendlyPlayers := ReadBool('RenderPrefs', 'DrawFriendlyPlayers', true);
     DrawGrid := ReadBool('RenderPrefs', 'DrawGrid', false);
+    MobListSortOrder := TMobListSortOrder(ReadInteger('RenderPrefs', 'MobListSortOrder', 0));
+    GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
   end;
 end;
 
@@ -241,7 +329,8 @@ begin
     WriteInteger('RenderPrefs', 'Width', Width);
     WriteInteger('RenderPrefs', 'Height', Height);
     WriteInteger('RenderPrefs', 'Range', Range);
-    // WriteInteger('RenderPrefs', 'Scale', ord(ObjectFilter));
+    WriteInteger('RenderPrefs', 'ObjectClassFilter', ObjectClassesToInt(ObjectClassFilter));
+    WriteInteger('RenderPrefs', 'ObjectConFilter', ConColorsToInt(ObjectConFilter));
     WriteBool('RenderPrefs', 'DrawHUD', DrawHUD);
     WriteBool('RenderPrefs', 'DrawMapVector', DrawMapVector);
     WriteBool('RenderPrefs', 'DrawMapTexture', DrawMapTexture);
@@ -268,6 +357,8 @@ begin
     WriteBool('RenderPrefs', 'GroupByRealm', GroupByRealm);
     WriteBool('RenderPrefs', 'DrawFriendlyPlayers', DrawFriendlyPlayers);
     WriteBool('RenderPrefs', 'DrawGrid', DrawGrid);
+    WriteInteger('RenderPrefs', 'MobListSortOrder', ord(MobListSortOrder));
+    WriteBool('RenderPrefs', 'GroupByClass', GroupByClass);
   end;
 end;
 
@@ -275,6 +366,18 @@ procedure TRenderPreferences.SetDrawFriendlyPlayers(const Value: boolean);
 begin
   FDrawFriendlyPlayers := Value;
   DoOnObjectFilterChanged;
+end;
+
+procedure TRenderPreferences.SetGroupByClass(const Value: boolean);
+begin
+  FGroupByClass := Value;
+  DoOnMobListOptionsChanged;
+end;
+
+procedure TRenderPreferences.SetGroupByRealm(const Value: boolean);
+begin
+  FGroupByRealm := Value;
+  DoOnMobListOptionsChanged;
 end;
 
 procedure TRenderPreferences.SetHasGLUT(const Value: boolean);
@@ -289,9 +392,21 @@ begin
   DrawMapTexture := FHasOpenGL13 and DrawMapTexture;
 end;
 
+procedure TRenderPreferences.SetMobListSortOrder(const Value: TMobListSortOrder);
+begin
+  FMobListSortOrder := Value;
+  DoOnMobListOptionsChanged;
+end;
+
 procedure TRenderPreferences.SetObjectClassFilter(const Value: TDAOCObjectClasses);
 begin
   FObjectClassFilter := Value;
+  DoOnObjectFilterChanged;
+end;
+
+procedure TRenderPreferences.SetObjectConFilter(const Value: TDAOCConColors);
+begin
+  FObjectConFilter := Value;
   DoOnObjectFilterChanged;
 end;
 
@@ -301,7 +416,15 @@ begin
     Exclude(FObjectClassFilter, AObjectClass)
   else
     Include(FObjectClassFilter, AObjectClass);
+  DoOnObjectFilterChanged;
+end;
 
+procedure TRenderPreferences.XORObjectConFilter(AObjectCon: TDAOCConColor);
+begin
+  if AObjectCon in FObjectConFilter then
+    Exclude(FObjectConFilter, AObjectCon)
+  else
+    Include(FObjectConFilter, AObjectCon);
   DoOnObjectFilterChanged;
 end;
 
@@ -316,11 +439,13 @@ begin
   end;
 end;
 
-class function TfrmRenderPrefs.Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences): boolean;
+class function TfrmRenderPrefs.Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences;
+  ARangeCircles: TRangeCircleList): boolean;
 begin
   with TfrmRenderPrefs.Create(AOwner) do
   try
     FRenderPrefs := ARenderPrefs;
+    FRangeCircles := ARangeCircles;
     SyncFormToPrefs;
     Result := ShowModal = mrOK;
   finally
@@ -382,6 +507,14 @@ begin
   chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectClassFilter;
   chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
 
+  chkShowGrays.Checked := ccGray in FRenderPrefs.ObjectConFilter;
+  chkShowGreens.Checked := ccGreen in FRenderPrefs.ObjectConFilter;
+  chkShowBlues.Checked := ccBlue in FRenderPrefs.ObjectConFilter;
+  chkShowYellows.Checked := ccYellow in FRenderPrefs.ObjectConFilter;
+  chkShowOranges.Checked := ccOrange in FRenderPrefs.ObjectConFilter;
+  chkShowReds.Checked := ccRed in FRenderPrefs.ObjectConFilter;
+  chkShowPurples.Checked := ccPurple in FRenderPrefs.ObjectConFilter;
+
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
   chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
   chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
@@ -393,6 +526,7 @@ begin
   chkViewFrustum.Checked := FRenderPrefs.ViewFrustum;
   chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
   chkDrawGrid.Checked := FRenderPrefs.DrawGrid;
+  edtInvaderWarnTicks.Text := IntToStr(FRenderPrefs.InvaderWarnMinTicks div 1000);
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
@@ -401,6 +535,13 @@ begin
   chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
   chkRotateMap.Checked := FRenderPrefs.RotateMapWithPlayer;
   chkAdjacentZones.Checked := FRenderPrefs.AdjacentZones;
+
+  chkGroupByRealm.Checked := FRenderPrefs.GroupByRealm;
+  chkGroupByClass.Checked := FRenderPrefs.GroupByClass;
+  grpListSort.ItemIndex := ord(FRenderPrefs.MobListSortOrder);
+
+  RefreshRangeCircleList;
+  SelectFirstRangeCircle;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -457,6 +598,146 @@ end;
 procedure TfrmRenderPrefs.chkDrawGridClick(Sender: TObject);
 begin
   FRenderPrefs.DrawGrid := chkDrawGrid.Checked;
+end;
+
+procedure TfrmRenderPrefs.ObjectConClick(Sender: TObject);
+var
+  objFilter: TDAOCConColors;
+begin
+  objFilter := FRenderPrefs.ObjectConFilter;
+  with TCheckbox(Sender) do
+    if Checked then
+      Include(objFilter, TDAOCConColor(Tag))
+    else
+      Exclude(objFilter, TDAOCConColor(Tag));
+
+  FRenderPrefs.ObjectConFilter := objFilter;
+end;
+
+procedure TfrmRenderPrefs.FormCreate(Sender: TObject);
+begin
+  pagePrefs.ActivePageIndex := 0;
+end;
+
+procedure TfrmRenderPrefs.RefreshRangeCircleList;
+var
+  I:    integer;
+begin
+  lstRangeCircles.Clear;
+  for I := 0 to FRangeCircles.Count - 1 do
+    lstRangeCircles.AddItem(IntToStr(FRangeCircles[I].Range), FRangeCircles[I]);
+end;
+
+procedure TfrmRenderPrefs.UpdateRangeCircleDetails;
+var
+  pCircle:  TRangeCircle;
+begin
+  pCircle := CurrentRangeCircle;
+  if not Assigned(pCircle) then
+    exit;
+
+  edtRangeDistance.Value := pCircle.Range;
+  edtRangeSmoothness.Value := pCircle.Smoothness;
+  if colorRange.ColorToIndex(pCircle.Color) <> -1 then
+    colorRange.ForegroundIndex := colorRange.ColorToIndex(pCircle.Color);
+end;
+
+function TfrmRenderPrefs.CurrentRangeCircle: TRangeCircle;
+begin
+  if (lstRangeCircles.ItemIndex >= FRangeCircles.Count) or (lstRangeCircles.ItemIndex = -1) then
+    Result := nil
+  else
+    Result := FRangeCircles[lstRangeCircles.ItemIndex];
+end;
+
+procedure TfrmRenderPrefs.lstRangeCirclesClick(Sender: TObject);
+begin
+  UpdateRangeCircleDetails;
+end;
+
+procedure TfrmRenderPrefs.btnAddCircleClick(Sender: TObject);
+begin
+  FRangeCircles.Add(TRangeCircle.CreateRange(500, 24));
+  RefreshRangeCircleList;
+  lstRangeCircles.ItemIndex := lstRangeCircles.Items.Count - 1;
+  UpdateRangeCircleDetails;
+end;
+
+procedure TfrmRenderPrefs.btnDelCircleClick(Sender: TObject);
+begin
+  if (lstRangeCircles.ItemIndex < FRangeCircles.Count) and (lstRangeCircles.ItemIndex <> -1) then begin
+    FRangeCircles.Delete(lstRangeCircles.ItemIndex);
+    RefreshRangeCircleList;
+    SelectFirstRangeCircle;
+  end;
+end;
+
+procedure TfrmRenderPrefs.SelectFirstRangeCircle;
+begin
+  if lstRangeCircles.Items.Count > 0 then begin
+    lstRangeCircles.ItemIndex := 0;
+    UpdateRangeCircleDetails;
+  end;
+end;
+
+procedure TfrmRenderPrefs.colorRangeChange(Sender: TObject);
+var
+  pCircle:  TRangeCircle;
+begin
+  pCircle := CurrentRangeCircle;
+  if not Assigned(pCircle) then
+    exit;
+    
+  pCircle.Color := colorRange.ForegroundColor;
+end;
+
+procedure TfrmRenderPrefs.edtRangeDistanceChange(Sender: TObject);
+var
+  pCircle:  TRangeCircle;
+begin
+  pCircle := CurrentRangeCircle;
+  if not Assigned(pCircle) then
+    exit;
+  pCircle.Range := edtRangeDistance.Value;
+  pCircle.GLCleanup;
+end;
+
+procedure TfrmRenderPrefs.edtRangeSmoothnessChange(Sender: TObject);
+var
+  pCircle:  TRangeCircle;
+begin
+  pCircle := CurrentRangeCircle;
+  if not Assigned(pCircle) then
+    exit;
+  pCircle.Smoothness := edtRangeSmoothness.Value;
+  pCircle.GLCleanup;
+end;
+
+procedure TfrmRenderPrefs.grpListSortClick(Sender: TObject);
+begin
+  FRenderPrefs.MobListSortOrder := TMobListSortOrder(grpListSort.ItemIndex);
+end;
+
+procedure TfrmRenderPrefs.chkGroupByRealmClick(Sender: TObject);
+begin
+  FRenderPrefs.GroupByRealm := chkGroupByRealm.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkGroupByClassClick(Sender: TObject);
+begin
+  FRenderPrefs.GroupByClass := chkGroupByClass.Checked;
+end;
+
+procedure TfrmRenderPrefs.edtInvaderWarnTicksExit(Sender: TObject);
+begin
+  FRenderPrefs.InvaderWarnMinTicks := StrToInt(edtInvaderWarnTicks.Text) * 1000;
+end;
+
+procedure TfrmRenderPrefs.edtInvaderWarnTicksKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if not (Key in [#8, '0'..'9']) then
+    Key := #0;
 end;
 
 end.
