@@ -48,6 +48,19 @@ public:
         set(s);
     }
 
+    bool IsEnabled(const unsigned int flag)const
+    {
+        StateFlagConstIterator it=StateFlags.find(flag);
+        
+        #ifdef _DEBUG
+        if(it == StateFlags.end())
+            {
+            throw(std::logic_error("[IsEnabled] invalid state flag"));
+            }
+        #endif
+
+        return(it->second);
+    }
     void Enable(const unsigned int flag)
     {
         StateFlagIterator it=StateFlags.find(flag);
@@ -83,7 +96,7 @@ public:
         if(it->second == true)
             {
             // set to false and disable
-            it->second=true;
+            it->second=false;
             glDisable(flag);
             }
         // done
@@ -227,35 +240,35 @@ public:
     enum TextureId
             {
             invalid_texture_id=0,
-            alb_gray,
-            alb_green,
-            alb_blue,
-            alb_yellow,
-            alb_orange,
-            alb_red,
-            alb_purple,
-            hib_gray,
+            alb_gray, // 1
+            alb_green, // 2
+            alb_blue, // 3
+            alb_yellow, // 4
+            alb_orange, // 5
+            alb_red, // 6
+            alb_purple, // 7
+            hib_gray, // 8
             hib_green,
             hib_blue,
             hib_yellow,
             hib_orange,
             hib_red,
             hib_purple,
-            mid_gray,
+            mid_gray, // 15
             mid_green,
             mid_blue,
             mid_yellow,
             mid_orange,
             mid_red,
             mid_purple,
-            mob_gray,
+            mob_gray, // 22
             mob_green,
             mob_blue,
             mob_yellow,
             mob_orange,
             mob_red,
             mob_purple,
-            generic_alb,
+            generic_alb, // 29
             generic_hib,
             generic_mid,
             generic_mob,

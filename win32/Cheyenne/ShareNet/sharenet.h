@@ -38,6 +38,7 @@ public:
     ShareNetClientData();
     virtual ~ShareNetClientData();
 
+    bool IsConnected(void)const{return(IsInUse());};
     bool IsInUse(void)const
     {
         return(GetSocket() == INVALID_SOCKET ? false:true);

@@ -190,9 +190,13 @@ void GLPPI::InitRenderContext(void)
     
     // set the way we want
     RenderState.Enable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     RenderState.Disable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     RenderState.Enable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_2D);
     RenderState.Disable(GL_BLEND);
+    glDisable(GL_BLEND);
     
     // done
     return;
@@ -836,7 +840,13 @@ void GLPPI::RenderBegin(void)
     // move back a bit
     glTranslatef(0.0f,0.0f,-3.0f);
     
-    // make all states current
+    // set render states the way we want
+    RenderState.Enable(GL_CULL_FACE);
+    RenderState.Disable(GL_DEPTH_TEST);
+    RenderState.Enable(GL_TEXTURE_2D);
+    RenderState.Disable(GL_BLEND);
+    
+    // and make sure we are synchronized
     RenderState.MakeAllCurrent();
 
     // done
@@ -1043,11 +1053,23 @@ void GLPPI::RenderRangeRing
     // set color
     glColor4f(Red,Green,Blue,1.0f);
     
-    // disable texturing
-    RenderState.Disable(GL_TEXTURE_2D);
+    bool ReenableTextures=RenderState.IsEnabled(GL_TEXTURE_2D);
+    
+    if(ReenableTextures)
+        {
+        // disable texturing
+        RenderState.Disable(GL_TEXTURE_2D);
+        }
     
     // draw ring
     DrawCircle(Radius);
+    
+    // reenable textures if they were enabled before
+    if(ReenableTextures)
+        {
+        // enable texturing
+        RenderState.Enable(GL_TEXTURE_2D);
+        }
     
     // pop matrix stack
     glPopMatrix();
@@ -1132,6 +1154,10 @@ void GLPPI::RenderAllZones(void)
             } // end if zone is vi-sible
         } // end for all zones
         
+    // set last bound texture to invalid
+    glBindTexture(GL_TEXTURE_2D,GLPPI::invalid_texture_id);
+    LastBoundTexture=GLPPI::invalid_texture_id;
+
     // done
     return;
 } // end RenderAllZones
@@ -1147,16 +1173,12 @@ void GLPPI::RenderUncorrelatedStealth(const Actor& UncorrelatedPosition)
     // translate to position
     glTranslatef(DisplayPos.GetXPos(),DisplayPos.GetYPos(),0.0f);
     
-    // render with no depth test so it will definately be displayed
-    RenderState.Disable(GL_DEPTH_TEST);
-
     // draw disc
     RenderState.Enable(GL_BLEND);
     glColor4f(1.0f,0.0f,0.0f,0.25f);
     DrawDisc(3000.0f);
     
     // cleanup and done
-    RenderState.Enable(GL_DEPTH_TEST);
     RenderState.Disable(GL_BLEND);
 
     glPopMatrix();
@@ -1170,6 +1192,11 @@ void GLPPI::RenderEnd(void)
         throw(std::logic_error("attempt to end rendering before Wrap(), call Wrap() first!"));
         }
     #endif
+
+    // lfontrenderer enables depth testing and doesn't put it
+    // back -- evil! So, we make sure our local flag has it
+    // and then we disable it when we're done with the text
+    RenderState.Enable(GL_DEPTH_TEST);
 
     // flush font rendering, the text is cached up to this point
     TextEngine.Draw();

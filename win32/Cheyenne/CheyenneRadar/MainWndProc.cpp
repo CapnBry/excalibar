@@ -242,6 +242,7 @@ void OnRenderActor(const Actor& a)
         if(::RadarConfig.GetShowRangeRing5())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange5());
         if(::RadarConfig.GetShowRangeRing6())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange6());
         }
+    
     // done
     return;
 } // end OnRenderActor
@@ -295,15 +296,15 @@ bool ConfigPreventsRendering(const Actor& a)const
     switch(a.GetRealm())
         {
         case Actor::Realms::Albion:
-            if(!::RadarConfig.GetShowAlbs())return(false);
+            if(!::RadarConfig.GetShowAlbs())return(true);
             break;
             
         case Actor::Realms::Hibernia:
-            if(!::RadarConfig.GetShowHibs())return(false);
+            if(!::RadarConfig.GetShowHibs())return(true);
             break;
             
         case Actor::Realms::Midgard:
-            if(!::RadarConfig.GetShowMids())return(false);
+            if(!::RadarConfig.GetShowMids())return(true);
             break;
             
         default:
@@ -314,11 +315,11 @@ bool ConfigPreventsRendering(const Actor& a)const
     switch(a.GetActorType())
         {
         case Actor::ActorTypes::Mob:
-            if(!::RadarConfig.GetShowMobs())return(false);
+            if(!::RadarConfig.GetShowMobs())return(true);
             break;
             
         case Actor::ActorTypes::Object:
-            if(!::RadarConfig.GetShowObjects())return(false);
+            if(!::RadarConfig.GetShowObjects())return(true);
             break;
             
         default:
@@ -326,7 +327,7 @@ bool ConfigPreventsRendering(const Actor& a)const
         } // end switch type
     
     // done
-    return(true);
+    return(false);
 } // end ConfigPreventsRendering
 }; // end USERDATA
 
@@ -1024,7 +1025,7 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
             break;
             
         case ID_NETWORKCONNECTIONS_SHARENETSERVER:
-            if(data->dstream.IsConnected())
+            if(data->sharenet.IsConnected())
                 {
                 int res=MessageBox(hWnd,"Sharenet is already connected\nAre you sure you want to disconnect?","Confirm Disconnect",MB_YESNO);
                 if(res==IDYES)
@@ -1287,6 +1288,12 @@ void Render(USERDATA* data)
     // on-screen
     data->ppi.RenderAllZones();
     
+    // if uncorrelated stealth is present, draw that
+    if(data->database.IsUncorrelatedStealth())
+        {
+        data->ppi.RenderUncorrelatedStealth(data->database.GetUncorrelatedStealthCenter());
+        }
+    
     if(::RadarConfig.GetUpdateActorsOnRender())
         {
         // update and iterate all actors -- ppi will only render the ones
@@ -1298,12 +1305,6 @@ void Render(USERDATA* data)
         // just iterate all actors -- ppi will only render the ones
         // that are on-screen
         data->database.IterateActors(ActorRenderFunctor(*data));
-        }
-    
-    // if uncorrelated stealth is present, draw that too
-    if(data->database.IsUncorrelatedStealth())
-        {
-        data->ppi.RenderUncorrelatedStealth(data->database.GetUncorrelatedStealthCenter());
         }
     
     // end rendering and clear flag

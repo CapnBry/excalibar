@@ -193,7 +193,7 @@ bool Config::Save(const std::string& filename)const
          << (GetNamedMobName().length()? GetNamedMobName():"<no mob name>") << std::endl
          << GetShowRangeRing1() << std::endl
          << GetRangeRingRange1() << std::endl
-         << GetRangeRingRange2() << std::endl
+         << GetShowRangeRing2() << std::endl
          << GetRangeRingRange2() << std::endl
          << GetShowRangeRing3() << std::endl
          << GetRangeRingRange3() << std::endl

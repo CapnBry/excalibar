@@ -392,6 +392,8 @@ void LFontRenderer::Draw()
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+    glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
 
     m_strCount = 0;
