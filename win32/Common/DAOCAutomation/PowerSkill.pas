@@ -49,6 +49,9 @@ type
     FUseMBuy: boolean;
     FIncludeRecipes: TStringList;
     FExcludeRecipes: TStringList;
+    FAutoStartProgression: boolean;
+    FAutoDeselectMerchant: boolean;
+    FAutoQuickbarSlot: integer;
 
     function GetItems(Index: integer): TPowerSkillItemDef;
     procedure SetIncludeRecipes(const ARecipeWildcard: string);
@@ -75,6 +78,9 @@ type
     property RecipeRealm: TCraftRealm read FRecipeRealm;
     property HowOrange: integer read FHowOrange;
     property UseMBuy: boolean read FUseMBuy;
+    property AutoStartProgression: boolean read FAutoStartProgression;
+    property AutoDeselectMerchant: boolean read FAutoDeselectMerchant;
+    property AutoQuickbarSlot: integer read FAutoQuickbarSlot;  
   end;
 
 implementation
@@ -227,6 +233,9 @@ begin
     FUseMBuy := ReadBool('Main', 'UseMBuy', true);
     SetIncludeRecipes(ReadString('Main', 'IncludeRecipes', ''));
     SetExcludeRecipes(ReadString('Main', 'ExcludeRecipes', ''));
+    FAutoStartProgression := ReadBool('Main', 'AutoStartProgression', true);
+    FAutoDeselectMerchant := ReadBool('Main', 'AutoDeselectMerchant', true);
+    FAutoQuickbarSlot := ReadInteger('Main', 'AutoQuickbarSlot', 2);
     Free;
   end;  { with INI }
 
