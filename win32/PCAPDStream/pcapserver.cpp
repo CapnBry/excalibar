@@ -16,9 +16,10 @@ trolok45_T trolok45=NULL;
 abfallanfang_T abfallanfang=NULL;
 void* p=NULL;
 unsigned short port=0;
+unsigned short daoc_port=10622; // port to listen to for DAOC (default 10622)
 std::string account_name;
-bool euro_server;
-bool promiscuous;
+bool euro_server=false;
+bool promiscuous=true;
 
 // bit of code courtesy Cheyenne :)
 void SET_CHECK_BOOL(HWND hwnd,UINT control,bool bool_value)
@@ -97,6 +98,7 @@ void ReadIni(const std::string& filename)
     std::getline(file,::account_name);
     file >> std::ws >> ::euro_server;
     file >> std::ws >> ::promiscuous;
+    file >> std::ws >> ::daoc_port;
     
 } // end ReadIni
 
@@ -110,7 +112,8 @@ void WriteIni(const std::string& filename)
     
     file << (::account_name.length()?account_name:"<no account>") << std::endl
          << ::euro_server << std::endl
-         << ::promiscuous << std::endl;
+         << ::promiscuous << std::endl
+         << ::daoc_port << std::endl;
 } // end WriteIni
 
 unsigned short GetWord(unsigned char *data)
@@ -133,6 +136,11 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	
 	// read ini file
 	ReadIni("pcapdstream.ini");
+	
+	if(::daoc_port==0)
+	    {
+	    ::daoc_port=10622;
+	    }
 	
 	// look for port override on the command line
 	if(strlen(lpCmdLine)>0)

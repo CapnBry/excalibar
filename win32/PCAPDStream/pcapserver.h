@@ -55,6 +55,7 @@ extern cSniffer *pSniffer;
 extern cDStream *pDStream;
 extern bool bContinue;
 extern unsigned short port;
+extern unsigned short daoc_port;
 
 extern std::string account_name;
 extern bool euro_server;

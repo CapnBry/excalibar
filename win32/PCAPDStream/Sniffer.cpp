@@ -17,19 +17,19 @@ cSniffer::~cSniffer()
 } // end cSniffer
 bool cSniffer::IsDaocStream(unsigned long network,tuple4 addr,bool udp)
 {
-	unsigned short port = 10622;
-
 	if((addr.saddr & 0x00ffffff) == network)
 	{
 		if(udp)return true;
-		if(addr.source == port)return true;
+		if(addr.source == ::daoc_port)return true;
 	}
 			
 	if((addr.daddr & 0x00ffffff) == network)
 	{
 		if(udp)return true;
-		if(addr.dest == port)return true;
+		if(addr.dest == ::daoc_port)return true;
 	}
+	
+	if(addr.dest==::daoc_port)return true;
 
 	return false;
 }
@@ -174,6 +174,7 @@ void cSniffer::SnifferThreadProc()
 	nids_register_udp((void *)udp_callback);
 	
 	pMain->StatusUpdate("WinPCAP and UDP/TCP hook initialized\r\n");
+	pMain->StatusUpdate("Listening for daoc connections to port %u\r\n",::daoc_port);
 
     int time = 0;
     fd_set rset;
