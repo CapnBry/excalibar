@@ -262,11 +262,13 @@ end;
 
 procedure TfrmMacroing.DAOCInventoryChanged;
 begin
-  if not (Visible and FAutoSell) then
+  if not Visible then
     exit;
 
-  if FDControl.SelectedID = 0 then
+  if not FAutoSell or (FDControl.SelectedID = 0) then begin
+    CheckNeedMorePSMaterials;
     exit;
+  end;
 
   tmrTimeoutDelay.Tag := TIMEOUT_AUTOSELL;
   // Log('Setting timer to TIMEOUT_AUTOSELL');
