@@ -1,9 +1,23 @@
 unit glWindow;
 
+(***
+  Adapted from glWindows.pas from:
+    Author: Jason Allen
+    Email: jra101@home.com
+    website: delphigl.cfxweb.net
+
+  Modified by Bryan Mayland for Kylix
+***)
+
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, OpenGL, extctrls;
+{$IFDEF LINUX}
+  XLib, QGraphics, QControls, QForms, Qt, GLX, QDialogs,
+{$ELSE}
+  Windows, Graphics, Messages, Controls,
+{$ENDIF !LINUX}
+  SysUtils, Classes, GL, GLu;
 
 type
   // Types for OpenGL window settings
@@ -13,52 +27,51 @@ type
 
   TDepthBits = (c16bits, c32bits);
 
-  TResizeEvent = procedure(Sender : TObject) of object;
-  TDrawEvent = procedure(Sender : TObject) of object;
-  TInitEvent = procedure(Sender : TObject) of object;
-
-  TglWindow = class(TCustomPanel)
+  TglWindow = class(TCustomControl)
   private
-    h_RC : HGLRC;                   // Rendering context
-    Init : Boolean;                 // Whether panel has been initalized yet
-    FColorDepth : Integer;          // Color depth
-    FDepthBits : Integer;           // Depth buffer depth
-    FDepthEnabled : Boolean;        // Enables the depth buffer
-    FStencBits : Integer;           // Stencil buffer depth
-    FStencEnabled : Boolean;        // Enables the stencil buffer
-    FAccumBits : Integer;           // Accumulation buffer depth
-    FAccumBufferEnabled : Boolean;  // Enables the accumulation buffer
+    hDC : THandle;                  // Device context
+    hRC : THandle;                  // Rendering context
+    FInitialized : Boolean;         // Whether panel has been initalized yet
+    FColorDepth : Integer;          // Color depth (ignored in Linux)
+    FDepthBits : Integer;           // Depth buffer depth (ignored in Linux)
+    FDepthEnabled : Boolean;        // Enables the depth buffer (ignored in Linux)
     FWindowFlags : TWindowOptions;  // OpenGL window properties
-    FOnResize : TResizeEvent;       // OpenGL resize function
-    FOnDraw : TDrawEvent;           // OpenGL draw function
-    FOnInit : TInitEvent;           // OpenGL initialization function
-    OldClose : TNotifyEvent;        // Saves old close event from form
+    FOnResize : TNotifyEvent;       // OpenGL resize function
+    FOnDraw : TNotifyEvent;         // OpenGL draw function
+    FOnInit : TNotifyEvent;         // OpenGL initialization function
     flags : Word;                   // OpenGL window flags
-    rot : Integer;                  // rotation amount for cube in default
-                                    // drawing code
 
-    procedure Close(Sender: TObject);
-    function GetColorDepth() : TDepthBits;
+    function GetColorDepth : TDepthBits;
     procedure SetColorDepth(depth : TDepthBits);
-    function GetDepthBufferDepth() : TDepthBits;
+    function GetDepthBufferDepth : TDepthBits;
     procedure SetDepthBufferDepth(depth : TDepthBits);
-    function GetStencBufferDepth() : TDepthBits;
-    procedure SetStencBufferDepth(depth : TDepthBits);
-    function GetAccumBufferDepth() : TDepthBits;
-    procedure SetAccumBufferDepth(depth : TDepthBits);
-    procedure defResize(Sender : TOBject);
-    procedure defDraw(Sender : TObject);
-    procedure defInit(Sender : TObject);
+    procedure defResize(Sender: TObject);
+    procedure defDraw(Sender: TObject);
+    procedure defInit(Sender: TObject);
+    procedure Cleanup;
+
+    procedure CreateRC;
+    function MakeCurrent : boolean;
+    procedure DestroyRC;
+    procedure SwapBuffers;
+{$IFDEF MSWINDOWS}
     procedure SetWindowFlags();
+    procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
+{$ENDIF}
+  protected
+{$IFDEF MSWINDOWS}
+    procedure CreateParams(var Params: TCreateParams); override;
+{$ENDIF}
+{$IFDEF LINUX}
+    function WidgetFlags: integer; override;
+{$ENDIF}
   public
-    h_DC : HDC;                     // Device context
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Loaded; override;
     procedure Paint; override;
-    procedure ReDraw();
-    procedure Swap;               // Swaps the buffer's if display is double buffered 
     procedure Resize; override;
+    procedure Redraw;
+    procedure Initialize;
   published
     property Align;
     property Visible;
@@ -70,14 +83,10 @@ type
     property ColorDepth : TDepthBits read GetColorDepth write SetColorDepth;
     property DepthBits : TDepthBits read GetDepthBufferDepth write SetDepthBufferDepth;
     property DepthBufferEnabled : Boolean read FDepthEnabled write FDepthEnabled;
-    property StencBits : TDepthBits read GetStencBufferDepth write SetStencBufferDepth;
-    property StencBufferEnabled : Boolean read FStencEnabled write FStencEnabled;
-    property AccumBits : TDepthBits read GetAccumBufferDepth write SetAccumBufferDepth;
-    property AccumBufferEnabled : Boolean read FAccumBufferEnabled write FAccumBufferEnabled;
     property WindowFlags : TWindowOptions read FWindowFlags write FWindowFlags;
-    property OnResize : TResizeEvent read FOnResize write FOnResize;
-    property OnDraw : TDrawEvent read FOnDraw write FOnDraw;
-    property OnInit : TInitEvent read FOnInit write FOnInit;
+    property OnResize : TNotifyEvent read FOnResize write FOnResize;
+    property OnDraw : TNotifyEvent read FOnDraw write FOnDraw;
+    property OnInit : TNotifyEvent read FOnInit write FOnInit;
   end;
 
 procedure Register;
@@ -86,8 +95,8 @@ implementation
 
 procedure Register;
 begin
-  // Register glWindow component so its displayed in the Tool Palette 
-  RegisterComponents('OpenGL', [TGLWindow]);
+  // Register glWindow component so its displayed in the Tool Palette
+  RegisterComponents('OpenGL', [TglWindow]);
 end;
 
 { TGLWindow }
@@ -96,15 +105,12 @@ end;
 // Purpose    : Creates the glWindow component
 // Parameters : Owner of the component
 constructor TGLWindow.Create(AOwner: TComponent);
-var
-  frm : TForm;
 begin
   inherited Create(AOwner);
+  ControlStyle := ControlStyle + [csOpaque];
 
-  // Set background color and pen and brush colors
   Color := clBlack;
-  Canvas.Brush.Color := clBlack;
-  Canvas.Pen.Color := clBlack;
+  FInitialized := False;
 
   if csDesigning in ComponentState then begin
     // Set default width and height
@@ -112,34 +118,11 @@ begin
     Height := 65;
 
     // Set up initial rendering settings
-    FDoubleBuffered := True;
+    // FDoubleBuffered := True;
     FColorDepth := 16;
     FDepthBits := 16;
     FDepthEnabled := True;
-    FStencBits := 16;
-    FStencEnabled := False;
-    FAccumBits := 16;
-    FAccumBufferEnabled := False;
     FWindowFlags := [wfDrawToWindow, wfSupportOpenGL, wfDoubleBuffer];
-  end else begin
-
-    // component hasn't been initialized yet (no rendering context, etc...)
-    Init := False;
-
-    // Get a handle on the form that the component is on
-    frm := TForm(AOwner);
-
-    // Set this component to be destroyed when the form is destroyed
-    if Assigned(frm.OnDestroy) then
-      OldClose := frm.OnDestroy;
-    frm.OnDestroy := Close;
-
-    // Set default OpenGL routines, if no draw/resize/or init routines are
-    // specified then the default ones are used, the default drawing routine
-    // simply draws a rotating cube
-    OnResize := defResize;
-    OnDraw := defDraw;
-    OnInit := defInit;
   end;
 end;
 
@@ -148,26 +131,14 @@ end;
 procedure TGLWindow.defInit(Sender: TObject);
 begin
   glClearColor(0.0, 0.0, 0.0, 0.0);
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
 end;
 
 // Name       : defResize
 // Purpose    : Default resize routine
 procedure TGLWindow.defResize(Sender: TOBject);
-var
-  fAspect : GLfloat;
 begin
-  // Make sure that we don't get a divide by zero exception
-  if (Height = 0) then
-    Height := 1;
-
   // Set the viewport for the OpenGL window
   glViewport(0, 0, Width, Height);
-
-  // Calculate the aspect ratio of the window
-  fAspect := Width/Height;
 
   // Go to the projection matrix, this gets modified by the perspective
   // calulations
@@ -175,7 +146,7 @@ begin
   glLoadIdentity();
 
   // Do the perspective calculations
-  gluPerspective(45.0, fAspect, 1.0, 1000.0);
+  glOrtho(0.0, 10.0, 0.0, 10.0, 1, -1);
 
   // Return to the modelview matrix
   glMatrixMode(GL_MODELVIEW);
@@ -187,74 +158,22 @@ end;
 procedure TGLWindow.defDraw(Sender: TObject);
 begin
   // Clear the color and depth buffers
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
 
-  // Replaces the current matrix with the identity matrix
-  glLoadIdentity();
-
-  // Go to the model view matrix mode
-  glMatrixMode(GL_MODELVIEW);
-
-  // Sample drawing code, draw's a rotating cube onscreen
-  glTranslatef(0.0, 0.0, -5.0);
-  glRotatef(rot, 1.0, 1.0, 0.0);  // Rotates around the x and y axis
-
-	glBegin(GL_QUADS);
-    glColor3f(0.0, 1.0, 0.0);
-    glVertex3f( 1.0, 1.0,-1.0);
-    glVertex3f(-1.0, 1.0,-1.0);
-    glVertex3f(-1.0, 1.0, 1.0);
-	  glVertex3f( 1.0, 1.0, 1.0);
-
-    glColor3f(1.0, 0.5, 0.0);
-		glVertex3f( 1.0,-1.0, 1.0);
-		glVertex3f(-1.0,-1.0, 1.0);
-		glVertex3f(-1.0,-1.0,-1.0);
-		glVertex3f( 1.0,-1.0,-1.0);
-
-    glColor3f(1.0, 0.0, 0.0);
-	  glVertex3f( 1.0, 1.0, 1.0);
-  	glVertex3f(-1.0, 1.0, 1.0);
-		glVertex3f(-1.0,-1.0, 1.0);
-	  glVertex3f( 1.0,-1.0, 1.0);
-
-    glColor3f(1.0, 1.0, 0.0);
-  	glVertex3f( 1.0,-1.0,-1.0);
-		glVertex3f(-1.0,-1.0,-1.0);
-	  glVertex3f(-1.0, 1.0,-1.0);
-  	glVertex3f( 1.0, 1.0,-1.0);
-
-    glColor3f(0.0, 0.0, 1.0);
-	  glVertex3f(-1.0, 1.0, 1.0);
-  	glVertex3f(-1.0, 1.0,-1.0);
-		glVertex3f(-1.0,-1.0,-1.0);
-	  glVertex3f(-1.0,-1.0, 1.0);
-
-    glColor3f(1.0, 0.0, 1.0);
-  	glVertex3f( 1.0, 1.0,-1.0);
-		glVertex3f( 1.0, 1.0, 1.0);
-	  glVertex3f( 1.0,-1.0, 1.0);
-  	glVertex3f( 1.0,-1.0,-1.0);
+  glBegin(GL_TRIANGLES);
+    glColor3f(1, 0, 0);
+    glVertex3f(0, 0, 0);
+    glColor3f(0, 1, 0);
+    glVertex3f(10, 0, 0);
+    glColor3f(0, 0, 1);
+    glVertex3f(5, 10, 0);
   glEnd();
-
-  Inc(rot); // Increment the current cube rotation amount
 end;
 
 destructor TGLWindow.Destroy;
 begin
+  Cleanup;
   inherited Destroy;
-end;
-
-// Name       : GetAccumBufferDepth
-// Purpose    : Gets the current accumulation buffer depth
-// Returns    : Current accumulation buffer depth
-function TGLWindow.GetAccumBufferDepth() : TDepthBits;
-begin
-  case FAccumBits of
-    16 : Result := c16bits;
-    32 : Result := c32bits;
-    else Result := c16bits;
-  end;
 end;
 
 // Name       : GetColorDepth
@@ -281,18 +200,6 @@ begin
   end;
 end;
 
-// Name       : GetStencBufferDepth
-// Purpose    : Gets the stencil buffer depth
-// Returns    : Current stencil buffer depth
-function TGLWindow.GetStencBufferDepth() : TDepthBits;
-begin
-  case FStencBits of
-    16 : Result := c16bits;
-    32 : Result := c32bits;
-    else Result := c16bits;
-  end;
-end;
-
 // Name       : Paint
 // Purpose    : Paints the OpenGL component black when its first put on the form
 procedure TGLWindow.Paint;
@@ -300,19 +207,7 @@ begin
   if csDesigning in ComponentState then
     Canvas.Rectangle(0, 0, Width, Height)
   else
-    ReDraw;
-end;
-
-// Name       : SetAccumBufferDepth
-// Purpose    : Sets the accumulation buffer depth
-// Parameters :
-//   depth - new depth for accumulation buffer
-procedure TGLWindow.SetAccumBufferDepth(depth : TDepthBits);
-begin
-  case depth of
-    c16bits : FAccumBits := 16;
-    c32bits : FAccumBits := 32;
-  end;
+    Redraw;
 end;
 
 // Name       : SetColorDepth
@@ -339,155 +234,47 @@ begin
   end;
 end;
 
-// Name       : SetStencBufferDepth
-// Purpose    : Sets the stencil buffer depth
-// Parameters :
-//   depth - New depth for the stencil buffer
-procedure TGLWindow.SetStencBufferDepth(depth : TDepthBits);
-begin
-  case depth of
-    c16bits : FStencBits := 16;
-    c32bits : FStencBits := 32;
-  end;
-end;
-
 // Name       : Resize
 // Purpose    : Called when the width or height of the component changes, in
 //              turn it calls the resize procedure assigned to the component
 procedure TGLWindow.Resize;
 begin
+  if not FInitialized then
+    exit;
+
   // Make this components rendering context current
-  wglMakeCurrent(h_DC, h_RC);
+  MakeCurrent;
 
   // Call assigned resize event if component has been initialized
-  if (Assigned(OnResize) and (Init))
-    then OnResize(self);
+  if Assigned(OnResize) then
+    OnResize(Self)
+  else
+    defResize(Self);
 end;
 
 // Name       : ReDraw
 // Purpose    : Called when owner want's opengl window to be updated, in turn
 //              it calls the draw function assigned to the component
-procedure TGLWindow.ReDraw;
+procedure TGLWindow.Redraw;
 begin
   // Make this components rendering context current
-  wglMakeCurrent(h_DC, h_RC);
+  MakeCurrent;
 
   // Call assigned drawing routine, updating the OpenGL scene
-  if Assigned(OnDraw) then OnDraw(self);
+  if Assigned(OnDraw) then
+    OnDraw(Self)
+  else
+    defDraw(Self);
 
   // Swap the buffers if needed
-  Swap;
-end;
-
-// Name       : Swap
-// Purpose    : Swaps the OpenGL buffers if display is double buffered
-procedure TGLWindow.Swap;
-begin
-  if wfDoubleBuffer in FWindowFlags then SwapBuffers(h_DC);
+  if wfDoubleBuffer in FWindowFlags then
+    SwapBuffers;
 end;
 
 // Name       : Loaded
 // Purpose    : Sets the pixel format and attaches a rendering context to the
 //              components device context
-procedure TGLWindow.Loaded;
-var
-  PixelFormat : Integer;
-  pfd : PIXELFORMATDESCRIPTOR;
-begin
-  inherited;
-
-  // Update the window flags
-  SetWindowFlags();
-
-  // Set all fields in the pixelformatdescriptor to zero
-  ZeroMemory(@pfd, SizeOf(pfd));
-
-  // Initialize only the fields we need
-  pfd.nSize       := SizeOf(PIXELFORMATDESCRIPTOR); // Size Of This Pixel Format Descriptor
-  pfd.nVersion    := 1;                         // The version of this data structure
-  pfd.dwFlags     := flags;                     // Set the window flags
-                                                // (set in property editor)
-  pfd.iPixelType  := PFD_TYPE_RGBA;             // Set OpenGL pixel data type 
-  pfd.cColorBits  := FColorDepth;               // OpenGL color depth
-  pfd.cDepthBits  := FDepthBits;                // Specifies the depth of the depth buffer
-
-  // If component's settings specifies that the accumulation buffer is enabled
-  // then set its depth (which enables it)
-  if FAccumBufferEnabled then
-    pfd.cAccumBits := FAccumBits;
-
-  // If component's settings specifies that the stencil buffer is enabled
-  // then set its depth (which enables it)
-  if FStencEnabled then
-    pfd.cStencilBits := FStencBits;
-
-  h_DC := GetDC(Handle);
-
-  // Attempts to find the pixel format supported by a device context that is the
-  // best match to a given pixel format specification.
-  PixelFormat := ChoosePixelFormat(h_DC, @pfd);
-  if (PixelFormat = 0) then begin
-    Close(self);
-    MessageBox(0, 'Unable to find a suitable pixel format', 'Error', MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  // Sets the specified device context's pixel format to the format specified by
-  // the PixelFormat.
-  if (not SetPixelFormat(h_DC, PixelFormat, @pfd)) then begin
-    Close(self);
-    MessageBox(0, 'Unable to set the pixel format', 'Error', MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  // Create a OpenGL rendering context
-  h_RC := wglCreateContext(h_DC);
-  if (h_RC = 0) then begin
-    Close(self);
-    MessageBox(0, 'Unable to create an OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  // Makes the specified OpenGL rendering context the calling thread's current
-  // rendering context
-  if (not wglMakeCurrent(h_DC, h_RC)) then begin
-    Close(self);
-    MessageBox(0, 'Unable to activate OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  // Component has a rendering context
-  Init := True;
-
-  // Call assinged initialization routine and resize routine
-  if Assigned(OnInit) then OnInit(self);
-  if Assigned(OnResize) then OnResize(self);
-
-  // Updates the OpenGL scene
-  ReDraw;
-end;
-
-// Name       : Close
-// Purpose    : Removes and deletes the components rendering context
-procedure TglWindow.Close(Sender : TObject);
-begin
-  // Makes current rendering context not current, and releases the device
-  // context that is used by the rendering context.
-  wglMakeCurrent(h_DC, 0);
-
-  // Attempts to delete the rendering context
-  wglDeleteContext(h_RC);
-
-  // Release the device context (return the memory)
-  ReleaseDC(Handle, h_DC);
-
-  Init := False;
-
-  // If old close event was saved, call it
-  if Assigned(OldClose) then OldClose(Sender);
-end;
-
-
+{$IFDEF MSWINDOWS}
 // Name       : SetWindowFlags
 // Purpose    : Sets the OpenGL window flags depending on the values specified
 //              in the property editor for the component
@@ -505,7 +292,207 @@ begin
     flags := flags or PFD_DOUBLEBUFFER
   else if wfSupportGDI in FWindowFlags then
     flags := flags or PFD_SUPPORT_GDI;
+end;
 
+procedure TglWindow.CreateRC;
+var
+  PixelFormat : Integer;
+  pfd : PIXELFORMATDESCRIPTOR;
+begin
+  // Update the window flags
+  SetWindowFlags();
+
+  // Set all fields in the pixelformatdescriptor to zero
+  ZeroMemory(@pfd, SizeOf(pfd));
+
+  // Initialize only the fields we need
+  pfd.nSize       := SizeOf(PIXELFORMATDESCRIPTOR); // Size Of This Pixel Format Descriptor
+  pfd.nVersion    := 1;                         // The version of this data structure
+  pfd.dwFlags     := flags;                     // Set the window flags
+                                                // (set in property editor)
+  pfd.iPixelType  := PFD_TYPE_RGBA;             // Set OpenGL pixel data type
+  pfd.cColorBits  := FColorDepth;               // OpenGL color depth
+  pfd.cDepthBits  := FDepthBits;                // Specifies the depth of the depth buffer
+
+  hDC := Canvas.Handle;
+
+  // Attempts to find the pixel format supported by a device context that is the
+  // best match to a given pixel format specification.
+  PixelFormat := ChoosePixelFormat(hDC, @pfd);
+  if (PixelFormat = 0) then begin
+    Cleanup;
+    MessageBox(0, 'Unable to find a suitable pixel format', 'Error', MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  // Sets the specified device context's pixel format to the format specified by
+  // the PixelFormat.
+  if (not SetPixelFormat(hDC, PixelFormat, @pfd)) then begin
+    Cleanup;
+    MessageBox(0, 'Unable to set the pixel format', 'Error', MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  // Create a OpenGL rendering context
+  hRC := wglCreateContext(hDC);
+  if (hRC = 0) then begin
+    Cleanup;
+    MessageBox(0, 'Unable to create an OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  // Makes the specified OpenGL rendering context the calling thread's current
+  // rendering context
+  if not MakeCurrent then begin
+    Cleanup;
+    MessageBox(0, 'Unable to activate OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+end;
+
+function TglWindow.MakeCurrent : boolean;
+begin
+  Result := wglMakeCurrent(hDC, hRC);
+end;
+
+procedure TglWindow.DestroyRC;
+begin
+  if hRC = 0 then
+    Exit;
+  wglMakeCurrent(hDC, 0);
+  wglMakeCurrent(0, 0);
+  wglDeleteContext(hRC);
+  hRC := 0;
+  hDC := 0;
+end;
+
+procedure TglWindow.SwapBuffers;
+begin
+  Windows.SwapBuffers(hDC);
+end;
+
+procedure TglWindow.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+  with Params do
+  begin
+    Style := Style or WS_CLIPCHILDREN or WS_CLIPSIBLINGS;
+    WindowClass.Style := CS_VREDRAW or CS_HREDRAW or CS_OWNDC or CS_DBLCLKS;
+  end;
+end;
+
+procedure TglWindow.WMEraseBkgnd(var Message: TWmEraseBkgnd);
+begin
+  Message.Result := 1;
+end;
+{$ENDIF MSWINDOWS}
+
+{$IFDEF LINUX}
+procedure TglWindow.CreateRC;
+var
+  display: PDisplay;
+  vinfo: PXVisualInfo;
+  attr: array[0..23] of integer;
+  idx: integer;
+  procedure AddAttr(v: Cardinal);
+  begin
+    attr[idx] := v;
+    inc(idx);
+  end;
+begin
+  hDC := QWidget_winId(ChildHandle);
+
+  display := Application.Display;
+  FillChar(attr, sizeof(attr), 0);
+  idx := 0;
+  AddAttr(GLX_USE_GL);
+  AddAttr(GLX_RGBA);
+  if wfDoubleBuffer in FWindowFlags then
+    AddAttr(GLX_DOUBLEBUFFER);
+
+  AddAttr(GLX_RED_SIZE); AddAttr(1);
+  AddAttr(GLX_GREEN_SIZE); AddAttr(1);
+  AddAttr(GLX_BLUE_SIZE); AddAttr(1);
+  AddAttr(GLX_DEPTH_SIZE); AddAttr(1);
+//  AddAttr(GLX_ALPHA_SIZE); AddAttr(1);
+
+//  if FDepthEnabled then begin
+//    AddAttr(GLX_DEPTH_SIZE);
+//    AddAttr(FDepthBits);
+//  end;
+
+  vinfo := glXChooseVisual(display, XDefaultScreen(display), @attr[0]);
+  if not Assigned(vinfo) then begin
+    Cleanup;
+    MessageDlg('Error', 'Unable to find a suitable visual', mtError, [mbOk], 0);
+    Exit;
+  end;
+
+  hRC := glXCreateContext(display, vinfo, 0, GL_TRUE);
+  XFree(vinfo);
+  if hRC = 0 then begin
+    Cleanup;
+    MessageDlg('Error', 'Unable to create an OpenGL rendering context', mtError, [mbOk], 0);
+    Exit;
+  end;
+
+  if not MakeCurrent then begin
+    Cleanup;
+    MessageDlg('Error', 'Unable to activate OpenGL rendering context', mtError, [mbOk], 0);
+    Exit;
+  end;
+end;
+
+function TglWindow.MakeCurrent : boolean;
+begin
+  Result := glXMakeCurrent(Application.Display, hDC, hRC) <> GL_FALSE;
+end;
+
+procedure TglWindow.SwapBuffers;
+begin
+  glXSwapBuffers(Application.Display, hDC);
+end;
+
+procedure TglWindow.DestroyRC;
+begin
+  if hRC = 0 then
+    exit;
+  glXMakeCurrent(Application.Display, 0, 0);
+  glXDestroyContext(Application.Display, hRC);
+  hRC := 0;
+  hDC := 0;
+end;
+
+function TglWindow.WidgetFlags: integer;
+begin
+  Result := inherited WidgetFlags or integer(WidgetFlags_WRepaintNoErase) or
+    integer(WidgetFlags_WResizeNoErase);
+end;
+{$ENDIF}
+
+procedure TglWindow.Cleanup;
+begin
+  // Makes current rendering context not current, and releases the device
+  // Attempts to delete the rendering context
+  DestroyRC;
+  FInitialized := false;
+end;
+
+procedure TglWindow.Initialize;
+begin
+  if FInitialized then
+    exit;
+
+  CreateRC;
+
+  // Component has a rendering context
+  FInitialized := true;
+
+  // Call assinged initialization routine and resize routine
+  if Assigned(OnInit) then
+    OnInit(Self)
+  else
+    defInit(Self);
 end;
 
 end.
