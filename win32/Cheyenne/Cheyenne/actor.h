@@ -41,9 +41,9 @@ public:
         return(*this);
     }
 
-    std::pair<float,float> RangeBearingTo(const Motion& To)const
+    std::pair<float,float> RangeAzimuthTo(const Motion& To)const
     {
-        float x,y,z,bng,az;
+        float x,y,z,az;
         
         // get coordinates
         x=To.GetXPos()-GetXPos();
@@ -51,10 +51,11 @@ public:
         z=To.GetZPos()-GetZPos();
         
         // get azimuth
-        az=atan2(x,y);
-        az+=3.1415926535897932384626433832795f;
-        az=fmod(az,6.283185307179586476925286766559f);
+        az=atan2(x,-y);
+        //az+=3.1415926535897932384626433832795f;
+        //az=fmod(az,6.283185307179586476925286766559f);
         
+        /*
         // get bearing 
         bng=GetHeading()-az;
         
@@ -63,8 +64,9 @@ public:
             {
             bng = 3.1415926535897932384626433832795f - bng;
             }
+        */
         
-        return(std::make_pair<float,float>(sqrt(x*x + y*y + z*z),bng));
+        return(std::make_pair<float,float>(sqrt(x*x + y*y + z*z),az));
     }
     
     void Print(std::ostream& os)const

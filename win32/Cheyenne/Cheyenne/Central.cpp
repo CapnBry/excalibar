@@ -2362,7 +2362,7 @@ void Central::RenderCloseControl(void)const
     fractional_line_width = fractional_line_width / (float(rPPIClient.right-rPPIClient.left));
     
     // get position of targetted actor with respect to hooked actor
-    std::pair<float,float> rng_bng=FollowedPosition.RangeBearingTo(TargetPosition);
+    std::pair<float,float> rng_az=FollowedPosition.RangeAzimuthTo(TargetPosition);
     
     // draw rectangle
 
@@ -2424,9 +2424,9 @@ void Central::RenderCloseControl(void)const
     oss.clear();
     
     // range/bearing
-    oss << "<" << unsigned int(rng_bng.first) << ",";
+    oss << "<" << unsigned int(rng_az.first) << ",";
     oss.precision(3);
-    oss << RadToDeg(rng_bng.second) << "°>";
+    oss << RadToDeg(rng_az.second) << "°>";
     glRasterPos3f(10.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),0.0f);
     DrawGLFontString(oss.str());
 
