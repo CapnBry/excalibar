@@ -8,7 +8,7 @@ uses
   ComObj,
 {$ENDIF}
   DAOCPackets, DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
-  VendorItems, ChatParse, MapNavigator, PReader2, FrameFns;
+  VendorItems, ChatParse, MapNavigator, PReader2, FrameFns, INIFiles;
 
 type
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;
@@ -238,6 +238,8 @@ type
     procedure ProcessEthernetSegment(ASegment: TEthernetSegment);
     procedure Clear; virtual;
     procedure CheckForStaleObjects;
+    procedure SaveConnectionState(const AFileName: string);
+    procedure ResumeConnection(const AFileName: string);
 
       { Functions to use zone information to find relative player coords }
     function PlayerZoneHead : integer;
@@ -263,8 +265,9 @@ type
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
-    property RegionID: integer read FRegionID;
+    property RegionID: integer read FRegionID write FRegionID;
     property SelectedID: WORD read FSelectedID;
+    property ServerProtocol: BYTE read FServerProtocol write FServerProtocol;
     property SelectedObject: TDAOCObject read GetSelectedObject write SetSelectedObject;
     property TradeCommissionNPC: string read FTradeCommissionNPC;
     property TradeCommissionItem: string read FTradeCommissionItem;
@@ -2000,6 +2003,43 @@ procedure TDAOCConnection.DoOnPingReply;
 begin
   if Assigned(FOnPingReply) then
     FOnPingReply(Self, FLastPingTime);
+end;
+
+procedure TDAOCConnection.ResumeConnection(const AFileName: string);
+begin
+  with TINIFile.Create(AFileName) do begin
+    CryptKey := ReadString('ConnectionState', 'CryptKey', '');
+    ServerIP := ReadString('ConnectionState', 'ServerIP', '');
+    ClientIP := ReadString('ConnectionState', 'ClientIP', '');
+    RegionID := ReadInteger('ConnectionState', 'RegionID', 0);
+    ServerProtocol := ReadInteger('ConnectionState', 'ServerProtocol', 0);
+    FLocalPlayer.Level := ReadInteger('ConnectionState', 'Level', 0);
+    FLocalPlayer.Realm := TDAOCRealm(ReadInteger('ConnectionState', 'Realm', ord(drNeutral)));
+    Free;
+  end;
+
+  if (FServerAddr = 0) or (FClientAddr = 0) then
+    exit;
+
+  FCryptKeySet := true; // CryptKey <> '000000000000000000000000';
+  FActive := true;
+
+  FTCPFromClient.Clear;
+  FTCPFromServer.Clear;
+end;
+
+procedure TDAOCConnection.SaveConnectionState(const AFileName: string);
+begin
+  with TINIFile.Create(AFileName) do begin
+    WriteString('ConnectionState', 'CryptKey', CryptKey);
+    WriteString('ConnectionState', 'ServerIP', ServerIP);
+    WriteString('ConnectionState', 'ClientIP', ClientIP);
+    WriteInteger('ConnectionState', 'RegionID', RegionID);
+    WriteInteger('ConnectionState', 'ServerProtocol', ServerProtocol);
+    WriteInteger('ConnectionState', 'Level', FLocalPlayer.Level);
+    WriteInteger('ConnectionState', 'Realm', ord(FLocalPlayer.Realm));
+    Free;
+  end;
 end;
 
 end.
