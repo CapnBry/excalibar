@@ -3,7 +3,12 @@ unit GLRenderObjects;
 interface
 
 uses
-  Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, 
+{$IFDEF LINUX}
+  QGraphics,
+{$ELSE}
+  Graphics,
+{$ENDIF !LINUX}
+  Types, SysUtils, Classes, Contnrs, GL, GLext, GLU,
   DDSImage, Intersections, QuickSinCos, INIFiles, GLUT, TGA2;
 
 type
@@ -235,11 +240,34 @@ function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
 function WriteGLUTTextH12(X, Y: integer; const s: string): integer;
 procedure ShadedRect(Left, Top, Right, Bottom: integer);
 
+  { We use our on implementation of these functions which work under
+    Linux and Windows }
+function GetRValue(AColor: TColor) : BYTE;
+function GetGValue(AColor: TColor) : BYTE;
+function GetBValue(AColor: TColor) : BYTE;
+
 implementation
 
 const
   D_TO_R = PI / 180;
   RGB_SCALE = 1 / 255;
+
+function GetRValue(AColor: TColor) : BYTE;
+asm
+  ret
+end;
+
+function GetGValue(AColor: TColor) : BYTE;
+asm
+  shr eax,$08
+  ret
+end;
+
+function GetBValue(AColor: TColor) : BYTE;
+asm
+  shr eax,$10
+  ret
+end;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 var

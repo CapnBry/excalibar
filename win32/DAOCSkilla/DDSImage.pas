@@ -8,7 +8,7 @@ unit DDSImage;
 interface
 
 uses
-  Windows, SysUtils, Classes, VCLMemStrms;
+  SysUtils, Classes, VCLMemStrms;
   
 const
   DDS_HEADER_MAGIC = $20534444;  // 'DDS '
@@ -52,39 +52,39 @@ const
 
 type
   TDDPixelFormat = packed record
-    dwSize:   DWORD;
-    dwFlags:  DWORD;
-    dwFourCC: DWORD;
-    dwRGBBitCount:  DWORD;
-    dwRBitMask: DWORD;
-    dwGBitMask: DWORD;
-    dwBBitMask: DWORD;
-    dwAlphaBitMask: DWORD;
+    dwSize:   Cardinal;
+    dwFlags:  Cardinal;
+    dwFourCC: Cardinal;
+    dwRGBBitCount:  Cardinal;
+    dwRBitMask: Cardinal;
+    dwGBitMask: Cardinal;
+    dwBBitMask: Cardinal;
+    dwAlphaBitMask: Cardinal;
   end;
 
   TDDCaps2 = packed record
-    dwCaps1:    DWORD;
-    dwCaps2:    DWORD;
-    dwDDSX:     DWORD;
-    dwReserved: DWORD;
+    dwCaps1:    Cardinal;
+    dwCaps2:    Cardinal;
+    dwDDSX:     Cardinal;
+    dwReserved: Cardinal;
   end;
 
   TDDSurfaceDesc2 = packed record
-    dwSize:     DWORD;
-    dwFlags:    DWORD;
-    dwHeight:   DWORD;
-    dwWidth:    DWORD;
-    dwPitchOrLinearSize:  DWORD;
-    dwDepth:    DWORD;
-    dwMipMapCount:  DWORD;
-    dwReserved1:    array[0..10] of DWORD;
+    dwSize:     Cardinal;
+    dwFlags:    Cardinal;
+    dwHeight:   Cardinal;
+    dwWidth:    Cardinal;
+    dwPitchOrLinearSize:  Cardinal;
+    dwDepth:    Cardinal;
+    dwMipMapCount:  Cardinal;
+    dwReserved1:    array[0..10] of Cardinal;
     sPixelFormat:   TDDPixelFormat;
     sCaps:      TDDCaps2;
-    dwTextureStage: DWORD;
+    dwTextureStage: Cardinal;
   end;
 
   TDDSFileHeader = packed record
-    dwMagic:      DWORD;
+    dwMagic:      Cardinal;
     sSurfaceDesc: TDDSurfaceDesc2;
   end;
 
@@ -92,7 +92,7 @@ type
   TDDSImagePixelsChunk = class(TObject)
   private
     FPixelData: TMemoryStream;
-    FInternalFormat: DWORD;
+    FInternalFormat: Cardinal;
     FHeight: integer;
     FWidth: integer;
     function GetPixels: Pointer;
@@ -105,7 +105,7 @@ type
     property PixelsSize: integer read GetPixelsSize;
     property Height: integer read FHeight;
     property Width:  integer read FWidth;
-    property InternalFormat: DWORD read FInternalFormat;
+    property InternalFormat: Cardinal read FInternalFormat;
   end;
 
   TDDSImage = class(TObject)
@@ -113,11 +113,11 @@ type
     FSwap: boolean;
     FCompressed: boolean;
     FPalettized: boolean;
-    FexternalFormat: DWORD;
-    FdivSize: DWORD;
-    FByteType: DWORD;
-    FblockBytes: DWORD;
-    FInternalFormat: DWORD;
+    FexternalFormat: Cardinal;
+    FdivSize: Cardinal;
+    FByteType: Cardinal;
+    FblockBytes: Cardinal;
+    FInternalFormat: Cardinal;
     FHeight: integer;
     FWidth: integer;
     FPixelData: TMemoryStream;
@@ -133,16 +133,16 @@ type
     destructor Destroy; override;
     procedure LoadFromFile(const AFileName: string);
     procedure LoadFromStream(AStream: TStream);
-    function CopyChunk(X, Y, H, W: DWORD) : TDDSImagePixelsChunk;
+    function CopyChunk(X, Y, H, W: Cardinal) : TDDSImagePixelsChunk;
 
     property Compressed: boolean read FCompressed;
     property Swap: boolean read FSwap;
     property Palettized: boolean read FPalettized;
-    property divSize: DWORD read FdivSize;
-    property blockBytes: DWORD read FblockBytes;
-    property internalFormat: DWORD read FInternalFormat;
-    property externalFormat: DWORD read FexternalFormat;
-    property ByteType: DWORD read FByteType;
+    property divSize: Cardinal read FdivSize;
+    property blockBytes: Cardinal read FblockBytes;
+    property internalFormat: Cardinal read FInternalFormat;
+    property externalFormat: Cardinal read FexternalFormat;
+    property ByteType: Cardinal read FByteType;
     property Height: integer read FHeight;
     property Width: integer read FWidth;
     property Pixels: Pointer read GetPixels;
@@ -236,11 +236,11 @@ end;
 
 { TDDSImage }
 
-function TDDSImage.CopyChunk(X, Y, H, W: DWORD): TDDSImagePixelsChunk;
+function TDDSImage.CopyChunk(X, Y, H, W: Cardinal): TDDSImagePixelsChunk;
 var
-  dwLine:     DWORD;
-  dwLineSize: DWORD;
-  dwNewLineSize: DWORD;
+  dwLine:     Cardinal;
+  dwLineSize: Cardinal;
+  dwNewLineSize: Cardinal;
 begin
   if (W <= 0) or (H <= 0) then
     raise Exception.Create('Height and Width must be greater than 0');
@@ -250,8 +250,8 @@ begin
     raise Exception.Create('Height and Width must be a multiple of ' + IntToStr(FdivSize));
 
     { linesize is actually for a block of data width x divsize }
-  dwLineSize := (DWORD(FWidth) div FdivSize) * FblockBytes;
-  dwNewLineSize := (DWORD(W) div FdivSize) * FblockBytes;
+  dwLineSize := (Cardinal(FWidth) div FdivSize) * FblockBytes;
+  dwNewLineSize := (Cardinal(W) div FdivSize) * FblockBytes;
 
   Result := TDDSImagePixelsChunk.Create;
   Result.FHeight := H;
@@ -331,7 +331,7 @@ procedure TDDSImage.LoadFromStream(AStream: TStream);
 var
   hdr:  TDDSFileHeader;
   iPixDataSize:  integer;
-  function max(a, b: DWORD) : DWORD;
+  function max(a, b: Cardinal) : Cardinal;
     begin if a > b then Result := a else Result := b; end;
 begin
   FPixelData.Clear;
@@ -374,8 +374,8 @@ begin
     if FdivSize = 0 then
       raise Exception.Create('divSize is 0 loading DDS.  Format must be DXT1');
       
-    iPixDataSize := (max(FdivSize, DWORD(FWidth)) div FdivSize) *
-      (max(FdivSize, DWORD(FHeight)) div FdivSize) * FblockBytes;
+    iPixDataSize := (max(FdivSize, Cardinal(FWidth)) div FdivSize) *
+      (max(FdivSize, Cardinal(FHeight)) div FdivSize) * FblockBytes;
     FPixelData.Size := iPixDataSize;
     FPixelData.CopyFrom(AStream, iPixDataSize);
   end;  { if compressed }

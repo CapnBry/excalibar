@@ -4,7 +4,11 @@ interface
 
 uses
   SysUtils, Types, Contnrs, Classes, GLRenderObjects, LinedFileStream,
-  CSVLineParser, DDSImage, GL, DAOCRegion, BackgroundHTTP;
+  CSVLineParser, DDSImage, GL, DAOCRegion
+{$IFDEF MSWINDOWS}
+  ,BackgroundHTTP
+{$ENDIF}
+  ;
 
 type
   TGLRenderObjectList = class(TObjectList)
@@ -73,19 +77,25 @@ type
     FVectorMapDir: string;
     FAttemptMapDownload: boolean;
     FMapBaseURL: string;
+{$IFDEF MSWINDOWS}
     FHTTPFetch: TBackgroundHTTPManager;
+{$ENDIF MSWINDOWS}
     function GetItems(I: integer): TVectorMapElementList;
     procedure SetVectorMapDir(const Value: string);
   protected
     procedure AddZone(AZone: TDAOCZoneInfo); override;
+{$IFDEF MSWINDOWS}
     procedure HTTPComplete(ARequest: TBackgroundHTTPRequest);
     procedure HTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest);
+{$ENDIF MSWINDOWS}
   public
     function FindZone(AZoneNum: integer) : TVectorMapElementList;
 
     property Items[I: integer]: TVectorMapElementList read GetItems; default;
     property VectorMapDir: string read FVectorMapDir write SetVectorMapDir;
+{$IFDEF MSWINDOWS}
     property HTTPFetch: TBackgroundHTTPManager read FHTTPFetch write FHTTPFetch;
+{$ENDIF MSWINDOWS}
     property MapBaseURL: string read FMapBaseURL write FMapBaseURL;
     property AttemptMapDownload: boolean read FAttemptMapDownload write FAttemptMapDownload;
   end;
@@ -93,21 +103,27 @@ type
   TTextureMapElementListList = class(TZoneGLRenderObjectListList)
   private
     FTextureMapDir: string;
+{$IFDEF MSWINDOWS}
     FHTTPFetch:  TBackgroundHTTPManager;
+{$ENDIF MSWINDOWS}
     FAttemptMapDownload: boolean;
     FMapBaseURL: string;
     function GetItems(I: integer): TTextureMapElementList;
     procedure SetTextureMapDir(const Value: string);
   protected
     procedure AddZone(AZone: TDAOCZoneInfo); override;
+{$IFDEF MSWINDOWS}
     procedure HTTPComplete(ARequest: TBackgroundHTTPRequest);
     procedure HTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest);
+{$ENDIF MSWINDOWS}
   public
     function FindZone(AZoneNum: integer) : TTextureMapElementList;
 
     property Items[I: integer]: TTextureMapElementList read GetItems; default;
     property TextureMapDir: string read FTextureMapDir write SetTextureMapDir;
+{$IFDEF MSWINDOWS}
     property HTTPFetch: TBackgroundHTTPManager read FHTTPFetch write FHTTPFetch;
+{$ENDIF MSWINDOWS}
     property MapBaseURL: string read FMapBaseURL write FMapBaseURL;
     property AttemptMapDownload: boolean read FAttemptMapDownload write FAttemptMapDownload;
   end;
@@ -397,8 +413,10 @@ end;
 procedure TVectorMapElementListList.AddZone(AZone: TDAOCZoneInfo);
 var
   pTmpZone:   TVectorMapElementList;
-  pHTTPRequest: TBackgroundHTTPRequest;
   sDestFileName:  string;
+{$IFDEF MSWINDOWS}
+  pHTTPRequest: TBackgroundHTTPRequest;
+{$ENDIF MSWINDOWS}
 begin
   pTmpZone := TVectorMapElementList.Create;
   Add(pTmpZone);
@@ -408,6 +426,7 @@ begin
   sDestFileName := FVectorMapDir + AZone.MapName;
   pTmpZone.LoadFromFile(sDestFileName);
 
+{$IFDEF MSWINDOWS}
     { zone didn't load.  Try to get it from the woooooooorld wide web }
   if FAttemptMapDownload and Assigned(FHTTPFetch) and (pTmpZone.Count = 0) then begin
     ForceDirectories(FVectorMapDir);
@@ -420,6 +439,7 @@ begin
     pHTTPRequest.OnHTTPError := HTTPError;
     FHTTPFetch.Request(pHTTPRequest);
   end;
+{$ENDIF MSWINDOWS}
 end;
 
 function TVectorMapElementListList.FindZone(AZoneNum: integer): TVectorMapElementList;
@@ -440,6 +460,7 @@ begin
   Result := TVectorMapElementList(inherited Items[I]);
 end;
 
+{$IFDEF MSWINDOWS}
 procedure TVectorMapElementListList.HTTPComplete(ARequest: TBackgroundHTTPRequest);
 var
   pZoneVecList:  TVectorMapElementList;
@@ -467,6 +488,7 @@ begin
     pZoneVecList.DeleteFile;
   end;
 end;
+{$ENDIF MSWINDOWS}
 
 procedure TVectorMapElementListList.SetVectorMapDir(const Value: string);
 begin
@@ -478,8 +500,10 @@ end;
 procedure TTextureMapElementListList.AddZone(AZone: TDAOCZoneInfo);
 var
   pTmpZone:   TTextureMapElementList;
-  pHTTPRequest: TBackgroundHTTPRequest;
   sDestFileName:  string;
+{$IFDEF MSWINDOWS}
+  pHTTPRequest: TBackgroundHTTPRequest;
+{$ENDIF MSWINDOWS}
 begin
     { make sure we have the directory the DDS files are in, in case
       we have to download em }
@@ -493,11 +517,12 @@ begin
   sDestFileName := Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]);
   pTmpZone.LoadFromSingleDDSFile(sDestFileName);
 
+{$IFDEF MSWINDOWS}
     { zone didn't load.  Try to get it from the woooooooorld wide web }
   if FAttemptMapDownload and Assigned(FHTTPFetch) and (pTmpZone.Count = 0) and
     (AZone.ZoneType in [dztOverworld, dztHousing])  then begin
     ForceDirectories(FTextureMapDir);
-    
+
     pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
     pHTTPRequest.URL := FMapBaseURL + 'f=dds&z=' + IntToStr(AZone.ZoneNum);
     pHTTPRequest.Tag := AZone.ZoneNum;
@@ -506,6 +531,7 @@ begin
     pHTTPRequest.OnHTTPError := HTTPError;
     FHTTPFetch.Request(pHTTPRequest);
   end;
+{$ENDIF MSWINDOWS}
 end;
 
 function TTextureMapElementListList.FindZone(AZoneNum: integer) : TTextureMapElementList;
@@ -526,6 +552,7 @@ begin
   Result := TTextureMapElementList(inherited Items[I]);
 end;
 
+{$IFDEF MSWINDOWS}
 procedure TTextureMapElementListList.HTTPComplete(ARequest: TBackgroundHTTPRequest);
 var
   pZoneTexList:  TTextureMapElementList;
@@ -538,11 +565,6 @@ begin
     ARequest.ResponseStream := nil;
     pZoneTexList.ReloadFile;
   end;
-end;
-
-procedure TTextureMapElementListList.SetTextureMapDir(const Value: string);
-begin
-  FTextureMapDir := IncludeTrailingPathDelimiter(Value);
 end;
 
 procedure TTextureMapElementListList.HTTPError(const AErr: string;
@@ -558,6 +580,12 @@ begin
     ARequest.ResponseStream := nil;
     pZoneTexList.DeleteFile;
   end;
+end;
+{$ENDIF MSWINDOWS}
+
+procedure TTextureMapElementListList.SetTextureMapDir(const Value: string);
+begin
+  FTextureMapDir := IncludeTrailingPathDelimiter(Value);
 end;
 
 end.
