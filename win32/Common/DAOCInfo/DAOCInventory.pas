@@ -44,6 +44,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function AsText : string;
+    function SummaryLine : string;
 
     function ClassRestriction : TDAOCCharacterClass;
 
@@ -369,6 +370,20 @@ begin
     Result := (FSlot - INV_VAULTPOS_FIRST) mod 20
   else
     Result := -1;
+end;
+
+function TDAOCInventoryItem.SummaryLine: string;
+{ Like AsText, but all on one line.  Format is:
+  Name, Slot, Count, Condition, Durability, Quality, Bonus, Level, Color,
+  ItemIDMajor, ItemIDMinor, DelveInfoCount, DelveInfo0, DelveInfo1, ... }
+var
+  I:    integer;
+begin
+  Result :=Format('"%s",0x%2.2x,%d,%d,%d,%d,%d,%d,%d,0x%2.2x%2.2x,%d',
+    [CountlessDescription, Slot, Count, Condition, Durability, Quality,
+     Bonus, Level, Color, ItemIDMajor, ItemIDMinor, FDelveInfo.Count]);
+  for I := 0 to FDelveInfo.Count - 1 do
+    Result := Result + ',"' + FDelveInfo[I] + '"';
 end;
 
 { TDAOCInventory }
