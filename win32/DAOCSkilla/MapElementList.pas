@@ -568,7 +568,7 @@ begin
 
     if not HaveLatestVersion(sDestFileName, 'vector') then begin
       ForceDirectories(FVectorMapDir);
-      HTTPDownload(FMapBaseURL + 'f=vector&z=' + IntToStr(AZone.ZoneNum), sDestFileName,
+      HTTPDownload(FMapBaseURL + 'f=vector&z=' + IntToStr(AZone.MapZoneNum), sDestFileName,
         AZone.ZoneNum);
     end
     else
@@ -677,7 +677,7 @@ begin
 
     if not HaveLatestVersion(sDestFileName, 'dds') then begin
       ForceDirectories(FTextureMapDir);
-      HTTPDownload(FMapBaseURL + 'f=dds&z=' + IntToStr(AZone.ZoneNum), sDestFileName,
+      HTTPDownload(FMapBaseURL + 'f=dds&z=' + IntToStr(AZone.MapZoneNum), sDestFileName,
         AZone.ZoneNum);
     end
     else
