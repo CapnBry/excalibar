@@ -31,6 +31,7 @@ type
     trackPlaySpeed: TTrackBar;
     Label1: TLabel;
     chkRecordDelveseen: TCheckBox;
+    chkEthernet: TCheckBox;
     procedure chkProcessPacketsClick(Sender: TObject);
     procedure chkCaptureClick(Sender: TObject);
     procedure btnOpenPlaybackClick(Sender: TObject);
@@ -120,6 +121,7 @@ end;
 procedure TfrmDebugging.btnPlayPacketClick(Sender: TObject);
 var
   tmpSegment:   TEthernetSegment;
+  tmpPacket:    TDAOCPacket;
   iCapLen:      integer;
 begin
   if not Assigned(FCaptureStream) then
@@ -139,10 +141,18 @@ begin
   else
     iCapLen := 0;
 
-  tmpSegment := TEthernetSegment.Create;
-  tmpSegment.LoadFromStream(FCaptureStream, iCapLen);
-  frmMain.EthernetSegment(nil, tmpSegment);
-  tmpSegment.Free;
+  if chkEthernet.Checked then begin
+    tmpSegment := TEthernetSegment.Create;
+    tmpSegment.LoadFromStream(FCaptureStream, iCapLen);
+    frmMain.EthernetSegment(nil, tmpSegment);
+    tmpSegment.Free;
+  end
+  else begin
+    tmpPacket := TDAOCPacket.Create;
+    tmpPacket.LoadFromSream(FCaptureStream);
+    frmMain.InjectPacket(tmpPacket);
+    tmpPacket.Free;
+  end;
 
   lblFilePos.Caption := IntToStr(FCaptureStream.Position);
 end;
@@ -175,6 +185,9 @@ var
   sDirec:   string;
 //  kk:       TDAOCCryptKey;
 begin
+  if not FInPlayback and Assigned(FCaptureStream) then
+    APacket.SaveToStream(FCaptureStream);
+
   if chkDumpPackets.Checked then begin
     if APacket.IPProtocol = daocpTCP then
       sProto := 'TCP'
@@ -275,7 +288,7 @@ end;
 
 function TfrmDebugging.GetMyCapFileName: string;
 begin
-  Result := ExtractFilePath(ParamStr(0)) + 'mycap.cap';
+  Result := ExtractFilePath(ParamStr(0)) + 'mycap.pak';
 end;
 
 procedure TfrmDebugging.btnDumpMobsClick(Sender: TObject);

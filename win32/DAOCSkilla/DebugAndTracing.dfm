@@ -63,7 +63,7 @@ object frmDebugging: TfrmDebugging
   object chkPCAPFile: TCheckBox
     Left = 0
     Top = 96
-    Width = 237
+    Width = 133
     Height = 17
     Caption = 'Process as libpcap file'
     TabOrder = 2
@@ -109,7 +109,7 @@ object frmDebugging: TfrmDebugging
     Top = 0
     Width = 189
     Height = 17
-    Caption = 'Capture packets to mycap.cap'
+    Caption = 'Capture packets to mycap.pak'
     TabOrder = 7
     OnClick = chkCaptureClick
   end
@@ -160,6 +160,14 @@ object frmDebugging: TfrmDebugging
     Caption = 'Capture item delves to delveseen'
     TabOrder = 11
     OnClick = chkRecordDelveseenClick
+  end
+  object chkEthernet: TCheckBox
+    Left = 140
+    Top = 96
+    Width = 97
+    Height = 17
+    Caption = 'Ethernet frames'
+    TabOrder = 12
   end
   object tmrPlayback: TTimer
     Enabled = False
