@@ -1,3 +1,18 @@
+IN TESTING
+----------
+  + Fix for versioned maps not downloading for one week after install.
+  + Z +/- now prints +0 or "Even Z" if you're at the same Z height as
+    your target.
+  + Added [Macroing] TrinketList to allow the user to define custom
+    "hinges" for autosell.
+  + Removed materialsforitem check after purchasing at vendor.
+  + Fix for trying to display inventory once selected object has gone
+    stale causing an AV.
+  + Fix bug causing exception clearing group member list after zoning.
+  + Fix bug removing group members who have already been deleted.
+  + Doors are now red or green pyramids depending on their state.
+  + Target HUD now displays door status.
+
 2004 Feb 09 - v1.83
 -------------------
   + Fix for Access Violation when targeting for people using a period
