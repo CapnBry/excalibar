@@ -726,8 +726,8 @@ void exConnection::parseObjectEquipment(exPacket *p)
     slot = 0;
 //    dump_packet = FALSE;
 
-    if (objcount && (mob->getLevel() == 50))
-        cout << mob->getName() << ": ";
+//    if (objcount && (mob->getLevel() == 50))
+//        cout << mob->getName() << ": ";
 
     while (objcount)  {
         slot = p->getByte();
@@ -768,8 +768,8 @@ void exConnection::parseObjectEquipment(exPacket *p)
 
         ii = new exInventoryItem(slot, obj_list, obj_index, obj_color);
         mob->updateInventory(ii);
-        if (mob->getLevel() == 50)
-            cout << ii->getDescription() + ", ";
+//        if (mob->getLevel() == 50)
+//            cout << ii->getDescription() + ", ";
 
         /* it appears if the high bit is set, that this is actually
            a particle effect on the preceeding item? */
@@ -777,10 +777,10 @@ void exConnection::parseObjectEquipment(exPacket *p)
             objcount--;
     }  /* while objcount */
 
-    if (slot && (mob->getLevel() == 50))
-    {
-        cout << " (" + mob->getClassName() + ")" << endl;
-    }
+//    if (slot && (mob->getLevel() == 50))
+//    {
+//        cout << " (" + mob->getClassName() + ")" << endl;
+//    }
 
 //    if ((mob->getLevel() == 50) && (dump_packet == TRUE))
 //        dumpPacket(0, p);
