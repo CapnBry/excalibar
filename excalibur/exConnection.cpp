@@ -500,7 +500,7 @@ END_EXPERIMENTAL_CODE
                           "," << z <<
                           "," << level <<
                           "," << name <<
-                          "," << ((guild) ? guild : "") <<
+                          "," << (guild.length() ? guild : "") <<
                           endl;
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
