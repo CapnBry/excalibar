@@ -499,7 +499,8 @@ bool exMob::isFiltered()
 ostream& operator << (ostream& os, const exMob &p)
 {
   return os << "exMob ID: " << p.id << " InfoID: " << p.infoid << " = "
-        << (p.isMob() ? "mob" : (p.isObj() ? "object" : "player")) << endl
+        << (p.isMob() ? "mob" : (p.isObj() ? "object" : "player"))
+        << (p.isCurrent() ? "" : " (STALE)") << endl
         << "  Name: [" << p.name << "] Surname: [" << p.surname << "] Guild: <" << p.guild << ">" << " Realm: " << p.realm << endl
         << "  X: " << p.x << " Y: " << p.y << " Z: " << p.z << endl
         << "  Head: " << p.head << " Speed: " << p.speed << endl;
