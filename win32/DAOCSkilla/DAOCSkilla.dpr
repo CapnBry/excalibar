@@ -57,7 +57,8 @@ uses
   StreamINI in '..\Common\StreamINI.pas',
   DateTimeFormats in '..\Common\DateTimeFormats.pas',
   MobFilterListFrame in 'MobFilterListFrame.pas' {frmMobFilerList: TFrame},
-  MobFilterEntry in 'MobFilterEntry.pas' {frmMobFilterEntry};
+  MobFilterEntry in 'MobFilterEntry.pas' {frmMobFilterEntry},
+  DisplayLicense in 'DisplayLicense.pas' {frmDisplayLicense};
 
 {$R *.TLB}
 
