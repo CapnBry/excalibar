@@ -12,15 +12,29 @@ Changes:
  + Changed mob list to hightlight the while line when selected.
  + Moved code from exConnection::processPacket() to 
    parsePlayerInventoryUpdate().
- + Added label to count number of Albs/Hibs/Mids/Mobs. NOT YET WORKING PROPERLY.
+ + Added label to count number of Albs/Hibs/Mids/Mobs.
  + Added isPlayer() function to exMob.
+ + Changed exMob << overload to be a friend function.  
+ + Added more info to exMob << dump.
+ + Removed max stale dist auto-update, for now.
+ + New con color calculation should work around levels 10, 
+   20, 30, and 40 correctly now.
+ + Slight changes to exMobList << operator.
+ + Added callback from mob to connection to notify that it went
+   stale, exConnection::mobWentStale().
+ + Added command-line option to dump a mobseen line for each
+   new mob detected (--mobseen).  Format is:
+     MOBSeen,Zone,X,Y,Z,Level,Name
+ + Added menu option to dump the connection's moblist to stdout.
+ + Fixed a bug which would prevent FPS from showing during some 
+   sessions.
 
 Teerex (03/Jun/02)
 ------------------
 Changes:
  + Added rotate property for zones, since some were upside-
    down.  I've only rotated one zone right now, but will rotate
-   others as I find them.
+   others as I find them.                                     
  + Made the max mob stale distance dynamic based on when the
    server sends us the mob loc.
 
