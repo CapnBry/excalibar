@@ -367,6 +367,21 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
                 turning=false;
                 } // end else turn completed
             } // end if turning
+        else if(last_heading_check+3.0 < params.current_time->Seconds())
+            {
+            // store last heading check time
+            last_heading_check=params.current_time->Seconds();
+            
+            // make arguments for headpoint, always give it 10 seconds
+            std::stringstream ss;
+            ss << x << " " << y << " " << 10.0 << std::endl;
+            
+            // extract head_point
+            head_point->Extract(ss);
+            
+            // set turning flag
+            turning=true;
+            } // end else not turning and periodic heading check time
             
         if(!moving)
             {
@@ -471,7 +486,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToActor::Execute(csl::EXECUTE_PARAMS& par
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -534,7 +549,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToTarget::Execute(csl::EXECUTE_PARAMS& pa
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -631,7 +646,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPointRelative::Execute(csl::EXECUTE_PAR
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -751,7 +766,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToActorRelative::Execute(csl::EXECUTE_PAR
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -844,7 +859,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToTargetRelative::Execute(csl::EXECUTE_PA
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -883,30 +898,37 @@ bool HeadTo::Extract(std::istream& arg_stream)
 
 float HeadTo::SetTurnDir(const float final_heading,const float current_heading)
 {
+    // final heading and current heading must be [0,2pi)
     const float pi=3.1415926535897932384626433832795f;
     const float two_pi=pi*2.0f;
-    float delta_heading=fmod(final_heading-current_heading,two_pi);
+    float delta_heading=final_heading-current_heading;
     
-    if(delta_heading > two_pi)
+    if(fabs(delta_heading) > pi)
         {
-        delta_heading-=two_pi;
-        }
-    else if(delta_heading <= -two_pi)
-        {
-        delta_heading+=two_pi;
-        }
+        if(delta_heading < 0.0f)
+            {
+            delta_heading+=two_pi;
+            }
+        else
+            {
+            delta_heading-=two_pi;
+            }
+        } // end if north crossing check
     
     if(delta_heading < 0.0f)
         {
-        // left
         turn_left=true;
         }
     else
         {
-        // right
         turn_left=false;
         }
 
+    ::Logger << "final heading: " << final_heading*180.0f/pi
+             << " current heading: " << current_heading*180.0f/pi
+             << " turn left: " << turn_left
+             << " delta heading: " << (180.0f/pi)*fabs(delta_heading) << "\n";
+    
     // return radians to turn
     return(fabs(delta_heading));
 } // end SetTurnDir
@@ -916,8 +938,8 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
     // angular tolerance (5°) in radians
     const float tolerance=5.0f*3.1415926535897932384626433832795f/180.0f;
     
-    // radians per second for turn rate 90°/second
-    const float radians_sec=90.0f*3.1415926535897932384626433832795f/180.0f;
+    // radians per second for turn rate 135°/second
+    const float radians_sec=135.0f*3.1415926535897932384626433832795f/180.0f;
     
     // check start time
     if(start_time==-1.0)
@@ -935,7 +957,6 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
         delete proxy;
         proxy=0;
         start_time=-1.0;
-        
         ::Logger << "[HeadTo::Execute] no followed (reference) actor!" << std::endl;
         return(std::make_pair(false,true));
         }
@@ -963,9 +984,6 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
             params.followed_actor->GetMotion().GetHeading()
             );
         
-        /*
-        THIS IS THE EXIT POINT!
-        */
         // check if we are within tolerance, if so
         // then we are done -- delta_heading
         // has already been fabs()'ed so we don't need
@@ -996,6 +1014,8 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
         // see how long this should take
         const double time_to_go=delta_heading/radians_sec;
         
+        //::Logger << "turning for " << time_to_go << " seconds\n";
+        
         // make a stream with command arguments for delay
         std::stringstream ss;
         ss << time_to_go << std::endl; 
@@ -1004,6 +1024,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
         if(!dly->Extract(ss))
             {
             delete dly;
+            start_time=-1.0;
             // delay extract failed
             return(std::make_pair(false,true));
             }
@@ -1019,41 +1040,50 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
         // proxy the execute command
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
-        // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first)
             {
+            // release turn key
+
+            // release left key (use press and release, just
+            // release doesn't always work)
+            params.keyboard->PressAndReleaseVK("VK_LEFT");
+            // release right key (use press and release, just
+            // release doesn't always work)
+            params.keyboard->PressAndReleaseVK("VK_RIGHT");
+
+            // there was a problem and we will not execute anymore
+            // so we have to reinit
+            // init to initial value
+            start_time=-1.0;
+
+            // donw with proxy, there was a problem
             delete proxy;
             proxy=0;
+            } // end if problem
+        else if(status.second)
+            {
+            // turn completed
 
-            if(!status.first)
-                {
-                // there was a problem and we will not execute anymore
-                // so we have to reinit
-
-                // init to initial value
-                start_time=-1.0;
-                }
-                
             // release turn key
-            if(turn_left)
-                {
-                // release left key (use press and release, just
-                // release doesn't always work)
-                params.keyboard->PressAndReleaseVK("VK_LEFT");
-                }
-            else
-                {
-                // release right key (use press and release, just
-                // release doesn't always work)
-                params.keyboard->PressAndReleaseVK("VK_RIGHT");
-                }
+
+            // release left key (use press and release, just
+            // release doesn't always work)
+            params.keyboard->PressAndReleaseVK("VK_LEFT");
+            // release right key (use press and release, just
+            // release doesn't always work)
+            params.keyboard->PressAndReleaseVK("VK_RIGHT");
+
+            // proxy complete
+            // init to initial value
+            start_time=-1.0;
+            delete proxy;
+            proxy=0;
             } // end if proxy finished executing
         
-        // done, but we need to execute again (no proxy when we finish execution)
-        // also, return proxy fail status in case there was a problem
+        // done, return proxy fail status in case there was a problem
         // if there was, we have already deleted the proxy and don't have to worry
         // about that or about reinitializing
-        return(std::make_pair(status.first,false));
+        return(status);
         } // end else proxy
 } // end Execute
 
@@ -1123,7 +1153,15 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadPoint::Execute(csl::EXECUTE_PARAMS& param
         float delta_y=(float)y-(float)zone_y;
         
         // get heading from current position
-        float heading=atan2(delta_x,delta_y);
+        // we use -delta_y here because +y is south
+        // in DAoC
+        float heading=atan2(delta_x,-delta_y);
+        
+        // make sure its positive
+        if(heading < 0.0f)
+            {
+            heading += 2.0f*3.1415926535897932384626433832795f;
+            }
         
         // make a stream with command arguments for head to
         std::stringstream ss;
@@ -1149,7 +1187,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadPoint::Execute(csl::EXECUTE_PARAMS& param
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -1247,7 +1285,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadActor::Execute(csl::EXECUTE_PARAMS& param
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -1328,7 +1366,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTarget::Execute(csl::EXECUTE_PARAMS& para
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -1383,7 +1421,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadPointRelative::Execute(csl::EXECUTE_PARAM
     if(!proxy)
         {
         // get heading from current position
-        float heading=atan2((float)x,(float)y);
+        float heading=atan2((float)x,(float)-y);
         
         // make a stream with command arguments for head to
         std::stringstream ss;
@@ -1409,7 +1447,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadPointRelative::Execute(csl::EXECUTE_PARAM
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -1529,7 +1567,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadActorRelative::Execute(csl::EXECUTE_PARAM
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -1625,7 +1663,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTargetRelative::Execute(csl::EXECUTE_PARA
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -2007,6 +2045,8 @@ bool InterceptActorOffset::Extract(std::istream& arg_stream)
         }
     else
         {
+        start_time=-1.0;
+        last_target_check_time=-10.0;
         // go ahead and init these to something (as long
         // as its a legal float, it doesn't matter)
         intercept_x=0.0f;
@@ -2200,7 +2240,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActorOffset::Execute(csl::EXECUTE_PA
     csl::CSLCommandAPI::EXECUTE_STATUS status=move_point->Execute(params);
     
     // see if we need to delete the proxy
-    if(!status.first || !status.second)
+    if(!status.first || status.second)
         {
         // we need to reinit now, we
         // are done, success or not
@@ -2280,7 +2320,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& 
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -2365,7 +2405,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptTargetOffset::Execute(csl::EXECUTE_P
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
@@ -2434,7 +2474,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptTarget::Execute(csl::EXECUTE_PARAMS&
         csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
         
         // see if we need to delete the proxy
-        if(!status.first || !status.second)
+        if(!status.first || status.second)
             {
             delete proxy;
             proxy=0;
