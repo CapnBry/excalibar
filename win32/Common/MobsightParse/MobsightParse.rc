@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -72,12 +72,12 @@ BEGIN
             VALUE "Comments", "Library to ease accessing Mobsight"
             VALUE "CompanyName", "Cheyenne Developers"
             VALUE "FileDescription", "Mobsight Dynamic Link Library"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileVersion", "1, 0, 0, 2"
             VALUE "InternalName", "MobsightParse"
             VALUE "LegalCopyright", "Copyright (C) 2003, Cheyenne Developers"
             VALUE "OriginalFilename", "Mobsight.dll"
             VALUE "ProductName", " Mobsight Dynamic Link Library"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductVersion", "1, 0, 0, 2"
         END
     END
     BLOCK "VarFileInfo"
