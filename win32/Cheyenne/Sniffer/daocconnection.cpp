@@ -501,7 +501,7 @@ void DAOCConnection::BuildMessages(void)
             bBuiltMessage=true;
 
             // decrypt
-            Decrypt(&buffer[2],size);
+            //Decrypt(&buffer[2],size);
 
             // process
             BuildMessagesFromTCPServer(buffer);
@@ -517,7 +517,7 @@ void DAOCConnection::BuildMessages(void)
             bBuiltMessage=true;
 
             // decrypt
-            Decrypt(&buffer[2],size);
+            //Decrypt(&buffer[2],size);
 
             // process
             BuildMessagesFromTCPClient(buffer);
@@ -533,7 +533,7 @@ void DAOCConnection::BuildMessages(void)
             bBuiltMessage=true;
 
             // decrypt
-            Decrypt(&buffer[2],size);
+            //Decrypt(&buffer[2],size);
 
             // process
             BuildMessagesFromUDPServer(buffer);
