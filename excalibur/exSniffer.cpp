@@ -112,7 +112,14 @@ bool exTCP::add(QByteArray *tcppacket) {
   unsigned int i;
   exTCPFragment *f;
 
-  frags.append(new exTCPFragment(tcppacket, baseseq));
+  f = new exTCPFragment(tcppacket, baseseq);
+  if (!f->dlen)
+  {
+      delete f;
+      return false;
+  }
+
+  frags.append(f);
 
   newdata=false;
 
@@ -187,21 +194,61 @@ exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
   const char *dataptr;
   struct tcphdr *tcp;
 
-  d=tcppacket->data();
-  tcp=(struct tcphdr *) (d+sizeof(struct ip));
-  dataptr=(const char *)tcp;
 #ifdef __FreeBSD__
-  dataptr+=4 * tcp->th_off;
-#else
-  dataptr+=4 * tcp->doff;
-#endif
-  dlen=tcppacket->size() - (dataptr - d);
-#ifdef __FreeBSD__
+  d = tcppacket->data();
+  tcp = (struct tcphdr *) (d+sizeof(struct ip));
+  dataptr = (const char *)tcp;
+  dataptr += 4 * tcp->th_off;
   from=(ntohl(tcp->th_seq) - baseseq);
-#else
-  from=(ntohl(tcp->seq) - baseseq);
-#endif
+  dlen=tcppacket->size() - (dataptr - d);
   data.duplicate(dataptr,dlen);
+#else
+  /*
+  d = tcppacket->data();
+  tcp = (struct tcphdr *) (d+sizeof(struct iphdr));
+  dataptr = (const char *)tcp;
+  dataptr += 4 * tcp->doff;
+  from=(ntohl(tcp->seq) - baseseq);
+  dlen=tcppacket->size() - (dataptr - d);
+  data.duplicate(dataptr,dlen);
+  return;
+  */
+
+  struct iphdr *ip;
+  int ip_hdr_len;
+  int ip_tot_len;
+  int tcp_hdr_len;
+  int total_hdr_len;
+
+  d = tcppacket->data();
+
+    /* d points to an ip header */
+  ip = (struct iphdr *)d;
+  ip_hdr_len = 4 * ip->ihl;
+  ip_tot_len = ntohs(ip->tot_len);
+
+    /* the tcp header begins right after the ip header */
+  tcp = (struct tcphdr *)(d + ip_hdr_len);
+  tcp_hdr_len = 4 * tcp->doff;
+
+   /* the payload data is at after the tcp header */
+  dataptr = (const char *)(tcp) + tcp_hdr_len;
+
+  from=(ntohl(tcp->seq) - baseseq);
+
+  /* the size of the data is the total len stated in the ip header,
+     minus the size of the tcp and ip headers */
+  total_hdr_len = ip_hdr_len + tcp_hdr_len;
+  dlen = ip_tot_len - total_hdr_len;
+
+  if (tcppacket->size() < (dlen + total_hdr_len))
+  {
+      qWarning("Fragment has short playload.  Dropped.");
+      dlen = 0;
+  }
+  else
+      data.duplicate(dataptr,dlen);
+#endif
 }
 
 
@@ -331,7 +378,7 @@ void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
 #else
   if (ph->caplen < (sizeof(struct ether_header)+sizeof(struct iphdr))) {
 #endif
-    qWarning("Undersized packet. Dropped.");
+    qWarning("Packet smaller than needed header. Dropped.");
     return;
   }
 
@@ -341,13 +388,10 @@ void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
    */
 
 #ifdef __FreeBSD__
-  iph=(struct ip *)(data+16);
-#else
-  ip=(struct iphdr *)(data+16);
-#endif
-
-#ifdef __FreeBSD__
   iph=(struct ip *)(data+sizeof(struct ether_header));
+#else
+  // iph=(struct iphdr *)(data+sizeof(struct ether_header));
+  ip=(struct iphdr *)(data+16);
 #endif
 
 #ifdef __FreeBSD__
@@ -368,11 +412,7 @@ void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
       add(ba);
       break;
     default:
-#ifdef __FreeBSD__
-      qWarning("Got non TCP/UDP packet: %d",iph->ip_p);
-#else
       qWarning("Got non TCP/UDP packet");
-#endif
       break;
   }
 }
@@ -412,34 +452,29 @@ void exSniffer::processPacket(QByteArray *ba) {
   int len, plen;
 
   data=ba->data();
-#ifdef __FreeBSD__
-  iph=(struct ip *) data;
-#else
-  ip=(struct iphdr *) data;
-#endif
 
 #ifdef __FreeBSD__
+  iph=(struct ip *) data;
   if (iph->ip_p == IPPROTO_UDP) {
-    udp=(struct udphdr *) (data+sizeof(struct ip));
-    n=nets.find((void *)iph->ip_dst.s_addr);
-#else
-  if (ip->protocol == SOL_UDP) {
-    udp=(struct udphdr *) (data+sizeof(struct iphdr));
-    n=nets.find((void *)ip->daddr);
-#endif
+    udp = (struct udphdr *) (data+sizeof(struct ip));
+    n = nets.find((void *)iph->ip_dst.s_addr);
     if (! n)
       return;
-#ifdef __FreeBSD__
-    len=ntohs(udp->uh_ulen);
+    len = ntohs(udp->uh_ulen);
+    len -= sizeof(struct udphdr);
+    data += sizeof(struct ip)+sizeof(struct udphdr);
 #else
-    len=ntohs(udp->len);
-#endif
-    len-=sizeof(struct udphdr);
-#ifdef __FreeBSD__
-    data+=sizeof(struct ip)+sizeof(struct udphdr);
-#else
+  ip=(struct iphdr *) data;
+  if (ip->protocol == SOL_UDP) {
+    udp = (struct udphdr *) (data+sizeof(struct iphdr));
+    n = nets.find((void *)ip->daddr);
+    if (! n)
+      return;
+    len = ntohs(udp->len);
+    len -= sizeof(struct udphdr);
     data+=sizeof(struct iphdr)+sizeof(struct udphdr);
 #endif
+
     while (len > 2) {
       plen=(data[0]<<8) + data[1] + 3;
       data+=2;
