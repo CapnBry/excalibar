@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, PReader2, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs;
+  Dialogs, StdCtrls, PReader2, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs,
+  ComCtrls;
 
 type
   TfrmDebugging = class(TForm)
@@ -21,6 +22,8 @@ type
     tmrPlayback: TTimer;
     Bevel1: TBevel;
     btnDumpMobs: TButton;
+    trackPlaySpeed: TTrackBar;
+    Label1: TLabel;
     procedure chkProcessPacketsClick(Sender: TObject);
     procedure chkCaptureClick(Sender: TObject);
     procedure btnOpenPlaybackClick(Sender: TObject);
@@ -30,6 +33,7 @@ type
     procedure chkRecordMobseenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnDumpMobsClick(Sender: TObject);
+    procedure trackPlaySpeedChange(Sender: TObject);
   private
     FCaptureStream:   TFileStream;
     FMobseenFile:   TFileStream;
@@ -269,6 +273,11 @@ begin
     Log(pObj.AsString);
     pObj := pObj.Next;
   end;
+end;
+
+procedure TfrmDebugging.trackPlaySpeedChange(Sender: TObject);
+begin
+  tmrPlayback.Interval := trackPlaySpeed.Position;
 end;
 
 end.
