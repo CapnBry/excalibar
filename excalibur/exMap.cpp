@@ -338,7 +338,7 @@ void exMap::paintGL() {
 
     if (m->isCurrent()) {
       glPushMatrix();
-      glTranslated(m->getX(),m->getY(),m->getZ());
+      glTranslated(m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
 
       if (! m->isMob()) {
@@ -387,7 +387,7 @@ void exMap::paintGL() {
             qglColor( darkRed );
           }
 
-          drawCircle(m->getX(), m->getY(), 500, 18);
+          drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
         }
       }
     }
@@ -400,7 +400,7 @@ void exMap::paintGL() {
     glLineWidth ( 2.0 );
     glBegin(GL_LINES);
     glVertex3i(c->playerx,c->playery,c->playerz);
-    glVertex3i(m->getX(),m->getY(),m->getZ());
+    glVertex3i(m->getProjectedX(),m->getProjectedY(),m->getZ());
     glEnd();
   }
 
