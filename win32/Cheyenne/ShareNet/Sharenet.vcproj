@@ -107,7 +107,7 @@
 				RelativePath=".\ShareNet.cpp">
 			</File>
 			<File
-				RelativePath=".\TenletClient.cpp">
+				RelativePath=".\TelnetClient.cpp">
 			</File>
 		</Filter>
 		<Filter
