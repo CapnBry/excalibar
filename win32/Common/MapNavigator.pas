@@ -90,6 +90,7 @@ type
     function BearingFrom(AX, AY: integer) : integer; overload;
     function IsConnectedTo(ANode: TMapNode; AMaxHops: integer) : boolean;
     function FindPathTo(ANode: TMapNode) : TMapNodeList;
+    function IsNamed(const AName: string) : boolean;
 
     function AsText : string;
 
@@ -484,6 +485,11 @@ begin
   FRadius := 0;
     { TODO: Make NodeTraversalCost be dynamic, based on how much we have to turn }
   FNodeTraversalCost := 0; // 50;
+end;
+
+function TMapNode.IsNamed(const AName: string): boolean;
+begin
+  Result := AnsiSameText(FName, AName);
 end;
 
 { TMapNodeList }
