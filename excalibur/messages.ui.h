@@ -26,4 +26,5 @@ void exMessagesUi::resizeEvent( QResizeEvent *e)
 	
 	textbox->resize( w > 0 ? w : 0, h > 0 ? h : 0);
     }
+	QDialog::resizeEvent( e);
 }
