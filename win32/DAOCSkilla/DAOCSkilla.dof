@@ -47,7 +47,7 @@ PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=..\components\glWindow;..\components\zlib
 Packages=vcl;rtl;dbrtl;adortl;vcldb;vclx;bdertl;vcldbx;ibxpress;dsnap;cds;bdecds;qrpt;teeui;teedb;tee;dss;teeqr;visualclx;visualdbclx;dsnapcrba;dsnapcon;VclSmp;vclshlctrls;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;inetdb;nmfast;webdsnap;websnap;dbexpress;dbxcds;indy
-Conditionals=DAOC_AUTO_SERVER;OPENGL_RENDERER;OPENGL_RENDERER
+Conditionals=DAOC_AUTO_SERVER;OPENGL_RENDERER
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
@@ -64,7 +64,7 @@ RootDir=C:\Utils\DAoCSkilla\testapp\
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=1
-MinorVer=24
+MinorVer=26
 Release=0
 Build=0
 Debug=0
@@ -77,7 +77,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Network Utility for Dark Age of Camelot
-FileVersion=1.24.0.0
+FileVersion=1.26.0.0
 InternalName=
 LegalCopyright=
 LegalTrademarks=
@@ -86,13 +86,14 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 [HistoryLists\hlConditionals]
-Count=6
-Item0=DAOC_AUTO_SERVER;OPENGL_RENDERER;OPENGL_RENDERER
-Item1=DAOC_AUTO_SERVER
-Item2=DAOC_AUTO_SERVER;OPENGL_RENDERER;DAOC_AUTO_SERVER
-Item3=DAOC_AUTO_SERVER,REMOTE_ADMIN;OPENGL_RENDERER
-Item4=DAOC_AUTO_SERVER,REMOTE_ADMIN
-Item5=DAOC_AUTO_SERVER,OPENGL_RENDERER,REMOTE_ADMIN
+Count=7
+Item0=DAOC_AUTO_SERVER;OPENGL_RENDERER
+Item1=DAOC_AUTO_SERVER;OPENGL_RENDERER;OPENGL_RENDERER
+Item2=DAOC_AUTO_SERVER
+Item3=DAOC_AUTO_SERVER;OPENGL_RENDERER;DAOC_AUTO_SERVER
+Item4=DAOC_AUTO_SERVER,REMOTE_ADMIN;OPENGL_RENDERER
+Item5=DAOC_AUTO_SERVER,REMOTE_ADMIN
+Item6=DAOC_AUTO_SERVER,OPENGL_RENDERER,REMOTE_ADMIN
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
