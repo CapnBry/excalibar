@@ -145,6 +145,7 @@ type
     procedure DAOCAttemptNPCRightClickFailed(Sender: TObject);
     procedure DAOCLocalHealthUpdate(Sender: TObject);
     procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
+    procedure DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
 
     procedure DSTREAMDAOCConnect(Sender: TObject;
       AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
@@ -316,6 +317,8 @@ begin
     OnSelectNPCFailed := DAOCSelectNPCFailed;
     OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
     OnLocalHealthUpdate := DAOCLocalHealthUpdate;
+    OnDoorPositionUpdate := DAOCDoorPositionUpdate;
+    OnMobInventoryChanged := DAOCMobInventoryChanged;
 
     DAOCPath := FDAOCPath;
     MainHWND := Handle;
@@ -801,7 +804,12 @@ end;
 procedure TfrmMain.InjectPacket(Source: TObject; APacket: TGameNetPacket);
 begin
   if FProcessPackets then
-    FDControlList.ProcessDAOCPacket(Source, APacket)
+    try
+      FDControlList.ProcessDAOCPacket(Source, APacket);
+    except
+      on E: Exception do
+        Log('PACKET FORMAT CHANGED: ' + E.Message);
+    end
   else
     FDebugLogState.DAOCAfterPacket(Self, APacket);
 end;
@@ -1050,6 +1058,13 @@ procedure TfrmMain.atnDumpMobListExecute(Sender: TObject);
 begin
   if FDControlList.Count > 0 then
     FDebugLogState.DumpMobsToLog(FDControlList[0]);
+end;
+
+procedure TfrmMain.DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCMobInventoryChanged(Sender, AObj);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.
