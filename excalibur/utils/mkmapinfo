@@ -1,0 +1,76 @@
+#!/bin/ksh
+
+# this will create both mapinfo.txt and nmapinfo.txt files. nmapinfo.txt is not used yet.
+# but is "friendlier" for other uses
+
+if false
+then
+	if [ "$1" = "" ]
+	then
+		echo usage: $0 zones.mpk
+		exit 1
+	fi
+
+	if [ ! -x dempak.py ]
+	then
+		echo $0: needs dempak.py
+		exit 2
+	fi
+
+	dempak.py $1
+fi
+
+if [ ! -f zones.mpk.out/zones.dat ]
+then
+	echo "the coder was lazy, go locate zones.mpk.out/zones.dat, or edit this to accept argv1"
+	exit
+fi
+
+sed -e 's///g' -e 's/ *$//' zones.mpk.out/zones.dat 2>/dev/null | awk '
+$1 ~ "^;" { next }
+$1 ~ "^[[]zone" { zon = 1; z = substr($1,6,3); sub("^0", "", z); zone = z + 0; proxy_zone[zone] = "-"; type[zone]=0 }
+#$0 ~ "jumpdefs" { exit } # was an "optimazation" but commentted out to rid broken-pipe, sigh
+NF == 0 { if (zon)
+		{
+		# YUCK! hard coded rot(ate)!
+		rot = 0
+		if (zone == 26)
+			rot = 90
+		if (zone == 90 || zone == 120 || zone == 209 || proxy_zone[zone] == 90)
+			rot = 180
+		printf "%3s %3s %3s %s %3s %8d %8d - %8d %8d %s\n", zone, region[zone], proxy_zone[zone], type[zone], rot, region_offset_x[zone], region_offset_y[zone], region_offset_x[zone]+width[zone], region_offset_y[zone]+height[zone], zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
+		printf "%4s  %08x %08x  -  %08x %08x  %s  %-25s %-3s  %s\n", region[zone], region_offset_x[zone], region_offset_y[zone], region_offset_x[zone]+width[zone], region_offset_y[zone]+height[zone], type[zone], zonename[zone] ".map", zone, rot | "sort -n +8 -o mapinfo.txt"
+		}
+	zon = 0
+	}
+zon == 0 { next }
+$1 ~ "=" { split($0, a, "=");
+		if (a[1] == "type")
+			type[zone] = a[2]
+		if (a[1] == "proxy_zone")
+			proxy_zone[zone] = a[2]
+		if (a[1] == "name")
+		{
+			zn = a[2]
+			gsub(" ", "_", zn)
+			gsub("[.]", "", zn)
+			gsub("\047", "", zn)
+			zonename[zone] = zn
+		}
+		if (a[1] == "width")
+			width[zone] = a[2] * 8192
+		if (a[1] == "height")
+			height[zone] = a[2] * 8192
+		if (a[1] == "region_offset_x")
+			region_offset_x[zone] = a[2] * 8192
+		if (a[1] == "region_offset_y")
+			region_offset_y[zone] = a[2] * 8192
+		if (a[1] == "region")
+		{
+			z = substr(a[2], 1, 3)
+			sub("^0", "", z)
+			a[2] = z + 0
+			region[zone] = a[2]
+		}
+	}
+' -
