@@ -467,6 +467,7 @@ var
   pTrWin:     TTradeRecipeWindow;
   pQuWin:     TQuickbar;
   pSelectedPowerskillDef: TPowerSkillItemDef;
+  bClosedWindow:  boolean;
 begin
   pSelectedPowerskillDef := GetSelectedItem;
   if not Assigned(pSelectedPowerskillDef) then begin
@@ -477,6 +478,7 @@ begin
   FDControl.FocusDAOCWindow;
 
   FDControl.DoSendKeys('1');
+  bClosedWindow := false;
   sleep(500);
 
   pRecipes := FDControl.TradeRecipes.FindRealmAndCraft(FPSItemList.RecipeRealm,
@@ -496,12 +498,17 @@ begin
         { this is to get around a bug where the first click in recipe window
           is ignored next time it is used ????  WTF MYSTIK!?!! }
       pTrWin.ScrollUp;
+      
+      pTrWin.Close;
       pTrWin.Free;
+      bClosedWindow := true;
     end;  { if assigned Item }
   end;  { if assigned Recipes }
 
-  sleep(250);
-  FDControl.DoSendKeys('1');
+  if not bClosedWindow then begin
+    sleep(250);
+    FDControl.DoSendKeys('1');
+  end;
 end;
 
 procedure TfrmPowerskill.SelectItemMaterialMerchant;
