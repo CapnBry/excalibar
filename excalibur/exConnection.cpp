@@ -108,10 +108,10 @@ exConnection::~exConnection()
     players.clear();
     mobinfo.clear();
 
-	if(ex)
+    if (ex)
     delete ex;
 
-    if (ds)
+    if ( NULL != ds && writecapture)
 	delete ds;
 
     if (file)
