@@ -44,7 +44,8 @@ uses
   RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
   DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas',
   DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas',
-  DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging};
+  DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging},
+  GlobalTickCounter in '..\Common\GlobalTickCounter.pas';
 
 {$R *.TLB}
 
