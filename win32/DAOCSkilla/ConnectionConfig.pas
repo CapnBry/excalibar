@@ -118,11 +118,17 @@ begin
   with lstAdapters.Canvas do begin
     if odSelected in State then begin
       Brush.Color := clHighlight;
-      Font.Color := clHighlightText;
+      if lstAdapters.Enabled then
+        Font.Color := clHighlightText
+      else
+        Font.Color := clGrayText;
     end
     else begin
       Brush.Color := lstAdapters.Color;
-      Font.Color := clGrayText;
+      if lstAdapters.Enabled then
+        Font.Color := clWindowText
+      else
+        Font.Color := clGrayText;
     end;
 
     FillRect(Rect);
