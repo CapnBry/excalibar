@@ -56,7 +56,6 @@ exMap::exMap(QWidget *parent, const char *name)
   MapLoader.initialize();
   MapLoader.setParent(this);
   m_bNeedMapReload = false;
-  _instant_fps=new QTime;
 }
 
 exMap::~exMap() {
@@ -64,9 +63,6 @@ exMap::~exMap() {
   
   if (mi)
     delete mi;
-
- if (_instant_fps)
-   delete _instant_fps;
 }
 
 void exMap::dirty() {
@@ -312,7 +308,6 @@ void exMap::resizeGL(int w, int h) {
 }
 
 void exMap::paintGL() {
-  _instant_fps->restart(); 
   const QPtrDict<exMob> mobs=c->getMobs();
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
@@ -646,25 +641,11 @@ void exMap::paintGL() {
 
   glFlush();
 
-  if (_instant_fps->elapsed() > 0) {
-    fps    += (1000/_instant_fps->elapsed());
-    frames += 1;
-  }
-
+  frames += 1;
   if ((exTick - _last_fps) >= 1000) {
-
-    if (frames > 0) {
-      if (((int)fps / frames) >= 1000)
-        c->ex->FPS->setText("??? FPS");
-       else
-         c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
-    } // if rendered > 0 frames
-    else
-      c->ex->FPS->setText("<1 FPS");
-
-    fps    = 0;
+    c->ex->FPS->setText(QString().sprintf("%.1f FPS",
+      (1000.0 * (double)frames) / (double)(exTick - _last_fps)));
     frames = 0;
-
     _last_fps=exTick;
   }
 

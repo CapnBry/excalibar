@@ -166,8 +166,7 @@ protected:
   int lastz;
   bool recache;
   
-  unsigned int  fps, frames;
-  QTime        *_instant_fps;
+  unsigned int  frames;
   exTimeType    _last_fps;
   
   
