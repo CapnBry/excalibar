@@ -55,7 +55,7 @@ object frmDebugging: TfrmDebugging
     TabOrder = 2
   end
   object btnPlayTimer: TButton
-    Left = 4
+    Left = 92
     Top = 104
     Width = 97
     Height = 25
@@ -64,7 +64,7 @@ object frmDebugging: TfrmDebugging
     OnClick = btnPlayTimerClick
   end
   object btnPlayPacket: TButton
-    Left = 104
+    Left = 4
     Top = 104
     Width = 89
     Height = 25
