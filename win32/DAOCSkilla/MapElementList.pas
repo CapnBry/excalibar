@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Types, Contnrs, GLRenderObjects, LinedFileStream, CSVLineParser,
-  DDSImage, GL;
+  DDSImage, GL, DAOCRegion;
 
 type
   TGLRenderObjectList = class(TObjectList)
@@ -22,18 +22,65 @@ type
     property OffsetY: integer read FOffsetY write FOffsetY;
   end;
 
-  TVectorMapElementList = class(TGLRenderObjectList)
+  TZoneGLRenderObjectList = class(TGLRenderObjectList)
   private
+    FZoneNum: integer;
+  public
+    property ZoneNum: integer read FZoneNum write FZoneNum;
+  end;
+
+  TVectorMapElementList = class(TZoneGLRenderObjectList)
   public
     procedure LoadFromFile(const AFileName: string);
     procedure AppendFromFile(const AFileName: string);
   end;
 
-  TTextureMapElementList = class(TGLRenderObjectList)
-  private
+  TTextureMapElementList = class(TZoneGLRenderObjectList)
   public
     procedure LoadFromFile(const AFileName: string);
     procedure GLRender(const ARenderBounds: TRect); override;
+  end;
+
+  TZoneGLRenderObjectListList = class(TObjectList)
+  private
+    function GetItems(I: integer): TZoneGLRenderObjectList;
+  protected
+    procedure AddZone(AZone: TDAOCZoneInfo); virtual;
+  public
+    procedure GLInitialize;
+    procedure GLRender(const ARenderBounds: TRect);
+    procedure GLCleanup;
+
+    procedure GLInitializeExcept(AZoneNum: integer);
+    procedure GLCleanupExcept(AZoneNum: integer);
+
+    procedure LoadForZone(AZone: TDAOCZoneInfo; ALoadAdjacent: boolean);
+
+    property Items[I: integer]: TZoneGLRenderObjectList read GetItems; default;
+  end;
+
+  TVectorMapElementListList = class(TZoneGLRenderObjectListList)
+  private
+    FVectorMapDir: string;
+    function GetItems(I: integer): TVectorMapElementList;
+    procedure SetVectorMapDir(const Value: string);
+  protected
+    procedure AddZone(AZone: TDAOCZoneInfo); override;
+  public
+    property Items[I: integer]: TVectorMapElementList read GetItems; default;
+    property VectorMapDir: string read FVectorMapDir write SetVectorMapDir;
+  end;
+
+  TTextureMapElementListList = class(TZoneGLRenderObjectListList)
+  private
+    FTextureMapDir: string;
+    function GetItems(I: integer): TTextureMapElementList;
+    procedure SetTextureMapDir(const Value: string);
+  protected
+    procedure AddZone(AZone: TDAOCZoneInfo); override;
+  public
+    property Items[I: integer]: TTextureMapElementList read GetItems; default;
+    property TextureMapDir: string read FTextureMapDir write SetTextureMapDir;
   end;
 
 implementation
@@ -179,6 +226,137 @@ var
 begin
   for I := 0 to Count - 1 do
     Items[I].GLRender(ARenderBounds);
+end;
+
+{ TZoneGLRenderObjectListList }
+
+procedure TZoneGLRenderObjectListList.AddZone(AZone: TDAOCZoneInfo);
+begin
+end;
+
+function TZoneGLRenderObjectListList.GetItems(I: integer): TZoneGLRenderObjectList;
+begin
+  Result := TZoneGLRenderObjectList(inherited Items[I]);
+end;
+
+procedure TZoneGLRenderObjectListList.GLCleanup;
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].GLCleanup;
+end;
+
+procedure TZoneGLRenderObjectListList.GLCleanupExcept(AZoneNum: integer);
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].ZoneNum <> AZoneNum then
+      Items[I].GLCleanup;
+end;
+
+procedure TZoneGLRenderObjectListList.GLInitialize;
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].GLInitialize;
+end;
+
+procedure TZoneGLRenderObjectListList.GLInitializeExcept(AZoneNum: integer);
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].ZoneNum <> AZoneNum then
+      Items[I].GLInitialize;
+end;
+
+procedure TZoneGLRenderObjectListList.GLRender(const ARenderBounds: TRect);
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].GLRender(ARenderBounds);
+end;
+
+procedure TZoneGLRenderObjectListList.LoadForZone(AZone: TDAOCZoneInfo; ALoadAdjacent: boolean);
+var
+  I:    integer;
+  bAddedRequested:  boolean;
+begin
+  GLCleanupExcept(AZone.ZoneNum);
+
+  for I := Count - 1 downto 0 do
+    if Items[I].ZoneNum <> AZone.ZoneNum then
+      Delete(I);
+
+  { we should have 0 or 1 items left in the list.  If we have 1 it is the
+    zone we're looking for }
+  if Count = 0 then begin
+    AddZone(AZone);
+    bAddedRequested := true;
+  end
+  else
+    bAddedRequested := false;
+
+  if ALoadAdjacent then
+    for I := 0 to AZone.AdjacentZones.Count - 1 do
+      AddZone(AZone.AdjacentZones[I]);
+
+  if bAddedRequested then
+    GLInitialize
+  else
+    GLInitializeExcept(AZone.ZoneNum);
+end;
+
+{ TVectorMapElementListList }
+
+procedure TVectorMapElementListList.AddZone(AZone: TDAOCZoneInfo);
+var
+  pTmpZone:   TVectorMapElementList;
+begin
+  pTmpZone := TVectorMapElementList.Create;
+  Add(pTmpZone);
+  pTmpZone.ZoneNum := AZone.ZoneNum;
+  pTmpZone.OffsetX := AZone.BaseLoc.X;
+  pTmpZone.OffsetY := AZone.BaseLoc.Y;
+  pTmpZone.LoadFromFile(FVectorMapDir + AZone.MapName);
+end;
+
+function TVectorMapElementListList.GetItems(I: integer): TVectorMapElementList;
+begin
+  Result := TVectorMapElementList(inherited Items[I]);
+end;
+
+procedure TVectorMapElementListList.SetVectorMapDir(const Value: string);
+begin
+  FVectorMapDir := IncludeTrailingPathDelimiter(Value);
+end;
+
+{ TTextureMapElementListList }
+
+procedure TTextureMapElementListList.AddZone(AZone: TDAOCZoneInfo);
+var
+  pTmpZone:   TTextureMapElementList;
+begin
+  pTmpZone := TTextureMapElementList.Create;
+  Add(pTmpZone);
+  pTmpZone.ZoneNum := AZone.ZoneNum;
+  pTmpZone.OffsetX := AZone.BaseLoc.X;
+  pTmpZone.OffsetY := AZone.BaseLoc.Y;
+  pTmpZone.LoadFromFile(Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]));
+end;
+
+function TTextureMapElementListList.GetItems(I: integer): TTextureMapElementList;
+begin
+  Result := TTextureMapElementList(inherited Items[I]);
+end;
+
+procedure TTextureMapElementListList.SetTextureMapDir(const Value: string);
+begin
+  FTextureMapDir := IncludeTrailingPathDelimiter(Value);
 end;
 
 end.

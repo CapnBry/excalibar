@@ -10,10 +10,11 @@ unit DAOCRegion;
 interface
 
 uses
-  Windows, SysUtils, Contnrs, StringParseHlprs;
+  Types, Windows, SysUtils, Contnrs, StringParseHlprs, Intersections;
 
 type
   TDAOCRealm = (drNeutral, drAlbion, drMidgard, drHibernia);
+  TDAOCZoneInfoList = class;
 
 	TDAOCZoneInfo = class(TObject)
   private
@@ -24,8 +25,12 @@ type
     FMapName: string;
     FBaseLoc: TPoint;
     FMaxLoc: TPoint;
+    FAdjacentZones:   TDAOCZoneInfoList;
     function GetName: string;
   public
+    constructor Create;
+    destructor Destroy; override;
+    
   	procedure LoadFromString(const AZoneInfo: string);
     function AsString: string;
 
@@ -36,6 +41,7 @@ type
     function WorldToZoneX(AX: DWORD) : DWORD;
     function WorldToZoneY(AY: DWORD) : DWORD;
 
+    property AdjacentZones: TDAOCZoneInfoList read FAdjacentZones;
   	property Region: integer read FRegion;
     property BaseLoc: TPoint read FBaseLoc;
     property MaxLoc: TPoint read FMaxLoc;
@@ -49,6 +55,7 @@ type
   TDAOCZoneInfoList = class(TObjectList)
   private
     function GetItems(I: Integer): TDAOCZoneInfo;
+    procedure UpdateAdjacentZones;
   public
     procedure LoadFromFile(const AFName: string);
     function FindZoneForPoint(ARegion, AX, AY: integer) : TDAOCZoneInfo;
@@ -139,6 +146,18 @@ begin
   Result := AY - DWORD(FBaseLoc.Y);
 end;
 
+constructor TDAOCZoneInfo.Create;
+begin
+  inherited;
+  FAdjacentZones := TDAOCZoneInfoList.Create(false);
+end;
+
+destructor TDAOCZoneInfo.Destroy;
+begin
+  FAdjacentZones.Free;
+  inherited;
+end;
+
 { TDAOCZoneInfoList }
 
 function TDAOCZoneInfoList.FindZone(AZoneNum: integer): TDAOCZoneInfo;
@@ -189,6 +208,34 @@ begin
     Add(pZI);
   end;    { while }
   CloseFile(F);
+
+  UpdateAdjacentZones;
+end;
+
+procedure TDAOCZoneInfoList.UpdateAdjacentZones;
+var
+  pZone:    TDAOCZoneInfo;
+  I:    integer;
+  J:    integer;
+begin
+  for I := 0 to Count - 1 do begin
+    pZone := Items[I];
+    pZone.AdjacentZones.Clear;
+
+    for J := 0 to Count - 1 do begin
+      if I = J then
+        continue;
+
+      if (pZone.Region = Items[J].Region) and
+        RectsIntersect(
+        Rect(pZone.BaseLoc.X, pZone.BaseLoc.Y, pZone.MaxLoc.X, pZone.MaxLoc.Y),
+        Rect(Items[J].BaseLoc.X, Items[J].BaseLoc.Y, Items[J].MaxLoc.X, Items[J].MaxLoc.Y)
+        ) then
+          { we could, in theory, cross-add the zones to each other's adjacency
+            list, but I don't because it makes the loop logic cleaner }
+        pZone.AdjacentZones.Add(Items[J]);
+    end; { for J }
+  end;  { for I }
 end;
 
 end.

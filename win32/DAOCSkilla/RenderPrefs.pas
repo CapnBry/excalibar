@@ -35,6 +35,7 @@ type
     RedrawOnTimer:    boolean;
     StayOnTop:        boolean;
     RotateMapWithPlayer:  boolean;
+    AdjacentZones:    boolean;
 
     constructor Create;
 
@@ -44,7 +45,7 @@ type
     function IsObjectInFilter(AObj: TDAOCObject) : boolean;
     procedure XORObjectFilter(AObjectClass: TDAOCObjectClass);
 
-    property ObjectFilter: TDAOCObjectClasses read FObjectFilter write SetObjectFilter; 
+    property ObjectFilter: TDAOCObjectClasses read FObjectFilter write SetObjectFilter;
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
   end;
 
@@ -75,6 +76,7 @@ type
     chkTypeTag: TCheckBox;
     chkStayOnTop: TCheckBox;
     chkRotateMap: TCheckBox;
+    chkAdjacentZones: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -87,6 +89,7 @@ type
     procedure chkTypeTagClick(Sender: TObject);
     procedure chkStayOnTopClick(Sender: TObject);
     procedure chkRotateMapClick(Sender: TObject);
+    procedure chkAdjacentZonesClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -127,6 +130,7 @@ begin
   Result.RedrawOnTimer := RedrawOnTimer;
   Result.StayOnTop := StayOnTop;
   Result.RotateMapWithPlayer := RotateMapWithPlayer;
+  Result.AdjacentZones := AdjacentZones;
 end;
 
 constructor TRenderPreferences.Create;
@@ -170,6 +174,7 @@ begin
     RedrawOnTimer := ReadBool('RenderPrefs', 'RedrawOnTimer', true);
     StayOnTop := ReadBool('RenderPrefs', 'StayOnTop', false);
     RotateMapWithPlayer := ReadBool('RenderPrefs', 'RotateMapWithPlayer', false);
+    AdjacentZones := ReadBool('RenderPrefs', 'AdjacentZones', false);
   end;
 end;
 
@@ -198,6 +203,7 @@ begin
     WriteBool('RenderPrefs', 'RedrawOnTimer', RedrawOnTimer);
     WriteBool('RenderPrefs', 'StayOnTop', StayOnTop);
     WriteBool('RenderPrefs', 'RotateMapWithPlayer', RotateMapWithPlayer);
+    WriteBool('RenderPrefs', 'AdjacentZones', AdjacentZones);
   end;
 end;
 
@@ -303,6 +309,7 @@ begin
   chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
   chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
   chkRotateMap.Checked := FRenderPrefs.RotateMapWithPlayer;
+  chkAdjacentZones.Checked := FRenderPrefs.AdjacentZones;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -328,6 +335,11 @@ end;
 procedure TfrmRenderPrefs.chkRotateMapClick(Sender: TObject);
 begin
   FRenderPrefs.RotateMapWithPlayer := chkRotateMap.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkAdjacentZonesClick(Sender: TObject);
+begin
+  FRenderPrefs.AdjacentZones := chkAdjacentZones.Checked;
 end;
 
 end.

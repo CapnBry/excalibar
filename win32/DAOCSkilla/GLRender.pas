@@ -48,8 +48,8 @@ type
     FDirty:   boolean;
     FInvaderHighlight:    boolean;
     FInvaderHighlightLastSwap:  DWORD;
-    FMapElements:   TVectorMapElementList;
-    FMapTextures:   TTextureMapElementList;
+    FMapElementsListList:   TVectorMapElementListList;
+    FMapTexturesListList:   TTextureMapElementListList;
     FRangeCircles:  TRangeCircleList;
     FMobTriangle:   T3DArrowHead;
     FObjectTriangle:    T3DPyramid;
@@ -92,6 +92,8 @@ type
     procedure UpdateFrameStats(ATime: integer);
     procedure InvalidateListObject(AObj: TDAOCObject);
     procedure UpdateStayOnTop;
+    procedure ReloadMapElementsAndTextures;
+    procedure DoPrefsDialog;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -566,8 +568,10 @@ begin
   rngCircle.Color := clSilver;
   FRangeCircles.Add(rngCircle);
 
-  FMapElements := TVectorMapElementList.Create;
-  FMapTextures := TTextureMapElementList.Create;
+  FMapElementsListList := TVectorMapElementListList.Create;
+  FMapElementsListList.VectorMapDir := ExtractFilePath(ParamStr(0)) + 'maps\';
+  FMapTexturesListList := TTextureMapElementListList.Create;
+  FMapTexturesListList.TextureMapDir := ExtractFilePath(ParamStr(0)) + 'maps\dds\';
   FMobTriangle := T3DArrowHead.Create;
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
@@ -584,8 +588,8 @@ begin
   FMobTriangle.Free;
   FGroundTarget.Free;
   FObjectTriangle.Free;
-  FMapElements.Free;
-  FMapTextures.Free;
+  FMapElementsListList.Free;
+  FMapTexturesListList.Free;
   FRangeCircles.Free;
   FRenderPrefs.Free;
 end;
@@ -595,8 +599,8 @@ begin
   FMobTriangle.GLCleanup;
   FObjectTriangle.GLCleanup;
   FRangeCircles.GLCleanup;
-  FMapElements.GLCleanup;
-  FMapTextures.GLCleanup;
+  FMapElementsListList.GLCleanup;
+  FMapTexturesListList.GLCleanup;
   FGroundTarget.GLCleanup;
 
   FGLInitsCalled := false;
@@ -608,8 +612,8 @@ begin
   FMobTriangle.GLInitialize;
   FObjectTriangle.GLInitialize;
   FRangeCircles.GLInitialize;
-  FMapElements.GLInitialize;
-  FMapTextures.GLInitialize;
+  FMapElementsListList.GLInitialize;
+  FMapTexturesListList.GLInitialize;
   FGroundTarget.GLInitialize;
   
   CheckGLError;
@@ -625,9 +629,9 @@ begin
   glLineWidth(1.0);
 
   if FRenderPrefs.DrawMapTexture then
-    FMapTextures.GLRender(FRenderBounds);
+    FMapTexturesListList.GLRender(FRenderBounds);
   if FRenderPrefs.DrawMapVector then
-    FMapElements.GLRender(FRenderBounds);
+    FMapElementsListList.GLRender(FRenderBounds);
 
   glPopAttrib();
 end;
@@ -640,22 +644,7 @@ begin
   { BRY:  We really need to select the GL context here, but I don't because
     glWindow doesn't have a function to activate its context and we'll just
     see if this works }
-     
-    { cleanup any old objects }
-  FMapElements.GLCleanup;
-
-  FMapElements.OffsetX := FDControl.Zone.BaseLoc.X;
-  FMapElements.OffsetY := FDControl.Zone.BaseLoc.Y;
-  FMapElements.LoadFromFile(ExtractFilePath(ParamStr(0)) +
-    'maps\' + FDControl.Zone.MapName);
-  FMapElements.GLInitialize;
-
-  FMapTextures.GLCleanup;
-  FMapTextures.OffsetX := FDControl.Zone.BaseLoc.X;
-  FMapTextures.OffsetY := FDControl.Zone.BaseLoc.Y;
-  FMapTextures.LoadFromFile(ExtractFilePath(ParamStr(0)) +
-    Format('maps\dds\zone%3.3d.dds', [FDControl.Zone.ZoneNum]));
-  FMapTextures.GLInitialize;
+  ReloadMapElementsAndTextures;
 end;
 
 procedure TfrmGLRender.DAOCRegionChanged;
@@ -851,8 +840,6 @@ end;
 
 procedure TfrmGLRender.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var
-  tmpPrefs:   TRenderPreferences;
 begin
   case Key of
     VK_HOME:
@@ -883,14 +870,7 @@ begin
       end;
     VK_F1:
       begin
-        tmpPrefs := FRenderPrefs.Clone;
-        if TfrmRenderPrefs.Execute(Self, FRenderPrefs) then
-          UpdateStayOnTop
-        else begin
-          FRenderPrefs.Free;
-          FRenderPrefs := tmpPrefs;
-          FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
-        end;
+        DoPrefsDialog;
         Key := 0;
       end;
   end;
@@ -1233,6 +1213,29 @@ begin
     dwStyle := dwStyle and not WS_EX_TOPMOST;
     SetWindowLong(Handle, GWL_EXSTYLE, dwStyle);
     SetWindowPos(Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
+  end;
+end;
+
+procedure TfrmGLRender.ReloadMapElementsAndTextures;
+begin
+  FMapElementsListList.LoadForZone(FDControl.Zone, FRenderPrefs.AdjacentZones);
+  FMapTexturesListList.LoadForZone(FDControl.Zone, FRenderPrefs.AdjacentZones);
+end;
+
+procedure TfrmGLRender.DoPrefsDialog;
+var
+  tmpPrefs:   TRenderPreferences;
+begin
+  tmpPrefs := FRenderPrefs.Clone;
+  if TfrmRenderPrefs.Execute(Self, FRenderPrefs) then begin
+    if tmpPrefs.AdjacentZones <> FRenderPrefs.AdjacentZones then
+      ReloadMapElementsAndTextures;
+    UpdateStayOnTop;
+  end
+  else begin
+    FRenderPrefs.Free;
+    FRenderPrefs := tmpPrefs;
+    FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   end;
 end;
 

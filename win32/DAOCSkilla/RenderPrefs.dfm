@@ -3,7 +3,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   Top = 257
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
-  ClientHeight = 346
+  ClientHeight = 363
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   TextHeight = 13
   object grpExtras: TGroupBox
     Left = 4
-    Top = 124
+    Top = 144
     Width = 457
     Height = 213
     Caption = ' Include this extra information '
@@ -130,7 +130,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 4
     Top = 0
     Width = 165
-    Height = 117
+    Height = 137
     Caption = ' Show these types of objects'
     TabOrder = 0
     object chkRenderPlayers: TCheckBox
@@ -146,7 +146,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderMobs: TCheckBox
       Tag = 2
       Left = 8
-      Top = 44
+      Top = 48
       Width = 141
       Height = 17
       Caption = 'Monsters and NPCs (M)'
@@ -156,7 +156,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderObjects: TCheckBox
       Tag = 1
       Left = 8
-      Top = 68
+      Top = 76
       Width = 141
       Height = 17
       Caption = 'Graves and objects (O)'
@@ -165,7 +165,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     end
     object chkRenderUnknown: TCheckBox
       Left = 8
-      Top = 92
+      Top = 104
       Width = 141
       Height = 17
       Caption = 'Unknown (U)'
@@ -195,7 +195,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 176
     Top = 0
     Width = 177
-    Height = 117
+    Height = 137
     Caption = ' UI options'
     TabOrder = 2
     object chkTrackMapClick: TCheckBox
@@ -242,6 +242,15 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'Rotate map with player'
       TabOrder = 4
       OnClick = chkRotateMapClick
+    end
+    object chkAdjacentZones: TCheckBox
+      Left = 8
+      Top = 116
+      Width = 161
+      Height = 17
+      Caption = 'Draw adjacent zones'
+      TabOrder = 5
+      OnClick = chkAdjacentZonesClick
     end
   end
 end
