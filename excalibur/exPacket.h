@@ -31,12 +31,12 @@
 
 class exPacket {
   public:
-    uint8_t    *data;
-    uint16_t    offset;
-    QByteArray  d;
-    bool        from_server;
-    bool        is_udp;
-    exTimeType  tick;
+    uint8_t      *data;
+    unsigned int  offset;
+    QByteArray    d;
+    bool          from_server;
+    bool          is_udp;
+    exTimeType    tick;
     
     exPacket (void);
     exPacket (char *dt, ssize_t l, bool serv, bool udp, int basetick);
@@ -47,11 +47,11 @@ class exPacket {
     uint16_t       getShort        (void);
     uint32_t       getLong         (void);
     QString        getPascalString (void);
-    QString        getZeroString   (uint16_t minlen = 0);
-    QByteArray     getBytes        (uint16_t  l);
+    QString        getZeroString   (const unsigned int &minlen = 0);
+    QByteArray     getBytes        (const unsigned int &l);
     QString        getDataAsString (void);
     
-    void           skip            (uint16_t l);
+    void           seek            (const signed int &l);
     
     void           decrypt         (QString key);
 };

@@ -279,14 +279,14 @@ void exConnection::processPacket(exPacket * p)
     } else if (!p->is_udp && !p->from_server) {
 	seq = p->getShort();
 	srcid = p->getShort();
-	p->skip(2);
+	p->seek(2);
 	command = p->getShort();
 	destid = p->getShort();
 	switch (command) {
 	  case 0x01:
-	      p->skip(2);
+	      p->seek(2);
 	      playerz = p->getShort();
-	      p->skip(2);
+	      p->seek(2);
 	      playerx = p->getLong();
 	      playery = p->getLong();
 	      playerhead = (p->getShort()) & 0xfff;
@@ -347,21 +347,21 @@ void exConnection::processPacket(exPacket * p)
 	    parseObjectStopped(p);
 	    break;
 	  case 0x8a:
-	      p->skip(2);
+	      p->seek(2);
 	      bigver = p->getByte();
 	      minver = p->getByte();
-	      p->skip(1);
+	      p->seek(1);
 	      cryptkey = p->getBytes(12);
 	      break;
 	  case 0x55:
-	      p->skip(24);
+	      p->seek(24);
 	      do {
 		  name = p->getZeroString(48);
-		  p->skip(74);
+		  p->seek(74);
                   mobrealm = (Realm) p->getByte();
-                  p->skip(3);
+                  p->seek(3);
 		  zone = p->getByte();
-		  p->skip(57);
+		  p->seek(57);
 		  if ((name.length() > 0) && (zone != 0)) {
 		      intptr = new int;
 
@@ -375,7 +375,7 @@ void exConnection::processPacket(exPacket * p)
 	      break;
 	  case 0x88:
 	      selfid = id = p->getShort();
-	      p->skip(2);
+	      p->seek(2);
 	      playerx = p->getLong();
 	      playery = p->getLong();
 	      mobinfo.clear();
@@ -410,10 +410,10 @@ void exConnection::processPacket(exPacket * p)
 		  y = p->getLong();
 		  z = p->getShort();
 		  head = p->getShort();
-		  p->skip(4);
+		  p->seek(4);
                   mobrealm = (Realm) p->getByte();
 		  level = p->getByte();
-		  p->skip(2);
+		  p->seek(2);
 		  name = p->getPascalString();
 		  guild = p->getPascalString();
 		  surname = p->getPascalString();
@@ -421,14 +421,14 @@ void exConnection::processPacket(exPacket * p)
                   isobj = false;
 	      } else if (command == 0x72) {
 		  infoid = id = p->getShort();
-		  p->skip(2);
+		  p->seek(2);
 		  head = p->getShort();
 		  z = p->getShort();
 		  x = p->getLong();
 		  y = p->getLong();
-		  p->skip(5);
+		  p->seek(5);
 		  level = p->getByte();
-		  p->skip(2);
+		  p->seek(2);
 		  name = p->getPascalString();
 		  guild = p->getPascalString();
 		  surname = p->getPascalString();
@@ -436,12 +436,12 @@ void exConnection::processPacket(exPacket * p)
                   isobj = false;
 	      } else {
 /*000*/           infoid = id = p->getShort();
-/*002*/           p->skip(2);
+/*002*/           p->seek(2);
 /*004*/           head = p->getShort();
 /*006*/           z = p->getShort();
 /*008*/           x = p->getLong();
 /*012*/           y = p->getLong();
-/*016*/           p->skip(4);
+/*016*/           p->seek(4);
 /*021*/           level = 0;
 /*021*/           name = p->getPascalString();
                   ismob = false;
@@ -481,9 +481,9 @@ END_EXPERIMENTAL_CODE
 
 	      break;
 	  case 0x14:
-	      p->skip(2);
+	      p->seek(2);
 	      infoid = p->getShort();
-	      p->skip(7);
+	      p->seek(7);
 	      hp = p->getByte();
 	      mob = mobinfo.find((void *) ((unsigned int) infoid));
 	      if (mob) {
@@ -499,7 +499,7 @@ END_EXPERIMENTAL_CODE
 	      break;
           case 0xaa:
 	      num=p->getByte();
-              p->skip(3);
+              p->seek(3);
               for (i=0;i<num;i++) {
   	        data=p->getBytes(18);
                 name=p->getPascalString();
@@ -519,10 +519,10 @@ END_EXPERIMENTAL_CODE
               break;
 	  case 0xbe:
 	      what = p->getByte();
-	      p->skip(1);
+	      p->seek(1);
 	      tp = p->getByte();
 	      if ((what == 3) && (tp == 0)) {
-		  p->skip(1);
+		  p->seek(1);
 		  playerlevel = p->getByte();
 		  playername = p->getPascalString();
                   title = QString("Excalibur -- ").append(playername);
@@ -566,10 +566,10 @@ void exConnection::parseMobPosUpdate(exPacket *p)
     unsigned int head = p->getShort();
     unsigned int x = p->getLong();
     unsigned int y = p->getLong();
-    p->skip(8);
+    p->seek(8);
     unsigned int z = p->getShort();
     unsigned int id = p->getShort();
-    p->skip(2);
+    p->seek(2);
     unsigned int hp = p->getByte();
     exMob *mob = mobs.find((void *)id);
     if (mob) {
@@ -588,7 +588,7 @@ void exConnection::parsePlayerPosUpdate(exPacket *p)
     unsigned int id = p->getShort();
     unsigned int speed = p->getShort();
     unsigned int z = p->getShort();
-    p->skip(2);
+    p->seek(2);
     unsigned int x = p->getLong();
     unsigned int y = p->getLong();
     unsigned int head = p->getShort();
@@ -607,7 +607,7 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
 {
     unsigned int id = p->getShort();
     unsigned int head = p->getShort();
-    p->skip(4);
+    p->seek(4);
     unsigned int hp = p->getByte();
     exMob *mob = players.find((void *)id);
     if (mob) {
@@ -624,7 +624,7 @@ void exConnection::parseSystemMessage (exPacket *p)
 {
 /* NOTE: This code is disabled because it currently has no use
 
-    p->skip(7);
+    p->seek(7);
 
     uint8_t      MessageType = p->getByte();
     char*        Message     = strdup(p->getZeroString().ascii());
@@ -636,7 +636,7 @@ void exConnection::parseSystemMessage (exPacket *p)
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)
 {
-    p->skip(id_offset);
+    p->seek(id_offset);
     unsigned int infoid = p->getShort();
     exMob *mob = mobinfo.find((void *)infoid);
     if (mob)
@@ -651,7 +651,7 @@ void exConnection::parseSelfHealthUpdate(exPacket *p)
 {
     player_health = p->getByte();
     player_mana = p->getByte();
-    p->skip(3);
+    p->seek(3);
     player_endurance = p->getByte();
 }
 

@@ -376,11 +376,11 @@ void exMob::checkStale() {
     return;
 
 //  if ((speed & 0xFF) == 0)
-    maxtime=60000;
+    maxtime=120000;
 //  else
 //    maxtime=10000;
 
-    if ((playerDist() > 10000.0) ||
+    if ((playerDist() > 15000.0) ||
         (!obj && ((exTick - _lasttick) > maxtime))
         ) {
     current = false;

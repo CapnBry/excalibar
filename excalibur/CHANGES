@@ -1,13 +1,29 @@
+Andon (16/Feb/02)
+-----------------
+
+Changes:
+ + Optimized exPacket slightly.. Nothing major, but this
+   is the beginning of a long series of optimizations I
+   am planning
+ + Tweaked the stale timer a bit more.. Again, nothing
+   really major, just some minor tweaks here and there.
+ + Made some changes to the CHANGES file itself..  We
+   still don't seem to have come to a single universal
+   format <grins>
+
+
 Druppy (14/Feb/02)
 -----------------
+
 Changes:
-  + Made the mob filter a member of the connection class so each window can
-    have different filters.
+  + Made the mob filter a member of the connection class
+    so each window can have different filters.
 
 Changes (teerex):
-  + Reduced vertex count on MOB / player objects.  Changed shading model
-    to flat.
+  + Reduced vertex count on MOB / player objects.  Changed
+    shading model to flat.
   + Range circles now use GLfloats.
+
 
 Teerex (13/Feb/02)
 -----------------
@@ -20,8 +36,8 @@ Additions (Andon):
    preliminary support for non-32-bit platforms.
 
 Bug fixes:
- + Fixed a bug where range circles were missing their last segment,
-   at least on my machine.
+ + Fixed a bug where range circles were missing their last
+   segment, at least on my machine.
  + Fixed normals on pyramid object for better lighing.
 
 
@@ -52,18 +68,22 @@ Bug Fixes (teerex):
 
 SnowBlind (11/Feb/02)
 ---------------------
+
 Additions:
 	+ Added Sticky mob list option in misc prefs tab
 	  (this option tries to keep the selected mob
 	  visible)
+
 
 Druppy (11/Feb/02)
 ------------------
 Additions:
 	+ Added a RegExp Filter at the top of the map
 
+
 Druppy (10/Feb/02)
 ------------------
+
 Additions:
 	+ Added Distance Field in the Mob List
 	+ Added an option to enable Color-Coding
@@ -71,8 +91,10 @@ Additions:
 	  This feature is toggable via 
 	  Prefs->Misc->EnableMobListColors
 
+
 Andon (10/Feb/02)
 ------------------
+
 Additions (SnowBlind):
  + Added a command line option to turn on packet captures
    not defaults to not making one if you dont add the
