@@ -1111,11 +1111,13 @@ begin
   end  { if Assigned pDAOCObject }
 
   else begin
-    pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
     if Assigned(pDAOCObject) then
-      Log('MobUpdate: MOB by InfoID 0x' + IntToHex(wID, 4) + ' is in playerid list, not infoid list.  Type: ' + DAOCObjectClassToStr(pDAOCObject.ObjectClass))
-    else
-      Log('MobUpdate: Can not find MOB by InfoID 0x' + IntToHex(wID, 4));
+      Log('MobUpdate: MobByInfoID 0x' + IntToHex(wID, 4) + ' is not a moving object: ' + pDAOCObject.Name)
+    else begin
+      pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
+      if Assigned(pDAOCObject) then
+        Log('MobUpdate: MOB by InfoID 0x' + IntToHex(wID, 4) + ' is in playerid list, not infoid list.  Type: ' + DAOCObjectClassToStr(pDAOCObject.ObjectClass));
+    end;
   end;
 end;
 
