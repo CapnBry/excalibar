@@ -171,6 +171,7 @@ protected:
   bool lastfill;
   int lastz;
   bool recache;
+  bool objects_made;
   
   unsigned int  frames;
   exTimeType    _last_fps;

@@ -57,6 +57,7 @@ exMap::exMap(QWidget *parent, const char *name)
   lastfill = FALSE;
   lastz = 0;
   recache = true;
+  objects_made = false;
   map.setAutoDelete(true);
   MapLoader.initialize();
   MapLoader.setParent(this);
@@ -73,7 +74,7 @@ exMap::~exMap() {
 }
 
 void exMap::dirty() {
-  if (! is_dirty) { 
+  if (!is_dirty) {
     qApp->postEvent(this, new QPaintEvent(QRect(0,0,0,0),false));
     is_dirty = true;
   }
@@ -99,7 +100,8 @@ void exMap::setMap(exMapInfo *m) {
 
 void exMap::setObjectSize(unsigned int uiSize) {
   objsize = uiSize;
-  makeObjects(prefs.map_simple);
+  prefs.map_objsize = objsize;
+  objects_made = false;
 }
 
 exMapInfo *exMap::getMap() {
@@ -109,6 +111,9 @@ exMapInfo *exMap::getMap() {
 void exMap::makeObjects(bool simple) {
   int w = objsize;
   int l = w * 2;
+
+  if (objects_made)
+      return;
 
   glEdgeFlag(GL_TRUE);
   glNewList(listTriangle, GL_COMPILE);
@@ -128,7 +133,7 @@ void exMap::makeObjects(bool simple) {
     glVertex3i(-w,-w,0);  // left side
     glVertex3i(0,l,0);
 
-    glNormal3f(l+w,w,l);
+    glNormal3f((l+w),w,l);
     glVertex3i(w,-w,0);  // right side
 
     glNormal3f(0,-w,w);  // bottom
@@ -178,6 +183,8 @@ void exMap::makeObjects(bool simple) {
 
   glEnd();
   glEndList();
+
+  objects_made = true;
 }
 
 /* Search for NVdriver using the QUICK method, as opposed to directly querying
@@ -270,8 +277,7 @@ void exMap::initializeGL() {
   listSquares  = glGenLists(1);
 
   glFlush();
-
-  makeObjects(prefs.map_simple);
+  objects_made = false;
 }
 
 void exMap::resizeGL(int w, int h) {
@@ -330,6 +336,9 @@ void exMap::paintGL() {
   double playerhead;
   double playerrad;
   int minx, maxx, miny, maxy;
+
+  if (!objects_made)
+    makeObjects(prefs.map_simple);
 
   if (map_load) {
     recache = true;
@@ -519,8 +528,6 @@ void exMap::paintGL() {
   glPopMatrix();
 
   is_dirty = false;
-
-  glFlush();
 
   frames += 1;
   if ((exTick - _last_fps) >= 1000) {

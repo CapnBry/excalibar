@@ -82,6 +82,7 @@ public:
   bool sticky_list;
   bool select_target;
   bool dump_mobseen;
+  int map_objsize;
 
   int win_width;
   int win_height;

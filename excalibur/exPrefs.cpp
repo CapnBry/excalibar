@@ -72,8 +72,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapPlayerNames->setOn(map_rasterize_player_names);
     frm->MapMerchantTypes->setOn(map_rasterize_merchant_types);
   }
-  frm->Map->makeObjects(map_simple);
-  frm->Map->dirty();
+  frm->Map->setObjectSize(map_objsize);
   frm->ListViewMobs->sort();
   frm->ListViewMobs->repaint();
 }
@@ -234,7 +233,7 @@ void exPrefs::loadSettings() {
   map_mipmap=s.readBoolEntry("/Excalibur/TextureMipMap", FALSE);
   map_linear_filter=s.readBoolEntry("/Excalibur/TextureFilter", FALSE);
   map_compress_textures=s.readBoolEntry("/Excalibur/TextureCompress",FALSE);
-
+  map_objsize=s.readNumEntry("/Excalibur/MapObjSize", 150);
 
   player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
   player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 250);
@@ -319,6 +318,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/MobListColors", MobListColors);
   s.writeEntry("/Excalibur/StickyList", sticky_list);
   s.writeEntry("/Excalibur/MaxFPS", maxfps);
+  s.writeEntry("/Excalibur/MapObjSize", map_objsize);
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {
