@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #include <stdexcept>
 
+#define LOCK_THROW_ON_FAIL
+
 class Lock
 {
 public:
@@ -69,7 +71,11 @@ public:
             case WAIT_ABANDONED: // abandoned is okay, we still own the mutex
                 return(true);
 
-            default:          
+            default:
+                #ifdef LOCK_THROW_ON_FAIL
+                    throw (std::runtime_error(const std::string("LOCK_THROW_ON_FAIL")));
+                #endif
+                
                 return(false);
             }
     } // end lock

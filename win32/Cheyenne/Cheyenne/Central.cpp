@@ -2711,12 +2711,12 @@ void Central::RenderCloseControl(void)const
     
     // name
     oss << FollowedTargetPair.GetTarget().GetName() << " " << FollowedTargetPair.GetTarget().GetSurname();
-    glRasterPos3f
+    glRasterPos3i
         (
-        (ProjectionWidthX*fractional_line_width),
-        (ProjectionWidthY*fractional_line_height*0.75f),
+        int(ProjectionWidthX*fractional_line_width),
+        int(ProjectionWidthY*fractional_line_height*0.75f),
         //ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),
-        0.0f
+        0
         );
     DrawGLFontString(oss.str());
     oss.str("");
@@ -2786,6 +2786,9 @@ void Central::RenderMobfinderResults(void)const
     
     // disable this
     glDisable(GL_DEPTH_TEST);
+    
+    // disable textures for this
+    glDisable(GL_TEXTURE_2D);
     
     for(it=MobfinderResults.loc_list.begin(),count=0;count<25 && it!=MobfinderResults.loc_list.end();++count,++it)
         {

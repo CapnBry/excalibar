@@ -81,6 +81,7 @@ DWORD SoundSpool::Run(const bool& bContinue)
 
                 case SoundSpool::NamedMobCreate:
                     // play the named mob create sound
+                    PlaySound(Config.GetNamedMobCreateSoundFile().c_str(),NULL,SND_FILENAME|SND_ASYNC);
                     break;
                     
                 default:
