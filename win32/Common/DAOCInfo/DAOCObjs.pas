@@ -74,6 +74,7 @@ type
     procedure SetHitPoints(const Value: BYTE);
   public
     //LongestUpdateTime:    Cardinal;
+    Highlight:    boolean;
     constructor Create; virtual;
 
     procedure Assign(ASrc: TDAOCObject);
