@@ -117,7 +117,7 @@ public:
         virtual bool event (QEvent *e);
 protected:
 	friend class exMapPNGLoader;
-        QProgressDialog *pdProgress;
+        QProgressDialog pdProgress;
 };
 
 class exMapPNGLoader : public QObject, public QThread {
@@ -131,12 +131,12 @@ public:
 	virtual void run (void);
         virtual bool event (QEvent *e);
 
+	void abort (void);
+
 	exMapPNGLoaderDialog empldProgress;
 protected:
 	bool m_bGhettoMutex;
         exMap *parent;
-public slots:
-	void abort (void);
 };
 
 
@@ -144,7 +144,8 @@ class exMap : public QGLWidget {
 Q_OBJECT
 protected:
   friend class exMapPNGLoader;
-  exMapPNGLoader PNGLoader;
+  exMapPNGLoader  PNGLoader;
+  bool            m_bNeedPNGReload;
 
   bool is_dirty;
   bool map_load;

@@ -1,3 +1,20 @@
+Andon (22/Feb/02)
+-----------------
+Changes:
+ + When loading adjacent zones, the zone you're currently
+   in is given priority in the sorting algorithm..It will
+   now load before all others.
+ + The PNG Loader's progress dialog now pops up with 0%
+   the very second it begins reading the .PNG file.. This
+   is intentional, since reading the file can take a good
+   deal of time on slower storage mediums.
+ + Added better thread dequeing mechanisms.. Zoning while
+   the PNG Loader is already loading maps is handled much
+   more efficiently now.
+
+ + Version bumped to 1.1.2b
+
+
 Druppy (22/Feb/02)
 -----------------
 Changes:

@@ -53,6 +53,7 @@ exMap::exMap(QWidget *parent, const char *name)
   map.setAutoDelete(true);
   PNGLoader.initialize();
   PNGLoader.setParent(this);
+  m_bNeedPNGReload = false;
 }
 
 exMap::~exMap() {
@@ -655,9 +656,9 @@ void exMap::mapRead() {
   ignore_fill = false;
 
   if (PNGLoader.running())
-    PNGLoader.abort();
- 
-  if (! PNGLoader.running()) 
+    m_bNeedPNGReload = true;
+  
+  if (! PNGLoader.running())
     PNGLoader.start();
 
   QFile f;
@@ -1052,7 +1053,7 @@ void exMapElementLine::draw(exMap *map) {
 }
 
 exMapPNGLoader::exMapPNGLoader  (void) {m_bGhettoMutex = true;}
-exMapPNGLoader::~exMapPNGLoader (void) { abort();  cleanup(); }
+exMapPNGLoader::~exMapPNGLoader (void) {    this->abort();    }
 
 void exMapPNGLoader::setParent ( exMap *parent )
 {
@@ -1061,6 +1062,9 @@ void exMapPNGLoader::setParent ( exMap *parent )
 
 void exMapPNGLoader::run (void)
 {
+BeginPNGLoad:
+  parent->m_bNeedPNGReload = false;
+
   if (parent == NULL) {
     m_bGhettoMutex = false;
     return;
@@ -1069,14 +1073,17 @@ void exMapPNGLoader::run (void)
   else
     m_bGhettoMutex = true;
 
-  if (empldProgress.pdProgress != NULL)
-    empldProgress.pdProgress->reset();
+  if (empldProgress.running())
+    empldProgress.pdProgress.setProgress(0);
 
   parent->map.clear();
 
   exMapInfo *mi;
 
-  for  (mi = parent->mi->getAdjacentZones(); mi && m_bGhettoMutex; mi = parent->mi->getAdjacentZones(mi->getZoneNum())) {
+  mi = parent->mi->getAdjacentZones(-1);
+  for  (int i = -1; i < 300 && mi && m_bGhettoMutex && !parent->m_bNeedPNGReload; mi = parent->mi->getAdjacentZones(i)) {
+    if (i != -1 && parent->mi->getZoneNum() == mi->getZoneNum())
+      mi = parent->mi->getAdjacentZones(mi->getZoneNum());
 
     while (! prefs.map_loadadjacentpngs && mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum()) {
 
@@ -1098,7 +1105,7 @@ BEGIN_EXPERIMENTAL_CODE
     printf("Loading Adjacent Zone:\t(ID - %3d)\n", mi->getZoneNum());
 END_EXPERIMENTAL_CODE
 
-    if (empldProgress.pdProgress->wasCancelled()) {
+    if (empldProgress.running() && empldProgress.pdProgress.wasCancelled()) {
       m_bGhettoMutex = false;
       break;
     }
@@ -1106,6 +1113,12 @@ END_EXPERIMENTAL_CODE
     QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
 
     if (fimg.exists()) {
+
+      if (! empldProgress.running())
+        empldProgress.start();
+
+      if (empldProgress.running())
+        qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi)); 
 
       QImage img;
 
@@ -1119,14 +1132,8 @@ END_EXPERIMENTAL_CODE
 
         parent->ignore_fill = true;
 
-        if (! empldProgress.running())
-           empldProgress.start();
-
-        if (empldProgress.running())
-          qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi));
- 
-        for(   int y = 0; y < 8 && m_bGhettoMutex; y++ ) {
-          for( int x = 0; x < 8 && m_bGhettoMutex; x++ ) {
+        for(   int y = 0; y < 8 && m_bGhettoMutex && !parent->m_bNeedPNGReload; y++ ) {
+          for( int x = 0; x < 8 && m_bGhettoMutex && !parent->m_bNeedPNGReload; x++ ) {
 
             if (empldProgress.running())
               qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
@@ -1146,24 +1153,40 @@ END_EXPERIMENTAL_CODE
             if (parent != NULL)
               qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
 
-            if ( empldProgress.pdProgress != NULL && 
-                 empldProgress.pdProgress->wasCancelled() )
+            if (empldProgress.running() && empldProgress.pdProgress.wasCancelled())
               m_bGhettoMutex = false;
-
           }
         }
       }
     }
 
-    if (empldProgress.running())
-      qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    if (i == -1)
+      i++;
 
+    else if (mi != NULL)
+      i = mi->getZoneNum();
+
+    else
+      i = 300;
+
+    if (empldProgress.running())
+      qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
+
+    if (! prefs.map_loadadjacentpngs)
+      return;
   }
 
-  if (empldProgress.pdProgress->wasCancelled()) {
+  if (empldProgress.running() && empldProgress.pdProgress.wasCancelled()) {
     m_bGhettoMutex = false;
     printf("NOTE:\tThe PNG Loader has been cancelled at the request of the user.\n");
   }
+
+  if (empldProgress.running())
+  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*
+)1));
+
+  if (parent->m_bNeedPNGReload)
+    goto BeginPNGLoad;
 }
 
 
@@ -1172,13 +1195,17 @@ bool exMap::event (QEvent *e)
   if (e->type() == CALLBACK_PNG_DATA) {
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
     PNGCallback *pc = (PNGCallback*)PNGEvent->data();
-    map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
-    if (pc->y == 7 && pc->x == 7)
+    if (pc != NULL)
     {
-      qApp->postEvent(&PNGLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+      map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
+
+      pc->img = (QImage)NULL;
     }
 
-    pc->img = (QImage)NULL;
+    if (! PNGLoader.running()) {
+      if (PNGLoader.empldProgress.running())
+        qApp->postEvent(&PNGLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    }
 
     return true;
   }
@@ -1189,7 +1216,7 @@ bool exMap::event (QEvent *e)
 bool exMapPNGLoader::event (QEvent *e)
 {
   if (e->type() == CALLBACK_PNG_ABRT) {
-    m_bGhettoMutex = false;
+    this->abort();
     return true;
   }
   return false;
@@ -1198,41 +1225,48 @@ bool exMapPNGLoader::event (QEvent *e)
 void exMapPNGLoader::abort (void)
 {
   m_bGhettoMutex = false;
-  cleanup();
+  if (empldProgress.running())
+    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
 }
 
 exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
 {
-  pdProgress = new QProgressDialog("Loading PNG map...", "Cancel loading", 64);
+  pdProgress.setCancelButtonText ("Abort PNG load");
+  pdProgress.setTotalSteps       (64);
+
+  pdProgress.setAutoReset        (false);
+  pdProgress.setAutoClose        (true);
 }
 
-exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
-{
-  pdProgress->reset();
-  cleanup();
-}
+exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void) { }
 
 void exMapPNGLoaderDialog::run (void)
 {
   while (true)
-    msleep(10);
+    msleep(15);
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
 {
   if (e->type() == CALLBACK_PNG_STAT) {
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
-    pdProgress->setProgress((int)PNGEvent->data());
+    pdProgress.setProgress((int)PNGEvent->data());
     return true;
   }
   else if (e->type() == CALLBACK_PNG_FNSH) {
-    pdProgress->reset();
+    pdProgress.reset();
     return true;
   }
   else if (e->type() == CALLBACK_PNG_INFO) {
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
-    pdProgress->setLabelText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().ascii()));
+    pdProgress.setLabelText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().ascii()));
+
+    if (! pdProgress.isVisible())
+      pdProgress.show();
+
+    pdProgress.setProgress(0);
+
     return true;
   }
   return false;
-}
+} 

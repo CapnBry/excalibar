@@ -60,14 +60,6 @@ bool exMapInfo::adjoin(int nregion, int xbase, int ybase, int xmax, int ymax) {
   if (ybase == basey || ymax == maxy)
     if (xbase == maxx || xmax == basex)
       return true;
-   
-
-  /* If the following is ALL true, then the this map is not adjacent to  your
-     primary map, it IS our primary map */
-
-  if (ymax == maxy && ybase == basey && xmax == maxx && xbase == basex)
-    return true;
-
 
   return (false);
 }
@@ -105,6 +97,9 @@ exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck = -1) const {
 
   if (! mil)
     return NULL;
+
+  if (iZoneCheck == -1)
+    return (exMapInfo*)this;
 
   for (mi = mil->first(); mi; mi = mil->next()) {
     if (mi->adjoin(region,this->basex,this->basey,this->maxx,this->maxy)) {
