@@ -229,7 +229,7 @@ void exPrefs::loadSettings() {
   enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
 
   MobListColors=s.readBoolEntry("/Excalibur/MobListColors",TRUE);
-  sticky_list=s.readBoolEntry("/Excalibur/StickyList",TRUE);
+  sticky_list=s.readBoolEntry("/Excalibur/StickyList", FALSE);
 }
 
 void exPrefs::saveSettings() {
@@ -269,6 +269,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
   s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);
   s.writeEntry("/Excalibur/MobListColors", MobListColors);
+  s.writeEntry("/Excalibur/StickyList", sticky_list);
   exItem::save();
 }
 
