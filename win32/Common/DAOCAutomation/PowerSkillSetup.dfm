@@ -48,9 +48,12 @@ object frmPowerskill: TfrmPowerskill
       Top = 8
       Width = 44
       Height = 13
+      Hint = 'Click to change quantity for this item'
       Alignment = taRightJustify
       AutoSize = False
       Caption = 'lblCount'
+      ParentShowHint = False
+      ShowHint = True
       OnClick = lblCountClick
     end
     object lblCost: TLabel
