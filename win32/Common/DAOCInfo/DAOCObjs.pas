@@ -42,7 +42,6 @@ type
     FHeadWord:    WORD;
     FStealthed:   boolean;
     FLiveDataConfidence:  integer;
-    FIsInUpdateRange: boolean;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
@@ -90,17 +89,20 @@ type
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
-    property IsInUpdateRange: boolean read FIsInUpdateRange write FIsInUpdateRange;
   end;
 
   TDAOCObjectNotify = procedure (ASender: TObject; ADAOCObject: TDAOCObject) of Object;
 
   TDAOCObjectList = class(TObjectList)
   private
+    FTakingItem:  boolean;
     function GetItems(I: integer): TDAOCObject;
+  protected
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   public
     procedure AddOrReplace(AObject: TDAOCObject);
     function IndexOfInfoID(AInfoID: integer) : integer;
+    function IndexOfPlayerID(APlayerID: integer) : integer;
     function FindByInfoID(AInfoID: integer) : TDAOCObject;
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
     function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
@@ -558,7 +560,6 @@ begin
   FRealm := drNeutral;
   FName := '';
   FHeadWord := 0;
-  FIsInUpdateRange := true;
 end;
 
 constructor TDAOCObject.Create;
@@ -760,7 +761,7 @@ end;
 
 procedure TDAOCObject.AssumeAtDestination;
 begin
-  FLiveDataConfidence := 60;
+  FLiveDataConfidence := 75;
   if (FDestinationX <> 0) and (FDestinationY <> 0) then begin
     FX := FDestinationX;
     FY := FDestinationY;
@@ -953,8 +954,8 @@ begin
   dwTicksSinceUpdate := TicksSinceUpdate;
     { live mobs are stale from 60s-90s }
   if dwTicksSinceUpdate > 60000 then
-    FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX -
-      max((dwTicksSinceUpdate - 60000) div 300, 0);
+    FLiveDataConfidence := max(
+      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 60000) div 300, 0);
 end;
 
 function TDAOCMob.GetObjectClass: TDAOCObjectClass;
@@ -1028,13 +1029,11 @@ function TDAOCObjectList.FindByPlayerID(APlayerID: integer): TDAOCObject;
 var
   I:  integer;
 begin
-  for I := 0 to Count - 1 do
-    if (Items[I] is TDAOCPlayer) and (TDAOCPlayer(Items[I]).PlayerID = APlayerID) then begin
-      Result := Items[I];
-      exit;
-    end;
-    
-  Result := nil;
+  I := IndexOfPlayerID(APlayerID);
+  if I <> -1 then
+    Result := Items[I]
+  else
+    Result := nil;
 end;
 
 function TDAOCObjectList.FindNearest2D(X, Y: DWORD): TDAOCObject;
@@ -1086,11 +1085,27 @@ begin
   Result := -1;
 end;
 
+function TDAOCObjectList.IndexOfPlayerID(APlayerID: integer): integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].PlayerID = APlayerID then
+      exit;
+  Result := -1;
+end;
+
+procedure TDAOCObjectList.Notify(Ptr: Pointer; Action: TListNotification);
+begin
+    { if we're taking the item, we don't want to call the inherited's Free on it }
+  if not FTakingItem then
+    inherited;
+end;
+
 function TDAOCObjectList.Take(I: integer): TDAOCObject;
 begin
   Result := Items[I];
-  inherited Items[I] := nil;  // prevent free on delete
+  FTakingItem := true;
   Delete(I);
+  FTakingItem := false;
 end;
 
 { TDAOCUnknownMovingObject }
