@@ -313,6 +313,8 @@ type
   end;
 
 function DAOCObjectClassToStr(AClass: TDAOCObjectClass) : string;
+function IntToObjectClasses(AVal: integer) : TDAOCObjectClasses;
+function ObjectClassesToInt(AVal: TDAOCObjectClasses) : integer;
 function CopperToStr(ACopper: integer) : string;
 function DWORDDelta(A, B: DWORD) : DWORD;
 
@@ -328,6 +330,26 @@ uses
 
 const
   SPEED_1X = 191;
+
+function IntToObjectClasses(AVal: integer) : TDAOCObjectClasses;
+var
+  I:    TDAOCObjectClass;
+begin
+  Result := [];
+  for I := low(TDAOCObjectClass) to high(TDAOCObjectClass) do
+    if (AVal and (1 shl ord(I))) <> 0 then
+      Include(Result, I);
+end;
+
+function ObjectClassesToInt(AVal: TDAOCObjectClasses) : integer;
+var
+  I:    TDAOCObjectClass;
+begin
+  Result := 0;
+  for I := low(TDAOCObjectClass) to high(TDAOCObjectClass) do
+    if I in AVal then
+      Result := Result or (1 shl ord(I));
+end;
 
 function DWORDDelta(A, B: DWORD) : DWORD;
 begin
