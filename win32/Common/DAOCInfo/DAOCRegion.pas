@@ -31,9 +31,10 @@ type
 
     function ContainsPoint(ARegion, AX, AY: integer) : boolean;
     function ZoneConvertHead(AHead: integer) : integer;
-    function ZoneConvertX(AX: DWORD) : DWORD;
-    function ZoneConvertY(AY: DWORD) : DWORD;
-    function ZoneConvertZ(AZ: DWORD) : DWORD;
+    function ZoneToWorldX(AX: DWORD) : DWORD;
+    function ZoneToWorldY(AY: DWORD) : DWORD;
+    function WorldToZoneX(AX: DWORD) : DWORD;
+    function WorldToZoneY(AY: DWORD) : DWORD;
 
   	property Region: integer read FRegion;
     property BaseLoc: TPoint read FBaseLoc;
@@ -118,19 +119,24 @@ begin
     dec(Result, 360);
 end;
 
-function TDAOCZoneInfo.ZoneConvertX(AX: DWORD): DWORD;
+function TDAOCZoneInfo.ZoneToWorldX(AX: DWORD) : DWORD;
 begin
   Result := AX + DWORD(FBaseLoc.X);
 end;
 
-function TDAOCZoneInfo.ZoneConvertY(AY: DWORD): DWORD;
+function TDAOCZoneInfo.ZoneToWorldY(AY: DWORD) : DWORD;
 begin
   Result := AY + DWORD(FBaseLoc.Y);
 end;
 
-function TDAOCZoneInfo.ZoneConvertZ(AZ: DWORD): DWORD;
+function TDAOCZoneInfo.WorldToZoneX(AX: DWORD) : DWORD;
 begin
-  Result := AZ;
+  Result := AX - DWORD(FBaseLoc.X);
+end;
+
+function TDAOCZoneInfo.WorldToZoneY(AY: DWORD) : DWORD;
+begin
+  Result := AY - DWORD(FBaseLoc.Y);
 end;
 
 { TDAOCZoneInfoList }
