@@ -232,6 +232,7 @@ type
     procedure ParseAccountLoginRequest(pPacket: TDAOCPacket);
     procedure ParseDelveRequest(pPacket: TDAOCPacket);
     procedure ParseDelveInformation(pPacket: TDAOCPacket);
+    procedure ParseVendorWindowRequest(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -277,6 +278,7 @@ type
     procedure DoOnMobTargetChanged(AMob: TDAOCMob); virtual;
     procedure DoOnUnknownStealther(AUnk: TDAOCUnknownStealther); virtual;
     procedure DoOnDelveItem(AItem: TDAOCInventoryItem); virtual;
+    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); virtual; 
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -797,6 +799,7 @@ begin
     $70:  ParseDelveRequest(pPacket);
     $7d:  ParseRequestPlayerByPlayerID(pPacket);
     $b8:  ParseCharacterActivationRequest(pPacket);
+    $d2:  ParseVendorWindowRequest(pPacket);
     $d0:  ParseRequestBuyItem(pPacket);
   end;
 end;
@@ -2583,6 +2586,26 @@ begin
 
   FRealmRanks.LoadFromFile(AFileName);
   FRealmRanks.Sorted := true;
+end;
+
+procedure TDAOCConnection.ParseVendorWindowRequest(pPacket: TDAOCPacket);
+var
+  wID:    WORD;
+  pMob:   TDAOCMob;
+begin
+  pPacket.HandlerName := 'VendorWindowRequest';
+  pPacket.Seek(10);
+  wID := pPacket.getShort;
+  pMob := TDAOCMob(FDAOCObjs.FindByInfoID(wID));
+
+  if Assigned(pMob) then
+    DoOnVendorWindowRequest(pMob)
+  else
+    Log('VendorWindowRequest for unknown InfoID 0x' + IntToHex(wID, 4));
+end;
+
+procedure TDAOCConnection.DoOnVendorWindowRequest(AMob: TDAOCMob);
+begin
 end;
 
 end.
