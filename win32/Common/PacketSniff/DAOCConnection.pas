@@ -391,7 +391,6 @@ begin
   FLocalPlayer := TDAOCLocalPlayer.Create;
   FGroundTarget := TMapNode.Create;
   FZoneList := TDAOCZoneInfoList.Create;
-  // FZoneList.LoadFromFile('mapinfo.txt');
 
   FPacketHandlerDefFile := 'packethandlers.ini';
   FServerPacketHandlers := TNamedPacketHandlerList.Create;
@@ -411,8 +410,6 @@ begin
   FServerProtocol := $01;
   SetMaxObjectDistance(8500);
   FMaxObjectStaleTime := 240000;  // 240,000ms = 4min
-
-  LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 end;
 
 destructor TDAOCConnection.Destroy;
