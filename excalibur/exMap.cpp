@@ -223,15 +223,15 @@ void exMap::initializeGL() {
 
   qWarning("Checking for hardware OpenGL support...");
   if (isNVidiaModuleLoaded()) {
-      qWarning(">> YES (NVdriver)\t-\tThis should be VERY FAST!");
+      qWarning(">> YES (NVdriver)\t-\tPerformance should be fast!");
       has_NVdriver = TRUE;
       has_direct   = FALSE;
   } else if (format().directRendering()) {
-      qWarning(">> YES (Direct Render)\t-\tThis will probably be AVERAGE!");
+      qWarning(">> YES (Direct Render)\t-\tPerformance will be average.");
       has_NVdriver = FALSE;
       has_direct   = TRUE;
   } else {
-    qWarning(">> NO (No Direct Render)\t-\tThis will probably be SLOW!");
+    qWarning(">> NO (No Direct Render)\t-\tPerformance will be slow!");
     has_NVdriver = FALSE;
     has_direct   = FALSE;
   }
@@ -317,8 +317,6 @@ void exMap::paintGL() {
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
   exMob *m;
-  uint8_t ldif;
-  uint8_t l;
   double playerhead;
   double playerrad;
   int minx, maxx, miny,maxy;
@@ -562,45 +560,26 @@ void exMap::paintGL() {
       glTranslatef (m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
 
-      if (! m->isMob()) {
+        /* if this is a player */
+      if (!m->isMobOrObj()) {
         if (m->isDead()) {
-          setGLColor (m->getColor().dark(160), m->getZ());
-        } else if (m->isObj()) {
-          setGLColor (m->getColor().dark(5), m->getZ());
+          setGLColor (m->getRealmColor().dark(160), m->getZ());
         } else if (! m->isInvader()) {
-          setGLColor (m->getColor(), m->getZ());
+          setGLColor (m->getRealmColor(), m->getZ());
         } else {
-          setGLColor ( (mobDarken) ? m->getColor().dark(150) : m->getColor().light(150), m->getZ());
+          setGLColor ( (mobDarken) ? m->getRealmColor().dark(150) : m->getRealmColor().light(150), m->getZ());
         }
-        if (! m->isObj())
-          glCallList(listCircle);
+
+        glCallList(listCircle);
       }
 
-      ldif=(c->playerlevel / 10) + 1;
-      l=m->getLevel();
-      if (l < (c->playerlevel - ldif * 3)) 
-        setGLColor(0.5,0.5,0.5,m->getZ());
-      else if (l <= (c->playerlevel - ldif * 2))
-        setGLColor(0.0,1.0,0.0,m->getZ());
-      else if (l <= (c->playerlevel - ldif * 1))
-        setGLColor(0.0,0.0,1.0,m->getZ());
-      else if (l <= c->playerlevel)
-        setGLColor(1.0,1.0,0.0,m->getZ());
-      else if (l <= (c->playerlevel + ldif * 1))
-        setGLColor(1.0,0.5,0.0,m->getZ());
-      else if (l <= (c->playerlevel + ldif * 2))
-        setGLColor(1.0,0.0,0.0,m->getZ());
-      else 
-        setGLColor(1.0,0.0,1.0,m->getZ());
-
-      if (m->isObj())
+      if (m->isObj())  {
         setGLColor(1.0,1.0,1.0, m->getZ());
-
-
-      if (! m->isObj())
-        glCallList(listTriangle);
-      else
         glCallList(listSquares);
+      } else {
+        setGLColor(m->getConColor(c->playerlevel), m->getZ());
+        glCallList(listTriangle);
+      }  // if !obj
 
       glPushMatrix();
       if ((m->isMob() && m->getGuild().length() > 0 && prefs.map_rasterize_merchant_types) || (! m
@@ -679,7 +658,9 @@ void exMap::paintGL() {
         c->ex->FPS->setText("??? FPS");
        else
          c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
-    }
+    } // if rendered > 0 frames
+    else
+      c->ex->FPS->setText("<1 FPS");
 
     fps    = 0;
     frames = 0;
