@@ -43,7 +43,8 @@ uses
   DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
   RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
   DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas',
-  DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas';
+  DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas',
+  DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging};
 
 {$R *.TLB}
 
@@ -59,6 +60,7 @@ begin
   Application.CreateForm(TfrmAFK, frmAFK);
   Application.CreateForm(TfrmTellMacro, frmTellMacro);
   Application.CreateForm(TfrmSpellcraftHelp, frmSpellcraftHelp);
+  Application.CreateForm(TfrmDebugging, frmDebugging);
   CreateOptionalForms;
   Application.Run;
 end.
