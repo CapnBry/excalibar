@@ -697,12 +697,18 @@ end;
 
 function TDAOCObject.Distance2D(AObject: TDAOCObject): double;
 begin
-  Result := Distance2D(AObject.X, AObject.Y);
+  if AObject = Self then
+    Result := 0
+  else
+    Result := Distance2D(AObject.X, AObject.Y);
 end;
 
 function TDAOCObject.Distance3D(AObject: TDAOCObject): double;
 begin
-  Result := sqrt(DistanceSqr3D(AObject.X, AObject.Y, AObject.Z));
+  if AObject = Self then
+    Result := 0
+  else
+    Result := sqrt(DistanceSqr3D(AObject.X, AObject.Y, AObject.Z));
 end;
 
 function TDAOCObject.Distance3D(X, Y, Z: Cardinal): double;
@@ -870,7 +876,10 @@ end;
 
 function TDAOCObject.DistanceSqr2D(AObject: TDAOCObject): double;
 begin
-  Result := DistanceSqr2D(AObject.X, AObject.Y);
+  if AObject = Self then
+    Result := 0
+  else
+    Result := DistanceSqr2D(AObject.X, AObject.Y);
 end;
 
 function TDAOCObject.DistanceSqr2D(X, Y: Cardinal): double;
@@ -885,7 +894,10 @@ end;
 
 function TDAOCObject.DistanceSqr3D(AObject: TDAOCObject): double;
 begin
-  Result := DistanceSqr3D(AObject.X, AObject.Y, AObject.Z);
+  if AObject = Self then
+    Result := 0
+  else
+    Result := DistanceSqr3D(AObject.X, AObject.Y, AObject.Z);
 end;
 
 function TDAOCObject.DistanceSqr3D(X, Y, Z: Cardinal): double;
