@@ -219,6 +219,8 @@ type
     property Inventory: TDAOCInventory read FInventory;
   end;
 
+  TDAOCMovingObjectNotify = procedure (ASender: TObject; ADAOCObject: TDAOCMovingObject) of Object;
+
   TDAOCUnknownMovingObject = class(TDAOCMovingObject)
   protected
     function GetName : string; override;
