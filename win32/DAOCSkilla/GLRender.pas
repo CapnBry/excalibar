@@ -57,6 +57,10 @@ type
     FFilteredObjects:   TDAOCObjectList;
     FRenderPrefs:   TRenderPreferences;
     FPrefsFile:     string;
+    FFrameStats:    string;
+    FFrameCount:    integer;
+    FDirtyCount:    integer;
+    FInvalidateCount: integer;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -73,6 +77,8 @@ type
     procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
     procedure DrawHUD;
     procedure DrawMobTypeTag(AMob: TDAOCMob);
+    procedure DrawGroundTarget;
+    procedure DrawFrameStats;
 
     procedure SetDControl(const Value: TDAOCControl);
     procedure Log(const s: string);
@@ -81,6 +87,8 @@ type
     function FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
     procedure UpdateObjectCounts;
     procedure SetObjectListRowCount(ACount: integer);
+    procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
+    procedure UpdateFrameStats(ATime: integer);
   protected
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
@@ -141,6 +149,8 @@ begin
 
   dwStartTickCount := GetTickCount;
   if FInvaderHighlightLastSwap + 1000 < dwStartTickCount then begin
+    UpdateFrameStats(dwStartTickCount - FInvaderHighlightLastSwap);
+    FDControl.CheckForStaleObjects;
     FInvaderHighlightLastSwap := dwStartTickCount;
     FInvaderHighlight := not FInvaderHighlight;
   end;
@@ -157,6 +167,7 @@ begin
   DrawMapElements;
   DrawMobsAndPlayers;
   DrawLineToSelected;
+  DrawGroundTarget;
 
   glTranslatef(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
 
@@ -167,10 +178,14 @@ begin
 
     { in a screen-size ortho }
   SetupScreenProjectionMatrix;
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity;
   DrawHUD;
+  DrawFrameStats;
 
   CheckGLError();
 
+  inc(FFrameCount);
   FDirty := false;
 end;
 
@@ -315,7 +330,10 @@ end;
 
 procedure TfrmGLRender.Dirty;
 begin
+  inc(FDirtyCount);
   if not FDirty then begin
+    inc(FInvalidateCount);
+
     FDirty := true;
     glMap.Invalidate;
 //    lstObjects.Invalidate;
@@ -341,7 +359,9 @@ begin
       lstObjects.ItemIndex := iOldIndex;
       
     UpdateObjectCounts;
-    Dirty;
+
+    if FRenderPrefs.RedrawOnAdd then
+      Dirty;
   end;
 end;
 
@@ -366,13 +386,15 @@ begin
     else
       lstObjects.ItemIndex := iOldPos;
 
-    Dirty;
+    if FRenderPrefs.RedrawOnDelete then
+      Dirty;
   end;
 end;
 
 procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
 begin
-  Dirty;
+  if FRenderPrefs.RedrawOnUpdate then
+    Dirty;
 end;
 
 procedure TfrmGLRender.glMapClick(Sender: TObject);
@@ -401,15 +423,18 @@ begin
 
     { if this is a dungeon, use 3d distance else use 2d }
   if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = 2) then
-    pNearest := FFilteredObjects.FindNearest3D(trunc(x), trunc(y), FDControl.LocalPlayer.Z)
+    pNearest := FFilteredObjects.FindNearest3D(round(x), round(y), FDControl.LocalPlayer.Z)
   else
-    pNearest := FFilteredObjects.FindNearest2D(trunc(x), trunc(y));
-  if Assigned(pNearest) then
+    pNearest := FFilteredObjects.FindNearest2D(round(x), round(y));
+
+  if Assigned(pNearest) then begin
     if FRenderPrefs.TrackInGameSelect then
         { callback will update screen }
       FDControl.SelectedObject := pNearest
     else
       GridSelectObject(pNearest);
+    Dirty;
+  end;  { if pNearest }
 end;
 
 procedure TfrmGLRender.DrawLineToSelected;
@@ -473,6 +498,8 @@ begin
 
       if pObj.Stealthed then
         SetGLColorFromTColor(clBlack, 1.0) // clMob, 0.5)
+      else if pObj.Stale then
+        SetGLColorFromTColor(clMob, 0.75)
       else
         glColor3ubv(PGLubyte(@clMob));
       FMobTriangle.GLRender(FRenderBounds);
@@ -510,6 +537,7 @@ begin
   FObjectTriangle := T3DPyramid.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
+  FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   UpdateObjectCounts;
 end;
 
@@ -640,7 +668,8 @@ end;
 
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
 begin
-  Dirty;
+  if FRenderPrefs.RedrawOnTimer then
+    Dirty;
 end;
 
 procedure TfrmGLRender.DrawHUD;
@@ -685,9 +714,6 @@ begin
   pMob := FDControl.SelectedObject;
   if not (Assigned(pMob) and Assigned(glutBitmapCharacter)) then
     exit;
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity;
 
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
@@ -805,6 +831,7 @@ begin
         if not TfrmRenderPrefs.Execute(FRenderPrefs) then begin
           FRenderPrefs.Free;
           FRenderPrefs := tmpPrefs;
+          FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
         end;
         Key := 0;
       end;
@@ -861,19 +888,16 @@ begin
     'm', 'M':
       begin
         FRenderPrefs.XORObjectFilter(ocMob);
-        RefreshFilteredList;
         Key := #0;
       end;
     'o', 'O':
       begin
         FRenderPrefs.XORObjectFilter(ocObject);
-        RefreshFilteredList;
         Key := #0;
       end;
     'p', 'P':
       begin
         FRenderPrefs.XORObjectFilter(ocPlayer);
-        RefreshFilteredList;
         Key := #0;
       end;
     'r', 'R':
@@ -1058,6 +1082,10 @@ begin
       else
         sText := '';
       TextOut(Rect.Left + 175, Rect.Top + 2, sText);
+
+        { If selected, draw the focus rect even if we're not focused }
+      if (odSelected in State) and not (odFocused in State) then
+        DrawFocusRect(Rect);
   end  { data row / with }
 
     { blank row }
@@ -1073,5 +1101,48 @@ begin
     FDControl.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
 end;
 
+procedure TfrmGLRender.RENDERPrefsObjectFilterChanged(Sender: TObject);
+begin
+  RefreshFilteredList;
+end;
+
+procedure TfrmGLRender.DrawGroundTarget;
+var
+  cl:   TColor;
+begin
+  if (FDControl.GroundTarget.X = 0) or (FDControl.GroundTarget.Y = 0) then
+    exit;
+
+  glEnable(GL_LIGHTING);
+  glDisable(GL_BLEND);
+
+  glPushMatrix();
+  glTranslatef(FDControl.GroundTarget.X, FDControl.GroundTarget.Y, 0);
+  cl := FObjectTriangle.Color;
+  FObjectTriangle.Color := RealmColor(FDControl.LocalPlayer.Realm); 
+  FObjectTriangle.GLRender(FRenderBounds);
+  FObjectTriangle.Color := cl;
+  glPopMatrix();
+end;
+
+procedure TfrmGLRender.DrawFrameStats;
+begin
+  if not FRenderPrefs.DrawFrameStats then
+    exit;
+    
+  glColor3f(1, 1, 0);
+  if FFrameStats <> '' then
+    WriteGLUTTextH10(3, 15, FFrameStats);
+end;
+
+procedure TfrmGLRender.UpdateFrameStats(ATime: integer);
+begin
+  FFrameStats := Format('%d frames for %d dirty / %d invalidate in %d msec', [
+    FFrameCount, FDirtyCount, FInvalidateCount, ATime]);
+
+  FFrameCount := 0;
+  FDirtyCount := 0;
+  FInvalidateCount := 0;
+end;
 end.
 
