@@ -140,13 +140,13 @@ QString exMob::text(int column) const {
     case 2:
       return QString::number(hp);
     case 3:
-      return QString::number((mi) ? x - mi->getBaseX() : x);
-    case 4:
-      return QString::number((mi) ? y - mi->getBaseY() : y);
-    case 5:
-      return QString::number(z);
-    case 6:
       return QString::number( static_cast< int >(const_cast< exMob *>(this)->playerDist()));
+    case 4:
+      return QString::number((mi) ? x - mi->getBaseX() : x);
+    case 5:
+      return QString::number((mi) ? y - mi->getBaseY() : y);
+    case 6:
+      return QString::number(z);
     default:
       return NULL;
   }

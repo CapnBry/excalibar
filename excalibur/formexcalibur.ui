@@ -88,7 +88,7 @@
                 </column>
                 <column>
                     <property name="text">
-                        <string>Distance</string>
+                        <string>Health</string>
                     </property>
                     <property name="clickable">
                         <bool>true</bool>
@@ -99,7 +99,7 @@
                 </column>
                 <column>
                     <property name="text">
-                        <string>Health</string>
+                        <string>Distance</string>
                     </property>
                     <property name="clickable">
                         <bool>true</bool>
