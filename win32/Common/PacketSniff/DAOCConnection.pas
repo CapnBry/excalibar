@@ -35,12 +35,17 @@ type
   TAccountCharInfoList = class(TObjectList)
   private
     FAccountName:   string;
+    FServerName: string;
+    FAccountPassword: string;
     function GetItems(iIndex: integer): TAccountCharInfo;
   public
+    procedure Clear; override;
     function FindOrAddChar(const AName: string) : TAccountCharInfo;
 
     property Items[iIndex: integer]: TAccountCharInfo read GetItems; default;
     property AccountName: string read FAccountName;
+    property AccountPassword: string read FAccountPassword;
+    property ServerName: string read FServerName;
   end;
 
   PCallbackEventInfo = ^TCallbackEventInfo;
@@ -191,6 +196,7 @@ type
     procedure ParseGroupMembersUpdate(pPacket: TDAOCPacket);
     procedure ParseGroupWindowUpdate(pPacket: TDAOCPacket);
     procedure ParseAggroIndicator(pPacket: TDAOCPacket);
+    procedure ParseAccountLoginRequest(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -328,6 +334,14 @@ uses
 {$ENDIF GLOBAL_TICK_COUNTER}
 
 { TAccountCharInfoList }
+
+procedure TAccountCharInfoList.Clear;
+begin
+  inherited;
+  FAccountName := '';
+  FAccountPassword := '';
+  FServerName := '';    
+end;
 
 function TAccountCharInfoList.FindOrAddChar(const AName: string): TAccountCharInfo;
 var
@@ -729,6 +743,7 @@ begin
     $01:  ParseLocalPosUpdateFromClient(pPacket);
     $07:  ParseCommandFromClient(pPacket);
     $0b:  ParseServerPingRequest(pPacket);
+    $0f:  ParseAccountLoginRequest(pPacket);
     $12:  ParseLocalHeadUpdateFromClient(pPacket);
     $16:  ParseRequestObjectByInfoID(pPacket);
     $18:  ParseSelectedIDUpdate(pPacket);
@@ -2051,7 +2066,12 @@ end;
 
 procedure TDAOCConnection.ParseServerProcotolInit(pPacket: TDAOCPacket);
 begin
+  pPacket.HandlerName := 'ServerProcotolInit';
+  
   FServerProtocol := pPacket.GetByte;
+  pPacket.seek(3);
+  FAccountCharacters.FAccountName := pPacket.getPascalString;
+  FAccountCharacters.FServerName := pPacket.getPascalString;
 end;
 
 procedure TDAOCConnection.SetClientIP(const Value: string);
@@ -2311,6 +2331,16 @@ begin
   
   FDAOCObjs.Add(ADAOCObject);
   DoOnNewDAOCObject(ADAOCObject);
+end;
+
+procedure TDAOCConnection.ParseAccountLoginRequest(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'AccountLoginRequest';
+  pPacket.seek(5);
+  FAccountCharacters.FAccountPassword := pPacket.getNullTermString(11);
+    { there's some other information here, like the account name, but its
+      at the end of some other ??? data, so we'll wait until the server
+      sends back the account name }
 end;
 
 end.
