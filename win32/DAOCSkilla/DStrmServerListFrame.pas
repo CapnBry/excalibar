@@ -144,7 +144,7 @@ var
   pDS:  TDStreamClient;
 begin
   s := 'localhost';
-  if InputQuery('Add DStream connection', 'Hostname or IP:', s) then begin
+  if InputQuery('Add DStream connection', 'Hostname or IP address of dstream server:', s) then begin
     pDS := TDStreamClient.Create;
     pDS.SetConnectString(s);
     FDStrmList.Add(pDS);
@@ -163,7 +163,7 @@ begin
     exit;
 
   s := pDS.HostPretty;
-  if InputQuery('Add DStream connection', 'Hostname or IP:', s) then begin
+  if InputQuery('Edit DStream connection', 'Hostname or IP address of dstream server:', s) then begin
     pDS.Close;
     pDS.SetConnectString(s);
     ReloadServerList;

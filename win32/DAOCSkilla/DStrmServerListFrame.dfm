@@ -100,9 +100,9 @@ object frmDStrmServerList: TfrmDStrmServerList
     object Label4: TLabel
       Left = 4
       Top = 2
-      Width = 123
+      Width = 209
       Height = 16
-      Caption = 'DStream Servers'
+      Caption = 'DStream Server Connections'
       Color = clCream
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
