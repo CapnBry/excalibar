@@ -35,6 +35,8 @@ IN DEVELOPMENT
   + Added "Shade by realm" and ability to turn off player halos.
   + Now will guess player realm based on other players.  Default level
     based on last known level at disconnect.
+  + Added "Macro state" label to Macroing dialog.
+  + Added support for multiple merchants with PowerSkillBuy.
 
 2004 Feb 18 - v1.86
 -------------------
