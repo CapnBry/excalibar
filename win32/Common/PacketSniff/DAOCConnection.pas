@@ -118,6 +118,7 @@ type
     FOnPingReply: TIntegerEvent;
     FOnMobTargetChanged: TDAOCMobNotify;
     FOnUnknownStealther: TDAOCObjectNotify;
+    FOnDelveItem: TDAOCInventoryItemNotify;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -151,6 +152,7 @@ type
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
     FMaxObjectStaleTime: DWORD;
+    FLastDelveRequestPos: BYTE;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -200,6 +202,8 @@ type
     procedure ParseGroupWindowUpdate(pPacket: TDAOCPacket);
     procedure ParseAggroIndicator(pPacket: TDAOCPacket);
     procedure ParseAccountLoginRequest(pPacket: TDAOCPacket);
+    procedure ParseDelveRequest(pPacket: TDAOCPacket);
+    procedure ParseDelveInformation(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -243,6 +247,7 @@ type
     procedure DoOnPingReply; virtual;
     procedure DoOnMobTargetChanged(AMob: TDAOCMob); virtual;
     procedure DoOnUnknownStealther(AUnk: TDAOCUnknownStealther); virtual;
+    procedure DoOnDelveItem(AItem: TDAOCInventoryItem); virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -329,6 +334,7 @@ type
     property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
     property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
     property OnUnknownStealther: TDAOCObjectNotify read FOnUnknownStealther write FOnUnknownStealther;
+    property OnDelveItem: TDAOCInventoryItemNotify read FOnDelveItem write FOnDelveItem;
   end;
 
 
@@ -756,6 +762,7 @@ begin
     $16:  ParseRequestObjectByInfoID(pPacket);
     $18:  ParseSelectedIDUpdate(pPacket);
     $44:  ParseSetGroundTarget(pPacket);
+    $70:  ParseDelveRequest(pPacket);
     $7d:  ParseRequestPlayerByPlayerID(pPacket);
     $b8:  ParseCharacterActivationRequest(pPacket);
     $d0:  ParseRequestBuyItem(pPacket);
@@ -786,6 +793,7 @@ begin
     $52:  ParseMoneyUpdate(pPacket);
     $55:  ParseAccountCharacters(pPacket);
     $5b:  ParseProgressMeter(pPacket);
+    $6C:  ParseDelveInformation(pPacket);
     $71:  ParseNewObject(pPacket, ocObject);
     $72:  ParseNewObject(pPacket, ocMob);
     $7c:  ParseNewObject(pPacket, ocPlayer);
@@ -1771,6 +1779,7 @@ procedure TDAOCConnection.HookChatParseCallbacks;
 begin
   FChatParser.OnTradeSkillSuccess := CPARSETradeSkillSuccess;
   FChatParser.OnTradeSkillFailure := CPARSETradeSkillFailure;
+  FChatParser.OnTradeSkillFailureWithLoss := CPARSETradeSkillFailure;
   FChatParser.OnTradeskillCapped := CPARSETradeSkillCapped;
   FChatParser.OnTargetChange := CPARSETargetChanged;
 end;
@@ -2405,6 +2414,49 @@ procedure TDAOCConnection.DoOnUnknownStealther(AUnk: TDAOCUnknownStealther);
 begin
   if Assigned(FOnUnknownStealther) then
     FOnUnknownStealther(Self, AUnk);
+end;
+
+procedure TDAOCConnection.ParseDelveRequest(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'DelveRequest';
+  pPacket.seek(3);
+    { save what body position we delved since we don't get that back
+      with the delve info }
+  FLastDelveRequestPos := pPacket.getByte;
+end;
+
+procedure TDAOCConnection.ParseDelveInformation(pPacket: TDAOCPacket);
+var
+  sItemName:    string;
+  s:            string;
+  iLineNo:      integer;
+  slDelveInfo:  TStringList;
+  pItem:        TDAOCInventoryItem;
+begin
+  pPacket.HandlerName := 'DelveInformation';
+  pItem := FLocalPlayer.Inventory.ItemInSlot(FLastDelveRequestPos);
+  if not Assigned(pItem) then
+    exit;
+
+  sItemName := pPacket.getPascalString;
+  slDelveInfo := TStringList.Create;
+  while not pPacket.EOF do begin
+    iLineNo := pPacket.getByte;
+    if iLineNo <> 0 then begin
+      s := pPacket.getPascalString;
+      if s <> ' ' then
+        slDelveInfo.Add(s);
+    end;
+  end;  { while !EOF }
+
+  pItem.DelveInfo := slDelveInfo;
+  DoOnDelveItem(pItem);
+end;
+
+procedure TDAOCConnection.DoOnDelveItem(AItem: TDAOCInventoryItem);
+begin
+  if Assigned(FOnDelveItem) then
+    FOnDelveItem(Self, AItem);
 end;
 
 end.
