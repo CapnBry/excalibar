@@ -54,7 +54,6 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   mob=newmob;
   obj=newobj;
   head=0.0f;
-  headrad=0.0f;
   speed=0;
   stealth = 0;
   c=con;
@@ -172,7 +171,7 @@ QString exMob::text(int column) const {
     case 2:
       return QString::number(hp);
     case 3:
-      return QString::number( static_cast< int >(const_cast< exMob *>(this)->playerDist()));
+      return QString::number(static_cast< int >(const_cast< exMob *>(this)->playerDist()));
     default:
       return NULL;
   }
@@ -214,7 +213,6 @@ void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
 
 void exMob::setHead(unsigned int nhead) {
   head = DAOCHEAD_TO_DEGREES(nhead);
-  headrad = head * (float)(M_PI / 180.0);
   touch();
 }
 
@@ -300,6 +298,7 @@ void exMob::updateProjectedPosition() {
     int real_speed;
     int mag;
     float speed_mag;
+    float qs, qc;
 
     if (exTick == _lastprojectedPos)
 	return;
@@ -313,10 +312,11 @@ void exMob::updateProjectedPosition() {
     speed_mag = (float)real_speed * (float)(exTick - _lasttick) *
         (1.0f / 1000.0f);
 
-    FLOAT_TO_INT(sin(headrad) * speed_mag, mag);
+    sincos_quick(head, &qs, &qc);
+    FLOAT_TO_INT(qs * speed_mag, mag);
     projectedX = x - mag;
 
-    FLOAT_TO_INT(cos(headrad) * speed_mag, mag);
+    FLOAT_TO_INT(qc * speed_mag, mag);
     projectedY = y + mag;
 }
 
@@ -458,14 +458,14 @@ const unsigned int exMob::playerDist2DL1()
 
     lastDist2DL1Ticks = exTick;
 
-    /*
      int xdist = x - c->playerx;
     if (xdist < 0)
         xdist = -xdist;
     int ydist = y - c->playery;
     if (ydist < 0)
         ydist = -ydist;
-        */
+
+    /*
     unsigned int xdist;
     unsigned int ydist;
     if (x > c->playerx)
@@ -475,7 +475,8 @@ const unsigned int exMob::playerDist2DL1()
     if (y > c->playery)
         ydist = y - c->playery;
     else
-        ydist = c->playery - y;
+    ydist = c->playery - y;
+    */
 
     lastDist2DL1 = xdist + ydist;
     return lastDist2DL1;

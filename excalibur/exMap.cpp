@@ -22,6 +22,7 @@
 #include "exMob.h"
 #include "exMapInfo.h"
 #include "exLineSimplify.h"
+#include "quickmath.h"
 #include <math.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
@@ -333,7 +334,6 @@ void exMap::paintGL() {
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
   exMob *m;
-  float playerrad;
   int minx, maxx, miny, maxy;
   bool update_fps_counter;
 
@@ -375,8 +375,6 @@ void exMap::paintGL() {
   glDisable(GL_LIGHTING);
 
   c->updateProjectedPlayer();
-
-  playerrad = c->playerhead * (float)(M_PI / 180.0);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -467,6 +465,7 @@ void exMap::paintGL() {
   if (prefs.map_rulers) {
       /* mult range * 1.5 to make sure the lines can reach all the way to the corners */
     float extended_range = range * 1.5f;
+    float qs, qc;
     glColor3f (0.45, 0.45, 0.45);
     glLineWidth(1.0);
     glBegin(GL_LINES);
@@ -475,8 +474,8 @@ void exMap::paintGL() {
         glVertex3f(0.0, -extended_range, 0.0);  // 500
         glVertex3f(0.0, extended_range, 0.0);  // 500
         glVertex3f(0.0, 0.0, 0.0);  // 500.0
-        glVertex3f(cos(playerrad + M_PI_2) * extended_range,
-                   sin(playerrad + M_PI_2) * extended_range, 0.0); // 500.0
+        sincos_quick(c->playerhead + 90.0, &qs, &qc);
+        glVertex3f(qc * extended_range, qs * extended_range, 0.0); // 500.0
     glEnd();
   }
 
@@ -649,18 +648,24 @@ void exMap::drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pc
     }
 }
 
-void exMap::drawCircle(int radius, uint8_t segments)
+void exMap::drawCircle(int radius, int segments)
 {
-     GLfloat angle;
-     GLfloat vectorx, vectory;
+     float vectorx, vectory;
+     float angle;
+     float qs, qc;
+     float angle_denom = 360.0f / (float)segments;
 
      /* draw a circle from a bunch of short lines */
      glBegin(GL_LINE_LOOP);
-     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (GLfloat)segments))
+     while (segments)
      {
-         vectorx = ((GLfloat)radius * sin(angle));
-         vectory = ((GLfloat)radius * cos(angle));
+         angle = (float)segments * angle_denom;
+         sincos_quick(angle, &qs, &qc);
+         vectorx = (float)radius * qs;
+         vectory = (float)radius * qc;
          glVertex3f(vectorx, vectory, 0.0); // 500.0);
+
+         segments--;
      }
      glEnd();
 }
@@ -743,6 +748,7 @@ void exMap::mousePressEvent(QMouseEvent *e) {
 void exMap::keyPressEvent(QKeyEvent *e) {
   double angle=0.0;
   double dist=c->ex->MapSlider->value();
+  float qs, qc;
 
   switch( e->key() ) {
     case Qt::Key_Right:
@@ -776,9 +782,10 @@ void exMap::keyPressEvent(QKeyEvent *e) {
       return;
       break;
   }
-  angle = angle * M_PI / 2.0;
-  edit_xofs += (int)(cos(angle)*dist / 2.0);
-  edit_yofs -= (int)(sin(angle)*dist / 2.0);
+  angle = angle * 90.0;
+  sincos_quick(angle, &qs, &qc);
+  edit_xofs += (int)(qc * dist * 0.5);
+  edit_yofs -= (int)(qs * dist * 0.5);
   dirty();
 }
 

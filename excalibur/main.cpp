@@ -37,6 +37,7 @@
 #include "exConnection.h"
 #include "exMapInfo.h"
 #include "exSniffer.h"
+#include "quickmath.h"
 
 exTimeType exTick;
 exPrefs prefs;
@@ -124,7 +125,8 @@ int main( int argc, char ** argv )
     exSniffer *xs;
    
     qInitNetworkProtocols();
-
+    cos_buildtable();
+    sin_buildtable();
     exMapInfo::setup("maps/mapinfo.txt");
 
     exTick = 0;
@@ -140,5 +142,10 @@ int main( int argc, char ** argv )
       xs->start();
     }
 
-    return a.exec();
+    a.exec();
+
+    cos_freetable();
+    sin_freetable();
+    return 0;
+
 }

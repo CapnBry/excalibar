@@ -1014,16 +1014,16 @@ bool exConnection::checkMap (void)
 void exConnection::updateProjectedPlayer(void)
 {
   float projected_mag;
-  float player_head_rad;
+  float s, c;
   int mag;
 
   projected_mag = (float)playerspeed * (float)(exTick - player_last_update) *
       (float)(1.0 / 1000.0);
-  player_head_rad = playerhead * (float)(M_PI / 180.0);
 
-  FLOAT_TO_INT((sin(player_head_rad) * projected_mag), mag);
+  sincos_quick(playerhead, &s, &c);
+  FLOAT_TO_INT((s * projected_mag), mag);
   playerProjectedX = playerx - mag;
-  FLOAT_TO_INT((cos(player_head_rad) * projected_mag), mag);
+  FLOAT_TO_INT((c * projected_mag), mag);
   playerProjectedY = playery + mag;
 
 }

@@ -59,7 +59,6 @@ private:
     unsigned int mana;
     unsigned int x,y,z;
     float head;
-    float headrad;
     unsigned int speed;
     bool mob;
     bool obj;
