@@ -61,6 +61,8 @@ type
     function GetOddsLoadPct: double;
     procedure SetOddsLoadPct(const Value: double);
   public
+    procedure StartProgression;
+
     property DAOCControl: TDAOCControl read FDControl write SetDControl;
     property Progression: string read GetProgression write SetProgression;
     property TargetQuality: integer read GetTargetQuality write SetTargetQuality;
@@ -297,6 +299,11 @@ begin
   end
   else
     lblStackOddsPct.Font.Color := clMaroon;
+end;
+
+procedure TfrmMacroTradeSkills.StartProgression;
+begin
+  FDControl.TradeskillStartProgression;  
 end;
 
 end.
