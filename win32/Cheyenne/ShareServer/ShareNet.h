@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "locks.h"
 #include "buffer.h"
 
-const int max_clients=21;
+const int max_clients=20;
 const CheyenneTime MaxPingAge(30.0);
 const CheyenneTime PingInterval(20.0);
 const unsigned int TempBufferSize(2048);

@@ -19,4 +19,4 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #pragma once
 
 BOOL WINAPI AllowedHostsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
-
+BOOL WINAPI SetServerPortDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);

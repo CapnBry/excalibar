@@ -260,6 +260,19 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
              }
             break;
         
+        case ID_SYSTEM_SETSERVERPORT:
+            // do dialog
+            DialogBoxParam
+                (
+                hInstance,
+                MAKEINTRESOURCE(IDD_SETSERVERPORT),
+                hWnd,
+                (DLGPROC)SetServerPortDlgProc,
+                (LPARAM)&::Config
+                );
+             
+            break;
+            
         default:
             break;
         }

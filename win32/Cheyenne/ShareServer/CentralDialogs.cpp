@@ -208,3 +208,78 @@ BOOL WINAPI AllowedHostsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     
     return(TRUE); // TRUE for processed message
 } // end AllowedHostsDlgProc
+
+BOOL WINAPI SetServerPortDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
+{
+    ShareNetConfig* param=(ShareNetConfig*)GetWindowLong(hWnd,GWL_USERDATA);
+
+    switch(uMsg)
+        {
+        case WM_INITDIALOG:
+            {
+            SetWindowLong(hWnd,GWL_USERDATA,(LONG)lParam);
+            
+            param=(ShareNetConfig*)lParam;
+            }
+            break;
+
+        case WM_COMMAND:
+            {
+            switch(LOWORD(wParam))
+                {
+                case IDOK:
+                    {
+                    std::string port_text;
+                    GET_EDIT_STRING(hWnd,IDC_SERVERPORT,port_text);
+                    
+                    std::stringstream ss(port_text);
+                    
+                    unsigned int port;
+                    ss >> port;
+                    
+                    if(!port || port > 65535)
+                        {
+                        // woops, ports must be [1,65535]
+                        ss.seekg(0);
+                        ss.seekp(0);
+                        ss.str("");
+                        ss.clear();
+                        ss << "Port (" << port << ") must be [1,65535]";
+                        
+                        MessageBox(hWnd,ss.str().c_str(),"Error",MB_OK);
+                        break;
+                        }
+                    
+                    if(port != param->GetListenPort())
+                        {
+                        MessageBox
+                            (
+                            hWnd,
+                            "Changing the port requires you to restart the program before it takes effect",
+                            "Please restart this program",
+                            MB_ICONINFORMATION|MB_OK
+                            );
+                        
+                        param->SetListenPort((unsigned short)port);
+                        }
+                    }
+                    EndDialog(hWnd,IDOK);
+                    break;
+
+                case IDCANCEL:
+                    EndDialog(hWnd,IDCANCEL);
+                    break;
+                
+                default:
+                    break;
+                }
+            }
+            break;
+
+        default:
+            return(FALSE); // did not process message
+            break;
+        } // end switch message
+    
+    return(TRUE); // TRUE for processed message
+} // end SetServerPortDlgProc
