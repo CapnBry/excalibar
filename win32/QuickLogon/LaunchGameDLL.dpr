@@ -4,7 +4,7 @@ uses
   Windows,
   SysUtils,
   PEFuncs in 'PEFuncs.pas',
-  BoyerMoore in 'BoyerMoore.pas';
+  BoyerMoore in '..\Common\BoyerMoore.pas';
 
 var
   pi:   TProcessInformation;
