@@ -28,7 +28,7 @@
 
 #include "exPrefs.h"
 
-#define EX_VERSION "1.0.2"
+#define EX_VERSION "1.0.3"
 
 typedef long int exTimeType;
 extern exTimeType exTick;

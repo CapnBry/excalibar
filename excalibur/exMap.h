@@ -124,9 +124,11 @@ public:
   int range;
   bool ignore_fill;
   bool has_direct;
+  bool has_NVdriver;
   
   exMap(QWidget *parent, const char *name);
   ~exMap();
+  bool isNVidiaModuleLoaded();
   void initializeGL();
   void resizeGL(int w, int h);
   void paintGL();

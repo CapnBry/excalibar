@@ -61,14 +61,19 @@ int exMapInfo::getZoneNum() const {
 }
 
 char* exMapInfo::getZoneName(int iZoneNum) const {
-  if (iZoneNum == 001)
-    return "Albion";
-  else if (iZoneNum == 100)
-    return "Midgard";
-  else if (iZoneNum == 200)
-    return "Hibernia";
-  else
-    return "Unknown";
+  switch (iZoneNum)
+  {
+    case 1:
+      return "Albion";
+    case 10:
+      return "Camelot";
+    case 100:
+      return "Midgard";
+    case 200:
+      return "Hibernia";
+    default:
+      return "Unknown";
+  }
 }
   
 

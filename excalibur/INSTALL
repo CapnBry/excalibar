@@ -20,7 +20,7 @@ it is, adjust as required.
   Linux distribution.
 - 64 MB Main Memory
 - 256 MB Virtual Memory
-- 750 MB free HD space (550 of which is for QT 3.0.1)
+- 750 MB free HD space (550 of which is for X11 / QT 3.0.1)
 
 ============================
 Verifying your network setup
@@ -30,9 +30,9 @@ You need to set up a sniffing environment. How to do that is
 beyond the scope of this simple INSTALL file, but look around the
 net; there are many guides.
 To verify that your sniffing setup is correct, run the following command
-on your would-be EX box WHILE playing DAOC:
+on your would-be EX box WHILE playing DAoC:
 
-tcpdump -n host <IP of your Windows Machine playing DAOC>
+tcpdump -n host <IP of your Windows Machine playing DAoC>
 
 You should (hopefully) see two-way traffic, that is traffic both to AND
 from your windows machine. If you don't, you don't have a sniffing
@@ -49,13 +49,38 @@ You absolutely, 100% sure, without a doubt need:
 - Libpcap. A version recent enough that it handles the cooked-mode "any" device.
 - QT X11 Free version 3.0.1
 
-My personal build platform is RH 7.2
+This documentation is written with RH 7.2 in mind as the build platform..
 If you installed RH 7.2 with "everything", the only thing you need to
 update is QT 3.0.1 (instructions below).
+
 If you don't have RH 7.2 or didn't install with "everything", you're on
-your own. If it doesn't work for you AND you manage to fix it, send me a
+your own. If it doesn't work for you AND you manage to fix it, send us a
 patch. If it doesn't work for you and you can't fix it; BE QUIET and
 wait for someone else to fix it.
+
+(NOTE: Since this documentation was initially written, Debian has become
+       the unofficial distribution of choice.  To install Excalibur on
+       Debian, install Debian UNSTABLE with the following packages:
+
+  build-essential
+  binutils
+  task-c++-dev
+  libpcap
+  libpcap-dev
+  libpng2
+  libpng2-dev
+  libqt3-mt
+  libqt3-mt-dev
+  qt3-tools
+  xlibmesa3
+  xlibmesa-dev
+  zlib1g
+  zlib1g-dev
+
+  And make sure you have an X11 client configured (so you can actually
+  see Excalibur when you run it!))
+  
+  
 
 ================
 Become superuser
@@ -98,11 +123,11 @@ Downloading and compiling Excalibur
 3) cd excalibur
 4) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co excalibur
 5) export QTDIR=/usr/lib/qt-3.0.1
-6) $QTDIR/bin/qmake excalibar.pro
+6) $QTDIR/bin/qmake excalibur.pro
 7) make
 
 ==============================
-Getting the DAOC Crypt library
+Getting the DAoC Crypt library
 ==============================
 
 1) cd ~/excalibur
@@ -121,12 +146,12 @@ Running Excalibur
 The program will display a few lines, but nothing else will happen.
 ==> This is as it should be. <==
 
-Go to your windows machine and log on DAOC. You must not start the DAOC
-Client before EX is running, or you will get nothing.
+Go to your windows machine and log on DAoC. You must not start the DAoC
+Client before you start Excalibur, or you will get nothing!
 
 The first time the window opens, you probably want to go to the "Settings"
-menu and click on "Reload Maplist" to make sure your newly downloaded maps
-are used.
+menu and customize your configuration options.. There are numerous options
+to be configured, I won't go into detail here.
 
 ==================
 Running the Editor
@@ -142,12 +167,12 @@ java -version
 To run the editor, make sure you have java installed (http://java.sun.com)
 and type:
 
-java -jar editor.java
+java -jar editor.jar
 
 
 To get the editor to link to EX, you need to start EX like this:
 
 ./excalibur --link
 
-When you connect to DAOC, the port number the editor needs will be show in
+When you connect to DAoC, the port number the editor needs will be show in
 the window title of EX.

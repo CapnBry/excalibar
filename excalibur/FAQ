@@ -22,11 +22,10 @@ A: Update your PCAP library. It needs to handle cooked mode, and it has to
 
 ==========
 
-Q: "No Direct Render - This will be SLOW", but I have a Nvidia GeForce!
+Q: "No Direct Render - This will be SLOW", is that bad?!
 
 A: To get accelerated GL support, you need to install the necesarry GL
-   drivers. For Nvidia cards, these can be found at http://www.nvidia.com
-   (duh!)
+   drivers. For NVidia cards, these can be found at http://www.nvidia.com
 
    For most other cards, you can use DRI (http://dri.sourceforge.net),
    which hopefully is included in your distribution.

@@ -33,6 +33,8 @@
 #include <qslider.h>
 #include <qimage.h>
 
+#include <stdio.h>
+
 exMap::exMap(QWidget *parent, const char *name)
  : QGLWidget(QGLFormat(DoubleBuffer|DepthBuffer|Rgba|DirectRendering),parent,name) {
   objsize = 100; 
@@ -127,6 +129,38 @@ void exMap::makeObjects(bool simple) {
   glEndList();
 }
 
+/* Search for NVdriver using the QUICK method, as opposed to directly querying
+   the Kernel's list of loaded modules. This method ONLY works when the Kernel
+   has ProcFS support and a mounted /proc partition. */
+bool exMap::isNVidiaModuleLoaded() {
+
+  FILE* fModules;
+  char* chModuleList;
+
+  chModuleList = (char*) malloc (16384);  
+
+  if ((fModules = fopen ("/proc/modules","ro")) != NULL) {
+
+    while (fgets (chModuleList, 16384, fModules) != NULL) {
+
+      if (strstr(chModuleList, "NVdriver") != NULL) {
+
+        fclose(fModules);
+        delete [] chModuleList;
+
+        return true;
+
+      }
+       
+    }
+
+  }
+
+  fclose (fModules);
+  delete [] chModuleList;
+
+  return false;
+}
 
 void exMap::initializeGL() {
   static GLfloat lightpos[4]={0.5,-1.0,1.0,0.0};
@@ -138,11 +172,20 @@ void exMap::initializeGL() {
     qWarning("Single Buffer GL only - Flicker might happen");
   if (! format().depth())
     qWarning("NO GL DEPTH BUFFER - No polygon sorting");
-  if (! format().directRendering()) {
-    qWarning("No Direct Render - This will be SLOW");
-    has_direct = FALSE;
+
+  qWarning("Checking for hardware OpenGL support...");
+  if (isNVidiaModuleLoaded()) {
+      qWarning(">> YES (NVdriver)\t-\tThis should be VERY FAST!");
+      has_NVdriver = TRUE;
+      has_direct   = FALSE;
+  } else if (format().directRendering()) {
+      qWarning(">> YES (Direct Render)\t-\tThis will probably be AVERAGE!");
+      has_NVdriver = FALSE;
+      has_direct   = TRUE;
   } else {
-    has_direct = TRUE;
+    qWarning(">> NO (No Direct Render)\t-\tThis will probably be SLOW!");
+    has_NVdriver = FALSE;
+    has_direct   = FALSE;
   }
 
   glClearColor(0.0,0.0,0.0,0.0);

@@ -1,4 +1,22 @@
 Andon (07/Feb/02)
+-----------------
+
+Additions:
+ + Added preliminary support for NVidia GLX specific optimizations
+   (expect to see this support utilized in the near future!)
+ + As a result of the abovementioned addition, Excalibur now uses
+   a different method for detecting DRI support on your machine,
+   the new method is much more intelligent and verbose.
+
+Documentation:
+ + Fixed a few issues where some portions of the Excalibur docs
+   were violating the GPL..
+ + Fixed a few typos made in the INSTALL docs.
+ + Fixed a few invalid claims made in README and INSTALL.
+ + Added minimal info for installing Excalibur on Debian UNSTABLE.
+
+
+Andon (07/Feb/02)
 ------------------
 
 Additions:
