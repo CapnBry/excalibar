@@ -788,7 +788,7 @@ begin
     exit;
 
   pMob := FDControl.SelectedObject;
-  if not (Assigned(pMob) and Assigned(glutBitmapCharacter)) then
+  if not Assigned(pMob) then
     exit;
 
   glEnable(GL_BLEND);
