@@ -85,7 +85,7 @@ object frmMobFilerList: TfrmMobFilerList
     Top = 89
     Width = 384
     Height = 30
-    Align = alClient
+    Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
     DesignSize = (
