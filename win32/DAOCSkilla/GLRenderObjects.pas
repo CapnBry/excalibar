@@ -20,7 +20,7 @@ type
     procedure SetColorFromString(const AColor: string);
 
     procedure GLInitialize; virtual;
-    procedure GLRender; virtual;
+    procedure GLRender(const ARenderBounds: TRect); virtual;
     procedure GLCleanup; virtual;
 
     property Color: TColor read FColor write FColor;
@@ -34,7 +34,7 @@ type
     FGLList:    GLuint;
   public
     procedure GLInitialize; override;
-    procedure GLRender; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
     procedure GLCleanup; override;
   end;
 
@@ -62,7 +62,7 @@ type
     destructor Destroy; override;
 
     procedure GLInitialize; override;
-    procedure GLRender; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
     procedure GLCleanup; override;
 
     procedure Add(ACircle: TRangeCircle);
@@ -76,10 +76,10 @@ type
     FZ: GLuint;
   public
     constructor Create; override;
-    procedure GLRender; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
 
     procedure Assign(AX, AY, AZ: GLuint);
-    
+
     property X: GLuint read FX write FX;
     property Y: GLuint read FY write FY;
     property Z: GLuint read FZ write FZ;
@@ -112,12 +112,12 @@ type
     FGLTexture:   GLuint;
     FDDSChunk:    TDDSImagePixelsChunk;
     FBounds: TRect;
-    
+
     procedure UploadTexture;
   public
     destructor Destroy; override;
 
-    procedure GLRender; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
     procedure GLCleanup; override;
 
     procedure TakeDDSChunk(X, Y, AScale: integer; ADDSChunk: TDDSImagePixelsChunk);
@@ -159,6 +159,30 @@ uses Types;
 const
   D_TO_R = PI / 180;
   RGB_SCALE = 1 / 255;
+
+function PointInRect(const ARect: TRect; AX, AY: integer) : boolean;
+{ point in rect assumes a top down rectangle (that the Top is less than the Bottom }
+begin
+  Result := (AX >= ARect.Left) and (AX <= ARect.Right) and
+    (AY >= ARect.Top) and (AY <= ARect.Bottom);
+end;
+
+function RectsIntersect(const A, B: TRect) : boolean;
+begin
+    { a rect intersects if any one of its points is inside the other
+      dude's rect.  We need to check both against each other because
+      one might completely contain the other, in which case only
+      one of the two checks will be true }
+  Result := PointInRect(A, B.Left, B.Top) or
+    PointInRect(A, B.Right, B.Top) or
+    PointInRect(A, B.Left, B.Bottom) or
+    PointInRect(A, B.Right, B.Bottom)
+      or
+    PointInRect(B, A.Left, A.Top) or
+    PointInRect(B, A.Right, A.Top) or
+    PointInRect(B, A.Left, A.Bottom) or
+    PointInRect(B, A.Right, A.Bottom);
+end;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 var
@@ -296,7 +320,7 @@ begin
   inherited;
 end;
 
-procedure TRangeCircleList.GLRender;
+procedure TRangeCircleList.GLRender(const ARenderBounds: TRect);
 var
   I:    integer;
 begin
@@ -304,7 +328,7 @@ begin
 
   glLineWidth(1.0);
   for I := 0 to FList.Count - 1 do
-    Items[I].GLRender;
+    Items[I].GLRender(ARenderBounds);
 end;
 
 { TGLRenderObject }
@@ -325,7 +349,7 @@ begin
 ;
 end;
 
-procedure TGLRenderObject.GLRender;
+procedure TGLRenderObject.GLRender(const ARenderBounds: TRect);
 begin
   if FUseColor then
     SetGLColorFromTColor(FColor, 1);
@@ -390,7 +414,7 @@ begin
   FGLList := glGenLists(1);
 end;
 
-procedure TGLCallListObject.GLRender;
+procedure TGLCallListObject.GLRender(const ARenderBounds: TRect);
 begin
   inherited;
   glCallList(FGLList);
@@ -411,8 +435,11 @@ begin
   FColor := clWhite;
 end;
 
-procedure TMapElementPoint.GLRender;
+procedure TMapElementPoint.GLRender(const ARenderBounds: TRect);
 begin
+  if not PointInRect(ARenderBounds, X, Y) then
+    exit;
+
   inherited;
 
   glPointSize(3.0);
@@ -511,8 +538,11 @@ begin
   inherited;
 end;
 
-procedure TMapElementTerrrainTexture.GLRender;
+procedure TMapElementTerrrainTexture.GLRender(const ARenderBounds: TRect);
 begin
+  if not RectsIntersect(ARenderBounds, FBounds) then
+    exit;
+    
   inherited;
 
   if (FGLTexture = 0) and Assigned(FDDSChunk) then

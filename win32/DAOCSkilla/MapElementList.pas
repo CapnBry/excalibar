@@ -3,7 +3,7 @@ unit MapElementList;
 interface
 
 uses
-  SysUtils, Contnrs, GLRenderObjects, LinedFileStream, CSVLineParser,
+  SysUtils, Types, Contnrs, GLRenderObjects, LinedFileStream, CSVLineParser,
   DDSImage, GL;
 
 type
@@ -14,7 +14,7 @@ type
     function GetItems(I: integer): TGLRenderObject;
   public
     procedure GLInitialize; virtual;
-    procedure GLRender; virtual;
+    procedure GLRender(const ARenderBounds: TRect); virtual;
     procedure GLCleanup; virtual;
 
     property Items[I: integer]: TGLRenderObject read GetItems; default;
@@ -33,7 +33,7 @@ type
   private
   public
     procedure LoadFromFile(const AFileName: string);
-    procedure GLRender; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
   end;
 
 implementation
@@ -105,7 +105,7 @@ end;
 
 { TTextureMapElementList }
 
-procedure TTextureMapElementList.GLRender;
+procedure TTextureMapElementList.GLRender(const ARenderBounds: TRect);
 begin
   glEnable(GL_TEXTURE_2D);
   inherited;
@@ -173,12 +173,12 @@ begin
     Items[I].GLInitialize;
 end;
 
-procedure TGLRenderObjectList.GLRender;
+procedure TGLRenderObjectList.GLRender(const ARenderBounds: TRect);
 var
   I:    integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].GLRender;
+    Items[I].GLRender(ARenderBounds);
 end;
 
 end.
