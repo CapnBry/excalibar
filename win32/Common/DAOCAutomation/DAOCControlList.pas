@@ -18,14 +18,21 @@ uses
 type
   TDAOCControlList = class(TDAOCConnectionList)
   private
+    function GetItems(I: integer): TDAOCControl;
   protected
     function NewDAOCConnectionNeeded : TDAOCConnection; override;
   public
+    property Items[I: integer]: TDAOCControl read GetItems; default;
   end;
   
 implementation
 
 { TDAOCControlList }
+
+function TDAOCControlList.GetItems(I: integer): TDAOCControl;
+begin
+  Result := TDAOCControl(inherited Items[I]);
+end;
 
 function TDAOCControlList.NewDAOCConnectionNeeded: TDAOCConnection;
 begin

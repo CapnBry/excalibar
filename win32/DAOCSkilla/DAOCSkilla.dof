@@ -56,10 +56,6 @@ HostApplication=
 Launcher=
 UseLauncher=0
 DebugCWD=
-[Language]
-ActiveLang=
-ProjectLang=$00000409
-RootDir=C:\Utils\DAoCSkilla\testapp\
 [Version Info]
 IncludeVerInfo=1
 AutoIncBuild=0

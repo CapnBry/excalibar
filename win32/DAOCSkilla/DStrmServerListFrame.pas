@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Grids, StdCtrls, ExtCtrls, DStreamClient;
+  Grids, StdCtrls, ExtCtrls, DStreamClient, GlobalTickCounter;
 
 type
   TfrmDStrmServerList = class(TFrame)
@@ -23,14 +23,18 @@ type
       Rect: TRect; State: TOwnerDrawState);
     procedure lstServersClick(Sender: TObject);
     procedure lblRemoveClick(Sender: TObject);
+    procedure lblAddClick(Sender: TObject);
+    procedure lblEditClick(Sender: TObject);
   private
-    FDStrmList: TDStreamClientList;
+    FDStrmList:   TDStreamClientList;
+    FLastRefresh: Cardinal;
 
     function SelectedConnection : TDStreamClient;
     procedure SetDStrmList(const Value: TDStreamClientList);
     procedure ReloadServerList;
   public
     procedure RefreshStatuses;
+    procedure TickListRefresh;
     
     property DStrmList: TDStreamClientList read FDStrmList write SetDStrmList;
   end;
@@ -81,13 +85,14 @@ begin
     TextOut(Rect.Left + 6, Rect.Top + 2, FDStrmList[Index].HostPretty);
     TextOut(Rect.Left + 108, Rect.Top + 2, FDStrmList[Index].Status);
     TextOut(Rect.Left + 240, Rect.Top + 2, UIntToSize(FDStrmList[Index].BytesRecv));
-    TextOut(Rect.Left + 280, Rect.Top + 2, UIntToSize(FDStrmList[Index].BytesSend));
+    TextOut(Rect.Left + 290, Rect.Top + 2, UIntToSize(FDStrmList[Index].BytesSend));
   end;  { with Canvas }
 end;
 
 procedure TfrmDStrmServerList.RefreshStatuses;
 begin
   lstServers.Invalidate;
+  FLastRefresh := GlobalTickCount;
 end;
 
 procedure TfrmDStrmServerList.lstServersClick(Sender: TObject);
@@ -124,6 +129,46 @@ procedure TfrmDStrmServerList.ReloadServerList;
 begin
   lstServers.Count := FDStrmList.Count;
   lstServers.Height := lstServers.ItemHeight * lstServers.Count + 2;
+  lstServersClick(nil);
+end;
+
+procedure TfrmDStrmServerList.TickListRefresh;
+begin
+  if GlobalTickCount - FLastRefresh > 500 then
+    RefreshStatuses;
+end;
+
+procedure TfrmDStrmServerList.lblAddClick(Sender: TObject);
+var
+  s:    string;
+  pDS:  TDStreamClient;
+begin
+  s := 'localhost';
+  if InputQuery('Add DStream connection', 'Hostname or IP:', s) then begin
+    pDS := TDStreamClient.Create;
+    pDS.SetConnectString(s);
+    FDStrmList.Add(pDS);
+    ReloadServerList;
+    pDS.Open;
+  end;
+end;
+
+procedure TfrmDStrmServerList.lblEditClick(Sender: TObject);
+var
+  s:    string;
+  pDS:  TDStreamClient;
+begin
+  pDS := SelectedConnection;
+  if not Assigned(pDS) then
+    exit;
+
+  s := pDS.HostPretty;
+  if InputQuery('Add DStream connection', 'Hostname or IP:', s) then begin
+    pDS.Close;
+    pDS.SetConnectString(s);
+    ReloadServerList;
+    pDS.Open;
+  end;
 end;
 
 end.

@@ -2,7 +2,7 @@ unit Unit1;
 
 (****************************************************************************
 **
-** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+** Copyright (C) 2004 Bryan Mayland.  All rights reserved.
 **
 ** This file may be distributed and/or modified under the terms of the
 ** GNU General Public License version 2 as published by the Free Software
@@ -18,11 +18,10 @@ uses
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, GameNetPackets, DAOCPlayerAttributes,
   DAOCInventory, Recipes, IdBaseComponent, QuickLaunchChars, IdHTTP, ShellAPI,
   MapNavigator, IdComponent, IdException, IdTCPConnection, IdTCPClient, DStreamClient,
-  DAOCControlList, DStrmServerListFrame, ActnList, Menus;
+  DAOCControlList, DStrmServerListFrame, ActnList, Menus, DebugAndLoggingFns;
 
 type
   TfrmMain = class(TForm)
-    Memo1: TMemo;
     lblUpdates: TLabel;
     tmrUpdateCheck: TTimer;
     httpUpdateChecker: TIdHTTP;
@@ -38,7 +37,6 @@ type
     atnDumpMobList: TAction;
     atnDumpPacketDataToLog: TAction;
     atnProcessPackets: TAction;
-    atnTrackLogins: TAction;
     atnCaptureMobseen: TAction;
     atnCaptureDelveseen: TAction;
     Network1: TMenuItem;
@@ -55,15 +53,12 @@ type
     Viewradar1: TMenuItem;
     Autolaunchradarwindow1: TMenuItem;
     SetDAoCpath1: TMenuItem;
-    Quicklaunch1: TMenuItem;
-    rackcharacterlogins1: TMenuItem;
-    lblChatLogFile: TLabel;
+    atnSkillaLog: TAction;
+    ViewDaocSkillainternallog1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure btnDebuggingClick(Sender: TObject);
-    procedure chkChatLogClick(Sender: TObject);
     procedure btnMacroingClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnDeleteCharClick(Sender: TObject);
@@ -72,23 +67,29 @@ type
     procedure tmrUpdateCheckTimer(Sender: TObject);
     procedure lblUpdatesClick(Sender: TObject);
     procedure chkTrackLoginsClick(Sender: TObject);
-    procedure lblRemoteAdminEnableClick(Sender: TObject);
     procedure atnSetDaocPathExecute(Sender: TObject);
     procedure atnRadarExecute(Sender: TObject);
+    procedure atnChatLogExecute(Sender: TObject);
+    procedure atnChangeChatLogFileExecute(Sender: TObject);
+    procedure atnDumpPacketDataToLogExecute(Sender: TObject);
+    procedure atnCaptureMobseenExecute(Sender: TObject);
+    procedure atnCaptureDelveseenExecute(Sender: TObject);
+    procedure atnAutoLaunchRadarExecute(Sender: TObject);
+    procedure atnProcessPacketsExecute(Sender: TObject);
+    procedure atnRemoteAdminEnableExecute(Sender: TObject);
+    procedure atnSkillaLogExecute(Sender: TObject);
   private
 {$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
 {$ENDIF DAOC_AUTO_SERVER}
-    FChatLog:     TFileStream;
     FClosing:     boolean;
     FCheckForUpdates:   boolean;
     FLastUpdateCheck:   TDateTime;
     FProcessPackets:    boolean;
-    FChatLogXIEnabled:  boolean;
-    FRemoteAdminEnabled:  boolean;
     FDAOCPath:          string;
     FDStreamClients:    TDStreamClientList;
     FDControlList:      TDAOCControlList;
+    FDebugLogState:     TDebugLoggingState;
 
     procedure LoadSettings;
     procedure LoadSettingsForConnection(AConn: TDAOCConnection);
@@ -98,15 +99,8 @@ type
     procedure SetupDStreamObj;
     function GetConfigFileName : string;
     procedure ShowGLRenderer;
-    procedure CreateChatLog;
-    procedure CloseChatLog;
-    procedure OpenRemoteAdmin;
-    procedure CloseRemoteAdmin;
     procedure UpdateQuickLaunchList;
     procedure UpdateQuickLaunchProfileList;
-    procedure ChatLogXI(const s: string);
-    procedure LogLocalPlayerXI;
-    procedure SetRemoteAdminEnabled(const Value: boolean);
   protected
     procedure CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
     procedure CONNLISTDeleteConnection(Sender: TObject; AConn: TDAOCConnection);
@@ -116,7 +110,6 @@ type
     procedure DAOCDisconnect(Sender: TObject);
     procedure DAOCLog(Sender: TObject; const s: string);
     procedure DAOCZoneChange(Sender: TObject);
-    procedure DAOCPacket(Sender: TObject; APacket: TGameNetPacket);
     procedure DAOCAfterPacket(Sender: TObject; APacket: TGameNetPacket);
     procedure DAOCInventoryChanged(Sender: TObject);
     procedure DAOCVendorWindow(Sender: TObject);
@@ -152,10 +145,7 @@ type
     procedure DSTREAMStatusChange(Sender: TObject);
   public
     procedure Log(const s: string);
-    procedure InjectPacket(ASource: TObject; APacket: TGameNetPacket);
-
-    property ProcessPackets: boolean read FProcessPackets write FProcessPackets;
-    property RemoteAdminEnabled: boolean read FRemoteAdminEnabled write SetRemoteAdminEnabled;
+    procedure InjectPacket(Source: TObject; APacket: TGameNetPacket);
   end;
 
 var
@@ -168,7 +158,7 @@ implementation
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
   SpellcraftHelp, Macroing, LowOnStat, VCLMemStrms, RemoteAdmin,
-  StringParseHlprs, DebugAndTracing
+  StringParseHlprs, SkillaLog
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -179,16 +169,11 @@ uses
 
 {$R *.dfm}
 
-const
-  CHAT_XI_PREFIX = 'XI: ';
-
 procedure CreateOptionalForms;
 begin
 {$IFDEF OPENGL_RENDERER}
   Application.CreateForm(TfrmGLRender, frmGLRender);
-  // frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
-
 {$IFDEF DAOC_AUTO_SERVER}
   Application.CreateForm(TfrmTellMacro, frmTellMacro);
 {$ENDIF DAOC_AUTO_SERVER}
@@ -209,10 +194,10 @@ begin
     try
       if GetFileVersionInfo(PChar(ParamStr(0)), Wnd, InfoSize, VerBuf) then
         if VerQueryValue(VerBuf, '\', Pointer(FileInfo), VerSize) then begin
-          Result := Format('%d.%d', [
+          Result := Format('%d.%d.%d', [
             FileInfo.dwFileVersionMS shr 16,
-            FileInfo.dwFileVersionMS and $FFFF]);
-            // FileInfo.dwFileVersionLS shr 16,
+            FileInfo.dwFileVersionMS and $FFFF,
+            FileInfo.dwFileVersionLS shr 16]);
             // FileInfo.dwFileVersionLS and $FFFF]);
         end;
     finally
@@ -223,13 +208,8 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-  Memo1.Lines.Clear;
-
-  Log('--==========================================================--');
-  Log('  DaocSkilla is provided at no cost and without warranty');
-  Log('    under the General Public License (GPL) Version 2.');
-  Log('  See LICENSE.TXT for more information regarding licensing.');
-  Log('--==========================================================--');
+  FDebugLogState := TDebugLoggingState.Create;
+  FDebugLogState.LogSink := Log;
 
   FDControlList := TDAOCControlList.Create;
   FDControlList.OnNewConnection := CONNLISTNewConnection;
@@ -237,6 +217,7 @@ begin
   SetupDStreamObj;
 
   FProcessPackets := true;
+  atnProcessPackets.Checked := FProcessPackets;
 
 {$IFNDEF OPENGL_RENDERER}
   btnGLRender.Visible := false;
@@ -245,7 +226,7 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  CloseChatLog
+  FreeAndNil(FDebugLogState);
 end;
 
 procedure TfrmMain.DAOCConnect(Sender: TObject);
@@ -253,7 +234,6 @@ var
   pConn:  TDAOCControl;
 begin
   pConn := TDAOCControl(Sender);
-  // lblServerPing.Caption := 'Connected';
   Log('New connection: ' + pConn.ClientIP + '->' + pConn.ServerIP);
 
 {$IFDEF OPENGL_RENDERER}
@@ -264,8 +244,8 @@ end;
 
 procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
-  CloseChatLog;
-  // lblServerPing.Caption := 'Disconnected';
+  // BRY2: Hmmm need to figure out if we're tracking this connection first. Needs work
+  // CloseChatLog;
 
 {$IFDEF OPENGL_RENDERER}
   if atnAutoLaunchRadar.Checked then
@@ -328,13 +308,14 @@ begin
     { setup the adapterlist first, so the load settings can set the active
       adapter properly }
   LoadSettings;
-  // dmdRemoteAdmin.DAOCControl := FConnection;
-  SetRemoteAdminEnabled(FRemoteAdminEnabled);
 
   UpdateQuickLaunchList;
   UpdateQuickLaunchProfileList;
 
   FDStreamClients.OpenAll;
+
+  // dmdRemoteAdmin.DAOCControl := FConnection;
+  dmdRemoteAdmin.Enabled := atnRemoteAdminEnable.Checked;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -344,7 +325,7 @@ end;
 
 procedure TfrmMain.DAOCZoneChange(Sender: TObject);
 begin
-  frmDebugging.DAOCZoneChange;
+  FDebugLogState.DAOCZoneChanged(Sender);
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCZoneChanged(Sender);
 {$ENDIF OPENGL_RENDERER}
@@ -356,14 +337,15 @@ begin
     FDAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');;
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
-    FRemoteAdminEnabled := ReadBool('Main', 'RemoteAdminEnabled', true);
-    atnAutoLaunchRadar.Checked := ReadBool('Main', 'AutolaunchExcal', true);
-    atnChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
-    lblChatLogFile.Caption := ReadString('Main', 'ChatLogFile', ExtractFilePath(ParamStr(0)) + 'realchat.log');
+    atnRemoteAdminEnable.Checked := ReadBool('Main', 'RemoteAdminEnabled', false);
+    atnAutoLaunchRadar.Checked := ReadBool('Main', 'AutoLaunchExcal', true);
     //btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
-    FChatLogXIEnabled := ReadBool('Main', 'ChatLogXIEnabled', true);
+
+    FDebugLogState.ChatLogEnabled := ReadBool('Logging', 'RealtimeChatLog', false);
+    FDebugLogState.ChatLogXIEnabled := ReadBool('Logging', 'ChatLogXIEnabled', true);
+    FDebugLogState.ChatLogFileName := ReadString('Logging', 'ChatLogFile', ExtractFilePath(ParamStr(0)) + 'realchat.log');
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -397,10 +379,6 @@ begin
     frmSpellcraftHelp.Height := ReadInteger('SpellcraftHelp', 'Height', frmSpellcraftHelp.Height);
     frmSpellcraftHelp.CraftRealm := TCraftRealm(ReadInteger('SpellcraftHelp', 'CraftRealm', ord(frmSpellcraftHelp.CraftRealm)));
 
-    frmDebugging.CaptureFile := ReadString('Debugging', 'CaptureFile', 'c:\savedcap.cap');
-    frmDebugging.Left := ReadInteger('Debugging', 'Left', frmDebugging.Left);
-    frmDebugging.Top := ReadInteger('Debugging', 'Top', frmDebugging.Top);
-
     frmMacroing.Left := ReadInteger('Macroing', 'Left', frmMacroing.Left);
     frmMacroing.Top := ReadInteger('Macroing', 'Top', frmMacroing.Top);
     frmMacroing.TrinketList := ReadString('Macroing', 'TrinketList', frmMacroing.TrinketList);
@@ -418,13 +396,17 @@ begin
     frmLowOnStat.LowManaMessage := ReadString('LowOnStat', 'LowManaMessage', frmLowOnStat.LowManaMessage);
 
     dmdRemoteAdmin.PS1 := Dequote(ReadString('RemoteAdmin', 'PS1', dmdRemoteAdmin.PS1));
+
+    frmSkillaLog.Left := ReadInteger('SkillaLog', 'Left', frmSkillaLog.Left);
+    frmSkillaLog.Top := ReadInteger('SkillaLog', 'Top', frmSkillaLog.Top);
+    frmSkillaLog.Height := ReadInteger('SkillaLog', 'Height', frmSkillaLog.Height);
+    frmSkillaLog.Width := ReadInteger('SkillaLog', 'Width', frmSkillaLog.Width);
     Free;
   end;  { with INI }
 
-  Self.Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FDAOCPath;
+  Self.Caption := 'DaocSkilla ' + GetVersionString + ' - ' + FDAOCPath;
 //  chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
-    { set up chat log if applicable }
-  chkChatLogClick(nil);
+  atnChatLog.Checked := FDebugLogState.ChatLogEnabled;
 end;
 
 procedure TfrmMain.SaveSettings;
@@ -432,14 +414,14 @@ begin
   with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
-    WriteBool('Main', 'AutolaunchExcal', atnAutoLaunchRadar.Checked);
-    WriteBool('Main', 'RealtimeChatLog', atnChatLog.Checked);
-    WriteString('Main', 'ChatLogFile', lblChatLogFile.Caption);
-    WriteBool('Main', 'TrackLogins', atnTrackLogins.Checked);
+    WriteBool('Main', 'AutoLaunchExcal', atnAutoLaunchRadar.Checked);
     WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
-    WriteBool('Main', 'ChatLogXIEnabled', FChatLogXIEnabled);
 
-    WriteBool('Main', 'RemoteAdminEnabled', FRemoteAdminEnabled);
+    WriteString('Logging', 'ChatLogFile', FDebugLogState.ChatLogFileName);
+    WriteBool('Logging', 'RealtimeChatLog', FDebugLogState.ChatLogEnabled);
+    WriteBool('Logging', 'ChatLogXIEnabled', FDebugLogState.ChatLogXIEnabled);
+
+    WriteBool('Main', 'RemoteAdminEnabled', atnRemoteAdminEnable.Checked);
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -473,22 +455,24 @@ begin
     WriteInteger('SpellcraftHelp', 'Height', frmSpellcraftHelp.Height);
     WriteInteger('SpellcraftHelp', 'CraftRealm', ord(frmSpellcraftHelp.CraftRealm));
 
-    WriteString('Debugging', 'CaptureFile', frmDebugging.CaptureFile);
-    WriteInteger('Debugging', 'Left', frmDebugging.Left);
-    WriteInteger('Debugging', 'Top', frmDebugging.Top);
-
     WriteInteger('Macroing', 'Left', frmMacroing.Left);
     WriteInteger('Macroing', 'Top', frmMacroing.Top);
     WriteString('Macroing', 'TrinketList', frmMacroing.TrinketList);
 
     WriteString('RemoteAdmin', 'PS1', Quote(dmdRemoteAdmin.PS1));
+
+    WriteInteger('SkillaLog', 'Left', frmSkillaLog.Left);
+    WriteInteger('SkillaLog', 'Top', frmSkillaLog.Top);
+    WriteInteger('SkillaLog', 'Height', frmSkillaLog.Height);
+    WriteInteger('SkillaLog', 'Width', frmSkillaLog.Width);
+
     Free;
   end;  { with INI }
 end;
 
 procedure TfrmMain.DAOCAfterPacket(Sender: TObject; APacket: TGameNetPacket);
 begin
-  frmDebugging.DAOCAfterPacket(APacket);
+  FDebugLogState.DAOCAfterPacket(Sender, APacket);
 end;
 
 procedure TfrmMain.DAOCInventoryChanged(Sender: TObject);
@@ -503,7 +487,7 @@ end;
 
 procedure TfrmMain.Log(const s: string);
 begin
-  Memo1.Lines.Add(s);
+  frmSkillaLog.Log(s);
 end;
 
 procedure TfrmMain.DAOCPathChanged(Sender: TObject);
@@ -547,7 +531,7 @@ end;
 
 procedure TfrmMain.DAOCNewObject(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
-  frmDebugging.DAOCNewObject(ADAOCObject);
+  FDebugLogState.DAOCNewObject(Sender, ADAOCObject);
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCAddObject(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
@@ -572,17 +556,10 @@ end;
 
 procedure TfrmMain.DAOCSelectedObjectChanged(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
-  if Assigned(ADAOCObject) and (ADAOCObject.ObjectClass = ocMob) then begin
-    ChatLogXI(Format('New Target: "%s" Level: %d Health: %d%%',
-      [ADAOCObject.Name, ADAOCObject.Level, ADAOCObject.HitPoints]));
-    LogLocalPlayerXI;
-  end;
-  
+  FDebugLogState.DAOCSelectedObjectChanged(Sender, ADAOCObject);
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCSelectedObjectChanged(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
-//  if Assigned(ADAOCObject) then
-//    Log('Largest update delta: ' + IntToStr(ADAOCObject.LongestUpdateTime));
 end;
 
 procedure TfrmMain.DAOCRegionChanged(Sender: TObject);
@@ -599,16 +576,6 @@ begin
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.btnDebuggingClick(Sender: TObject);
-begin
-  // frmDebugging.DAOCControl := FConnection;
-
-  if frmDebugging.Visible then
-    frmDebugging.Close
-  else
-    frmDebugging.Show;
-end;
-
 procedure TfrmMain.ShowGLRenderer;
 begin
 {$IFDEF OPENGL_RENDERER}
@@ -618,81 +585,10 @@ begin
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.chkChatLogClick(Sender: TObject);
-begin
-  atnChangeChatLogFile.Enabled := not atnChatLog.Checked;
-
-  if not atnChatLog.Checked then
-    CloseChatLog;
-end;
-
-procedure TfrmMain.CreateChatLog;
-var
-  sOpenLine:    string;
-  sDirectory:   string;
-begin
-  if Assigned(FChatLog) then
-    CloseChatLog;
-
-    { make sure we have a file, Delphi 6 will not respect the share mode on an fmCreate }
-  if not FileExists(lblChatLogFile.Caption) then begin
-    sDirectory := ExtractFilePath(lblChatLogFile.Caption);
-      { make sure the directory exists }
-    if sDirectory <> '' then
-      ForceDirectories(sDirectory);
-    try
-      FChatLog := TFileStream.Create(lblChatLogFile.Caption, fmCreate);
-    except
-      on E: Exception do begin
-          { if we get an exception, log it and turn off the chat file }
-        atnChatLog.Checked := false;
-        atnChatLog.Execute;
-        Log(e.Message);
-        exit;
-      end;
-    end;
-    FreeAndNil(FChatLog);
-  end;  { if creating a new file }
-
-  FChatLog := TFileStream.Create(lblChatLogFile.Caption, fmOpenWrite or fmShareDenyNone);
-  FChatLog.Seek(0, soFromEnd);
-
-  sOpenLine := #13#10'*** Chat Log Opened: ' +
-    FormatDateTime('ddd mmm dd hh:nn:ss yyyy', Now) + // Tue Jan 08 08:09:33 2002
-    #13#10#13#10;
-  FChatLog.Write(sOpenLine[1], Length(sOpenLine));
-end;
-
-procedure TfrmMain.CloseChatLog;
-var
-  sCloseLine: string;
-begin
-  if Assigned(FChatLog) then begin
-    sCloseLine := #13#10'*** Chat Log Closed: ' +
-      FormatDateTime('ddd mmm dd hh:nn:ss yyyy', Now) + // Tue Jan 08 08:09:33 2002
-      #13#10#13#10#13#10;
-    FChatLog.Write(sCloseLine[1], Length(sCloseLine));
-
-    FChatLog.Free;
-    FChatLog := nil;
-  end;
-end;
-
 procedure TfrmMain.DAOCChatLog(Sender: TObject; const s: string);
-var
-  sChatLogLine:   string;
 begin
-  sChatLogLine := FormatDateTime('[hh:nn:ss] ', Now) + s + #13#10;
-
-  if atnChatLog.Checked then begin
-    if not Assigned(FChatLog) then
-      CreateChatLog;
-
-    if Assigned(FChatLog) then
-      FChatLog.Write(sChatLogLine[1], Length(sChatLogLine))
-  end;
-
-  dmdRemoteAdmin.DAOCChatLog(sChatLogLine);
+  FDebugLogState.DAOCChatLog(Sender, s);
+  dmdRemoteAdmin.DAOCChatLog(Sender, s);
 end;
 
 procedure TfrmMain.btnMacroingClick(Sender: TObject);
@@ -714,27 +610,17 @@ begin
   FClosing := true;
 end;
 
-procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TGameNetPacket);
-begin
-  frmDebugging.DAOCPacket(APacket);
-end;
-
 procedure TfrmMain.DAOCCharacterLogin(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCCharacterLogin(Sender);
 {$ENDIF OPENGL_RENDERER}
-
-  if atnTrackLogins.Checked then
-    UpdateQuickLaunchList;
 end;
 
 procedure TfrmMain.UpdateQuickLaunchList;
 //var
 //  I:    integer;
 begin
-
-exit;
 (***
   cbxAutoLogin.Clear;
   for I := 0 to FConnection.QuickLaunchChars.Count - 1 do
@@ -760,7 +646,7 @@ begin
     FConnection.QuickLaunchChars.Delete(cbxAutoLogin.ItemIndex);
     UpdateQuickLaunchList;
   end;
-  ***)
+***)
 end;
 
 procedure TfrmMain.btnLoginClick(Sender: TObject);
@@ -839,22 +725,7 @@ end;
 
 procedure TfrmMain.DAOCDelveItem(Sender: TObject; AItem: TDAOCInventoryItem);
 begin
-  ChatLogXI('DELVE,' + IntToStr(ord(TDAOCConnection(Sender).LocalPlayer.Realm)) +
-    ',' + AItem.SummaryLine);
-  frmDebugging.DAOCDelveItem(Sender, AItem);
-end;
-
-procedure TfrmMain.CloseRemoteAdmin;
-begin
-  dmdRemoteAdmin.Enabled := false;
-  Log('Remote control telnet server disabled');
-end;
-
-procedure TfrmMain.OpenRemoteAdmin;
-begin
-  dmdRemoteAdmin.Enabled := true;
-  Log('Remote control telnet server open on port ' +
-    IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
+  FDebugLogState.DAOCDelveItem(Sender, AItem);
 end;
 
 procedure TfrmMain.DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
@@ -877,22 +748,6 @@ begin
   frmMacroing.DAOCAttemptNPCRightClickFailed;
 end;
 
-procedure TfrmMain.ChatLogXI(const s: string);
-begin
-  if FChatLogXIEnabled then
-    DAOCChatLog(nil, CHAT_XI_PREFIX + s);
-end;
-
-procedure TfrmMain.LogLocalPlayerXI;
-begin
-(***
-  with FConnection.LocalPlayer do
-    ChatLogXI(Format(
-      'Local Player: "%s" Level: %d Health: %d%% Endurance: %d%% Mana: %d%%',
-      [Name, Level, HitPoints, EndurancePct, ManaPct]));
-***)
-end;
-
 procedure TfrmMain.DAOCLocalHealthUpdate(Sender: TObject);
 begin
   frmMacroing.DAOCLocalHealthUpdate;
@@ -902,8 +757,6 @@ procedure TfrmMain.UpdateQuickLaunchProfileList;
 //var
 //  I:    integer;
 begin
-
-exit;
 (***
   cbxAutoLoginProfile.Clear;
   cbxAutoLoginProfile.Items.Add('Normal Profile (none)');
@@ -922,26 +775,12 @@ begin
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.InjectPacket(ASource: TObject; APacket: TGameNetPacket);
+procedure TfrmMain.InjectPacket(Source: TObject; APacket: TGameNetPacket);
 begin
   if FProcessPackets then
-    FDControlList.ProcessDAOCPacket(ASource, APacket)
+    FDControlList.ProcessDAOCPacket(Source, APacket)
   else
-    DAOCPacket(Self, APacket);
-end;
-
-procedure TfrmMain.SetRemoteAdminEnabled(const Value: boolean);
-begin
-  atnRemoteAdminEnable.Checked := Value;
-  if atnRemoteAdminEnable.Checked then
-    OpenRemoteAdmin
-  else 
-    CloseRemoteAdmin;
-end;
-
-procedure TfrmMain.lblRemoteAdminEnableClick(Sender: TObject);
-begin
-  RemoteAdminEnabled := not RemoteAdminEnabled;
+    FDebugLogState.DAOCAfterPacket(Self, APacket);
 end;
 
 procedure TfrmMain.DSTREAMDAOCData(Sender: TObject;
@@ -950,6 +789,8 @@ procedure TfrmMain.DSTREAMDAOCData(Sender: TObject;
 var
   pPacket:  TGameNetPacket;
 begin
+  frmDStrmServerList1.TickListRefresh;
+
   pPacket := TGameNetPacket.Create;
   try
     pPacket.ConnectionID := AConnectionID;
@@ -1048,10 +889,16 @@ end;
 procedure TfrmMain.atnSetDaocPathExecute(Sender: TObject);
 var
   s:  string;
+  I:  integer;
 begin
   s := FDAOCPath;
-  if InputQuery('Set DAoC Path', 'Enter the path to your DAoC installation', s) then
+  if InputQuery('Set DAoC Path', 'Enter the path to your DAoC installation', s) then begin
+    s := IncludeTrailingPathDelimiter(s);
     FDAOCPath := s;
+    for I := 0 to FDControlList.Count - 1 do begin
+      FDControlList[I].DAOCPath := s;
+    end;
+  end;
 end;
 
 procedure TfrmMain.CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
@@ -1067,6 +914,55 @@ end;
 procedure TfrmMain.atnRadarExecute(Sender: TObject);
 begin
   ShowGLRenderer;
+end;
+
+procedure TfrmMain.atnChatLogExecute(Sender: TObject);
+begin
+  FDebugLogState.ChatLogEnabled := atnChatLog.Checked;
+end;
+
+procedure TfrmMain.atnChangeChatLogFileExecute(Sender: TObject);
+var
+  s:  string;
+begin
+  s := FDebugLogState.ChatLogFileName;
+  if InputQuery('Realtime Chat Log', 'File name:', s) then
+    FDebugLogState.ChatLogFileName := s;
+end;
+
+procedure TfrmMain.atnDumpPacketDataToLogExecute(Sender: TObject);
+begin
+  FDebugLogState.DumpPacketsToLog := atnDumpPacketDataToLog.Checked;
+end;
+
+procedure TfrmMain.atnCaptureMobseenExecute(Sender: TObject);
+begin
+  FDebugLogState.RecordMobseen := atnCaptureMobseen.Checked;
+end;
+
+procedure TfrmMain.atnCaptureDelveseenExecute(Sender: TObject);
+begin
+  FDebugLogState.RecordDelveseen := atnCaptureDelveseen.Checked;
+end;
+
+procedure TfrmMain.atnAutoLaunchRadarExecute(Sender: TObject);
+begin
+  // Have to have code to enable the action, but using AutoCheck
+end;
+
+procedure TfrmMain.atnProcessPacketsExecute(Sender: TObject);
+begin
+  FProcessPackets := atnProcessPackets.Checked;
+end;
+
+procedure TfrmMain.atnRemoteAdminEnableExecute(Sender: TObject);
+begin
+  dmdRemoteAdmin.Enabled := atnRemoteAdminEnable.Checked;
+end;
+
+procedure TfrmMain.atnSkillaLogExecute(Sender: TObject);
+begin
+  frmSkillaLog.Show;
 end;
 
 end.

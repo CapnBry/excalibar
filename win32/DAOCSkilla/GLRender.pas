@@ -202,7 +202,7 @@ const
   COL_HEALTH = 2;
 
 resourcestring
-  S_CAPTION_SUFFIX = ' -- Press F1 for options';
+  S_CAPTION_SUFFIX = ' -- Press F1 for options, F11 to toggle active connection';
 
 {$R *.dfm}
 

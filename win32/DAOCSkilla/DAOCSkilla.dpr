@@ -52,7 +52,8 @@ uses
   DAOCConnectionList in '..\Common\PacketSniff\DAOCConnectionList.pas',
   DAOCControlList in '..\Common\DAOCAutomation\DAOCControlList.pas',
   DStrmServerListFrame in 'DStrmServerListFrame.pas' {frmDStrmServerList: TFrame},
-  DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging};
+  DebugAndLoggingFns in 'DebugAndLoggingFns.pas',
+  SkillaLog in 'SkillaLog.pas' {frmSkillaLog};
 
 {$R *.TLB}
 
@@ -70,7 +71,7 @@ begin
   Application.CreateForm(TfrmMacroing, frmMacroing);
   Application.CreateForm(TdmdRemoteAdmin, dmdRemoteAdmin);
   Application.CreateForm(TfrmLowOnStat, frmLowOnStat);
-  Application.CreateForm(TfrmDebugging, frmDebugging);
+  Application.CreateForm(TfrmSkillaLog, frmSkillaLog);
   CreateOptionalForms;
   if Screen.PixelsPerInch <> 96 then begin
     frmMain.Log('Font not at normal (96) dpi, attempting to resize for font');
@@ -80,9 +81,9 @@ begin
     geAutoScale(frmMacroTradeSkills);
     geAutoScale(frmAFK);
     geAutoScale(frmSpellcraftHelp);
-    geAutoScale(frmDebugging);
     geAutoScale(frmMacroing);
     geAutoScale(frmLowOnStat);
+    geAutoScale(frmSkillaLog);
   end;
   Application.Run;
 end.

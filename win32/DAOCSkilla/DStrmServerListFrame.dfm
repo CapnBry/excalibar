@@ -1,7 +1,7 @@
 object frmDStrmServerList: TfrmDStrmServerList
   Left = 0
   Top = 0
-  Width = 318
+  Width = 335
   Height = 236
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -13,16 +13,16 @@ object frmDStrmServerList: TfrmDStrmServerList
   object pnlBottom: TPanel
     Left = 0
     Top = 137
-    Width = 318
+    Width = 335
     Height = 99
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      318
+      335
       99)
     object lblAdd: TLabel
-      Left = 208
+      Left = 225
       Top = 2
       Width = 22
       Height = 13
@@ -34,9 +34,10 @@ object frmDStrmServerList: TfrmDStrmServerList
       Font.Name = 'Verdana'
       Font.Style = [fsUnderline]
       ParentFont = False
+      OnClick = lblAddClick
     end
     object lblEdit: TLabel
-      Left = 240
+      Left = 257
       Top = 2
       Width = 21
       Height = 13
@@ -49,9 +50,10 @@ object frmDStrmServerList: TfrmDStrmServerList
       Font.Name = 'Verdana'
       Font.Style = [fsUnderline]
       ParentFont = False
+      OnClick = lblEditClick
     end
     object lblRemove: TLabel
-      Left = 268
+      Left = 285
       Top = 2
       Width = 47
       Height = 13
@@ -70,7 +72,7 @@ object frmDStrmServerList: TfrmDStrmServerList
   object lstServers: TListBox
     Left = 0
     Top = 37
-    Width = 318
+    Width = 335
     Height = 100
     Style = lbVirtualOwnerDraw
     Align = alTop
@@ -86,7 +88,7 @@ object frmDStrmServerList: TfrmDStrmServerList
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 318
+    Width = 335
     Height = 37
     Align = alTop
     BevelOuter = bvNone
@@ -150,7 +152,7 @@ object frmDStrmServerList: TfrmDStrmServerList
       ParentFont = False
     end
     object Label5: TLabel
-      Left = 280
+      Left = 290
       Top = 20
       Width = 20
       Height = 13

@@ -6,11 +6,11 @@ IN DEVELOPMENT
   + No longer adds connections to 0.0.0.0 to the quicklaunch list.
   + Copied some of DAOCPacket to new GenericNetPacket.
   + Converted NamedPacketHandler to GenericNetPacket.
-  + Gutted connection config dialog.
   + Changed TSendkey array to use real strings in const for lower cseg
     hit.
   + No longer needs a region change to load zone if connected
     mid-stream.
+  + Initial DAOCSkilla 2.0 UI
 
 2004 Feb 18 - v1.86
 -------------------

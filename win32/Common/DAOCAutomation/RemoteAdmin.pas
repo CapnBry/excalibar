@@ -54,6 +54,7 @@ type
     procedure SetEnabled(const Value: boolean);
     function ExpandPromptString : string;
     procedure RemoveChatConnection(AConn: TClientConn);
+    procedure Log(const s: string);
   protected
     function ParseParamWord : string;
     function ParseParamInt : integer;
@@ -111,7 +112,7 @@ type
     procedure HandlePrompt(AConn: TClientConn; const ACmd: string);
     procedure HandleDumpChat(AConn: TClientConn; const ACmd: string);
   public
-    procedure DAOCChatLog(const s: string);
+    procedure DAOCChatLog(Sender: TObject; const s: string);
     
     property DAOCControl: TDAOCControl read FDControl write FDControl;
     property PS1: string read FPS1 write FPS1;
@@ -123,7 +124,7 @@ var
 
 implementation
 
-uses IdTCPConnection, DAOCObjs, DAOCConnection;
+uses IdTCPConnection, DAOCObjs, DAOCConnection, Unit1;
 
 {$R *.dfm}
 
@@ -1037,7 +1038,14 @@ end;
 
 procedure TdmdRemoteAdmin.SetEnabled(const Value: boolean);
 begin
+  if tcpRemoteAdmin.Active = Value then
+    exit;
+    
   tcpRemoteAdmin.Active := Value;
+  if Value then
+    Log('Remote control telnet server open on port ' + IntToStr(tcpRemoteAdmin.DefaultPort))
+  else
+    Log('Remote control telnet server disabled');
 end;
 
 procedure TdmdRemoteAdmin.HandleSelectNPC(AConn: TClientConn; const ACmd: string);
@@ -1137,7 +1145,7 @@ begin
   end;  { while *P }
 end;
 
-procedure TdmdRemoteAdmin.DAOCChatLog(const s: string);
+procedure TdmdRemoteAdmin.DAOCChatLog(Sender: TObject; const s: string);
 var
   I:    integer;
 begin
@@ -1186,6 +1194,11 @@ begin
   iIdx := FChatConnections.IndexOf(AConn);
   if iIdx <> -1 then
     FChatConnections.Delete(iIdx);
+end;
+
+procedure TdmdRemoteAdmin.Log(const s: string);
+begin
+  frmMain.Log(s);
 end;
 
 end.
