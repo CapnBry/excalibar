@@ -666,7 +666,7 @@ void exConnection::parseCraftingTimer(exPacket *p)
         {
             printf( "Crafting finished.\007\n" );
         }
-    }
+    }  /* if crafting_alerts */
 }
 
 void exConnection::parseSetGroundTarget(exPacket *p)
