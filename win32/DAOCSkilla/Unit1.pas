@@ -1188,6 +1188,7 @@ end;
 
 procedure TfrmMain.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
 begin
+  ChatLogXI('DELVE,' + IntToStr(ord(FConnection.LocalPlayer.Realm)) + ',' + AItem.SummaryLine);
   frmDebugging.DAOCDelveItem(ASender, AItem);
 end;
 
