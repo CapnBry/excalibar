@@ -3,7 +3,12 @@ unit ChatParse;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, INIFiles;
+{$IFDEF LINUX}
+  Libc, Types,
+{$ELSE}
+  Windows,
+{$ENDIF !LINUX}
+  SysUtils, Classes, Contnrs, INIFiles;
 
 type
   TDAOCChatParser = class;
@@ -143,7 +148,7 @@ type
     FIncludedInDelayCnt:  integer;
     FMOBAvgDelay: integer;
     FMOBLastAttackDT: TDateTime;
-    FMOBLastAttackTicks: DWORD;
+    FMOBLastAttackTicks: Cardinal;
     FKillCount: integer;
     FLastExperience: integer;
     FParent:  TAttackStatsList;
@@ -170,7 +175,7 @@ type
     property MOB: string read FMOB;
     property MOBAvgDelay: integer read FMOBAvgDelay;
     property MOBLastAttackDT: TDateTime read FMOBLastAttackDT;
-    property MOBLastAttackTicks: DWORD read FMOBLastAttackTicks;
+    property MOBLastAttackTicks: Cardinal read FMOBLastAttackTicks;
     property LastExperience: integer read FLastExperience;
 
       { outgoing }
@@ -333,7 +338,7 @@ type
     FOnMOBDeath: TDAOCParserNotify;
     FOnExtraOutDamage: TDAOCParserNotify;
     FLastOutAttackDT:  TDateTime;
-    FLastOutAttackTicks: DWORD;
+    FLastOutAttackTicks: Cardinal;
     FOnBountyPointsChange: TDAOCParserIntNotify;
     FOnRealmPointsChange: TDAOCParserIntNotify;
     FOnEquipWeapon: TDAOCParserNotify;
@@ -441,7 +446,7 @@ type
     property DropItems: TDropItemList read FDropItems;
     property LastYouSay: string read FLastYouSay;
     property LastOutAttackDT: TDateTime read FLastOutAttackDT;
-    property LastOutAttackTicks: DWORD read FLastOutAttackTicks;
+    property LastOutAttackTicks: Cardinal read FLastOutAttackTicks;
     property CurrentLine: string read FCurrentLine;
     property InSession: boolean read FInSession;
     property TradeSkillQualityDistribution[I: integer]: integer read GetTradeSkillQualityDistribution;
@@ -499,6 +504,16 @@ type
   end;
 
 implementation
+
+{$IFDEF LINUX}
+function GetTickCount : Cardinal;
+var
+  tod:  timeval;
+  tz:   timezone;
+begin
+  Result := (tod.tv_sec * 1000) + (tod.tv_usec div 1000);
+end;
+{$ENDIF}
 
 function ParseWord(const sLine: string; var iStartPos: integer) : string;
 begin

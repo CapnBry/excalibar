@@ -3,9 +3,15 @@ unit DebugAndTracing;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, FrameFns, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs,
-  DAOCInventory, ComCtrls;
+{$IFDEF LINUX}
+  QTypes, QExtCtrls, QComCtrls, QStdCtrls, QControls, QForms,
+{$ELSE}
+  Windows, Messages, Controls, Forms, ExtCtrls, Graphics, Dialogs,
+  StdCtrls,
+{$ENDIF !LINUX}
+  SysUtils, Variants, Classes,
+  FrameFns, DAOCConnection, DAOCPackets, DAOCObjs, DAOCInventory;
+
 
 type
   TfrmDebugging = class(TForm)
@@ -227,7 +233,7 @@ end;
 procedure TfrmDebugging.CheckWriteMobseen(ADAOCObject: TDAOCObject);
 var
   s:         string;
-  X, Y, Z:   DWORD;
+  X, Y, Z:   Cardinal;
 begin
   if Assigned(FMobseenFile) and (ADAOCObject.ObjectClass in [ocMob, ocVehicle]) and
     Assigned(FDControl.Zone) then begin
