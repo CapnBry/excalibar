@@ -901,16 +901,18 @@ end;
 
 procedure TDAOCChatParser.ParseConsider;
 var
-  iPos:     integer;
+  pPeriod:  PChar;
   sTarget:  string;
 begin
     { [23:37:32] You examine the werewolf warder.  It is aggressive towards you! }
-  iPos := Pos('.', FCurrentLine);
-  if iPos = 0 then
+    { we can't just do a Pos('.') on the whole string because some people use
+      the period as a time separator }
+  pPeriod := StrScan(@FCurrentLine[11], '.');
+  if not Assigned(pPeriod) then
     exit;
 
     { some targets don't have a 'the' (ie Lords in Varul.) }
-  sTarget := RemoveThe(copy(FCurrentLine, 24, iPos - 24));
+  sTarget := RemoveThe(copy(FCurrentLine, 24, pPeriod - PChar(FCurrentLine) - 23));
   DoTarget(sTarget);
 end;
 
