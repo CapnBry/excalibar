@@ -128,28 +128,23 @@ at the prompt.
 Installing QT 3.0.4
 ===================
 
-** If you've installed libqt3 and libqt3-devel, you can skip this step. **
+*****
+  If your distribution has a version of QT 3 and the development stuff 
+  installed (for example,  libqt3 and libqt3-devel), you can skip this step.
+*****
 
-Please follow these steps to the letter. If you don't, and it doesn't work,
-don't clutter the message boards or the developer's mailboxes with messages.
+1) cd /usr/lib/
+2) ncftpget ftp://ftp.trolltech.com/qt/source/qt-x11-free-3.0.4.tar.gz
+3) tar xvvfz qt-x11-free-3.0.4.tar.gz
+4) mv qt-x11-free-3.0.4 qt-3.0.4
+5) rm qt-x11-free-3.0.4.tar.gz
+6) cd qt-3.0.4
+7) export QTDIR=$(pwd)
+8) ./configure -thread
+9) make
 
-1) Remove any vendor-supplied version of QT3
-   For RedHat this is:
-     rpm -e $(rpm -qa | grep -i qt3)
-     cd /usr/lib
-     rm -rf qt-3.0.0
-
-2) cd /usr/lib/
-3) ncftpget ftp://ftp.trolltech.com/qt/source/qt-x11-free-3.0.4.tar.gz
-4) tar xvvfz qt-x11-free-3.0.4.tar.gz
-5) mv qt-x11-free-3.0.4 qt-3.0.4
-6) rm qt-x11-free-3.0.4.tar.gz
-7) cd qt-3.0.4
-8) export QTDIR=$(pwd)
-9) ./configure -thread
-10) make
-
-Make will take several hours. It's supposed to, so don't panic.
+Make will take a couple hours on a 1GHz machine. It's supposed to, so 
+don't panic.
 
 ===================================
 Downloading and compiling Excalibur
@@ -158,6 +153,8 @@ Downloading and compiling Excalibur
 1) cd ~
 2) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co excalibur
 3) export QTDIR=/usr/lib/qt-3.0.4
+   If you're using your distribution's version of QT, then the above line
+   is dependant on where your distro installed QT.  Usually /usr/lib/qt.
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) make
@@ -173,10 +170,38 @@ See README.convert for information on how to generate the PNG maps.
 Running Excalibur
 =================
 
+Method 1:  Use this if your DAoC machine and Excalibur machine are on a 
+           hub (not a router or a switch)
+
 1) cd ~/excalibur
 2) ifconfig eth0 promisc     # Replace eth0 with whatever card you normally use
 3) ./excalibur
+See "Common" below
 
+Method 2a:  Use this or 2b if you are on a router and the Excalibur machine
+            doesn't "see" the DAoC traffic.  (Linux) means type the command 
+            on you Excalibur machine, (Win) means type the command on your
+            DAoC Windows machine.  Replace 192.168.1.1 with the IP address
+            of your Excalibur machine.  If the DAoC server you're connecting
+            to is not on the 208.254.16.0 subnet, adjust accoringly.
+            
+1) (Linux) echo 1 > /proc/sys/net/ipv4/ip_forward
+2) (Linux) iptables -t nat -A POSTROUTING -d 208.254.16.0/24 -j SNAT --to-source 192.168.1.1
+3) (Linux) cd ~/excalibur
+4) (Linux) ./excalibur --exclude-local
+5) (Win) route add 208.254.16.0 mask 255.255.255.0 192.168.1.1
+See "Common" below
+
+Method 2b:  Use this or 2b if you are on a router and the Excalibur machine
+            doesn't "see" the DAoC traffic.  Set up a SOCKS 5 server on your
+            Linux machine, and use a SOCKS socket intercept on the DAoC 
+            machine.
+
+1) cd ~/excalibur
+2) ./excalibur
+See "Common" below
+
+Common:
 The program will display a few lines, but nothing else will happen.
 ==> This is as it should be. <==
 
@@ -232,12 +257,13 @@ selecting the suggested option.
   Render rulers: Off (none)
   
 
-==================
-Running the Editor
-==================
+======================
+Running the Map Editor
+======================
 
-The editor is a standalone Java program. You need at least JDK 1.3
-to run it, but 1.4 or better is encouraged.
+The map editor is a standalone Java program. This program is used to create
+or modify the vector (line) maps that come with Excalibur.  You need at least 
+JDK 1.3 to run it, but 1.4 or better is encouraged.
 
 To see your java version, type:
 
