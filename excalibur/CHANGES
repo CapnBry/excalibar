@@ -1,3 +1,10 @@
+Teerex (07/Jun/02)
+------------------
+ + Fixed bug where when having an open slot in your account's character
+   list would prevent Excal from being able to ascertain your realm
+   and starting zone.
+ + Added exPacket.isAtEOF().
+
 Teerex (05/Jun/02)
 ------------------
 Changes:
