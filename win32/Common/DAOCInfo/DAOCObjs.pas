@@ -10,10 +10,9 @@ uses
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
   TDAOCObjectClasses = set of TDAOCObjectClass;
-                          
+
   TDAOCObject = class(TObject)
   private
-    FDestinationZ: WORD;
     procedure SetX(const Value: DWORD);
     procedure SetY(const Value: DWORD);
     procedure SetZ(const Value: DWORD);
@@ -33,6 +32,7 @@ type
     FZ:     DWORD;
     FDestinationX:  DWORD;
     FDestinationY:  DWORD;
+    FDestinationZ:  WORD;
     FName:  string;
     FLastUpdate:  DWORD;
     FLevel: integer;
@@ -40,11 +40,13 @@ type
     FHeadWord:    WORD;
     FStealthed:   boolean;
     FStale:       boolean;
+    FIsInUpdateRange: boolean;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
     function GetObjectClass : TDAOCObjectClass; virtual;
     function GetName : string; virtual;
+    function TicksSinceUpdate : DWORD;
   public
     constructor Create; virtual;
 
@@ -84,6 +86,7 @@ type
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
+    property IsInUpdateRange: boolean read FIsInUpdateRange write FIsInUpdateRange;
   end;
 
   TDAOCObjectNotify = procedure (ASender: TObject; ADAOCObject: TDAOCObject) of Object;
@@ -116,7 +119,12 @@ type
   protected
     FHitPoints:  BYTE;
     FSpeedWord:  WORD;
+    FProjectedX:  DWORD;
+    FProjectedY:  DWORD;
+    FProjectedLastUpdate: DWORD;
     FInventory: TDAOCInventory;
+
+    procedure UpdateLastProjected;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -228,6 +236,11 @@ function DWORDDelta(A, B: DWORD) : DWORD;
 
 implementation
 
+{$IFDEF GLOBAL_TICK_COUNTER}
+uses
+  GlobalTickCounter;
+{$ENDIF GLOBAL_TICK_COUNTER}
+
 const
   SPEED_1X = 191;
   
@@ -282,6 +295,15 @@ begin
     PrependStr(IntToStr(ACopper mod 1000) + 'm');
 end;
 
+function LocalTickCount : DWORD;
+begin
+{$IFDEF GLOBAL_TICK_COUNTER}
+  Result := GlobalTickCount;
+{$ELSE}
+  Result := GetTickCount;
+{$ENDIF GLOBAL_TICK_COUNTER}
+end;
+
 { TDAOCMovingObject }
 
 procedure TDAOCMovingObject.Assign(ASrc: TDAOCMovingObject);
@@ -290,30 +312,6 @@ begin
 
   FSpeedWord := ASrc.SpeedWord;
 end;
-
-(*
-procedure TDAOCMovingObject.SetHeadWord(AHead: WORD);
-begin
-  AHead := AHead and $0fff;
-    { (head * 360.0) / 4096.0 * M_PI / 180.0 }
-//  FHeadRad := (AHead / 2048.0) * PI;
-  FHead := (AHead * 360) div 4096;
-
-  dec(FHead, 180);
-  if FHead < 0  then
-    inc(FHead, 360);
-
-  Touch;
-end;
-
-procedure TDAOCMovingObject.SetSpeedWord(ASpeed: WORD);
-begin
-  FSpeed := ASpeed and $01ff;
-  if (ASpeed and $0200) <> 0 then
-    FSpeed := -FSpeed;
-  Touch;
-end;
-*)
 
 procedure TDAOCMovingObject.CheckStale;
 begin
@@ -422,22 +420,14 @@ end;
 
 function TDAOCMovingObject.GetXProjected: DWORD;
 begin
-    { TODO:  Project moving object position using global timer }
-  if Speed = 0 then
-    Result := FX
-  else
-    Result := round(FX + (sin(HeadRad) *
-      (Speed * ((GetTickCount - LastUpdate) / 1000))));
+  UpdateLastProjected;
+  Result := FProjectedX;
 end;
 
 function TDAOCMovingObject.GetYProjected: DWORD;
 begin
-    { TODO:  Project moving object position using global timer }
-  if Speed = 0 then
-    Result := FY
-  else
-    Result := round(FY - (cos(HeadRad) *
-      (Speed * ((GetTickCount - LastUpdate) / 1000))));
+  UpdateLastProjected;
+  Result := FProjectedY;
 end;
 
 procedure TDAOCMovingObject.InventoryChanged;
@@ -459,6 +449,28 @@ procedure TDAOCMovingObject.SetSpeedWord(const Value: WORD);
 begin
   FSpeedWord := Value;
   Touch;
+end;
+
+procedure TDAOCMovingObject.UpdateLastProjected;
+var
+  iSpeed:   integer;
+  dHyp:     double;
+begin
+  if FProjectedLastUpdate = LocalTickCount then
+    exit;
+
+  FProjectedLastUpdate := LocalTickCount;
+
+  iSpeed := Speed;
+  if iSpeed = 0 then begin
+    FProjectedX := FX;
+    FProjectedY := FY;
+  end
+  else begin
+    dHyp := iSpeed * integer(TicksSinceUpdate) * (1 / 1000);
+    FProjectedX := round(FX + (sin(HeadRad) * dHyp));
+    FProjectedY := round(FY - (cos(HeadRad) * dHyp));
+  end;
 end;
 
 { TDAOCObject }
@@ -500,6 +512,7 @@ begin
   FRealm := drNeutral;
   FName := '';
   FHeadWord := 0;
+  FIsInUpdateRange := true;
 end;
 
 constructor TDAOCObject.Create;
@@ -634,7 +647,7 @@ end;
 
 procedure TDAOCObject.Touch;
 begin
-  FLastUpdate := GetTickCount;
+  FLastUpdate := LocalTickCount;
   FStale := false;
 end;
 
@@ -714,6 +727,11 @@ begin
 ;
 end;
 
+function TDAOCObject.TicksSinceUpdate: DWORD;
+begin
+  Result := LocalTickCount - FLastUpdate;
+end;
+
 { TDAOCLocalPlayer }
 
 procedure TDAOCLocalPlayer.Clear;
@@ -769,11 +787,14 @@ begin
 end;
 
 procedure TDAOCPlayer.CheckStale;
+var
+  dwLastUpdateDelta:  DWORD;
 begin
   if FStale then
     exit;
 
-  FStale := (Speed <> 0) and (GetTickCount - FLastUpdate > 20000);
+  dwLastUpdateDelta := TicksSinceUpdate;
+  FStale := (Speed <> 0) and (dwLastUpdateDelta > 15000);
 
   if FStale then
     FSpeedWord := 0;
