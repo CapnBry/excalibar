@@ -1,6 +1,9 @@
-#!/usr/bin/wish
-# ^^^^ Change the line above to match your path to wish ^^^^
+#!/bin/sh
+# \
+exec wish $0 \
 #
+# \
+exit
 # anony.mous
 # Event Timer 1.1
 # Mon Aug 12 13:25:03 CDT 2002
