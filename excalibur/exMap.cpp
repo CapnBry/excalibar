@@ -648,12 +648,12 @@ void exMap::mapRead() {
   ignore_fill = false;
 
   if (PNGLoader.running())
-  {
     PNGLoader.abort();
-    PNGLoader.run();
-  } else {
+ 
+  while (PNGLoader.running());
+ 
+  if (! PNGLoader.running()) 
     PNGLoader.start();
-  }
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
@@ -1057,10 +1057,13 @@ void exMapPNGLoader::setParent ( exMap *parent )
 
 void exMapPNGLoader::run (void)
 {
-  if (parent == NULL)
+  if (parent == NULL) {
     m_bGhettoMutex = false;
+    return;
+  }
 
-  m_bGhettoMutex = true;
+  else
+    m_bGhettoMutex = true;
 
   if (empldProgress.pdProgress != NULL)
     empldProgress.pdProgress->reset();
@@ -1082,15 +1085,19 @@ END_EXPERIMENTAL_CODE
 
     }
 
-    if (mi == NULL)
+    if (mi == NULL) {
+      m_bGhettoMutex = false;
       break;
+    }
 
 BEGIN_EXPERIMENTAL_CODE
     printf("Loading Adjacent Zone:\t(ID - %3d)\n", mi->getZoneNum());
 END_EXPERIMENTAL_CODE
 
-    if (empldProgress.pdProgress->wasCancelled())
+    if (empldProgress.pdProgress->wasCancelled()) {
       m_bGhettoMutex = false;
+      break;
+    }
 
     QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
 
@@ -1146,8 +1153,10 @@ END_EXPERIMENTAL_CODE
 
   }
 
-  if (empldProgress.pdProgress->wasCancelled())
+  if (empldProgress.pdProgress->wasCancelled()) {
+    m_bGhettoMutex = false;
     printf("NOTE:\tThe PNG Loader has been cancelled at the request of the user.\n");
+  }
 }
 
 
@@ -1199,6 +1208,7 @@ exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 void exMapPNGLoaderDialog::run (void)
 {
   pdProgress->reset();
+  cleanup();
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
@@ -1208,11 +1218,14 @@ bool exMapPNGLoaderDialog::event (QEvent *e)
     pdProgress->setProgress((int)PNGEvent->data());
     return true;
   }
-  else if (e->type() == CALLBACK_PNG_FNSH)
+  else if (e->type() == CALLBACK_PNG_FNSH) {
     pdProgress->reset();
+    return true;
+  }
   else if (e->type() == CALLBACK_PNG_INFO) {
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
     pdProgress->setLabelText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().ascii()));
+    return true;
   }
   return false;
 }
