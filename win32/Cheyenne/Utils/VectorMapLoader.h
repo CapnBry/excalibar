@@ -39,6 +39,13 @@ class VectorMapTriplet
     VectorMapTriplet(const VectorMapTriplet& s){x=s.x;y=s.y;z=s.z;};
     ~VectorMapTriplet(){};
 
+    // code from DecentCoder 
+    double distLine(double x1,double y1,double z1,double x2,double y2,double z2)const; 
+    double distLine(VectorMapTriplet *p1, VectorMapTriplet *p2)const; 
+    static double dist3d(double x1, double y1, double z1, double x2, double y2, double z2); 
+    double dist3d(double x1, double x2, double x3) const;
+    // end code from DecentCoder
+
     VectorMapTriplet& operator=(const VectorMapTriplet& s)
     {
         if(this!=&s)
@@ -51,7 +58,7 @@ class VectorMapTriplet
     }
 
     float x,y,z;
-}; 
+}; // end class VectorMapTriplet
 
 class VectorMapColor
 {
@@ -73,7 +80,7 @@ public:
     }
 
     float r,g,b,a;
-};
+}; // end class VectorMapColor
 
 class VectorMapItem
 {
@@ -116,6 +123,13 @@ public:
         Type='M';
         Triplets.erase(Triplets.begin(),Triplets.end());
     }
+
+    std::list<VectorMapTriplet>::size_type Size(void)const{return(Triplets.size());};
+    
+    // code from DecentCoder 
+    void Simplify(double sigma); 
+    // end code from DecentCoder
+
 protected:
 private:
     void BuildColorMap(void);
@@ -131,7 +145,7 @@ private:
     char Type;
     std::string Color;
     std::string Name;
-    std::map<std::string,VectorMapColor> ColorMap;
+    static std::map<std::string,VectorMapColor> ColorMap;
 
     std::list<VectorMapTriplet> Triplets;
 }; // end VectorMapItem
@@ -221,11 +235,14 @@ public:
             }
     }
 
+    // begin code from DecentCoder
+    void SetDPSimpTolerance(double t) { DPSimpTolerance = t; } 
+    // end code from DecentCoder
+
 protected:
 private:
     VectorMapLoader(const VectorMapLoader& s); // disallow
     VectorMapLoader& operator=(const VectorMapLoader& s); // disallow
-
 
     virtual DWORD Run(const bool& bContinue);
 
@@ -233,4 +250,7 @@ private:
     
     VectorMap Maps[256];
     bool bIsDone;
-};
+    // begin code from DecentCoder
+    double DPSimpTolerance;
+    // end code from DecentCoder
+}; // end class VectorMapLoader
