@@ -18,9 +18,9 @@ object frmDebugging: TfrmDebugging
   object lblFilePos: TLabel
     Left = 244
     Top = 100
-    Width = 44
+    Width = 61
     Height = 13
-    Caption = 'lblFilePos'
+    Caption = 'File not open'
   end
   object Bevel1: TBevel
     Left = 0

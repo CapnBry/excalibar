@@ -302,9 +302,9 @@ begin
     exit;
 
   with AItem do begin
-    s := Format('DELVE,"%s",0x%2.2x,%d,%d,%d,%d,%d,%d,%d,0x%2.2x%2.2x',
+    s := Format('DELVE,"%s",0x%2.2x,%d,%d,%d,%d,%d,%d,%d,0x%2.2x%2.2x,%d',
       [CountlessDescription, Slot, Count, Condition, Durability, Quality,
-      Bonus, Level, Color, ItemIDMajor, ItemIDMinor]);
+      Bonus, Level, Color, ItemIDMajor, ItemIDMinor, DelveInfo.Count]);
     for I := 0 to DelveInfo.Count - 1 do
       s := s + ',"' + DelveInfo[I] + '"';
   end;  { with AItem }
