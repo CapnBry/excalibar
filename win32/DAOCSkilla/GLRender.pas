@@ -788,10 +788,10 @@ begin
         continue;
 
       pMovingObj := TDAOCMovingObject(pObj);
-      if pObj.Stealthed then
-        clMob := clBlack
-      else if FRenderPrefs.SwapTringleRingShade then
+      if FRenderPrefs.SwapTringleRingShade then
         clMob := RealmColor(pObj.Realm)
+      else if pObj.Stealthed then
+        clMob := clBlack
       else
         clMob := pObj.GetConColor(FCurrConn.LocalPlayer.Level);
 
@@ -1062,7 +1062,10 @@ begin
     exit;
     
   if FRenderPrefs.SwapTringleRingShade then
-    cl := ADAOCObject.GetConColor(FCurrConn.LocalPlayer.Level)
+    if ADAOCObject.Stealthed then
+      cl := clBlack
+    else
+      cl := ADAOCObject.GetConColor(FCurrConn.LocalPlayer.Level)
   else
     cl := RealmColor(ADAOCObject.Realm);
 
@@ -1597,12 +1600,15 @@ end;
 
 procedure TfrmGLRender.DrawLineToMobTarget(AMob: TDAOCMob);
 begin
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
   glLineWidth(3.0);
   glColor3f(1, 0, 0);
   glBegin(GL_LINES);
     glVertex3f(AMob.XProjected, AMob.YProjected, 0);
     glVertex3f(AMob.Target.XProjected, AMob.Target.YProjected, 0);
   glEnd();
+  glPopAttrib();
 end;
 
 procedure TfrmGLRender.DrawLocalPlayerHUD;
@@ -1648,6 +1654,8 @@ begin
   else if (AObj.DestinationX <> 0) and (AObj.DestinationY <> 0) then begin
     pMovingObj := TDAOCMovingObject(AObj);
 
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
     glLineWidth(3.0);
     SetGLColorFromTColor(AColor, 0.33);
 
@@ -1655,6 +1663,7 @@ begin
       glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
     glEnd();
+    glPopAttrib();
   end;  { if destinaton set }
 end;
 
