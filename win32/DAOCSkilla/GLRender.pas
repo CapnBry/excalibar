@@ -75,7 +75,7 @@ type
     procedure DrawLineToSelected;
     procedure DrawMobsAndPlayers;
     procedure DrawMapElements;
-    procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
+    procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCPlayer);
     procedure DrawHUD;
     procedure DrawMobTypeTag(AMob: TDAOCMob);
     procedure DrawGroundTarget;
@@ -143,9 +143,9 @@ function ListDeadRealmColor(ARealm: TDAOCRealm) : TColor;
 begin
   case ARealm of
     drNeutral:  Result := clWhite;
-    drAlbion:   Result := $9999ff;
-    drMidgard:  Result := $ff9999;
-    drHibernia: Result := $99ff99;
+    drAlbion:   Result := $ccccff;
+    drMidgard:  Result := $ffcccc;
+    drHibernia: Result := $ccffcc;
     else
       Result := clFuchsia;
   end;
@@ -526,8 +526,8 @@ begin
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
-      if pObj.ObjectClass = ocPlayer then
-        DrawPlayerHighlightRing(TDAOCMovingObject(pObj))
+      if pObj.ObjectClass = ocPlayer then 
+        DrawPlayerHighlightRing(TDAOCPlayer(pObj))
       else if FRenderPrefs.DrawTypeTag and (pObj.ObjectClass = ocMob) then
         DrawMobTypeTag(TDAOCMob(pObj));
 
@@ -682,14 +682,18 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
+procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCPlayer);
 var
   cl:     TColor;
   fSize:  GLfloat;
 begin
   cl := RealmColor(ADAOCObject.Realm);
 
-  fSize :=  FMobTriangle.Size * 1.33;
+  if ADAOCObject.IsInGroup or ADAOCObject.IsInGuild then
+    fSize :=  FMobTriangle.Size * 1.75
+  else
+    fSize :=  FMobTriangle.Size * 1.33;
+    
   if ADAOCObject.IsDead then
     SetGLColorFromTColorDarkened(cl, 1, 0.25)
   else if ADAOCObject.Realm <> FDControl.LocalPlayer.Realm then
@@ -700,12 +704,20 @@ begin
   else
     SetGLColorFromTColor(cl, 1);
 
+  glShadeModel(GL_SMOOTH);
+  
   glBegin(GL_TRIANGLES);
     glNormal3f(0, 0, 1);
-    glVertex3f(-fSize, -fSize, 0);
     glVertex3F(0, 2 * fSize, 0);
+    if ADAOCObject.IsInGroup then
+      SetGLColorFromTColor($3399ff, 1)
+    else if ADAOCObject.IsInGuild then
+      SetGLColorFromTColor($666600, 1);
     glVertex3f(fSize, -fSize, 0);
+    glVertex3f(-fSize, -fSize, 0);
   glEnd();
+
+  glShadeModel(GL_FLAT);
 end;
 
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
