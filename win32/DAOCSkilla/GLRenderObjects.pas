@@ -243,10 +243,13 @@ type
     property Alpha: GLfloat read FAlpha write FAlpha;
   end;
 
-  TGLPrescienceNode = class(TGLCallListObject)
+  TGLImageCallListObject = class(TGLCallListObject)
   private
+    procedure LoadImageFromFile;
+  protected
     FImage: GLuint;
     FImageFileName: string;
+    procedure GLImageQuadNeeded; virtual; abstract;
   public
     procedure GLInitialize; override;
     procedure GLCleanup; override;
@@ -254,7 +257,19 @@ type
     property ImageFileName: string read FImageFileName write FImageFileName;
   end;
 
+  TGLPrescienceNode = class(TGLImageCallListObject)
+  protected
+    procedure GLImageQuadNeeded; override;
+  public
+    procedure GLInitialize; override;
+  end;
+
   TGLAggroCircle = class(TGLCallListObject)
+  end;
+
+  TGLHudConFlag = class(TGLImageCallListObject)
+  protected
+    procedure GLImageQuadNeeded; override;
   end;
   
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
@@ -350,7 +365,7 @@ begin
   glEnd;
 
   glLineWidth(1.0);
-  
+
   glColor3f(0, 0, 0); // 1, 0.8, 0.4); // orange
   glBegin(GL_LINE_LOOP);
     glVertex2i(Left, Top);
@@ -1131,22 +1146,62 @@ end;
 
 { TGLPrescienceNode }
 
-procedure TGLPrescienceNode.GLCleanup;
+procedure TGLPrescienceNode.GLImageQuadNeeded;
+begin
+  glBegin(GL_QUADS);
+    glTexCoord2f(0, 1);
+    glVertex3f(-1000, -1000, 0);
+    glTexCoord2f(1, 1);
+    glVertex3f(1000, -1000, 0);
+    glTexCoord2f(1, 0);
+    glVertex3f(1000, 1000, 0);
+    glTexCoord2f(0, 0);
+    glVertex3f(-1000, 1000, 0);
+  glEnd();
+end;
+
+procedure TGLPrescienceNode.GLInitialize;
+begin
+  inherited;
+//  FColor := $ffffff;  // white
+end;
+
+{ TMapElementInfoPoint }
+
+constructor TMapElementInfoPoint.Create;
+begin
+  inherited;
+  FEnabled := true;
+end;
+
+procedure TMapElementInfoPoint.GLRender(const ARenderBounds: TRect);
+begin
+  if FEnabled then
+    inherited;
+end;
+
+{ TGLImageCallListObject }
+
+procedure TGLImageCallListObject.GLCleanup;
 begin
   if FImage <> 0 then begin
     glDeleteTextures(1, @FImage);
     FImage := 0;
   end;
+  inherited;
 end;
 
-procedure TGLPrescienceNode.GLInitialize;
+procedure TGLImageCallListObject.GLInitialize;
+begin
+  inherited;
+  LoadImageFromFile;
+end;
+
+procedure TGLImageCallListObject.LoadImageFromFile;
 var
   tga2:   TTGAImage;
   orig_format:  DWORD;
 begin
-  inherited;
-  FColor := $ffffff;  // white
-
   if FileExists(FImageFileName) then begin
     glGenTextures(1, @FImage);
     tga2 := TTGAImage.Create;
@@ -1178,35 +1233,28 @@ begin
     glBindTexture(GL_TEXTURE_2D, FImage);
   end;
 
-  glBegin(GL_QUADS);
-    glTexCoord2f(0, 1);
-    glVertex3f(-1000, -1000, 0);
-    glTexCoord2f(1, 1);
-    glVertex3f(1000, -1000, 0);
-    glTexCoord2f(1, 0);
-    glVertex3f(1000, 1000, 0);
-    glTexCoord2f(0, 0);
-    glVertex3f(-1000, 1000, 0);
-  glEnd();
+  GLImageQuadNeeded;
 
   if FImage <> 0 then
     glDisable(GL_TEXTURE_2D);
-    
+
   glEndList();
 end;
 
-{ TMapElementInfoPoint }
+{ TGLHudConFlag }
 
-constructor TMapElementInfoPoint.Create;
+procedure TGLHudConFlag.GLImageQuadNeeded;
 begin
-  inherited;
-  FEnabled := true;
-end;
-
-procedure TMapElementInfoPoint.GLRender(const ARenderBounds: TRect);
-begin
-  if FEnabled then
-    inherited;
+  glBegin(GL_QUADS);
+    glTexCoord2f(0, 1);
+    glVertex3f(0, 0, 0);
+    glTexCoord2f(1, 1);
+    glVertex3f(0, -16, 0);
+    glTexCoord2f(1, 0);
+    glVertex3f(160, -16, 0);
+    glTexCoord2f(0, 0);
+    glVertex3f(160, 0, 0);
+  glEnd();
 end;
 
 end.
