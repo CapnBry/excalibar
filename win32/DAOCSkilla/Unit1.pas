@@ -269,7 +269,7 @@ begin
 
   Log('--==========================================================--');
   Log('  DaocSkilla is provided at no cost and without warranty');
-  Log('     under the General Public License (GPL) Vesion 2.');
+  Log('    under the General Public License (GPL) Version 2.');
   Log('  See LICENSE.TXT for more information regarding licensing.');
   Log('--==========================================================--');
   
