@@ -234,6 +234,9 @@ type
     property ImageFileName: string read FImageFileName write FImageFileName;
   end;
 
+  TGLAggroCircle = class(TGLCallListObject)
+  end;
+  
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
 function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
