@@ -9,17 +9,15 @@ uses
   DAOCClasses, QuickSinCos, MMSystem, BackgroundHTTP, TexFont, GLUT;
 
 type
-  { A simple list box that you can prevent drawing } 
+  { A simple list box that you can prevent drawing }
   TLockableListBox = class(TListBox)
   private
     FLocked: boolean;
-    FAllowEraseBkgnd: boolean;
   protected
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
   public
     property Locked: boolean read FLocked write FLocked;
-    property AllowEraseBkgnd: boolean read FAllowEraseBkgnd write FAllowEraseBkgnd;
   end;
 
   TfrmGLRender = class(TForm)
@@ -91,6 +89,8 @@ type
     lstObjects:   TLockableListBox;
     FPushPins:    TVectorMapElementList;
     FUnknownStealther:  TGLUnkownStealther;
+    FPresicenceNode:    TGLPrescienceNode;
+    FBasePath:    string;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -211,14 +211,19 @@ begin
     Result := b;
 end;
 
+function GetGLVersion : string;
+begin
+    { must have a current GL context active this function is called }
+  Result := string(PChar(glGetString(GL_VERSION)));
+end;
+
 { TLockableListBox }
 
 procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
-  if FAllowEraseBkgnd then begin
-    Message.Result := 0;
-    FAllowEraseBkgnd := false;
-  end
+    { redraw the background only if our list doesn't fill the whole area }
+  if not FLocked and ((Count * ItemHeight) < Height) then 
+    inherited
   else
     Message.Result := 1;
 end;
@@ -499,6 +504,7 @@ begin
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
     lstObjects.Locked := false;
+    lstObjects.Update;
 
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
@@ -543,8 +549,8 @@ begin
     else if iOldTop < lstObjects.Items.Count then
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
-    lstObjects.AllowEraseBkgnd := true;
     lstObjects.Locked := false;
+    lstObjects.Update;
 
     if FRenderPrefs.RedrawOnDelete then
       Dirty;
@@ -629,7 +635,6 @@ begin
 
       DrawAIDestination(pObj, clMob);
 
-//      glPushMatrix();
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
@@ -646,15 +651,15 @@ begin
 
       glRotatef(-pObj.Head, 0, 0, 1);
       glTranslatef(-pMovingObj.XProjected, -pMovingObj.YProjected, 0);
-//      glPopMatrix();
     end  { if a class to draw }
 
     else if pObj.ObjectClass = ocObject then begin
-//      glPushMatrix();
       glTranslatef(pObj.X, pObj.Y, 0);
-      FObjectTriangle.GLRender(FRenderBounds);
+      if AnsiSameText(pObj.Name, 'Prescience Node') then
+        FPresicenceNode.GLRender(FRenderBounds)
+      else
+        FObjectTriangle.GLRender(FRenderBounds);
       glTranslatef(-pObj.X, -pObj.Y, 0);
-//      glPopMatrix();
     end
 
     else if pObj.ObjectClass = ocVehicle then begin
@@ -675,21 +680,24 @@ end;
 
 procedure TfrmGLRender.FormCreate(Sender: TObject);
 begin
+  FBasePath := ExtractFilePath(ParamStr(0));
   FRangeCircles := TRangeCircleList.Create;
 
   FTxfH10 := TTexFont.Create;
-  FTxfH10.LoadFont('helvetica10.txf');
+  FTxfH10.LoadFont(FBasePath + 'helvetica10.txf');
   FTxfH12 := TTexFont.Create;
-  FTxfH12.LoadFont('helvetica12.txf');
+  FTxfH12.LoadFont(FBasePath + 'helvetica12.txf');
 
   FHTTPFetch := TBackgroundHTTPManager.Create;
   FMapElementsListList := TVectorMapElementListList.Create;
-  FMapElementsListList.VectorMapDir := ExtractFilePath(ParamStr(0)) + 'maps\';
+  FMapElementsListList.VectorMapDir := FBasePath + 'maps\';
   FMapElementsListList.HTTPFetch := FHTTPFetch;
   FMapTexturesListList := TTextureMapElementListList.Create;
-  FMapTexturesListList.TextureMapDir := ExtractFilePath(ParamStr(0)) + 'maps\dds\';
+  FMapTexturesListList.TextureMapDir := FBasePath + 'maps\dds\';
   FMapTexturesListList.HTTPFetch := FHTTPFetch;
   FMobTriangle := T3DArrowHead.Create;
+  FPresicenceNode := TGLPrescienceNode.Create;
+  FPresicenceNode.ImageFileName := FBasePath + 'prescience.tga';
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
   FVisibleRangeRep := TGLFlatViewFrustum.Create;
@@ -704,9 +712,9 @@ begin
   FRenderPrefs.HasGLUT := Assigned(glutInit);
 
   if FRenderPrefs.HasOpenGL13 then
-    Log('OpenGL 1.3:  Available')
+    Log('OpenGL 1.3:  Available (' + GetGLVersion + ')')
   else
-    Log('OpenGL 1.3:  NOT FOUND');
+    Log('OpenGL 1.3:  NOT FOUND (' + GetGLVersion + ')');
 
   if FRenderPrefs.HasGLUT then
     Log('OpenGL GLUT:  Available')
@@ -736,6 +744,7 @@ begin
   FTxfH10.UnloadFont;
   FTxfH10.Free;
   FPushPins.Free;
+  FPresicenceNode.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -752,6 +761,7 @@ begin
   FTxfH12.CleanupTexture;
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
+  FPresicenceNode.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -769,6 +779,7 @@ begin
   FBoat.GLInitialize;
   FPushPins.GLInitialize;
   FUnknownStealther.GLInitialize;
+  FPresicenceNode.GLInitialize;
 
   FTxfH10.EstablishTexture;
   FTxfH12.EstablishTexture;
@@ -1834,8 +1845,7 @@ end;
 procedure TfrmGLRender.LoadRegionPushpins;
 begin
   FPushPins.GLCleanup;
-  FPushPins.LoadFromFile(Format('%sregion%3.3d.pin',
-    [ExtractFilePath(ParamStr(0)), FDControl.RegionID]));
+  FPushPins.LoadFromFile(Format('%sregion%3.3d.pin', [FBasePath, FDControl.RegionID]));
   FPushPins.GLInitialize;
 end;
 
