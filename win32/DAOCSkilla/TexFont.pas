@@ -57,6 +57,7 @@ type
     Fmin_glyph:  integer;
     Frange:    integer;
     Fteximage: PBYTEARRAY;
+    FCallListStart: GLuint;
     Ftgi:      array of TexGlyphInfo;
     Ftgvi:     array of TexGlyphVertexInfo;
     Flut:      array of PTexGlyphVertexInfo;
@@ -65,9 +66,11 @@ type
   public
     procedure LoadFont(const AFileName: string);
     procedure UnloadFont;
+    procedure BuildCallLists;
     procedure EstablishTexture;
     function EstablishTextureEx(texobj: GLuint; setupMipmaps: boolean) : GLuint;
     procedure CleanupTexture;
+    procedure CleanupCallLists;
     procedure BindFontTexture;
     procedure GetStringMetrics(const s: string; var width, max_ascent, max_descent: integer);
     function RenderGlyph(c: integer) : integer;
@@ -115,10 +118,47 @@ begin
   glBindTexture(GL_TEXTURE_2D, Ftexobj);
 end;
 
+procedure TTexFont.BuildCallLists;
+var
+  I:  Cardinal;
+  tgvi: PTexGlyphVertexInfo;
+begin
+  FCallListStart := glGenLists(Frange);
+  if FCallListStart <> 0 then
+    for I := 0 to Frange  - 1 do begin
+      tgvi := getTCVI(I + Cardinal(Fmin_glyph));
+      if Assigned(tgvi) then begin
+        glNewList(FCallListStart + I, GL_COMPILE);
+        glBegin(GL_QUADS);
+          glTexCoord2fv(@tgvi^.t0);
+          glVertex2sv(@tgvi^.v0);
+          glTexCoord2fv(@tgvi^.t1);
+          glVertex2sv(@tgvi^.v1);
+          glTexCoord2fv(@tgvi^.t2);
+          glVertex2sv(@tgvi^.v2);
+          glTexCoord2fv(@tgvi^.t3);
+          glVertex2sv(@tgvi^.v3);
+        glEnd();
+        glTranslatef(tgvi^.advance, 0.0, 0.0);
+        glEndList();
+      end;  { if got tgvi }
+    end;  { for I = min to max }
+end;
+
+procedure TTexFont.CleanupCallLists;
+begin
+  if FCallListStart <> 0 then begin
+    glDeleteLists(FCallListStart, Frange);
+    FCallListStart := 0;
+  end;
+end;
+
 procedure TTexFont.CleanupTexture;
 begin
-  glDeleteTextures(1, @Ftexobj);
-  Ftexobj := 0;
+  if Ftexobj <> 0 then begin
+    glDeleteTextures(1, @Ftexobj);
+    Ftexobj := 0;
+  end;
 end;
 
 procedure TTexFont.EstablishTexture;
@@ -165,7 +205,8 @@ begin
   for I := 1 to Length(s) do begin
     { NOTE:  ESC M,T,L,F not supported here for fancy string }
     tgvi := getTCVI(ord(s[I]));
-    inc(width, round(tgvi^.advance));
+    if Assigned(tgvi) then
+      inc(width, round(tgvi^.advance));
   end;
 
   max_ascent := Fmax_ascent;
@@ -174,8 +215,6 @@ end;
 
 function TTexFont.getTCVI(c: integer): PTexGlyphVertexInfo;
 begin
-  Result := nil;
-
   { Automatically substitute uppercase letters with lowercase if not
      uppercase available (and vice versa). }
   if (c >= Fmin_glyph) and (c < Fmin_glyph + Frange) then begin
@@ -189,12 +228,14 @@ begin
       if (c >= Fmin_glyph) and (c < Fmin_glyph + Frange) then
         Result := Flut[c - Fmin_glyph];
     end
-    else if (c >= 65) and (c <= 90) then begin //  in ['A'..'Z'] 
+    else if (c >= 65) and (c <= 90) then begin //  in ['A'..'Z']
       inc(c, 32);
       if (c >= Fmin_glyph) and (c < Fmin_glyph + Frange) then
         Result := Flut[c - Fmin_glyph];
     end;
-  end;
+  end
+  else
+    Result := nil;
 
   if not Assigned(Result) then
     raise TXFException.CreateFmt(
@@ -359,11 +400,24 @@ end;
 
 function TTexFont.RenderString(const s: string) : integer;
 var
-  I:    integer;
+  I:      integer;
+  dummy:  integer;
 begin
-  Result := 0;
-  for I := 1 to Length(s) do
-    inc(Result, RenderGlyph(ord(s[I])));
+  if FCallListStart <> 0 then begin
+    { NOTE!  This fails if CallListStart is greater than min_glyph.
+      I really just added this call list stuff to see if it was faster, and it wasn't
+      so it should probably not be used where reliability is an issue (BRY) }
+    glListBase(FCallListStart - Cardinal(Fmin_glyph));
+    glCallLists(Length(s), GL_UNSIGNED_BYTE, PChar(s));
+    GetStringMetrics(s, Result, dummy, dummy);
+    glListBase(0);
+  end
+
+  else begin
+    Result := 0;
+    for I := 1 to Length(s) do
+      inc(Result, RenderGlyph(ord(s[I])));
+  end;
 end;
 
 function TTexFont.RenderStringXY(X, Y: integer; const s: string) : integer;
