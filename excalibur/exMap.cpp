@@ -217,17 +217,16 @@ void exMap::initializeGL() {
   if (! format().depth())
     qWarning("NO GL DEPTH BUFFER - No polygon sorting");
 
-  qWarning("Checking for hardware OpenGL support...");
   if (isNVidiaModuleLoaded()) {
-      qWarning(">> YES (NVdriver)\t-\tPerformance should be fast!");
+      qWarning("NVdriver Direct Rendering (DRI) support enabled.");
       has_NVdriver = TRUE;
       has_direct   = FALSE;
   } else if (format().directRendering()) {
-      qWarning(">> YES (Direct Render)\t-\tPerformance will be average.");
+      qWarning("Direct Render (DRI) support enabled.");
       has_NVdriver = FALSE;
       has_direct   = TRUE;
   } else {
-    qWarning(">> NO (No Direct Render)\t-\tPerformance will be slow!");
+    qWarning("No Direct Render (DRI) support, performance will be suboptimal.");
     has_NVdriver = FALSE;
     has_direct   = FALSE;
   }
