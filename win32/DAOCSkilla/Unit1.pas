@@ -144,6 +144,7 @@ type
     procedure DAOCSelectNPCFailed(ASender: TObject);
     procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
     procedure DAOCLocalHealthUpdate(ASender: TObject);
+    procedure DAOCDoorPositionUpdate(ASender: TObject; ADoor: TDAOCObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -501,6 +502,7 @@ begin
 
     frmMacroing.Left := ReadInteger('Macroing', 'Left', frmMacroing.Left);
     frmMacroing.Top := ReadInteger('Macroing', 'Top', frmMacroing.Top);
+    frmMacroing.TrinketList := ReadString('Macroing', 'TrinketList', frmMacroing.TrinketList);
 
     frmLowOnStat.Left := ReadInteger('LowOnStat', 'Left', frmLowOnStat.Left);
     frmLowOnStat.Top := ReadInteger('LowOnStat', 'Top', frmLowOnStat.Top);
@@ -596,6 +598,7 @@ begin
 
     WriteInteger('Macroing', 'Left', frmMacroing.Left);
     WriteInteger('Macroing', 'Top', frmMacroing.Top);
+    WriteString('Macroing', 'TrinketList', frmMacroing.TrinketList);
 
     WriteString('RemoteAdmin', 'PS1', Quote(dmdRemoteAdmin.PS1));
     Free;
@@ -1267,6 +1270,13 @@ begin
   for I := 0 to FConnection.QuickLaunchProfiles.Count - 1 do 
     cbxAutoLoginProfile.Items.AddObject(
       FConnection.QuickLaunchProfiles[I].ProfileName, FConnection.QuickLaunchProfiles[I]);
+end;
+
+procedure TfrmMain.DAOCDoorPositionUpdate(ASender: TObject; ADoor: TDAOCObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCDoorPositionUpdate(ADoor);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.
