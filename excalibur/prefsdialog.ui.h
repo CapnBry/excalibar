@@ -75,17 +75,4 @@ void PrefsDialog::TextLabel1_3_destroyed( QObject * )
 
 }
 
-void PrefsDialog::PlayerCircle1_valueChanged( int )
-{
 
-}
-
-void PrefsDialog::PlayerCircle1_destroyed( QObject * )
-{
-
-}
-
-void PrefsDialog::PlayerCircle1_valueChanged( const QString & )
-{
-
-}

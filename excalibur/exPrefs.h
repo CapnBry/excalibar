@@ -58,7 +58,6 @@ public:
   bool gl_smooth_lines;
   bool gl_smooth_polygons;
   bool map_fill;
-  bool range_circles;
   bool agro_circles;
   bool agro_fading;
   bool dump_unknown_packets;

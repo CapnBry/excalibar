@@ -355,14 +355,6 @@
                         </widget>
                         <widget class="QCheckBox">
                             <property name="name">
-                                <cstring>RangeCircles</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Draw Range Circles</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
                                 <cstring>AgroFading</cstring>
                             </property>
                             <property name="text">
@@ -381,7 +373,7 @@
                         <x>190</x>
                         <y>10</y>
                         <width>231</width>
-                        <height>121</height>
+                        <height>120</height>
                     </rect>
                 </property>
                 <property name="title">
@@ -424,17 +416,20 @@
                             <property name="suffix">
                                 <string> radius</string>
                             </property>
+                            <property name="specialValueText">
+                                <string>Don't Draw</string>
+                            </property>
                             <property name="maxValue">
                                 <number>2000</number>
                             </property>
                             <property name="minValue">
-                                <number>100</number>
+                                <number>225</number>
                             </property>
                             <property name="lineStep">
-                                <number>100</number>
+                                <number>25</number>
                             </property>
                             <property name="value">
-                                <number>100</number>
+                                <number>225</number>
                             </property>
                         </widget>
                         <widget class="QSpinBox" row="1" column="1">
@@ -444,17 +439,20 @@
                             <property name="suffix">
                                 <string> radius</string>
                             </property>
+                            <property name="specialValueText">
+                                <string>Don't Draw</string>
+                            </property>
                             <property name="maxValue">
                                 <number>2000</number>
                             </property>
                             <property name="minValue">
-                                <number>100</number>
+                                <number>250</number>
                             </property>
                             <property name="lineStep">
-                                <number>100</number>
+                                <number>25</number>
                             </property>
                             <property name="value">
-                                <number>100</number>
+                                <number>250</number>
                             </property>
                         </widget>
                         <widget class="QLabel" row="1" column="0">
@@ -1011,18 +1009,6 @@
         <receiver>PrefsDialog</receiver>
         <slot>TextLabel1_3_destroyed(QObject*)</slot>
     </connection>
-    <connection>
-        <sender>PlayerCircle1</sender>
-        <signal>valueChanged(const QString&amp;)</signal>
-        <receiver>PrefsDialog</receiver>
-        <slot>PlayerCircle1_valueChanged(const QString&amp;)</slot>
-    </connection>
-    <connection>
-        <sender>PlayerCircle1</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>PrefsDialog</receiver>
-        <slot>PlayerCircle1_valueChanged(int)</slot>
-    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
@@ -1034,9 +1020,6 @@
     <slot>MapSimplifyRange_valueChanged( int val )</slot>
     <slot>PrefsDialog_destroyed( QObject * )</slot>
     <slot>TextLabel1_3_destroyed( QObject * )</slot>
-    <slot>PlayerCircle1_valueChanged( int )</slot>
-    <slot>PlayerCircle1_destroyed( QObject * )</slot>
-    <slot>PlayerCircle1_valueChanged( const QString &amp; )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

@@ -419,12 +419,17 @@ END_NORMAL_CODE
   }
 
   /* draw a couple range cirlces around the player */
-  if (prefs.range_circles) {
+
+  if(prefs.player_circle_1 >= 226){
     glLineWidth (1.0);
     qglColor(darkGray);
     drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
-    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
   }
+  if(prefs.player_circle_2 >= 251){
+    glLineWidth (1.0);
+    qglColor(darkGray);
+    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
+}
 	     
   is_dirty = false;
 
