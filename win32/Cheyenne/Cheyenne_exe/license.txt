@@ -1,3 +1,5 @@
+Cheyenne uses the following license, other components of Cheyenne may have their own licenses. Please see README.txt for more information.
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
