@@ -475,7 +475,7 @@ begin
     @x, @y, @z);
 
     { if this is a dungeon, use 3d distance else use 2d }
-  if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = 2) then
+  if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = dztDungeon) then
     pNearest := FFilteredObjects.FindNearest3D(round(x), round(y), FDControl.LocalPlayer.Z)
   else
     pNearest := FFilteredObjects.FindNearest2D(round(x), round(y));
