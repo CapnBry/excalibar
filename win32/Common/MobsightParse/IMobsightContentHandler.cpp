@@ -38,9 +38,19 @@ bool MobsightContentHandler::BuildMobList
     ISAXXMLReader* reader=NULL;
     
     // create reader
+    /*
     HRESULT hr=CoCreateInstance
         (
         __uuidof(SAXXMLReader),
+        NULL,
+        CLSCTX_ALL,
+        __uuidof(ISAXXMLReader),
+        (void**)&reader
+        );
+    */
+    HRESULT hr=CoCreateInstance
+        (
+        CLSID_SAXXMLReader30,
         NULL,
         CLSCTX_ALL,
         __uuidof(ISAXXMLReader),

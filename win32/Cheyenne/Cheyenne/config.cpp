@@ -149,7 +149,8 @@ bool CheyenneConfig::Load(void)
     ::GetLine(file,ModifyNamedMob());
     //file >> ModifyNamedMob();
     
-    ::GetLine(file,ModifyMobsightURL());
+    std::getline(file,ModifyMobsightURL());
+    //::GetLine(file,ModifyMobsightURL());
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
     
