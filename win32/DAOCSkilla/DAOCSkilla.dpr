@@ -53,7 +53,8 @@ uses
   DAOCControlList in '..\Common\DAOCAutomation\DAOCControlList.pas',
   DStrmServerListFrame in 'DStrmServerListFrame.pas' {frmDStrmServerList: TFrame},
   DebugAndLoggingFns in 'DebugAndLoggingFns.pas',
-  SkillaLog in 'SkillaLog.pas' {frmSkillaLog};
+  SkillaLog in 'SkillaLog.pas' {frmSkillaLog},
+  StreamINI in '..\Common\StreamINI.pas';
 
 {$R *.TLB}
 
