@@ -373,10 +373,8 @@ type
 
 implementation
 
-{$IFDEF GLOBAL_TICK_COUNTER}
 uses
   GlobalTickCounter;
-{$ENDIF GLOBAL_TICK_COUNTER}
 
 { TAccountCharInfoList }
 

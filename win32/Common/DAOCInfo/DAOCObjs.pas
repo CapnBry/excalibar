@@ -348,10 +348,8 @@ const
 
 implementation
 
-{$IFDEF GLOBAL_TICK_COUNTER}
 uses
   GlobalTickCounter;
-{$ENDIF GLOBAL_TICK_COUNTER}
 
 const
   SPEED_1X = 191;
@@ -443,11 +441,7 @@ end;
 
 function LocalTickCount : Cardinal;
 begin
-{$IFDEF GLOBAL_TICK_COUNTER}
   Result := GlobalTickCount;
-{$ELSE}
-  Result := GetTickCount;
-{$ENDIF GLOBAL_TICK_COUNTER}
 end;
 
 { TDAOCMovingObject }
