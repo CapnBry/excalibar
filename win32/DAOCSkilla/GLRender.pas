@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
   StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, GLUT, RenderPrefs,
-  DAOCClasses, QuickSinCos;
+  DAOCClasses, QuickSinCos, MMSystem;
 
 type
   TfrmGLRender = class(TForm)
@@ -63,6 +63,7 @@ type
     FFrameCount:    integer;
     FDirtyCount:    integer;
     FInvalidateCount: integer;
+    FZoneName:      string;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -77,7 +78,8 @@ type
     procedure DrawMobsAndPlayers;
     procedure DrawMapElements;
     procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCPlayer);
-    procedure DrawHUD;
+    procedure DrawTargetHUD;
+    procedure DrawLocalPlayerHUD;
     procedure DrawMobTypeTag(AMob: TDAOCMob);
     procedure DrawGroundTarget;
     procedure DrawFrameStats;
@@ -222,7 +224,8 @@ begin
   SetupScreenProjectionMatrix;
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity;
-  DrawHUD;
+  DrawTargetHUD;
+  DrawLocalPlayerHUD;
   DrawFrameStats;
 
   CheckGLError();
@@ -414,6 +417,10 @@ begin
 
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
+
+    if FRenderPrefs.InvaderWarning and
+      (AObj.ObjectClass = ocPlayer) and (AObj.Realm <> FDControl.LocalPlayer.Realm) then
+      PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
   end;
 end;
 
@@ -660,8 +667,12 @@ end;
 
 procedure TfrmGLRender.DAOCZoneChanged;
 begin
-  if not Assigned(FDControl.Zone) then
+  if not Assigned(FDControl.Zone) then begin
+    FZoneName := '';
     exit;
+  end;
+
+  FZoneName := FDControl.Zone.Name;
 
   { BRY:  We really need to select the GL context here, but I don't because
     glWindow doesn't have a function to activate its context and we'll just
@@ -737,7 +748,7 @@ begin
     Dirty;
 end;
 
-procedure TfrmGLRender.DrawHUD;
+procedure TfrmGLRender.DrawTargetHUD;
 const
   TEXT_COLOR: array[0..3] of GLfloat = (0.35, 0.80, 1, 0.75);
 var
@@ -788,8 +799,8 @@ begin
   glColor4f(0, 0, 0, 0.5);
   glBegin(GL_QUADS);
     glVertex2i(0, rastery);
-    glVertex2i(0, rastery - 58);
-    glVertex2i(145, rastery - 58);
+    glVertex2i(0, rastery - 57);
+    glVertex2i(145, rastery - 57);
     glVertex2i(145, rastery);
   glEnd;
 
@@ -1281,6 +1292,42 @@ begin
     glVertex3f(AMob.XProjected, AMob.YProjected, 0);
     glVertex3f(AMob.Target.XProjected, AMob.Target.YProjected, 0);
   glEnd();
+end;
+
+procedure TfrmGLRender.DrawLocalPlayerHUD;
+var
+  rastery:  integer;
+  rasterx:  integer;
+  s:    string;
+begin
+  if not FRenderPrefs.DrawHUD then
+    exit;
+
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING);
+
+  rastery := glMap.ClientHeight;
+  rasterx := glMap.ClientWidth - 125;
+
+  glColor4f(0, 0, 0, 0.5);
+  glBegin(GL_QUADS);
+    glVertex2i(rasterx, rastery);
+    glVertex2i(rasterx, rastery - 42);
+    glVertex2i(rasterx + 125, rastery - 42);
+    glVertex2i(rasterx + 125, rastery);
+  glEnd;
+
+  inc(rasterx, 2);
+
+  glColor4f(1, 1, 1, 1);
+  with FDControl do begin
+    if FZoneName <> '' then
+      rastery := WriteGLUTTextH10(rasterx, rastery, FZoneName);
+    s := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
+    rastery := WriteGLUTTextH10(rasterx, rastery, s);
+    s := 'Heading ' + IntToStr(PlayerZoneHead) + ' Speed ' + LocalPlayer.SpeedString;
+    WriteGLUTTextH10(rasterx, rastery, s);
+  end;
 end;
 
 end.

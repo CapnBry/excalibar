@@ -3,7 +3,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   Top = 257
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
-  ClientHeight = 393
+  ClientHeight = 426
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 4
     Top = 144
     Width = 457
-    Height = 245
+    Height = 277
     Caption = ' Include this extra information '
     TabOrder = 1
     object Label1: TLabel
@@ -58,11 +58,11 @@ object frmRenderPrefs: TfrmRenderPrefs
     object Label5: TLabel
       Left = 28
       Top = 160
-      Width = 358
+      Width = 407
       Height = 13
       Caption = 
-        'The panel containing information about the selected object (requ' +
-        'ires GLUT).'
+        'The panel containing details about the selected object and the p' +
+        'layer (requires GLUT).'
     end
     object Label6: TLabel
       Left = 28
@@ -79,6 +79,13 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 
         'Draw a green area which shows the visible area of the DAOC rende' +
         'rer (far clip plane)'
+    end
+    object Label8: TLabel
+      Left = 28
+      Top = 256
+      Width = 273
+      Height = 13
+      Caption = 'Play invader.wav sound every time a new invader is seen.'
     end
     object chkVectorMaps: TCheckBox
       Left = 8
@@ -121,7 +128,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       Top = 144
       Width = 241
       Height = 17
-      Caption = 'Selected object HUD (H)'
+      Caption = 'Selected object and player  HUD (H)'
       TabOrder = 4
       OnClick = chkHUDClick
     end
@@ -142,6 +149,15 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'Show Dark Age renderer "visible" area'
       TabOrder = 6
       OnClick = chkViewFrustumClick
+    end
+    object chkInvaderWarn: TCheckBox
+      Left = 8
+      Top = 240
+      Width = 241
+      Height = 17
+      Caption = 'Invader warning sound'
+      TabOrder = 7
+      OnClick = chkInvaderWarnClick
     end
   end
   object grpObjects: TGroupBox

@@ -40,6 +40,7 @@ type
     AlternateMobListText: boolean;
     AttemptMapDownload: boolean;
     MapBaseURL:       string;
+    InvaderWarning:   boolean;
 
     constructor Create;
 
@@ -84,6 +85,8 @@ type
     chkViewFrustum: TCheckBox;
     Label7: TLabel;
     chkRenderVehicles: TCheckBox;
+    chkInvaderWarn: TCheckBox;
+    Label8: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -98,6 +101,7 @@ type
     procedure chkRotateMapClick(Sender: TObject);
     procedure chkAdjacentZonesClick(Sender: TObject);
     procedure chkViewFrustumClick(Sender: TObject);
+    procedure chkInvaderWarnClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -142,7 +146,8 @@ begin
   Result.ViewFrustum := ViewFrustum;
   Result.AlternateMobListText := AlternateMobListText;
   Result.AttemptMapDownload := AttemptMapDownload;
-  Result.MapBaseURL := MapBaseURL; 
+  Result.MapBaseURL := MapBaseURL;
+  Result.InvaderWarning := InvaderWarning; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -191,6 +196,7 @@ begin
     AlternateMobListText := DrawTypeTag; //ReadBool('RenderPrefs', 'AlternateMobListText', false);
     AttemptMapDownload := ReadBool('RenderPrefs', 'AttemptMapDownload', true);
     MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%d');
+    InvaderWarning := ReadBool('RenderPrefs', 'InvaderWarning', true);
   end;
 end;
 
@@ -224,6 +230,7 @@ begin
     WriteBool('RenderPrefs', 'AlternateMobListText', AlternateMobListText);
     WriteBool('RenderPrefs', 'AttemptMapDownload', AttemptMapDownload);
     WriteString('RenderPrefs', 'MapBaseURL', MapBaseURL);
+    WriteBool('RenderPrefs', 'InvaderWarning', InvaderWarning);
   end;
 end;
 
@@ -325,6 +332,7 @@ begin
   chkHUD.Checked := FRenderPrefs.DrawHUD;
   chkDestination.Checked := FRenderPrefs.DrawAIDestination;
   chkViewFrustum.Checked := FRenderPrefs.ViewFrustum;
+  chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
@@ -367,6 +375,11 @@ end;
 procedure TfrmRenderPrefs.chkViewFrustumClick(Sender: TObject);
 begin
   FRenderPrefs.ViewFrustum := chkViewFrustum.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkInvaderWarnClick(Sender: TObject);
+begin
+  FRenderPrefs.InvaderWarning := chkInvaderWarn.Checked;
 end;
 
 end.

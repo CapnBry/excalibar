@@ -27,7 +27,7 @@ object frmGLRender: TfrmGLRender
     Left = 217
     Top = 0
     Width = 618
-    Height = 616
+    Height = 609
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
@@ -35,13 +35,13 @@ object frmGLRender: TfrmGLRender
       Left = 0
       Top = 0
       Width = 618
-      Height = 592
+      Height = 585
       Align = alClient
       OnClick = glMapClick
       OnMouseDown = glMapMouseDown
       ColorDepth = c16bits
       DepthBits = c16bits
-      DepthBufferEnabled = True
+      DepthBufferEnabled = False
       StencBits = c16bits
       StencBufferEnabled = False
       AccumBits = c16bits
@@ -53,17 +53,17 @@ object frmGLRender: TfrmGLRender
     end
     object slideZoom: TTrackBar
       Left = 0
-      Top = 592
+      Top = 585
       Width = 618
       Height = 24
       Align = alBottom
       Ctl3D = True
-      Max = 50000
+      Max = 65000
       Min = 200
       Orientation = trHorizontal
       ParentCtl3D = False
       Frequency = 500
-      Position = 6000
+      Position = 8000
       SelEnd = 0
       SelStart = 0
       TabOrder = 1
@@ -76,7 +76,7 @@ object frmGLRender: TfrmGLRender
     Left = 0
     Top = 0
     Width = 217
-    Height = 616
+    Height = 609
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
@@ -102,7 +102,7 @@ object frmGLRender: TfrmGLRender
       Left = 0
       Top = 41
       Width = 217
-      Height = 575
+      Height = 568
       Style = lbVirtualOwnerDraw
       Align = alClient
       BorderStyle = bsNone
