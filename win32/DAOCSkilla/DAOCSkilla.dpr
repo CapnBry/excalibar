@@ -53,7 +53,8 @@ uses
   DStrmServerListFrame in 'DStrmServerListFrame.pas' {frmDStrmServerList: TFrame},
   DebugAndLoggingFns in 'DebugAndLoggingFns.pas',
   SkillaLog in 'SkillaLog.pas' {frmSkillaLog},
-  StreamINI in '..\Common\StreamINI.pas';
+  StreamINI in '..\Common\StreamINI.pas',
+  DateTimeFormats in '..\Common\DateTimeFormats.pas';
 
 {$R *.TLB}
 
