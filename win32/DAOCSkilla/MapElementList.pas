@@ -389,7 +389,8 @@ begin
   pTmpZone.LoadFromSingleDDSFile(sDestFileName);
 
     { zone didn't load.  Try to get it from the woooooooorld wide web }
-  if FAttemptMapDownload and (pTmpZone.Count = 0) then begin
+  if FAttemptMapDownload and (pTmpZone.Count = 0) and
+    (AZone.ZoneType in [dztOverworld, dztHousing])  then begin
     pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
     pHTTPRequest.URL := Format(FMapBaseURL, [AZone.ZoneNum]);
     pHTTPRequest.Tag := AZone.ZoneNum;
