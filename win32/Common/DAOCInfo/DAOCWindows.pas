@@ -434,7 +434,10 @@ procedure TVendorWindow.BuyMultiple(AQuantity: integer);
 begin
   if not FLastSelectWasIcon then 
     SelectItemIcon(FItem);
-  DoSendKeys('/mbuy ' + IntToStr(AQuantity) + '[cr]');    
+  DoSendKeys('/mbuy ' + IntToStr(AQuantity) + '[cr]');
+
+    { since /mbuy resets the selection (icon) }
+  FLastSelectWasIcon := false;
 end;
 
 { TTradeRecipeWindow }
