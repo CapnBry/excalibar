@@ -386,6 +386,7 @@ void DAOCConnection::FromTCPServer
             break;
 
         case system_message:
+            //PrintPacket(true,true,buffer,length);
             break;
 
         case mob_pos_update:
@@ -898,6 +899,7 @@ void DAOCConnection::FromUDPServer
             break;
 
         case system_message:
+            //PrintPacket(false,true,buffer,length);
             break;
 
         case mob_pos_update:
