@@ -112,9 +112,10 @@ type
     FSpeedWord:  WORD;
   public
     constructor Create; override;
-    
+
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
+    function DestinationAhead : boolean;
 
     property XProjected: DWORD read GetXProjected;
     property YProjected: DWORD read GetYProjected;
@@ -303,6 +304,41 @@ constructor TDAOCMovingObject.Create;
 begin
   inherited;
   FHitPoints := 100;
+end;
+
+function TDAOCMovingObject.DestinationAhead: boolean;
+  { return true if the destination is in the direction of travel,
+    or if the destination is unset }
+type
+  TQuadrant = (q1, q2, q3, q4);
+  TQuadrants = set of TQuadrant;
+var
+  AcceptableQuads:  TQuadrants;
+  vx:   integer;
+  vy:   integer;
+  HeadQuad:   TQuadrant;
+begin
+  if (FDestinationX = 0) or (FDestinationY = 0) or (Speed = 0) then
+    Result := true
+  else begin
+    AcceptableQuads := [q1, q2, q3, q4];
+      { compute vector to destination }
+    vx := FDestinationX - XProjected;
+    vy := FDestinationY - YProjected;
+
+    if vx > 0 then
+      AcceptableQuads := AcceptableQuads - [q2, q3]
+    else if vx < 0 then
+      AcceptableQuads := AcceptableQuads - [q1, q4];
+    if vy > 0 then
+      AcceptableQuads := AcceptableQuads - [q3, q4]
+    else if vy < 0 then
+      AcceptableQuads := AcceptableQuads - [q1, q2];
+
+      { head should be between 0..359 }
+    HeadQuad := TQuadrant(((Head div 90) mod 4) + 1);
+    Result := HeadQuad in AcceptableQuads;
+  end;
 end;
 
 function TDAOCMovingObject.GetIsAlive: boolean;
