@@ -159,6 +159,7 @@ type
     procedure SetSmoothingOpts;
     procedure CreateGLWindow;
     procedure AdjustMobTriangleSize;
+    function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -411,8 +412,8 @@ begin
     slideZoom.Position := FRange;
     UpdateStayOnTop;
     
-    FMapTexturesListList.AttemptMapDownload := FRenderPrefs.AttemptMapDownload;
-    FMapElementsListList.AttemptMapDownload := FRenderPrefs.AttemptMapDownload;
+    FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+    FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
     UpdateMapURLs;
   end
   else
@@ -713,12 +714,19 @@ begin
   FTxfH12.LoadFont(FBasePath + 'helvetica12.txf');
 
   FHTTPFetch := TBackgroundHTTPManager.Create;
+
   FMapElementsListList := TVectorMapElementListList.Create;
+  FMapElementsListList.VersionFile := FBasePath + 'versions.ini';
   FMapElementsListList.VectorMapDir := FBasePath + 'maps\';
+  FMapElementsListList.VectorMapCustomDir := FBasePath + 'custommaps\';
   FMapElementsListList.HTTPFetch := FHTTPFetch;
+
   FMapTexturesListList := TTextureMapElementListList.Create;
+  FMapTexturesListList.VersionFile := FBasePath + 'versions.ini';
   FMapTexturesListList.TextureMapDir := FBasePath + 'maps\dds\';
+  FMapTexturesListList.TextureMapCustomDir := FBasePath + 'custommaps\dds\';
   FMapTexturesListList.HTTPFetch := FHTTPFetch;
+
   FMobTriangle := T3DArrowHead.Create;
   FPresicenceNode := TGLPrescienceNode.Create;
   FPresicenceNode.ImageFileName := FBasePath + 'prescience.tga';
@@ -973,7 +981,7 @@ begin
     { BRY: we don't use FTargetHUDWidth yet, because is needs to also be
       recalculated when the object's speed changes, and I'm not sure how I
       want to do that to keep the box from lagging one frame every time }
-  ShadedRect(1, rastery, 146, rastery - 57);
+  ShadedRect(1, rastery, 160, rastery - 56);
 
   glEnable(GL_TEXTURE_2D);
   case pMob.ObjectClass of
@@ -1011,10 +1019,11 @@ begin
         glColor4fv(@TEXT_COLOR);
   end;    { case class }
 
-  s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer));
+  s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer)) +
+    ' ' + ZDeltaStr(pMob, false);
   if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).Speed <> 0) then
     s := s + '  Speed: ' + TDAOCMovingObject(pMob).SpeedString;
-  rastery := WriteTXFTextH12(4, rastery, s);
+  rastery := WriteTXFTextH10(4, rastery, s);
 
   if FTargetHUDWidth = 0 then
     FTargetHUDWidth := FMaxTXFTextWidth + 7;
@@ -1711,7 +1720,7 @@ begin
     pNearest := nil;
 
   if Assigned(pNearest) then
-    iHeight := 28
+    iHeight := 42
   else
     iHeight := 14;
 
@@ -1731,8 +1740,10 @@ begin
   ptMouse.X := ptMouse.X + 1;
   ptMouse.Y := ptMouse.Y + 2;
   glEnable(GL_TEXTURE_2D);
-  if Assigned(pNearest) then
+  if Assigned(pNearest) then begin
     ptMouse.Y := WriteTXFTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
+    ptMouse.Y := WriteTXFTextH10(ptMouse.X, ptMouse.Y, ZDeltaStr(pNearest, true));
+  end;
   WriteTXFTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
   glDisable(GL_TEXTURE_2D);
 end;
@@ -2030,6 +2041,25 @@ end;
 procedure TfrmGLRender.RENDERPrefsMobTriangleSizeChanged(Sender: TObject);
 begin
   AdjustMobTriangleSize;
+end;
+
+function TfrmGLRender.ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean): string;
+var
+  iZDelta:    integer;
+begin
+  iZDelta := AObj.Z - FDControl.LocalPlayer.Z;
+  if iZDelta > 0 then begin
+    if AVerbose then
+      Result := IntToStr(iZDelta) + ' above you'
+    else
+      Result := '+' + IntToStr(iZDelta);
+  end
+  else begin
+    if AVerbose then
+      Result := IntToStr(-iZDelta) + ' below you'
+    else
+      Result := IntToStr(iZDelta);
+  end;
 end;
 
 end.
