@@ -63,17 +63,16 @@ type
 
 procedure TDAOCConnectionList.Clear;
 var
-  I:    integer;
+  pTmp: TReintroduceDAOCConnection;
 begin
-  for I := 0 to Count - 1 do begin
-    with TReintroduceDAOCConnection(Items[I]) do begin
-      DoOnDisconnect;
-      Free;
-    end;
-    DoOnDeleteConnection(Items[I]);
-  end;
+  while Count > 0 do begin
+    pTmp := TReintroduceDAOCConnection(Items[0]);
+    pTmp.DoOnDisconnect;
+    FList.Delete(0);
 
-  FList.Clear;
+    DoOnDeleteConnection(pTmp);
+    pTmp.Free;
+  end;
 end;
 
 procedure TDAOCConnectionList.CloseDAOCConnection(ASource: TObject;
