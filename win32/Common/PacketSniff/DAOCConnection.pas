@@ -8,7 +8,7 @@ uses
   ComObj,
 {$ENDIF}
   DAOCPackets, DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
-  VendorItems, ChatParse, MapNavigator, PReader2, FrameFns, INIFiles;
+  VendorItems, ChatParse, MapNavigator, FrameFns, INIFiles;
 
 type
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;

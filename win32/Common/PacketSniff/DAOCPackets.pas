@@ -3,7 +3,7 @@ unit DAOCPackets;
 interface
 
 uses
-  Windows, WinSock, Classes, SysUtils, PReader2, bpf, FrameFns;
+  Windows, WinSock, Classes, SysUtils, FrameFns;
 
 type
   TDAOCCryptKey = array[0..11] of byte;
