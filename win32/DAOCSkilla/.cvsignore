@@ -11,3 +11,5 @@
 *.exe
 *.ddp
 *.~ddp
+*.vend
+mapinfo.txt
