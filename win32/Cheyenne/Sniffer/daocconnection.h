@@ -86,6 +86,7 @@ private:
     daocmessages::player_head_update* ParsePlayerHeadUpdate(int& ndx,const unsigned char* buffer)const;
     daocmessages::delete_object* ParseDeleteObject(int& ndx,const unsigned char* buffer)const;
     daocmessages::object_identity* ParseObjectIdentity(int& ndx,const unsigned char* buffer)const;
+    daocmessages::vehicle_identity* ParseVehicleIdentity(int& ndx,const unsigned char* buffer)const;
     daocmessages::mob_identity* ParseMobIdentity(int& ndx,const unsigned char* buffer)const;
     daocmessages::player_identity* ParsePlayerIdentity(int& ndx,const unsigned char* buffer)const;
     daocmessages::set_hp* ParseSetHP(int& ndx,const unsigned char* buffer)const;

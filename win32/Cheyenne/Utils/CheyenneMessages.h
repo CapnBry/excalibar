@@ -63,6 +63,7 @@ namespace opcodes
     c_opcode_t inventory_change=0x02; //0xAA;       // 170
     c_opcode_t object_equipment=0x15; //0xBD;       // 189
     c_opcode_t player_level_name=0x16; //0xBE;      // 190
+    c_opcode_t new_vehicle=0x12; // ?? 
 }; // end namespace opcodes
 
 namespace daocmessages
@@ -264,6 +265,21 @@ struct object_identity : public daocmessages::SniffedMessage
     unsigned short z;
     unsigned int x;
     unsigned int y;
+    char* name;
+    unsigned char detected_region;
+    }; // end object identity
+
+struct vehicle_identity : public daocmessages::SniffedMessage
+    {
+    vehicle_identity() : name(NULL){opcode=opcodes::new_vehicle;};
+    ~vehicle_identity(){if(name){delete name;}};
+
+    unsigned short object_id;
+    unsigned short heading;
+    unsigned short speed;
+    unsigned int x;
+    unsigned int y;
+    unsigned short z;
     char* name;
     unsigned char detected_region;
     }; // end object identity

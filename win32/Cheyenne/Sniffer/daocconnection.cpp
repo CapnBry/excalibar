@@ -249,6 +249,7 @@ DAOCConnection::DAOCConnection()
     OpcodeReference[opcodes::inventory_change]="inventory_change";
     OpcodeReference[opcodes::object_equipment]="object_equipment";
     OpcodeReference[opcodes::player_level_name]="player_level_name";
+    OpcodeReference[opcodes::new_vehicle]="new_vehicle";
 
     ZeroMemory(&OpcodeCount[0],sizeof(OpcodeCount));
 
@@ -577,6 +578,18 @@ void DAOCConnection::FromTCPServer
             }
             break;
 
+        case new_vehicle:
+            {
+            daocmessages::vehicle_identity* msg=ParseVehicleIdentity(ndx,buffer);
+            
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+            
+            // push onto fifo
+            fifo->Push(msg);
+            }
+            break;
+            
         case set_hp:
             {
             daocmessages::set_hp* msg=ParseSetHP(ndx,buffer);
@@ -1297,6 +1310,46 @@ daocmessages::delete_object* DAOCConnection::ParseDeleteObject
     // done
     return(msg);
 } // end ParseDeleteObject
+
+daocmessages::vehicle_identity* DAOCConnection::ParseVehicleIdentity
+    (
+    int& ndx,
+    const unsigned char* buffer
+    )const
+{
+    daocmessages::vehicle_identity* msg=new daocmessages::vehicle_identity;
+    
+    // get object id
+    GetData(msg->object_id,ndx,buffer);
+
+    // skip unused 
+    SkipData(ndx,2);
+
+    // get speed
+    GetData(msg->speed,ndx,buffer);
+
+    // get heading
+    GetData(msg->heading,ndx,buffer);
+    msg->heading &=0xFFF;
+
+    // get x
+    GetData(msg->x,ndx,buffer);
+
+    // get y
+    GetData(msg->y,ndx,buffer);
+
+    // get z
+    GetData(msg->z,ndx,buffer);
+
+    // skip unused
+    SkipData(ndx,10);
+
+    // get name (pascal string)
+    GetPascalString(&msg->name,ndx,buffer);
+
+    // done
+    return(msg);
+} // end ParseVehicleIdentity
 
 daocmessages::object_identity* DAOCConnection::ParseObjectIdentity
     (
