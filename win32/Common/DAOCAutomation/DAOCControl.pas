@@ -474,6 +474,8 @@ begin
 
   FKeySelectFriendly := '[f9]';
   FKeyQuickSell := '[f2]';
+  FKeyStrafeLeft := 'q';
+  FKeyStrafeRight := 'w';
 
   FTurnRate := 700;
   FForceStationaryTurnDegrees := 50;
