@@ -8,7 +8,8 @@ uses
   DAOCClasses, QuickSinCos;
 
 type
-  TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
+  TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer,
+    ocVehicle);
   TDAOCObjectClasses = set of TDAOCObjectClass;
 
   TDAOCObject = class(TObject)
@@ -42,6 +43,8 @@ type
     FHeadWord:    WORD;
     FStealthed:   boolean;
     FLiveDataConfidence:  integer;
+    FNext:        TDAOCObject;
+    FPrev:        TDAOCObject;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
@@ -113,6 +116,26 @@ type
     property Items[I: integer]: TDAOCObject read GetItems; default;
   end;
 
+  TDAOCObjectLinkedList = class(TObject)
+  private
+    FCount: integer;
+    FHead: TDAOCObject;
+  public
+    procedure Add(ADAOCObj: TDAOCObject);
+    procedure Delete(ADAOCObj: TDAOCObject);
+    procedure Remove(ADAOCObj: TDAOCObject);
+
+    procedure AddOrReplaceByInfoID(ADAOCObj: TDAOCObject);
+    procedure Clear;
+    function FindByInfoID(AInfoID: integer) : TDAOCObject;
+    function FindByPlayerID(APlayerID: integer) : TDAOCObject;
+    function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
+    function FindNearest2D(X, Y: DWORD) : TDAOCObject;
+
+    property Head: TDAOCObject read FHead;
+    property Count: integer read FCount;
+  end;
+
   TDAOCMovingObject = class(TDAOCObject)
   private
     function GetSpeed: integer;
@@ -159,6 +182,11 @@ type
   TDAOCUnknownMovingObject = class(TDAOCMovingObject)
   protected
     function GetName : string; override;
+    function GetObjectClass : TDAOCObjectClass; override;
+  end;
+
+  TDAOCVehicle = class(TDAOCMovingObject)
+  protected
     function GetObjectClass : TDAOCObjectClass; override;
   end;
 
@@ -307,6 +335,7 @@ begin
     ocMob:        Result := 'MOB';
     ocPlayer:     Result := 'Player';
     ocLocalPlayer:  Result := 'Local Player';
+    ocVehicle:    Result := 'Vehicle';
     else
       Result := 'Unknown' + IntToStr(ord(AClass));
   end;  { case AClass }
@@ -769,7 +798,7 @@ end;
 
 procedure TDAOCObject.AssumeAtDestination;
 begin
-  FLiveDataConfidence := 75;
+//  FLiveDataConfidence := 75;
   if (FDestinationX <> 0) and (FDestinationY <> 0) then begin
     FX := FDestinationX;
     FY := FDestinationY;
@@ -879,15 +908,16 @@ begin
   dwLastUpdateDelta := TicksSinceUpdate;
     { for players that aren't moving, they start going stale at
       10s and time out after 20s }
-  if Speed = 0 then
-    if dwLastUpdateDelta < 10000 then
-      FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
-    else
-      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 10000)
-        div 100, 0)
+//  if Speed = 0 then
+//    if dwLastUpdateDelta < 10000 then
+//      FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
+//    else
+//      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 10000)
+//        div 100, 0)
 
-    { players who are moving, stale period 5s-10s }
-  else
+//    { players who are moving, stale period 5s-10s }
+//  else
+        { all players should receive updates every give them 5 to 10s }
     if dwLastUpdateDelta < 5000 then
       FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
     else
@@ -963,12 +993,12 @@ begin
     exit;
     
   dwTicksSinceUpdate := TicksSinceUpdate;
-    { live mobs are stale from 60s-90s.  It looks like they get an update every
+    { live mobs are stale from 30s-60s.  It looks like they get an update every
       ~10s or ~20s over UDP, so this allows for a dropped packet or two.  Plus
       we have the DestinationCheck to back it up }
-  if dwTicksSinceUpdate > 60000 then
+  if dwTicksSinceUpdate > 30000 then
     FLiveDataConfidence := max(
-      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 60000) div 300, 0);
+      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 30000) div 300, 0);
 end;
 
 function TDAOCMob.GetObjectClass: TDAOCObjectClass;
@@ -1131,6 +1161,127 @@ end;
 function TDAOCUnknownMovingObject.GetObjectClass: TDAOCObjectClass;
 begin
   Result := ocUnknown;
+end;
+
+{ TDAOCObjectLinkedList }
+
+procedure TDAOCObjectLinkedList.Add(ADAOCObj: TDAOCObject);
+begin
+  if Assigned(FHead) then begin
+    ADAOCObj.FNext := FHead;
+    ADAOCObj.FPrev := nil;
+    FHead.FPrev := ADAOCObj;
+  end
+  else begin
+    ADAOCObj.FNext := nil;
+    ADAOCObj.FPrev := nil;
+  end;
+
+  FHead := ADAOCObj;
+end;
+
+procedure TDAOCObjectLinkedList.AddOrReplaceByInfoID(
+  ADAOCObj: TDAOCObject);
+begin
+  FindByInfoID(ADAOCObj.InfoID).Free;
+  Add(ADAOCObj);
+end;
+
+procedure TDAOCObjectLinkedList.Clear;
+var
+  pTmp:   TDAOCObject;
+begin
+  while Assigned(FHead) do begin
+    pTmp := FHead;
+    FHead := FHead.FNext;
+    pTmp.Free;
+  end;
+
+  FCount := 0;
+end;
+
+procedure TDAOCObjectLinkedList.Delete(ADAOCObj: TDAOCObject);
+begin
+  Remove(ADAOCObj);
+  ADAOCObj.Free;
+end;
+
+function TDAOCObjectLinkedList.FindByInfoID(AInfoID: integer): TDAOCObject;
+begin
+  Result := FHead;
+  while Assigned(Result) do begin
+    if Result.InfoID = AInfoID then
+      exit;
+    Result := Result.FNext;
+  end;
+end;
+
+function TDAOCObjectLinkedList.FindByPlayerID(APlayerID: integer): TDAOCObject;
+begin
+  Result := FHead;
+  while Assigned(Result) do begin
+    if Result.PlayerID = APlayerID then
+      exit;
+    Result := Result.FNext;
+  end;
+end;
+
+function TDAOCObjectLinkedList.FindNearest2D(X, Y: DWORD): TDAOCObject;
+var
+  dDist:    double;
+  dMinDist: double;
+  pTmp:     TDAOCObject;
+begin
+  Result := nil;
+  dMinDist := 0;
+  pTmp := FHead;
+  
+  while Assigned(pTmp) do begin
+    dDist := Result.DistanceSqr2D(X, Y);
+    if not Assigned(Result) or (dDist < dMinDist) then begin
+      Result := pTmp;
+      dMinDist := dDist;
+    end;
+
+    pTmp := pTmp.FNext;
+  end;  { while pTmp }
+end;
+
+function TDAOCObjectLinkedList.FindNearest3D(X, Y, Z: DWORD): TDAOCObject;
+var
+  dDist:    double;
+  dMinDist: double;
+  pTmp:     TDAOCObject;
+begin
+  Result := nil;
+  dMinDist := 0;
+  pTmp := FHead;
+  while Assigned(pTmp) do begin
+    dDist := Result.DistanceSqr3D(X, Y, Z);
+    if not Assigned(Result) or (dDist < dMinDist) then begin
+      Result := pTmp;
+      dMinDist := dDist;
+    end;
+
+    pTmp := pTmp.FNext;
+  end;  { while pTmp }
+end;
+
+procedure TDAOCObjectLinkedList.Remove(ADAOCObj: TDAOCObject);
+begin
+  if Assigned(ADAOCObj.FNext) then
+    ADAOCObj.FNext.FPrev := ADAOCObj.FPrev;
+  if Assigned(ADAOCObj.FPrev) then
+    ADAOCObj.FPrev.FNext := ADAOCObj.FNext;
+
+  dec(FCount);
+end;
+
+{ TDAOCVehicle }
+
+function TDAOCVehicle.GetObjectClass: TDAOCObjectClass;
+begin
+  Result := ocVehicle;
 end;
 
 end.
