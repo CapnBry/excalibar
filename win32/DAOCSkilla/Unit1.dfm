@@ -22,41 +22,14 @@ object frmMain: TfrmMain
     297)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblPlayerPos: TLabel
-    Left = 344
-    Top = 4
-    Width = 155
-    Height = 13
-    Alignment = taRightJustify
-    AutoSize = False
-    Caption = '(X, Y, Z)'
-  end
-  object lblPlayerHeadSpeed: TLabel
-    Left = 344
-    Top = 20
-    Width = 155
-    Height = 13
-    Alignment = taRightJustify
-    AutoSize = False
-    Caption = 'Head: 0  Speed: 0'
-  end
-  object lblZone: TLabel
-    Left = 344
-    Top = 36
-    Width = 155
-    Height = 13
-    Alignment = taRightJustify
-    AutoSize = False
-    Caption = 'Not zoned in'
-  end
   object lblServerPing: TLabel
     Left = 344
-    Top = 52
+    Top = 0
     Width = 155
     Height = 13
     Alignment = taRightJustify
     AutoSize = False
-    Caption = 'Server ping: ???ms'
+    Caption = 'Disconnected'
   end
   object Label1: TLabel
     Left = 56

@@ -12,9 +12,6 @@ uses
 type
   TfrmMain = class(TForm)
     Memo1: TMemo;
-    lblPlayerPos: TLabel;
-    lblPlayerHeadSpeed: TLabel;
-    lblZone: TLabel;
     btnDebugging: TButton;
     chkAutolaunchExcal: TCheckBox;
     chkChatLog: TCheckBox;
@@ -60,7 +57,6 @@ type
     procedure SaveSettings;
     function GetConfigFileName : string;
     procedure SetupDAOCConnectionObj;
-    procedure UpdatePlayer;
     procedure ShowGLRenderer(AConnection: TDAOCConnection);
     procedure CreateChatLog;
     procedure CloseChatLog;
@@ -245,17 +241,9 @@ begin
     FConnection.ProcessEthernetSegment(ASegment);
 end;
 
-procedure TfrmMain.UpdatePlayer;
-begin
-  with FConnection do begin
-    lblPlayerPos.Caption := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
-    lblPlayerHeadSpeed.Caption := 'Heading: ' + IntToStr(PlayerZoneHead) +
-      ' Speed: ' + IntToStr(LocalPlayer.Speed);
-  end;
-end;
-
 procedure TfrmMain.DAOCConnect(Sender: TObject);
 begin
+  lblServerPing.Caption := 'Connected';
   Log('New connection: ' + FConnection.ClientIP + '->' +
     FConnection.ServerIP);
 
@@ -267,8 +255,9 @@ end;
 
 procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
-  Log('Connection closed.  Largest packet was: ' + IntToStr(FConnection.LargestDAOCPacketSeen));
+  // Log('Connection closed.  Largest packet was: ' + IntToStr(FConnection.LargestDAOCPacketSeen));
   CloseChatLog;
+  lblServerPing.Caption := 'Disconnected';
 
 {$IFDEF OPENGL_RENDERER}
   if chkAutolaunchExcal.Checked then
@@ -278,7 +267,6 @@ end;
 
 procedure TfrmMain.DAOCPlayerPosUpdate(Sender: TObject);
 begin
-  UpdatePlayer;
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.Dirty;
 {$ENDIF OPENGL_RENDERER}
@@ -341,13 +329,7 @@ end;
 
 procedure TfrmMain.DAOCZoneChange(Sender: TObject);
 begin
-  if Assigned(FConnection.Zone) then begin
-    lblZone.Caption := FConnection.Zone.Name;
-    frmDebugging.DAOCZoneChange;
-  end
-  else
-    lblZone.Caption := 'Region ' + IntToStr(FConnection.RegionID);
-
+  frmDebugging.DAOCZoneChange;
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCZoneChanged;
 {$ENDIF OPENGL_RENDERER}
