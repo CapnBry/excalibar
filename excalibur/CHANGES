@@ -1,3 +1,12 @@
+Teerex (03/Jun/02)
+------------------
+Changes:
+ + Added rotate property for zones, since some were upside-
+   down.  I've only rotated one zone right now, but will rotate
+   others as I find them.
+ + Made the max mob stale distance dynamic based on when the
+   server sends us the mob loc.
+
 Teerex (01/Jun/02)
 ------------------
 Changes:
