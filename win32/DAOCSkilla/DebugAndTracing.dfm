@@ -3,7 +3,7 @@ object frmDebugging: TfrmDebugging
   Top = 186
   BorderStyle = bsSingle
   Caption = 'Tracing and Debugging'
-  ClientHeight = 127
+  ClientHeight = 143
   ClientWidth = 415
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,21 +17,21 @@ object frmDebugging: TfrmDebugging
   TextHeight = 13
   object lblFilePos: TLabel
     Left = 244
-    Top = 84
+    Top = 100
     Width = 44
     Height = 13
     Caption = 'lblFilePos'
   end
   object Bevel1: TBevel
     Left = 0
-    Top = 44
+    Top = 60
     Width = 413
     Height = 9
     Shape = bsTopLine
   end
   object Label1: TLabel
     Left = 324
-    Top = 68
+    Top = 84
     Width = 89
     Height = 13
     Alignment = taCenter
@@ -40,7 +40,7 @@ object frmDebugging: TfrmDebugging
   end
   object edtPlayback: TEdit
     Left = 0
-    Top = 56
+    Top = 72
     Width = 237
     Height = 21
     TabOrder = 0
@@ -48,7 +48,7 @@ object frmDebugging: TfrmDebugging
   end
   object btnOpenPlayback: TButton
     Left = 244
-    Top = 56
+    Top = 72
     Width = 77
     Height = 25
     Caption = 'Reset file'
@@ -57,7 +57,7 @@ object frmDebugging: TfrmDebugging
   end
   object chkPCAPFile: TCheckBox
     Left = 0
-    Top = 80
+    Top = 96
     Width = 237
     Height = 17
     Caption = 'Process as libpcap file'
@@ -66,7 +66,7 @@ object frmDebugging: TfrmDebugging
   end
   object btnPlayTimer: TButton
     Left = 88
-    Top = 100
+    Top = 116
     Width = 97
     Height = 25
     Caption = 'Play packet&s'
@@ -75,7 +75,7 @@ object frmDebugging: TfrmDebugging
   end
   object btnPlayPacket: TButton
     Left = 0
-    Top = 100
+    Top = 116
     Width = 89
     Height = 25
     Caption = 'Play one packe&t'
@@ -121,7 +121,7 @@ object frmDebugging: TfrmDebugging
   end
   object btnDumpMobs: TButton
     Left = 340
-    Top = 100
+    Top = 116
     Width = 75
     Height = 25
     Caption = 'Dump mobs'
@@ -130,7 +130,7 @@ object frmDebugging: TfrmDebugging
   end
   object trackPlaySpeed: TTrackBar
     Left = 324
-    Top = 52
+    Top = 68
     Width = 89
     Height = 17
     Max = 500
@@ -147,11 +147,20 @@ object frmDebugging: TfrmDebugging
     TickStyle = tsAuto
     OnChange = trackPlaySpeedChange
   end
+  object chkRecordDelveseen: TCheckBox
+    Left = 224
+    Top = 40
+    Width = 189
+    Height = 17
+    Caption = 'Capture item delves to delveseen'
+    TabOrder = 11
+    OnClick = chkRecordDelveseenClick
+  end
   object tmrPlayback: TTimer
     Enabled = False
     Interval = 50
     OnTimer = tmrPlaybackTimer
-    Left = 196
-    Top = 16
+    Left = 60
+    Top = 24
   end
 end

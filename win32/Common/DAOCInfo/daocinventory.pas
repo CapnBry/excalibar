@@ -3,7 +3,7 @@ unit DAOCInventory;
 interface
 
 uses
-  SysUtils, Contnrs, DAOCClasses;
+  SysUtils, Classes, Contnrs, DAOCClasses;
 
 type
   TDAOCInventoryItem = class(TObject)
@@ -20,6 +20,7 @@ type
     FLevel: BYTE;
     FItemIDMajor: BYTE;
     FItemIDMinor: BYTE;
+    FDelveInfo: TStrings;
 
     procedure SetDescription(const Value: string);
     function GetSlotName: string;
@@ -28,8 +29,10 @@ type
     function GetIsInBag: boolean;
     function SlotAsVaultPage: integer;
     function SlotAsVaultPos: integer;
+    procedure SetDelveInfo(const Value: TStrings);
   public
     constructor Create;
+    destructor Destroy; override;
     function AsText : string;
 
     function ClassRestriction : TDAOCCharacterClass;
@@ -40,6 +43,7 @@ type
     property SlotName: string read GetSlotName;
     property Count: integer read FCount write FCount;
     property Condition: integer read FCondition write FCondition;
+    property DelveInfo: TStrings read FDelveInfo write SetDelveInfo;
     property Durability: integer read FDurability write FDurability;
     property Quality: integer read FQuality write FQuality;
     property Bonus: integer read FBonus write FBonus;
@@ -53,6 +57,8 @@ type
     property VaultPage: integer read SlotAsVaultPage;
     property VaultItemIndex: integer read SlotAsVaultPos;
   end;
+
+  TDAOCInventoryItemNotify = procedure (Sender: TObject; AItem: TDAOCInventoryItem) of object;
 
   TDAOCInventory = class(TObjectList)
   protected
@@ -83,12 +89,18 @@ const
   INV_VAULTPOS_LAST = $95;
 
 function TDAOCInventoryItem.AsText: string;
+var
+  I:    integer;
 begin
   Result := Format('  %s (%s) quantity %d'#13#10 +
     '    Con %d%% Dur %d%% Qual %d%% Bon %d%%'#13#10 +
     '    Level %d Color 0x%2.2x ItemID 0x%2.2x %2.2x',
     [FDescription, GetSlotName, FCount, FCondition, FDurability, FQuality,
     FBonus, FLevel, FColor, FItemIDMajor, FItemIDMinor]);
+
+  if Assigned(FDelveInfo) then
+    for I := 0 to FDelveInfo.Count - 1 do
+      Result := Result + #13#10'    ' + FDelveInfo[I];
 end;
 
 function TDAOCInventoryItem.ClassRestriction: TDAOCCharacterClass;
@@ -259,6 +271,12 @@ begin
   FCount := 1;
 end;
 
+destructor TDAOCInventoryItem.Destroy;
+begin
+  FDelveInfo.Free;
+  inherited;
+end;
+
 function TDAOCInventoryItem.GetIsInBag: boolean;
 begin
   Result := FSlot in [INV_BAGPOS_FIRST..INV_BAGPOS_LAST];
@@ -293,6 +311,14 @@ begin
     else
       Result := 'slot 0x' + IntToHex(FSlot, 2);
   end;
+end;
+
+procedure TDAOCInventoryItem.SetDelveInfo(const Value: TStrings);
+{ TAKES the delve information, freeing the old copy.  I say agai:
+  This does NOT copy }
+begin
+  FDelveInfo.Free;
+  FDelveInfo := Value;
 end;
 
 procedure TDAOCInventoryItem.SetDescription(const Value: string);

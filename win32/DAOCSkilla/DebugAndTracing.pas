@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, FrameFns, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs,
-  ComCtrls;
+  DAOCInventory, ComCtrls;
 
 type
   TfrmDebugging = class(TForm)
@@ -24,6 +24,7 @@ type
     btnDumpMobs: TButton;
     trackPlaySpeed: TTrackBar;
     Label1: TLabel;
+    chkRecordDelveseen: TCheckBox;
     procedure chkProcessPacketsClick(Sender: TObject);
     procedure chkCaptureClick(Sender: TObject);
     procedure btnOpenPlaybackClick(Sender: TObject);
@@ -35,25 +36,30 @@ type
     procedure btnDumpMobsClick(Sender: TObject);
     procedure trackPlaySpeedChange(Sender: TObject);
     procedure chkPCAPFileClick(Sender: TObject);
+    procedure chkRecordDelveseenClick(Sender: TObject);
   private
-    FCaptureStream:   TFileStream;
+    FCaptureStream: TFileStream;
     FMobseenFile:   TFileStream;
+    FDelveseenFile: TFileStream;
     FInPlayback:    boolean;
     FDControl:      TDAOCConnection;
     FPCAPFile:      boolean;
-    
+
     function GetCaptureFile: string;
     procedure SetCaptureFile(const Value: string);
     procedure Log(const s: string);
     procedure CheckWriteMobseen(ADAOCObject: TDAOCObject);
     procedure CheckWriteAllMobseen;
+    procedure CheckWriteAllDelveseen;
     function GetMobseenFileName : string;
+    function GetDelveseenFileName : string;
     function GetMyCapFileName : string;
   public
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
     procedure DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
     procedure DAOCZoneChange;
     procedure DAOCNewObject(AObj: TDAOCObject);
+    procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
 
     property DAOCControl: TDAOCConnection read FDControl write FDControl;
     property CaptureFile: string read GetCaptureFile write SetCaptureFile;
@@ -285,6 +291,54 @@ end;
 procedure TfrmDebugging.chkPCAPFileClick(Sender: TObject);
 begin
   FPCAPFile := chkPCAPFile.Checked;
+end;
+
+procedure TfrmDebugging.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
+var
+  I:    integer;
+  s:    string;
+begin
+  if not (Assigned(FDelveseenFile) and Assigned(AItem.DelveInfo)) then
+    exit;
+
+  with AItem do begin
+    s := Format('DELVE,"%s",0x%2.2x,%d,%d,%d,%d,%d,%d,%d,0x%2.2x%2.2x',
+      [CountlessDescription, Slot, Count, Condition, Durability, Quality,
+      Bonus, Level, Color, ItemIDMajor, ItemIDMinor]);
+    for I := 0 to DelveInfo.Count - 1 do
+      s := s + ',"' + DelveInfo[I] + '"';
+  end;  { with AItem }
+
+  s := s + #13#10;
+  FDelveseenFile.Write(s[1], Length(s));
+end;
+
+procedure TfrmDebugging.chkRecordDelveseenClick(Sender: TObject);
+begin
+  if chkRecordDelveseen.Checked then begin
+      { make sure the file exists and is blank before we start, we do this
+        because Delphi doesn't respect the ShareMode on fmCreate }
+    FDelveseenFile := TFileStream.Create(GetDelveseenFileName, fmCreate);
+    FDelveseenFile.Free;
+    FDelveseenFile := TFileStream.Create(GetDelveseenFileName, fmOpenWrite or fmShareDenyWrite);
+    CheckWriteAllDelveseen;
+  end
+  else
+    FreeAndNil(FDelveseenFile);
+end;
+
+function TfrmDebugging.GetDelveseenFileName: string;
+begin
+  Result := ExtractFilePath(ParamStr(0)) + 'delveseen';
+end;
+
+procedure TfrmDebugging.CheckWriteAllDelveseen;
+var
+  I:    integer;
+begin
+  if Assigned(FDControl) and Assigned(FDControl.LocalPlayer) then
+    for I := 0 to FDControl.LocalPlayer.Inventory.Count - 1 do
+      DAOCDelveItem(nil, FDControl.LocalPlayer.Inventory[I]);
 end;
 
 end.
