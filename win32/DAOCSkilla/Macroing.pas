@@ -32,16 +32,22 @@ type
     FDControl: TDAOCControl;
     FAutoSell:      boolean;
     FInSellOff:     boolean;
+    FInAutoBuy:     boolean;
     FPSItemList:    TPowerSkillItemList;
+    FSellingBeforeBuying:   boolean;
 
     procedure DoAutoSell;
     procedure DoAutoBuy;
     function CheckConflictingWindows(AWindowList: array of const) : boolean;
-    procedure CheckNeedMorePSMaterials;
+    function CheckGoForMorePSMaterials : boolean;
     procedure Log(const s: string);
     procedure ArrivedAtForge(Sender: TObject; AParm: Cardinal);
     procedure ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
     procedure OpenMacroTradeSkillWindow;
+    procedure InventoryChangeComplete;
+    procedure VendorChangeComplete;
+    function IsAtForgeNode : boolean;
+    function IsAtMerchantNode : boolean;
   public
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
@@ -69,8 +75,8 @@ uses
 {$R *.dfm}
 
 const
-  TIMEOUT_AUTOSELL = 1;
-  TIMEOUT_AUTOBUY = 2;
+  TIMEOUT_INVENTORYCHANGECOMPLETE = 1;
+  TIMEOUT_VENDORCHANGECOMPLETE = 2;
 
 procedure TfrmMacroing.btnShowMapModesClick(Sender: TObject);
 begin
@@ -166,8 +172,8 @@ var
   iCnt: integer;
   pFirstItem:   TDAOCInventoryItem;
 begin
-  if FDControl.SelectedID = 0 then begin
-//    Log('InvChg: Timer popped with noone selected');
+  if not FAutoSell or (FDControl.SelectedID = 0) then begin
+    FInSellOff := false;
     exit;
   end;
 
@@ -198,24 +204,30 @@ begin
   end;
 
   FInSellOff := false;
-//  Log('InvChg: could not find N items');
-  CheckNeedMorePSMaterials;
 end;
 
 procedure TfrmMacroing.DoAutoBuy;
 var
   bWasAutoSell:   boolean;
-  pNearestNode:   TMapNode;
 begin
+  if not (frmPowerskill.Visible or frmSpellcraftHelp.Visible) then begin
+    FInAutoBuy := false;
+    FSellingBeforeBuying := false;
+    exit;
+  end;
+
+    { prevent reentrance }
+  if FInAutoBuy then
+    exit;
+
   bWasAutoSell := FAutoSell;
   FAutoSell := false;
+  FInAutoBuy := true;
 
   if frmPowerskill.Visible then begin
     frmPowerskill.ExecutePurchases;
 
-    pNearestNode := FDControl.NodeClosestToPlayerPos;
-    if frmPowerskill.KeepBuying and Assigned(pNearestNode) and
-      pNearestNode.IsNamed(FPSItemList.MerchantNodeName) then
+    if frmPowerskill.KeepBuying and IsAtMerchantNode then
       FDControl.PathToNodeName(FPSItemList.ForgeNodeName);
   end
 
@@ -223,6 +235,8 @@ begin
     frmSpellcraftHelp.ExecutePurchases;
 
   FAutoSell := bWasAutoSell;
+  FInAutoBuy := false;
+  FSellingBeforeBuying := false;
   Log('Purchase complete');
 end;
 
@@ -252,18 +266,21 @@ begin
         TForm(AWindowList[I].VObject).Close;
 end;
 
-procedure TfrmMacroing.CheckNeedMorePSMaterials;
-var
-  pNearestNode:   TMapNode;
+function TfrmMacroing.CheckGoForMorePSMaterials : boolean;
+{ Returns true if it is heading for more PSMaterials }
 begin
+  Result := false;
+
   if frmPowerskill.Visible then begin
-    pNearestNode := FDControl.NodeClosestToPlayerPos;
-    if not (Assigned(pNearestNode) and pNearestNode.IsNamed(FPSItemList.ForgeNodeName)) then
+      { If we have materials we don't need to go for more }
+    if frmPowerskill.HasMaterialsForItem then
       exit;
 
-    if not frmPowerskill.HasMaterialsForItem then
-      FDControl.PathToNodeName(FPSItemList.MerchantNodeName)
-  end;
+    if IsAtForgeNode then begin
+      FDControl.PathToNodeName(FPSItemList.MerchantNodeName);
+      Result := true;
+    end;
+  end;  { if frmPowerskill }
 end;
 
 
@@ -277,13 +294,8 @@ begin
   if not Visible then
     exit;
 
-  if not FAutoSell or (FDControl.SelectedID = 0) then begin
-    CheckNeedMorePSMaterials;
-    exit;
-  end;
-
-  tmrTimeoutDelay.Tag := TIMEOUT_AUTOSELL;
-  // Log('Setting timer to TIMEOUT_AUTOSELL');
+  // Log('Setting timer to TIMEOUT_INVENTORYCHANGECOMPLETE');
+  tmrTimeoutDelay.Tag := TIMEOUT_INVENTORYCHANGECOMPLETE;
   tmrTimeoutDelay.Enabled := false;
   tmrTimeoutDelay.Enabled := true;
 end;
@@ -293,21 +305,22 @@ begin
   tmrTimeoutDelay.Enabled := false;
 
   case tmrTimeoutDelay.Tag of
-    TIMEOUT_AUTOSELL:
-      DoAutoSell;
-    TIMEOUT_AUTOBUY:
-      DoAutoBuy;
+    TIMEOUT_INVENTORYCHANGECOMPLETE:
+      InventoryChangeComplete;
+    TIMEOUT_VENDORCHANGECOMPLETE:
+      VendorChangeComplete;
   end;
 end;
 
 procedure TfrmMacroing.DAOCVendorWindow;
 begin
-  if frmPowerskill.Visible or frmSpellcraftHelp.Visible then begin
-    // Log('Setting timer to TIMEOUT_AUTOBUY');
-    tmrTimeoutDelay.Tag := TIMEOUT_AUTOBUY;
-    tmrTimeoutDelay.Enabled := false;
-    tmrTimeoutDelay.Enabled := true;
-  end;
+  if not Visible then
+    exit;
+
+  // Log('Setting timer to TIMEOUT_VENDORCHANGECOMPLETE');
+  tmrTimeoutDelay.Tag := TIMEOUT_VENDORCHANGECOMPLETE;
+  tmrTimeoutDelay.Enabled := false;
+  tmrTimeoutDelay.Enabled := true;
 end;
 
 procedure TfrmMacroing.DAOCPathChanged;
@@ -331,19 +344,13 @@ begin
 end;
 
 procedure TfrmMacroing.DAOCArriveAtGotoDest;
-var
-  pNearestNode:   TMapNode;
 begin
   if frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
-    pNearestNode := FDControl.NodeClosestToPlayerPos;
-    if not Assigned(pNearestNode) then
-      exit;
-
-    if pNearestNode.IsNamed(FPSItemList.ForgeNodeName) then
+    if IsAtForgeNode then
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
       FDControl.ScheduleCallback(5000, ArrivedAtForge, 0);
 
-    if pNearestNode.IsNamed(FPSItemList.MerchantNodeName) then
+    if IsAtMerchantNode then
       FDControl.ScheduleCallback(5000, ArrivedAtMerchant, 0);
   end;
 end;
@@ -379,6 +386,54 @@ begin
     frmMacroTradeSkills.DAOCControl := FDControl;
     frmMacroTradeSkills.Show;
   end;
+end;
+
+function TfrmMacroing.IsAtForgeNode: boolean;
+var
+  pNearestNode:   TMapNode;
+begin
+  pNearestNode := FDControl.NodeClosestToPlayerPos;
+  Result := frmPowerskill.Visible and Assigned(pNearestNode) and
+    pNearestNode.IsNamed(FPSItemList.ForgeNodeName);
+end;
+
+function TfrmMacroing.IsAtMerchantNode: boolean;
+var
+  pNearestNode:   TMapNode;
+begin
+  pNearestNode := FDControl.NodeClosestToPlayerPos;
+  Result := frmPowerskill.Visible and Assigned(pNearestNode) and
+    pNearestNode.IsNamed(FPSItemList.MerchantNodeName);
+end;
+
+procedure TfrmMacroing.InventoryChangeComplete;
+begin
+    { most important thing is to start/complete the autosell if we have to.
+      This can occur at both the forge or the merchant }
+  DoAutoSell;
+
+  if not FInSellOff then
+      { if we're FSellingBeforeBuying, then we should already be there with the
+        merchant window open }
+    if FSellingBeforeBuying then
+      DoAutoBuy
+    else
+      CheckGoForMorePSMaterials;
+end;
+
+procedure TfrmMacroing.VendorChangeComplete;
+begin
+    { force a sell off before we start, selloff should reset to false
+      even if we don't have autosell on }
+  FInSellOff := true;
+  DoAutoSell;
+
+  if FInSellOff then
+      { set a flag to remind us to buy after autosell is complete }
+    FSellingBeforeBuying := true
+  else
+      { if autosell isn't going, then kick off the autobuy }
+    DoAutoBuy;
 end;
 
 end.
