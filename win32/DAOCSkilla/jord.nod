@@ -212,11 +212,12 @@
     WestStairsTop
     Building14
 "Building17",101,32553,32694,8305,357,75
-    Om1
+    OmPath
     Holsvi1
     Ereck1
     Om_Holsvi
     Building17Outside
+    Holsvi2
 "Building17Outside",101,32547,32962,8278,0,75
     Forge1
     ForgeWest
@@ -424,6 +425,8 @@
 "Holsvi1",101,32459,31231,8305,358,75
     Building17
     Om_Holsvi
+"Holsvi2",101,32641,32277,8305,329,75
+    Building17
 "Hrapp",101,29903,34814,8005,0,75
 "Hrapp1",101,29948,34816,8005,268,75
     MerchantAreaW
@@ -551,8 +554,11 @@
     Holsvi1
     Building17
 "Om1",101,32594,31671,8305,359,75
-    Building17
+    OmPath
     Om_Holsvi
+"OmPath",101,32522,32018,8305,174,75
+    Om1
+    Building17
 "Osten",101,28448,35409,8021,0,75
 "Osten1",101,28474,35357,8021,205,75
     Sven1
