@@ -34,11 +34,13 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure btnDumpMobsClick(Sender: TObject);
     procedure trackPlaySpeedChange(Sender: TObject);
+    procedure chkPCAPFileClick(Sender: TObject);
   private
     FCaptureStream:   TFileStream;
     FMobseenFile:   TFileStream;
     FInPlayback:    boolean;
     FDControl:      TDAOCConnection;
+    FPCAPFile:      boolean;
     
     function GetCaptureFile: string;
     procedure SetCaptureFile(const Value: string);
@@ -118,7 +120,7 @@ begin
     exit;
 
     { 8 header + 4 frame size gets us to caplen }
-  if chkPCAPFile.Checked then begin
+  if FPCAPFile then begin
     FCaptureStream.seek(8, soFromCurrent);
     FCaptureStream.Read(iCapLen, sizeof(iCapLen));
   end
@@ -278,6 +280,11 @@ end;
 procedure TfrmDebugging.trackPlaySpeedChange(Sender: TObject);
 begin
   tmrPlayback.Interval := trackPlaySpeed.Position;
+end;
+
+procedure TfrmDebugging.chkPCAPFileClick(Sender: TObject);
+begin
+  FPCAPFile := chkPCAPFile.Checked;
 end;
 
 end.

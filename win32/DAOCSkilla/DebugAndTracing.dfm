@@ -62,6 +62,7 @@ object frmDebugging: TfrmDebugging
     Height = 17
     Caption = 'Process as libpcap file'
     TabOrder = 2
+    OnClick = chkPCAPFileClick
   end
   object btnPlayTimer: TButton
     Left = 88
