@@ -5,6 +5,9 @@ Additions:
  + Added NEW objects for the object spawn type on the map..
    It's a Pyramid or square, depending on your map seetings.
 
+Additions (teerex):
+ + Added support for 0x05 TCP/UDP packet (self health update).
+
 Bug Fixes:
  + Fixed a bug that was causing object spawns to be marked
    as "stale" due to the fact that no position updates were
