@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
-  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent,
+  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent, 
   IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns
 {$IFDEF WINPCAP}
   ,PReader2
@@ -123,6 +123,7 @@ type
     procedure DAOCCharacterLogin(ASender: TObject);
     procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
     procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
+    procedure DAOCArriveAtGotoDest(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -340,6 +341,7 @@ begin
   FConnection.OnCharacterLogin := DAOCCharacterLogin;
   FConnection.OnUnknownStealther := DAOCUnknownStealther;
   FConnection.OnDelveItem := DAOCDelveItem;
+  FConnection.OnArriveAtGotoDest := DAOCArriveAtGotoDest;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
@@ -1112,6 +1114,11 @@ begin
   dmdRemoteAdmin.Enabled := true;
   Log('Remote control telnet server open on port ' +
     IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
+end;
+
+procedure TfrmMain.DAOCArriveAtGotoDest(ASender: TObject);
+begin
+  frmMacroing.DAOCArriveAtGotoDest;
 end;
 
 end.
