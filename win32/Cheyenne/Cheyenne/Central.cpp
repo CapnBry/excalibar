@@ -1650,8 +1650,354 @@ void Central::DestroyTextures(void)
     return;
 } // end DestroyTextures
 
+Central::ConTextureMapValueType::second_type Central::GetConTexture
+    (
+    const Actor& ThisActor,bool bSetColor
+    ) const
+{
+    switch(Actor::GetRelativeCon(IDToFollowLevel,ThisActor.GetLevel()))
+        {
+        case Actor::Gray:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    // return texture id
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    return(GetTexture(Central::alb_gray));
+                    break;
+
+                case Actor::Hibernia:
+                    // return texture id
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    return(GetTexture(Central::hib_gray));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_gray));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_gray));
+                    break;
+                }
+            break;
+
+        case Actor::Green:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_green));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_green));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_green));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_green));
+                    break;
+                }
+            break;
+
+        case Actor::Blue:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_blue));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_blue));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_blue));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_blue));
+                    break;
+                }
+            break;
+
+        case Actor::Yellow:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_yellow));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_yellow));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_yellow));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_yellow));
+                    break;
+                }
+            break;
+    
+        case Actor::Orange:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_orange));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_orange));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_orange));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_orange));
+                    break;
+                }
+            break;
+
+        case Actor::Red:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_red));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_red));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_red));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_red));
+                    break;
+                }
+            break;
+
+        case Actor::Purple:
+            switch(ThisActor.GetRealm())
+                {
+                case Actor::Albion:
+                    if(bSetColor)
+                        {
+                        glColor4f(1.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::alb_purple));
+                    break;
+
+                case Actor::Hibernia:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,1.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::hib_purple));
+                    break;
+
+                case Actor::Midgard:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,1.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mid_purple));
+                    break;
+
+                case Actor::MOB:
+                default:
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+                    // return texture id
+                    return(GetTexture(Central::mob_purple));
+                    break;
+                }
+            break;
+
+        default:
+            // return texture id
+                    if(bSetColor)
+                        {
+                        glColor4f(0.0f,0.0f,0.0f,1.0f);
+                        }
+            return(GetTexture(Central::generic_mob));
+            break;
+        } // end switch relative con
+    
+} // end GetConTexture
+
 void Central::RenderActor(const Actor& ThisActor)const
 {
+    // if this is the followed actor, save position for targeting
+    if(IDToFollow != 0)
+        {
+        if(ThisActor.GetInfoId() == IDToFollow)
+            {
+            // save followed position
+            FollowedTargetPair.SetThisActor(ThisActor);
+
+            if(ThisActor.GetTargetId() != 0)
+                {
+                // set to valid
+                FollowedTargetPair.SetValid(true);
+                }
+            else
+                {
+                // set to invalid
+                FollowedTargetPair.SetValid(false);
+                }
+            }
+        }
+    else
+        {
+        // set to invalid
+        FollowedTargetPair.SetValid(false);
+        }
+
+    // if this is the targeted actor, save position for targeting
+    if(ThisActor.GetInfoId() == FollowedTargetPair.GetThisActor().GetTargetId())
+        {
+        // this is the target, save position
+        FollowedTargetPair.SetTarget(ThisActor);
+        }
+
     if((Config.GetDrawDeadActors() == false) && (ThisActor.GetHealth() == 0))
         {
         // dead actor and drawig dead actors is disabled
@@ -1687,24 +2033,19 @@ void Central::RenderActor(const Actor& ThisActor)const
 
             glListBase(FontListBase);
 
-            //glCallLists(ThisActor.GetName().length(),GL_UNSIGNED_BYTE,ThisActor.GetName().c_str());
             DrawGLFontString(ThisActor.GetName());
 
             if(Config.GetSurnameInPPI())
                 {
                 // surname
-                //glCallLists(1,GL_UNSIGNED_BYTE," ");
                 DrawGLFontString(std::string(" "));
-                //glCallLists(ThisActor.GetSurname().length(),GL_UNSIGNED_BYTE,ThisActor.GetSurname().c_str());
                 DrawGLFontString(ThisActor.GetSurname());
                 }
 
             if(Config.GetGuildInPPI())
                 {
                 // guild
-                //glCallLists(1,GL_UNSIGNED_BYTE," ");
                 DrawGLFontString(std::string(" "));
-                //glCallLists(ThisActor.GetGuild().length(),GL_UNSIGNED_BYTE,ThisActor.GetGuild().c_str());
                 DrawGLFontString(ThisActor.GetGuild());
                 }
 
@@ -1713,7 +2054,6 @@ void Central::RenderActor(const Actor& ThisActor)const
                 // level
                 char level[8];
                 sprintf(level," %u",unsigned int(ThisActor.GetLevel()));
-                //glCallLists(strlen(level),GL_UNSIGNED_BYTE,level);
                 DrawGLFontString(std::string(level));
                 }
 
@@ -1722,7 +2062,6 @@ void Central::RenderActor(const Actor& ThisActor)const
                 // health
                 char health[8];
                 sprintf(health," %u%%",unsigned int(ThisActor.GetHealth()));
-                //glCallLists(strlen(health),GL_UNSIGNED_BYTE,health);
                 DrawGLFontString(std::string(health));
                 }
             } // end if draw text in PPI
@@ -1943,6 +2282,43 @@ void Central::DrawPPI(void)
         {
         // do not update actors when they are rendered
         db.IterateActors(ActorRenderFunctor(*this));
+        }
+
+    // draw targeting info
+    if(FollowedTargetPair.GetValid())
+        {
+        // the pair is valid, draw it
+        // store position with display offsets
+        Motion Position1;
+        Motion Position2;
+        GetRenderPosition(FollowedTargetPair.GetThisActor(),Position1);
+        GetRenderPosition(FollowedTargetPair.GetTarget(),Position2);
+
+        // set to cyan
+        glColor4f(0.0f,1.0f,1.0f,1.0f);
+        // radius for target is (ActorVertexX + ActorVertexY)/2 + 25;
+        const float radius=25.0f+(0.5f*(ActorVertexX + ActorVertexY));
+
+        // move to Position1 and draw a circle
+        glPushMatrix();
+        glTranslatef(Position1.GetXPos(),Position1.GetYPos(),0.0f);
+        DrawCircle(radius);
+        glPopMatrix();
+
+        // move to Position2 and draw a circle
+        glPushMatrix();
+        glTranslatef(Position2.GetXPos(),Position2.GetYPos(),0.0f);
+        DrawCircle(radius);
+        glPopMatrix();
+
+        // draw a line connecting them
+        // for now, this is a simple line. it should
+        // stop at the circle edge instead of the actor
+        // positions ;)
+        glBegin(GL_LINES);
+        glVertex3f(Position1.GetXPos(),Position1.GetYPos(),0.0f);
+        glVertex3f(Position2.GetXPos(),Position2.GetYPos(),0.0f);
+        glEnd();
         }
 
     glPopMatrix();

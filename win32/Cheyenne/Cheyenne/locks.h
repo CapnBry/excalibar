@@ -87,6 +87,28 @@ private:
     HANDLE hMutex;
 }; // end class MutexLock
 
+class NoLock : public Lock
+{
+public:
+    NoLock(){};
+    NoLock(const NoLock& s){};
+    virtual ~NoLock(){};
+
+    virtual bool lock(unsigned int timeout_ms=1000)
+    {
+    return(true);
+    } // end lock
+
+    virtual bool unlock(void)
+    {
+        return(true);
+    } // end unlock
+
+
+protected:
+private:
+}; // end class NoLock
+
 class CriticalSectionLock : public Lock
 {
 public:

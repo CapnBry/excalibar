@@ -1202,7 +1202,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             Actor& ThisActor=*pa;
 
             // make sure its a player
-
             if(!ThisActor.IsType(Actor::Player))
                 {
                 Logger << "[Database::HandleSniffedMessage] got target for non-player " << ThisActor.GetId() << "\n";
@@ -1210,16 +1209,11 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 }
 
             // set actor's target (this is done by INFOID!!)
-
             ThisActor.SetTargetId(p->target_id);
 
-            //ThisActor.Print(os);
-            //os << '\0'; // put null terminator in its place
-            //Logger << "set_hp: " << os.str().c_str() << "\n";
-            /*
             Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
                    << "target=" << p->target_id << "\n";
-            */
+            
             }
             break;
 

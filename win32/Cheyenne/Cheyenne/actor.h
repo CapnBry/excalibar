@@ -277,6 +277,7 @@ public:
         return;
     }
 
+    typedef unsigned int id_type;
 protected:
 
 private:
@@ -301,9 +302,9 @@ private:
     DECL_MEMBER(unsigned char,Health);
     DECL_MEMBER(unsigned char,Level);
     DECL_MEMBER(unsigned char,Realm);
-    DECL_MEMBER(unsigned int,Id);
-    DECL_MEMBER(unsigned int,InfoId);
-    DECL_MEMBER(unsigned int,TargetId);
+    DECL_MEMBER(id_type,Id);
+    DECL_MEMBER(id_type,InfoId);
+    DECL_MEMBER(id_type,TargetId);
     DECL_MEMBER(std::string,Name);
     DECL_MEMBER(std::string,Guild);
     DECL_MEMBER(std::string,Surname);

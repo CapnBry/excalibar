@@ -36,8 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "database.h"
 #include "VectorMapLoader.h"
 
-// predefine this
-
 class Central
 {
 friend class ActorRenderFunctor;
@@ -124,6 +122,38 @@ public:
     typedef ConTextureMapType::iterator ConTextureMapIteratorType;
     typedef ConTextureMapType::const_iterator ConTextureMapConstIteratorType;
     typedef ConTextureMapType::value_type ConTextureMapValueType;
+
+    class TargetPair
+    {
+    public:
+        TargetPair()
+        {
+            SetValid(false);
+        };
+        TargetPair(const TargetPair& s){set(s);};
+        ~TargetPair(){};
+        TargetPair& operator=(const TargetPair& s)
+        {
+            if(this != &s)
+                {
+                set(s);
+                }
+            return(*this);
+        }
+    
+    protected:
+    private:
+        void set(const TargetPair& s)
+        {
+        MEMBER_ASSIGN(ThisActor);
+        MEMBER_ASSIGN(Target);
+        MEMBER_ASSIGN(Valid);
+        }
+
+        DECL_MEMBER(Actor,ThisActor);
+        DECL_MEMBER(Actor,Target);
+        DECL_MEMBER(bool,Valid);
+    }; // end class TargetPair
 
 protected:
 
@@ -224,325 +254,11 @@ private:
     {
         ConTextureMapConstIteratorType it=ConTextureMap.find(con);
 
-        if(it != ConTextureMap.end())
-            {
-            return(it->second);
-            }
-        else
-            {
-            return(0);
-            }
+        return((it != ConTextureMap.end()) ? it->second : 0);
     };
 
-    inline ConTextureMapValueType::second_type GetConTexture(const Actor& ThisActor,bool bSetColor=false) const
-    {
-        switch(Actor::GetRelativeCon(IDToFollowLevel,ThisActor.GetLevel()))
-            {
-            case Actor::Gray:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        // return texture id
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        return(GetTexture(Central::alb_gray));
-                        break;
-
-                    case Actor::Hibernia:
-                        // return texture id
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        return(GetTexture(Central::hib_gray));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_gray));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_gray));
-                        break;
-                    }
-                break;
-
-            case Actor::Green:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_green));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_green));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_green));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_green));
-                        break;
-                    }
-                break;
-
-            case Actor::Blue:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_blue));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_blue));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_blue));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_blue));
-                        break;
-                    }
-                break;
-
-            case Actor::Yellow:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_yellow));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_yellow));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_yellow));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_yellow));
-                        break;
-                    }
-                break;
-        
-            case Actor::Orange:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_orange));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_orange));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_orange));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_orange));
-                        break;
-                    }
-                break;
-
-            case Actor::Red:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_red));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_red));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_red));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_red));
-                        break;
-                    }
-                break;
-
-            case Actor::Purple:
-                switch(ThisActor.GetRealm())
-                    {
-                    case Actor::Albion:
-                        if(bSetColor)
-                            {
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::alb_purple));
-                        break;
-
-                    case Actor::Hibernia:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::hib_purple));
-                        break;
-
-                    case Actor::Midgard:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mid_purple));
-                        break;
-
-                    case Actor::MOB:
-                    default:
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                        // return texture id
-                        return(GetTexture(Central::mob_purple));
-                        break;
-                    }
-                break;
-
-            default:
-                // return texture id
-                        if(bSetColor)
-                            {
-                            glColor4f(0.0f,0.0f,0.0f,1.0f);
-                            }
-                return(GetTexture(Central::generic_mob));
-                break;
-            } // end switch relative con
-        
-    } // end GetConTexture
+    ConTextureMapValueType::second_type GetConTexture(const Actor& ThisActor,bool bSetColor=false) const;
+    
     tsfifo<CheyenneMessage*> MessageInputFifo;
 
     Sniffer sniffer;
@@ -580,6 +296,12 @@ private:
     mutable unsigned char IDToFollowRealm;// this can be modified from DrawDataWindow() -- which
                                           // is "conceptually const", but needs to change this
                                           // variable
+
+    mutable TargetPair FollowedTargetPair; // followed actor position, followed actor's target position
+                                          // this can be modified from RenderActor() -- which
+                                          // is "conceptually const", but needs to change this
+                                          // variable
+
     float FollowedActorHeadingDegrees;
 
     ZoneTextureMapType ZoneTextureMap;

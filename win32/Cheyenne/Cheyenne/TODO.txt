@@ -1,9 +1,10 @@
 Cheyenne TODO list:
 
-- Speed up text rendering
-
 - Fix database issue when an infoid mapping is sometimes "lost". The total number of players should
 *always* be the number of infoid mappings minus 1 (locally generated players will not have mappings).
+
+- Fix database issue where the "local" player is lost or reassigned a different ID. This is a 
+very tough one :(
 
 - Test out sniffing multiple connections from the same instance of Cheyenne
 
@@ -18,5 +19,5 @@ render context, so that will still have to be done in the GUI thread.
 
 - Fix vector map loader: Tir Na Nog map file does not load, and the loader intentionally omits this one.
 
-- Fix text display for vector maps being the wrong color
  
+- Speed up text rendering
