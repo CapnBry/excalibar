@@ -44,6 +44,7 @@ type
     procedure CloseChatLog;
     procedure LogLocalPlayerXI(AConn: TDAOCConnection);
     procedure SetChatLogFileName(const Value: string);
+    procedure SetChatLogEnabled(const Value: boolean);
   public
     destructor Destroy; override;
 
@@ -56,7 +57,7 @@ type
 
     procedure DumpMobsToLog(AConn: TDAOCConnection);
 
-    property ChatLogEnabled: boolean read FChatLogEnabled write FChatLogEnabled;
+    property ChatLogEnabled: boolean read FChatLogEnabled write SetChatLogEnabled;
     property ChatLogFileName: string read FChatLogFileName write SetChatLogFileName;
     property ChatLogXIEnabled: boolean read FChatLogXIEnabled write FChatLogXIEnabled;
     property RecordMobseen: boolean read FRecordMobseen write SetRecordMobseen;
@@ -261,6 +262,14 @@ begin
     ChatLogXI(AConn, Format(
       'Local Player: "%s" Level: %d Health: %d%% Endurance: %d%% Mana: %d%%',
       [Name, Level, HitPoints, EndurancePct, ManaPct]));
+end;
+
+procedure TDebugLoggingState.SetChatLogEnabled(const Value: boolean);
+begin
+  FChatLogEnabled := Value;
+  if not FChatLogEnabled then
+    CloseChatLog;
+  { open is handled when the first line comes across }
 end;
 
 procedure TDebugLoggingState.SetChatLogFileName(const Value: string);
