@@ -10,7 +10,7 @@ procedure sincos_quick(a: integer; var s, c: single);
 implementation
 
 const
-  TRIG_TABLE_SIZE = 16;
+  TRIG_TABLE_SIZE = 128;
   TRIG_TABLE_LERP: single = (TRIG_TABLE_SIZE / 180.0);
 
 var
