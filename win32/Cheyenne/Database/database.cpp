@@ -1040,7 +1040,7 @@ const CheyenneTime Database::GetMaxAge
     switch(type)
         {
         case Actor::Player:
-            return CheyenneTime(60.0); // 1 minute
+            return CheyenneTime(300.0); // 5 minutes
         case Actor::Mob:
             return CheyenneTime(600.0); // 10 minutes
         default: // objects
