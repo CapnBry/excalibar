@@ -102,6 +102,7 @@ type
     procedure HandleSelectNPC(AConn: TClientConn; const ACmd: string);
     procedure HandleSendkeys(AConn: TClientConn; const ACmd: string);
     procedure HandleAttemptNPCRightClick(AConn: TClientConn; const ACmd: string);
+    procedure HandleTest(AConn: TClientConn; const ACmd: string);
   public
     property DAOCControl: TDAOCControl read FDControl write FDControl;
     property Enabled: boolean read GetEnabled write SetEnabled;
@@ -295,6 +296,7 @@ begin
     '(keys) Do a SendKeys call to the DAOC client.  Extended key syntax is available if the DAOC window has focus.');
   AddAction('AttemptNPCRightClick', HandleAttemptNPCRightClick,
     'Attempt to right click the NPC in the middle of the screen.');
+  AddAction('Test', HandleTest, 'Run test procedure (does nothing useful).');
 end;
 
 procedure TdmdRemoteAdmin.AddAction(const AKey: string;
@@ -1049,6 +1051,16 @@ begin
   try
     FDControl.AttemptNPCRightClick;
     AConn.WriteLn('200 Attempting NPC right click.');
+  except
+    on e: Exception do
+      AConn.WriteLn('500 ' + e.Message);
+  end;
+end;
+
+procedure TdmdRemoteAdmin.HandleTest(AConn: TClientConn; const ACmd: string);
+begin
+  try
+    AConn.WriteLn('200 Running test procedure.');
   except
     on e: Exception do
       AConn.WriteLn('500 ' + e.Message);
