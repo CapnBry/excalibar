@@ -174,17 +174,21 @@ end;
 function TDAOCConnectionList.NewDAOCConnection(ASource: TObject;
   AConnectionID, AServerIP, AClientIP: Cardinal) : TDAOCConnection;
 begin
-  Result := NewDAOCConnectionNeeded;
-  DoSetupConnectionEventsAndProperties(Result);
-  FList.Add(Result);
-
-//  TReintroduceDAOCConnection(Result).LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
+    { make sure this connection is not a fake reconnect-- reuse
+      an existing connection if we have a match }
+  Result := FindConnection(ASource, AConnectionID);
+  if not Assigned(Result) then begin
+    Result := NewDAOCConnectionNeeded;
+    DoSetupConnectionEventsAndProperties(Result);
+    FList.Add(Result);
+  end
+  else
+    Result.Clear;
 
   Result.Source := ASource;
   Result.ConnectionID := AConnectionID;
   Result.ServerAddr := AServerIP;
   Result.ClientAddr := AClientIP;
-  Result.PacketHandlerDefFile := ExtractFilePath(ParamStr(0)) + 'packethandlers.ini';
   Result.InitPacketHandlers;
 
   TReintroduceDAOCConnection(Result).DoOnConnect;
