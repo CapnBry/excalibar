@@ -131,6 +131,6 @@ void exMessage::parseMsg()
 				this->MsgType.ascii(), 
 				this->FormattedText.ascii());
 	else
-		printf("[%s : 0x%2x] %s\n", "Unknown", this->MsgIdNum, this->Msg.ascii());
+		printf("[%s : 0x%02x] %s\n", "Unknown", this->MsgIdNum, this->Msg.ascii());
 
 }
