@@ -69,7 +69,7 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
    if we see anything that's further out than our stale range,
    increase the stale range to encompass this object
    */
-  if (_lastdist > max_stale_range)
+  if (lastdist > max_stale_range)
       max_stale_range = lastdist;
 }
 
