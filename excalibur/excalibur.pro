@@ -45,4 +45,4 @@ LANGUAGE	= C++
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3 -mcpu=pentiumpro -march=pentiumpro \
-  -fomit-frame-pointer -funroll-loops -malign-double 
+  -fomit-frame-pointer -funroll-loops -ffast-math
