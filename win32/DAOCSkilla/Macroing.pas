@@ -63,9 +63,10 @@ type
     function IsAtForgeNode : boolean;
     function IsAtMerchantNode : boolean;
     function NoMerchantNode : boolean;
-    function NoForgeNode : boolean;
     function GetTrinketList: string;
     procedure SetTrinketList(const Value: string);
+  protected
+    function NoForgeNode : boolean;
   public
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
