@@ -147,6 +147,8 @@ public:
     virtual ~DStreamConnection();
     
     bool IsConnected(void)const{return(!(GetSocket()==INVALID_SOCKET));};
+    std::string GetStatusString(void)const{return(IsConnected()?"connected":"disconnected");};
+    sniff_map_type::size_type GetNumConnections(void)const{return(SniffMap.size());};
     
     bool Open(const std::string& remote_addr,const std::string& remote_port);
     // this one takes "C" arguments to make it simple :/

@@ -40,6 +40,8 @@ DStreamConnection::DStreamConnection()
     // init to invalid
     SetSocket(INVALID_SOCKET);
     bHeloValidated=false;
+    ZeroMemory(&ModifyLocalAddr(),sizeof(SOCKADDR_IN));
+    ZeroMemory(&ModifyRemoteAddr(),sizeof(SOCKADDR_IN));
     
     // create
     ReadBuf=new unsigned char[TempBufferSize];
