@@ -1,0 +1,82 @@
+
+Q: There's no window popping up when I start EX?
+
+A: You didn't read the INSTALL file.
+
+==========
+
+Q: Where are the map files?
+
+A: If you run `cvs update' from your Excalibur CVSROOT, it will automatically
+   download all the latest maps.
+
+   Alternately, you can go directly to the homepage for vectorized DAOC maps,
+   Mapfiend's excellent site at http://www.k-r-g.com/mapfiend
+
+==========
+
+Q: There's something about "no such device"?
+
+A: Update your PCAP library. It needs to handle cooked mode, and it has to
+   support the "any" device.
+
+==========
+
+Q: "No Direct Render - This will be SLOW", but I have a Nvidia GeForce!
+
+A: To get accelerated GL support, you need to install the necesarry GL
+   drivers. For Nvidia cards, these can be found at http://www.nvidia.com
+   (duh!)
+
+   For most other cards, you can use DRI (http://dri.sourceforge.net),
+   which hopefully is included in your distribution.
+
+   Note that accelerated OpenGL is by no means necesarry.
+
+==========
+
+Q: "The QT compile crashes at various points during the compile"?
+
+A: If the error is nonrepeatable (that is, if you type "make" again it just
+   magically works), you have hardware problems. Overclocked processors,
+   cheap RAM, lousy chipsets all contribute to this.
+
+==========
+
+Q: What's bugreport.sh?
+
+A: A tool for me to generate proper bug reports from core files. Don't use it
+   unless you've been asked to.
+
+==========
+
+Q: Tesselation failed with <bla bla>
+
+A: You have a broken GLU library. The application will still work flawlessly,
+   but some polygons will not be filled correctly. As long as you're not a map
+   designer, this will not bother you.
+
+   If you ARE a map designer, please take care not to create self-intersecting
+   polygons as that causes these kinds of problems for many users.
+
+==========
+
+Q: What's these gluTessBeginPolygon errors?
+
+A: You have a recent version of the include file GL/GLU.h, but your library
+   doesn't match it, so the program tries to link to the newstyle GLU functions,
+   but they're not there. Please fix your GLU library.
+
+==========
+
+Q: The map editor complains that it needs Java 1.3, which I installed!
+
+A: Yes, you did, but that's not the one you're running..
+
+   Chances are there's some system-default java engine being run instead of
+   your newly installed one. This can usually be fixed by using the full path
+   to java, for example
+
+    /usr/java/j2sdk1.4.0/bin/java -jar editor.jar
+
+
