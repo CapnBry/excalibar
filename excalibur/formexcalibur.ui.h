@@ -152,6 +152,5 @@ void FormExcalibur::MobFilter_returnPressed()
 
 void FormExcalibur::showMsgs( )
 {
-	printf( "In here\n");
     Map->c->msgui->show( );
 }
