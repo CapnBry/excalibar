@@ -5,10 +5,21 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
-  StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, GLUT, RenderPrefs,
-  DAOCClasses, QuickSinCos, MMSystem, BackgroundHTTP;
+  StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs,
+  DAOCClasses, QuickSinCos, MMSystem, BackgroundHTTP, TexFont, GLUT;
 
 type
+  { A simple list box that you can prevent drawing } 
+  TLockableListBox = class(TListBox)
+  private
+    FLocked: boolean;
+  protected
+    procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+  public
+    property Locked: boolean read FLocked write FLocked;
+  end;
+
   TfrmGLRender = class(TForm)
     glMap: TglWindow;
     slideZoom: TTrackBar;
@@ -16,7 +27,6 @@ type
     pnlMap: TPanel;
     pnlLeft: TPanel;
     lblObjCounts: TLabel;
-    lstObjects: TListBox;
     pnlGridHeader: TPanel;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
@@ -74,6 +84,9 @@ type
     FMouseLocX:   DWORD;
     FMouseLocY:   DWORD;
     FHTTPFetch:   TBackgroundHTTPManager;
+    FTxfH10:      TTexFont;
+    FTxfH12:      TTexFont;
+    lstObjects:   TLockableListBox;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -118,6 +131,9 @@ type
     procedure MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
     function CompareObjectClasses(A, B: TDAOCObjectClass): integer;
     procedure UpdateMapURLs;
+    function WriteTXFTextH10(X, Y: integer; const s: string) : integer;
+    function WriteTXFTextH12(X, Y: integer; const s: string) : integer;
+    procedure CreateObjectListBox;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -356,7 +372,7 @@ var
 begin
   err := glGetError();
   if err <> GL_NO_ERROR then
-    Log(string(gluErrorString(err)));
+    Log(string(PChar(gluErrorString(err))));
 end;
 
 procedure TfrmGLRender.DrawMapRulers;
@@ -428,24 +444,27 @@ var
 begin
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     iPos := FilteredObjectInsert(AObj);
+
+    UpdateObjectCounts;
+    lstObjects.Locked := true;
+
     iOldIndex := lstObjects.ItemIndex;
     iOldTop := lstObjects.TopIndex;
-
     SetObjectListRowCount(FFilteredObjects.Count);
 
       { if we inserted an object before the selected index, update the
         selected index to keep it the same }
     if iPos <= iOldIndex then
-      lstObjects.ItemIndex := iOldIndex + 1
+      SendMessage(lstObjects.Handle, LB_SETCURSEL, iOldIndex + 1, 0)
     else if iOldIndex <> -1 then
-      lstObjects.ItemIndex := iOldIndex;
+      SendMessage(lstObjects.Handle, LB_SETCURSEL, iOldIndex, 0);
 
     if iPos <= iOldTop then
-      lstObjects.TopIndex := iOldTop + 1
+      SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop + 1, 0)
     else
-      lstObjects.TopIndex := iOldTop;
+      SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
-    UpdateObjectCounts;
+    lstObjects.Locked := false;
 
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
@@ -454,12 +473,10 @@ begin
       (AObj.ObjectClass = ocPlayer) and
       (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive then
       if GlobalTickCount - FLastInvaderWarningTicks >= FRenderPrefs.InvaderWarnMinTicks then begin
-//        Log('Invader: ' + AObj.Name);
+        // Log('Invader: ' + AObj.Name);
         PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
         FLastInvaderWarningTicks := GlobalTickCount;
-      end
-//      else
-//        Log('Not playing invader sound.  ' + IntToStr(GlobalTickCount - FLastInvaderWarningTicks));
+      end;
   end;  { if onject in filter }
 end;
 
@@ -477,19 +494,22 @@ begin
     end;
 
     UpdateObjectCounts;
+    lstObjects.Locked := true;
 
     iOldPos := lstObjects.ItemIndex;
     iOldTop := lstObjects.TopIndex;
     SetObjectListRowCount(FFilteredObjects.Count);
     if iPos <= iOldPos then
-      lstObjects.ItemIndex := iOldPos - 1
+      SendMessage(lstObjects.Handle, LB_SETCURSEL, iOldPos - 1, 0)
     else
-      lstObjects.ItemIndex := iOldPos;
+      SendMessage(lstObjects.Handle, LB_SETCURSEL, iOldPos, 0);
 
     if (iPos <= iOldTop) and (iOldTop > 0) then
-      lstObjects.TopIndex := iOldTop - 1
+      SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop - 1, 0)
     else if iOldTop < lstObjects.Items.Count then
-      lstObjects.TopIndex := iOldTop;
+      SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
+
+    lstObjects.Locked := false;
 
     if FRenderPrefs.RedrawOnDelete then
       Dirty;
@@ -498,7 +518,8 @@ end;
 
 procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
 begin
-  InvalidateListObject(AObj);
+  if AObj.HitPoints <> AObj.HitPointsLast then
+    InvalidateListObject(AObj);
     { RefreshFilteredList calls Dirty for us }
   if FRenderPrefs.MobListSortOrder = msoDistance then
     RefreshFilteredList
@@ -573,7 +594,7 @@ begin
 
       DrawAIDestination(pObj, clMob);
 
-      glPushMatrix();
+//      glPushMatrix();
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
@@ -588,14 +609,17 @@ begin
         glColor3ubv(@clMob);
       FMobTriangle.GLRender(FRenderBounds);
 
-      glPopMatrix();
+      glRotatef(-pObj.Head, 0, 0, 1);
+      glTranslatef(-pMovingObj.XProjected, -pMovingObj.YProjected, 0);
+//      glPopMatrix();
     end  { if a class to draw }
 
     else if pObj.ObjectClass = ocObject then begin
-      glPushMatrix();
+//      glPushMatrix();
       glTranslatef(pObj.X, pObj.Y, 0);
       FObjectTriangle.GLRender(FRenderBounds);
-      glPopMatrix();
+      glTranslatef(-pObj.X, -pObj.Y, 0);
+//      glPopMatrix();
     end
 
     else if pObj.ObjectClass = ocVehicle then begin
@@ -617,6 +641,11 @@ end;
 procedure TfrmGLRender.FormCreate(Sender: TObject);
 begin
   FRangeCircles := TRangeCircleList.Create;
+
+  FTxfH10 := TTexFont.Create;
+  FTxfH10.LoadFont('helvetica10.txf');
+  FTxfH12 := TTexFont.Create;
+  FTxfH12.LoadFont('helvetica12.txf');
 
   FHTTPFetch := TBackgroundHTTPManager.Create;
   FMapElementsListList := TVectorMapElementListList.Create;
@@ -643,11 +672,12 @@ begin
     Log('OpenGL 1.3:  NOT FOUND');
 
   if FRenderPrefs.HasGLUT then
-    Log('OpenGL GLUT:  Available')
+    Log('GLUT:  Available')
   else
-    Log('OpenGL GLUT:  NOT FOUND');
+    Log('GLUT:  NOT FOUND');
 
   UpdateObjectCounts;
+  CreateObjectListBox;
 end;
 
 procedure TfrmGLRender.FormDestroy(Sender: TObject);
@@ -664,6 +694,10 @@ begin
   FRenderPrefs.Free;
   FHTTPFetch.Shutdown;
   FHTTPFetch.Free;
+  FTxfH12.UnloadFont;
+  FTxfH12.Free;
+  FTxfH10.UnloadFont;
+  FTxfH10.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -676,6 +710,8 @@ begin
   FGroundTarget.GLCleanup;
   FVisibleRangeRep.GLCleanup;
   FBoat.GLCleanup;
+  FTxfH10.CleanupTexture;
+  FTxfH12.CleanupTexture;
 
   FGLInitsCalled := false;
 end;
@@ -692,6 +728,8 @@ begin
   FVisibleRangeRep.GLInitialize;
   FBoat.GLInitialize;
 
+  FTxfH10.EstablishTexture;
+  FTxfH12.EstablishTexture;
   CheckGLError;
 end;
 
@@ -811,10 +849,10 @@ var
     with TDAOCMovingObject(pMob) do begin
         { white background for the name }
       glColor3f(0.4, 0.4, 0.4);
-      WriteGLUTTextH12(4+1, rastery-1, AName);
+      WriteTXFTextH12(4+1, rastery-1, AName);
         { con color for name }
       SetGLColorFromTColor(GetConColor(FDControl.LocalPlayer.Level), 1);
-      rastery := WriteGLUTTextH12(4, rastery, AName);
+      rastery := WriteTXFTextH12(4, rastery, AName);
     end;
   end;
 
@@ -831,7 +869,7 @@ var
           s := s + ' (dead)'
         else
           s := s + ' (' + IntToStr(HitPoints) + '%)';
-      rastery := WriteGLUTTextH12(4, rastery, s);
+      rastery := WriteTXFTextH12(4, rastery, s);
     end;
   end;
 
@@ -850,11 +888,12 @@ begin
 
   ShadedRect(1, rastery, 146, rastery - 57);
 
+  glEnable(GL_TEXTURE_2D);
   case pMob.ObjectClass of
     ocObject:
       begin
         glColor3f(0.9, 0.9, 0.9);
-        rastery := WriteGLUTTextH12(4, rastery, pMob.Name);
+        rastery := WriteTXFTextH12(4, rastery, pMob.Name);
         glColor4fv(@TEXT_COLOR);
       end;
 
@@ -863,7 +902,7 @@ begin
         WriteMobNameCon(Name);
         glColor4fv(@TEXT_COLOR);
         if TypeTag <> '' then
-          rastery := WriteGLUTTextH12(4, rastery, TypeTag);
+          rastery := WriteTXFTextH12(4, rastery, TypeTag);
         WriteMobLevelHealth;
       end;  { ocMob }
 
@@ -872,7 +911,7 @@ begin
         WriteMobNameCon(FullName);
         glColor4fv(@TEXT_COLOR);
         if Guild <> '' then
-          rastery := WriteGLUTTextH12(4, rastery, '<' + Guild + '>');
+          rastery := WriteTXFTextH12(4, rastery, '<' + Guild + '>');
         WriteMobLevelHealth;
       end;  { ocPlayer }
 
@@ -888,7 +927,9 @@ begin
   s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer));
   if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).Speed <> 0) then
     s := s + '  Speed: ' + TDAOCMovingObject(pMob).SpeedString;
-  rastery := WriteGLUTTextH12(4, rastery, s);
+  rastery := WriteTXFTextH12(4, rastery, s);
+
+  glDisable(GL_TEXTURE_2D);
 end;
 
 procedure TfrmGLRender.SetupRadarProjectionMatrix;
@@ -1187,8 +1228,8 @@ end;
 function TfrmGLRender.SetObjectListRowCount(ACount: integer) : boolean;
 { Returns true if the number of items has changed }
 begin
-  if lstObjects.Count <> FFilteredObjects.Count then begin
-    lstObjects.Count := FFilteredObjects.Count;
+  if lstObjects.Count <> ACount then begin
+    lstObjects.Count := ACount;
     Result := true;
   end
   else
@@ -1307,8 +1348,10 @@ begin
 
   if FFrameStats <> '' then begin
     glDisable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
     glColor3f(1, 1, 0);
-    WriteGLUTTextH10(3, 15, FFrameStats);
+    WriteTXFTextH10(3, 15, FFrameStats);
+    glDisable(GL_TEXTURE_2D);
   end;
 end;
 
@@ -1409,15 +1452,18 @@ begin
   ShadedRect(rasterx, rastery, rasterx + 124, rastery - 43);
   inc(rasterx, 2);
 
+  glEnable(GL_TEXTURE_2D);
   glColor4f(1, 1, 1, 1);
   with FDControl do begin
     if FZoneName <> '' then
-      rastery := WriteGLUTTextH10(rasterx, rastery, FZoneName);
+      rastery := WriteTXFTextH10(rasterx, rastery, FZoneName);
     s := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
-    rastery := WriteGLUTTextH10(rasterx, rastery, s);
+    rastery := WriteTXFTextH10(rasterx, rastery, s);
     s := 'Heading ' + IntToStr(PlayerZoneHead) + ' Speed ' + LocalPlayer.SpeedString;
-    WriteGLUTTextH10(rasterx, rastery, s);
+    WriteTXFTextH10(rasterx, rastery, s);
   end;
+
+  glDisable(GL_TEXTURE_2D);
 end;
 
 procedure TfrmGLRender.DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
@@ -1546,8 +1592,7 @@ var
   ZoneY:    DWORD;
   pNearest: TDAOCObject;
 begin
-  if (GetAsyncKeyState(VK_CONTROL) = 0) or not FRenderPrefs.HasGLUT or
-    not Assigned(FDControl.Zone) then
+  if (GetAsyncKeyState(VK_CONTROL) = 0) or not Assigned(FDControl.Zone) then
     exit;
 
     { distance from here to the mouse }
@@ -1582,9 +1627,11 @@ begin
 
   ptMouse.X := ptMouse.X + 1;
   ptMouse.Y := ptMouse.Y + 2;
+  glEnable(GL_TEXTURE_2D);
   if Assigned(pNearest) then
-    ptMouse.Y := WriteGLUTTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
-  WriteGLUTTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
+    ptMouse.Y := WriteTXFTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
+  WriteTXFTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
+  glDisable(GL_TEXTURE_2D);
 end;
 
 procedure TfrmGLRender.MobListMouseDown(Sender: TObject;
@@ -1707,6 +1754,44 @@ begin
     's=' + FDControl.ServerIP + '&';
   FMapElementsListList.MapBaseURL := FRenderPrefs.MapBaseURL +
     's=' + FDControl.ServerIP + '&';
+end;
+
+function TfrmGLRender.WriteTXFTextH10(X, Y: integer; const s: string): integer;
+begin
+  Result := Y - 13;
+  FTxfH10.RenderStringXYBind(X, Result, s);
+end;
+
+function TfrmGLRender.WriteTXFTextH12(X, Y: integer; const s: string): integer;
+begin
+  Result := Y - 13;
+  FTxfH12.RenderStringXYBind(X, Result, s);
+end;
+
+procedure TfrmGLRender.CreateObjectListBox;
+begin
+  lstObjects := TLockableListBox.Create(Self);
+  lstObjects.Parent := pnlLeft;
+  lstObjects.Align := alClient;
+  lstObjects.Style := lbVirtualOwnerDraw;
+  lstObjects.BorderStyle := bsNone;
+  lstObjects.Ctl3D := false;
+  lstObjects.ItemHeight := 16;
+  lstObjects.OnDrawItem := lstObjectsDrawItem;
+  lstObjects.OnMouseDown := MobListMouseDown;
+end;
+
+{ TLockableListBox }
+
+procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
+begin
+  Message.Result := 1;
+end;
+
+procedure TLockableListBox.WMPaint(var Message: TWMPaint);
+begin
+  if not FLocked then
+    inherited;
 end;
 
 end.

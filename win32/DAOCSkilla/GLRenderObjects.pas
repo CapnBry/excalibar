@@ -3,8 +3,8 @@ unit GLRenderObjects;
 interface
 
 uses
-  Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, GLUT,
-  DDSImage, Intersections, QuickSinCos, INIFiles;
+  Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, 
+  DDSImage, Intersections, QuickSinCos, INIFiles, GLUT;
 
 type
   TGLRenderObject = class(TObject)
@@ -578,7 +578,7 @@ begin
     glVertex3i(X, Y, 0);  // Z
   glEnd();
 
-  WriteGLUTTextH10(X + 50, Y + 20, FName);
+  WriteGLUTTextH10(X + 50, Y + 20, FName)
 end;
 
 { TMapElementLine }

@@ -106,22 +106,6 @@ object frmGLRender: TfrmGLRender
       ParentFont = False
       OnMouseDown = MobListMouseDown
     end
-    object lstObjects: TListBox
-      Left = 0
-      Top = 41
-      Width = 217
-      Height = 575
-      Style = lbVirtualOwnerDraw
-      AutoComplete = False
-      Align = alClient
-      BorderStyle = bsNone
-      Ctl3D = False
-      ItemHeight = 16
-      ParentCtl3D = False
-      TabOrder = 0
-      OnDrawItem = lstObjectsDrawItem
-      OnMouseDown = MobListMouseDown
-    end
     object pnlGridHeader: TPanel
       Left = 0
       Top = 25
@@ -131,7 +115,7 @@ object frmGLRender: TfrmGLRender
       Alignment = taLeftJustify
       BevelOuter = bvNone
       Caption = '  Name                                    Level   Health'
-      TabOrder = 1
+      TabOrder = 0
       OnMouseDown = MobListMouseDown
     end
   end
