@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabFilter
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 2
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -378,7 +378,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Left = 8
         Top = 44
         Width = 189
-        Height = 213
+        Height = 209
         Caption = '  By object type  '
         TabOrder = 0
         object chkRenderFriendlies: TCheckBox
@@ -535,6 +535,24 @@ object frmRenderPrefs: TfrmRenderPrefs
           TabOrder = 6
           OnClick = ObjectConClick
         end
+      end
+      object chkSwapTriangleRingShade: TCheckBox
+        Left = 204
+        Top = 256
+        Width = 201
+        Height = 17
+        Caption = 'Color objects by realm rather than con'
+        TabOrder = 2
+        OnClick = chkSwapTriangleRingShadeClick
+      end
+      object chkDrawHighlightRing: TCheckBox
+        Left = 12
+        Top = 256
+        Width = 105
+        Height = 17
+        Caption = 'Draw player halo'
+        TabOrder = 3
+        OnClick = chkDrawHighlightRingClick
       end
     end
     object tabRangeCircles: TTabSheet

@@ -108,6 +108,8 @@ type
     AlertInterval:    DWORD;
     AutoScrollMoblist:    boolean;
     ShowPlayerInventory:  boolean;
+    SwapTringleRingShade: boolean;
+    DrawPlayerHighlightRing: boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -257,6 +259,8 @@ type
     chkShowPlayerInventory: TCheckBox;
     Label35: TLabel;
     chkMobHighlight: TCheckBox;
+    chkSwapTriangleRingShade: TCheckBox;
+    chkDrawHighlightRing: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -313,6 +317,8 @@ type
     procedure chkAutoScrollMoblistClick(Sender: TObject);
     procedure chkShowPlayerInventoryClick(Sender: TObject);
     procedure chkMobHighlightClick(Sender: TObject);
+    procedure chkSwapTriangleRingShadeClick(Sender: TObject);
+    procedure chkDrawHighlightRingClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -393,6 +399,8 @@ begin
   Result.AutoScrollMoblist := AutoScrollMoblist;
   Result.ShowPlayerInventory := ShowPlayerInventory;
   Result.HighlightMobs := HighlightMobs;
+  Result.SwapTringleRingShade := SwapTringleRingShade;
+  Result.DrawPlayerHighlightRing := DrawPlayerHighlightRing;
 end;
 
 constructor TRenderPreferences.Create;
@@ -508,6 +516,8 @@ begin
     AutoScrollMoblist := ReadBool('RenderPrefs', 'AutoScrollMoblist', true);
     ShowPlayerInventory := ReadBool('RenderPrefs', 'ShowPlayerInventory', true);
     HighlightMobs := ReadBool('RenderPrefs', 'HighlightMobs', false);
+    SwapTringleRingShade := ReadBool('RenderPrefs', 'SwapTringleRingShade', false);
+    DrawPlayerHighlightRing := ReadBool('RenderPrefs', 'DrawPlayerHighlightRing', true);
   end;
 end;
 
@@ -569,6 +579,8 @@ begin
     WriteBool('RenderPrefs', 'AutoScrollMoblist', AutoScrollMoblist);
     WriteBool('RenderPrefs', 'ShowPlayerInventory', ShowPlayerInventory);
     WriteBool('RenderPrefs', 'HighlightMobs', HighlightMobs);
+    WriteBool('RenderPrefs', 'SwapTringleRingShade', SwapTringleRingShade);
+    WriteBool('RenderPrefs', 'DrawPlayerHighlightRing', DrawPlayerHighlightRing);
   end;
 end;
 
@@ -761,6 +773,8 @@ begin
   chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
   chkRenderUnkStealthers.Checked := FRenderPrefs.AnonymousStealthers;
   chkRenderDoors.Checked := ocDoor in FRenderPrefs.ObjectClassFilter;
+  chkDrawHighlightRing.Checked := FRenderPrefs.DrawPlayerHighlightRing;
+  chkSwapTriangleRingShade.Checked := FRenderPrefs.SwapTringleRingShade;
 
   chkShowGrays.Checked := ccGray in FRenderPrefs.ObjectConFilter;
   chkShowGreens.Checked := ccGreen in FRenderPrefs.ObjectConFilter;
@@ -1164,6 +1178,16 @@ end;
 procedure TfrmRenderPrefs.chkMobHighlightClick(Sender: TObject);
 begin
   FRenderPrefs.HighlightMobs := chkMobHighlight.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkSwapTriangleRingShadeClick(Sender: TObject);
+begin
+  FRenderPrefs.SwapTringleRingShade := chkSwapTriangleRingShade.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkDrawHighlightRingClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawPlayerHighlightRing := chkDrawHighlightRing.Checked;
 end;
 
 end.
