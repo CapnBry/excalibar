@@ -120,6 +120,7 @@ int main( int argc, char ** argv )
 
     exMapInfo::setup("maps/mapinfo.txt");
 
+    exTick = 0;
     _tick.start();
 
     if (! opts.empty()) {

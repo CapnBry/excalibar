@@ -63,6 +63,8 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   
   _lasttick = exTick;
   _lastdist = 0;
+  _lastprojectedX = 0;
+  _lastprojectedY = 0;
   playerDist();
 
   /*

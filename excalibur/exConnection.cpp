@@ -89,9 +89,16 @@ void exConnection::setup()
     selectedid = 0;
     replayfile = NULL;
     sniff = NULL;
+    nextpacket = NULL;
 
     playerzone = 0;
+    playerspeed = 0;
+    playerhead = 0;
+    playerx = 0;
+    playery = 0;
+    playerz = 0;
     playerrealm = rFriend;
+    player_last_update = 0;
 
     file = new QFile;
 
