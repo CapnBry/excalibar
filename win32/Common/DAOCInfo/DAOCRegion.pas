@@ -100,8 +100,13 @@ begin
 end;
 
 function TDAOCZoneInfo.GetName: string;
+var
+  I:  integer;
 begin
   Result := ChangeFileExt(FMapName, '');
+  for I := 1 to Length(Result) do
+    if not (Result[I] in ['0'..'9', 'A'..'Z', 'a'..'z']) then
+      Result[I] := ' ';
 end;
 
 procedure TDAOCZoneInfo.LoadFromString(const AZoneInfo: string);
