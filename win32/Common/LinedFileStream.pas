@@ -6,6 +6,10 @@ uses
   SysUtils, Classes;
 
 type
+    { what do do when we reach EOF and we have data in the line buffer
+      ie when the file does not end with CRLF }
+  TEOFAction = (eofReturnBlank, eofReturnLine);
+   
   TLinedStreamWrapper = class(TObject)
   private
     FStream:  TStream;
@@ -13,16 +17,19 @@ type
     FBuffPos:   integer;
     FBuffCount: integer;
     FPrevLineBuffer:  string;
+    FEOFAction: TEOFAction;
 
     procedure ResetState;
     procedure SetStream(AStream: TStream);
   public
     constructor Create(AStream: TStream = nil);
-    
+
     function ReadLn: string;
     function EOF: boolean;
 
+    property CurrentLineBuffer: string read FPrevLineBuffer;
     property Stream: TStream read FStream write SetStream;
+    property EOFAction: TEOFAction read FEOFAction write FEOFAction;
   end;
 
   TLinedFileStream = class(TFileStream)
@@ -43,16 +50,20 @@ implementation
 constructor TLinedStreamWrapper.Create(AStream: TStream);
 begin
   FStream := AStream;
+  FEOFAction := eofReturnLine;
 end;
 
 function TLinedStreamWrapper.EOF: boolean;
 var
   iReportedSize: integer;
 begin
+    { only check stream position if we have a stream assigned and we're not
+      out of buffer }
   if Assigned(FStream) and (FBuffPos >= FBuffCount) then begin
     iReportedSize := FStream.Size;
     if iReportedSize = -1 then
       raise Exception.Create('Reported size of file is now -1');
+      
     Result := FStream.Position >= iReportedSize;
   end
   else
@@ -86,7 +97,7 @@ begin
   end;  { while pos < size }
 
   iOldLen := Length(FPrevLineBuffer);
-  if cIn = #13 then begin
+  if (cIn = #13) or ((FEOFAction = eofReturnLine) and EOF) then begin
     SetLength(Result, iOldLen + FBuffPos - iStartPos - 1);
     Move(Pointer(FPrevLineBuffer)^, Pointer(Result)^, iOldLen);
     Move(FBuffer[iStartPos], Pointer(Integer(Result) + iOldLen)^,
