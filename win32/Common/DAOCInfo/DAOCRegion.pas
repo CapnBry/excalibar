@@ -39,6 +39,7 @@ type
     FBaseLoc: TPoint;
     FMaxLoc:  TPoint;
     FAdjacentZones:   TDAOCZoneInfoList;
+    FProxyZone:       integer;
 
     procedure MapNameToName;
     procedure NameToMapName;
@@ -65,6 +66,7 @@ type
     property Rotate: integer read FRotate;
     property Name: string read FName;
     property MapName: string read FMapName;
+    property ProxyZone: integer read FProxyZone;
   end;
 
   TDAOCZoneInfoList = class(TObjectList)
@@ -203,7 +205,10 @@ end;
 
 procedure TDAOCZoneInfo.NameToMapName;
 begin
-  FMapName := Format('zone%3.3d.map', [FZoneNum]);
+  if FProxyZone <> 0 then
+    FMapName := Format('zone%3.3d.map', [FProxyZone])
+  else
+    FMapName := Format('zone%3.3d.map', [FZoneNum]);
 end;
 
 { TDAOCZoneInfoList }
@@ -291,6 +296,7 @@ begin
           pZI.BaseLoc.Y + ReadInteger('width', 8) * 8192);
         pZI.FZoneType := MPKZoneTypeToDAOCZoneType(ReadInteger('type', 0));
         pZI.FZoneNum := StrToInt(copy(Name, 5, Length(Name)));
+        pZI.FProxyZone := ReadInteger('proxy_zone', 0);
         case pZI.ZoneNum of
           26:       pZI.FRotate := 90;
           120,209:  pZI.FRotate := 180;
