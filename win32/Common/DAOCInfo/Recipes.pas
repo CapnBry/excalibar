@@ -83,6 +83,7 @@ type
 
     function FindDisplayName(const AName: string) : TTradeSkillRecipe;
     function MaterialClassToString(const AMClass: string) : string;
+    function MaterialPrefix(const AMaterial: string) : string;
     function MaterialSufffix(const AMaterial: string) : string;
     function MaterialFixupName(const AMaterial: string) : string;
 
@@ -486,6 +487,15 @@ begin
     Result := AMaterial;
 end;
 
+function TCraftRecipeCollection.MaterialPrefix(
+  const AMaterial: string): string;
+begin
+  if AnsiSameText(AMaterial, 'thread') then
+    Result := 'heavy '
+  else
+    Result := '';
+end;
+
 function TCraftRecipeCollection.MaterialSufffix(
   const AMaterial: string): string;
 begin
@@ -499,9 +509,7 @@ begin
     Result := 'en boards'
   else if AnsiSameText(AMaterial, 'cloth') then
     Result := ' square'
-  else if AnsiSameText(AMaterial, 'thread') then
-    Result := ''
-  else 
+  else
     Result := '';
 end;
 
@@ -832,6 +840,7 @@ begin
           sMaterial := pCraft.MaterialFixupName(CSVP.MaterialsName[iMaterialPos]);
           pMaterial := pRecipe.Materials.FindOrAdd(
             pCraft.MaterialClassToString(CSVP.MaterialsClass[iMaterialPos]) +
+            pCraft.MaterialPrefix(sMaterial) +
             sMaterial +
             pCraft.MaterialSufffix(sMaterial));
           pMaterial.Count := pMaterial.Count + CSVP.MaterialsCount[iMaterialPos];
