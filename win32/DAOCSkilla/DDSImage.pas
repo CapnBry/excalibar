@@ -1,7 +1,7 @@
 unit DDSImage;
 
 (***
-  Adapted from DDS loader written by Jon Watte 2002
+  Adapted by Bryan Mayland from DDS loader written by Jon Watte 2002
   Currently only works with DXT1
 **)
 
