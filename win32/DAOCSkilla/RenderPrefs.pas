@@ -14,6 +14,17 @@ uses
 type
   TMobListSortOrder = (msoName, msoDistance);
 
+  (***
+    When a property to the TRenderPreferences:
+    -- Add a reader to LoadSettings (add to end)
+    -- Add a writer to WriteSettings (add to end)
+    -- Add code to copy the property in Clone (add to end)
+
+    In the UI:
+    -- Add needed controls
+    -- Set control intital value in SyncFormToPrefs (insert in tab order)
+    -- Add code to immediately modify FRenderPrefs based on control input
+  ***)
   TRenderPreferences = class(TObject)
   private
     FObjectClassFilter: TDAOCObjectClasses;
@@ -35,6 +46,7 @@ type
     FMinFPS: integer;
     FOnMinFPSChanged: TNotifyEvent;
     FMobFilterList: TMobFilterList;
+    FUseMobFilter:    boolean;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
@@ -53,6 +65,7 @@ type
     procedure SetMobTriangleNom(const Value: integer);
     procedure SetScaleMobTriangle(const Value: boolean);
     procedure SetMinFPS(const Value: integer);
+    procedure SetUseMobFilter(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -92,8 +105,9 @@ type
     SmoothPoints:     boolean;
     EasyMouseOvers:   boolean;
     PlayAlert:        boolean;
-    UseMobFilter:     boolean;
     AlertInterval:    DWORD;
+    AutoScrollMoblist:    boolean;
+    ShowPlayerInventory:  boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -106,21 +120,22 @@ type
     procedure XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
     procedure XORObjectConFilter(AObjectCon: TDAOCConColor);
 
+    property AlternateMobListText: boolean read FAlternateMobListText write SetAlternateMobListText;
+    property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
     property HasOpenGL13: boolean read FHasOpenGL13 write SetHasOpenGL13;
     property HasGLUT: boolean read FHasGLUT write SetHasGLUT;
-    property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
-    property ObjectClassFilter: TDAOCObjectClasses read FObjectClassFilter write SetObjectClassFilter;
-    property ObjectConFilter: TDAOCConColors read FObjectConFilter write SetObjectConFilter;
-    property MobListSortOrder: TMobListSortOrder read FMobListSortOrder write SetMobListSortOrder;
     property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
     property GroupByClass: boolean read FGroupByClass write SetGroupByClass;
-    property AlternateMobListText: boolean read FAlternateMobListText write SetAlternateMobListText;
+    property MinFPS: integer read FMinFPS write SetMinFPS;
+    property MobFilterList: TMobFilterList read FMobFilterList;
+    property MobListSortOrder: TMobListSortOrder read FMobListSortOrder write SetMobListSortOrder;
     property MobTriangleMin: integer read FMobTriangleMin write SetMobTriangleMin;
     property MobTriangleMax: integer read FMobTriangleMax write SetMobTriangleMax;
     property MobTriangleNom: integer read FMobTriangleNom write SetMobTriangleNom;
-    property MinFPS: integer read FMinFPS write SetMinFPS;
+    property ObjectClassFilter: TDAOCObjectClasses read FObjectClassFilter write SetObjectClassFilter;
+    property ObjectConFilter: TDAOCConColors read FObjectConFilter write SetObjectConFilter;
     property ScaleMobTriangle: boolean read FScaleMobTriangle write SetScaleMobTriangle;
-    property MobFilterList: TMobFilterList read FMobFilterList;
+    property UseMobFilter: boolean read FUseMobFilter write SetUseMobFilter;
 
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
     property OnMinFPSChanged: TNotifyEvent read FOnMinFPSChanged write FOnMinFPSChanged;
@@ -238,6 +253,9 @@ type
     Label32: TLabel;
     Label33: TLabel;
     Label34: TLabel;
+    chkAutoScrollMoblist: TCheckBox;
+    chkShowPlayerInventory: TCheckBox;
+    Label35: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -291,6 +309,8 @@ type
     procedure edtAlertIntervalExit(Sender: TObject);
     procedure chkPlayAlertClick(Sender: TObject);
     procedure rbnFilterSubstringClick(Sender: TObject);
+    procedure chkAutoScrollMoblistClick(Sender: TObject);
+    procedure chkShowPlayerInventoryClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -369,6 +389,8 @@ begin
   Result.MinFPS := MinFPS;
   Result.MobFilterList.CopyFrom(MobFilterList);
   Result.AlertInterval := AlertInterval;
+  Result.AutoScrollMoblist := AutoScrollMoblist;
+  Result.ShowPlayerInventory := ShowPlayerInventory;
 end;
 
 constructor TRenderPreferences.Create;
@@ -481,6 +503,8 @@ begin
     DrawInfoPoints := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
     EasyMouseOvers  := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
     MinFPS := ReadInteger('RenderPrefs', 'MinFPS', 2);
+    AutoScrollMoblist := ReadBool('RenderPrefs', 'AutoScrollMoblist', true);
+    ShowPlayerInventory := ReadBool('RenderPrefs', 'ShowPlayerInventory', true);
   end;
 end;
 
@@ -539,6 +563,8 @@ begin
     WriteBool('RenderPrefs', 'DrawInfoPoints', DrawInfoPoints);
     WriteBool('RenderPrefs', 'DrawInfoPoints', EasyMouseOvers);
     WriteInteger('RenderPrefs', 'MinFPS', MinFPS);
+    WriteBool('RenderPrefs', 'AutoScrollMoblist', AutoScrollMoblist);
+    WriteBool('RenderPrefs', 'ShowPlayerInventory', ShowPlayerInventory);
   end;
 end;
 
@@ -642,6 +668,12 @@ begin
   else
     Include(FObjectConFilter, AObjectCon);
   DoOnObjectFilterChanged;
+end;
+
+procedure TRenderPreferences.SetUseMobFilter(const Value: boolean);
+begin
+  FUseMobFilter := Value;
+  DoOnMobListOptionsChanged;
 end;
 
 { TfrmRenderPrefs }
@@ -748,9 +780,11 @@ begin
   chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
   chkDrawGrid.Checked := FRenderPrefs.DrawGrid;
   edtInvaderWarnTicks.Text := IntToStr(FRenderPrefs.InvaderWarnMinTicks div 1000);
+  chkShowPlayerInventory.Checked := FRenderPrefs.ShowPlayerInventory; 
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
+  chkAutoScrollMoblist.Checked := FRenderPrefs.AutoScrollMoblist;
 //  chkTypeTag.Enabled := FRenderPrefs.HasGLUT;
   chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
   chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
@@ -984,7 +1018,6 @@ end;
 procedure TfrmRenderPrefs.chkUseMobFilterClick(Sender: TObject);
 begin
   FRenderPrefs.UseMobFilter := chkUseMobFilter.Checked;
-  FRenderPrefs.DoOnMobListOptionsChanged;
 end;
 
 procedure TfrmRenderPrefs.chkPlayAlertClick(Sender: TObject);
@@ -1113,6 +1146,17 @@ end;
 
 procedure TfrmRenderPrefs.FILTERListModified(Sender: TObject);
 begin
+  FRenderPrefs.DoOnMobListOptionsChanged;
+end;
+
+procedure TfrmRenderPrefs.chkAutoScrollMoblistClick(Sender: TObject);
+begin
+  FRenderPrefs.AutoScrollMoblist := chkAutoScrollMoblist.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkShowPlayerInventoryClick(Sender: TObject);
+begin
+  FRenderPrefs.ShowPlayerInventory := chkShowPlayerInventory.Checked;
   FRenderPrefs.DoOnMobListOptionsChanged;
 end;
 

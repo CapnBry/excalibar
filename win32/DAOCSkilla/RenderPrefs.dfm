@@ -40,17 +40,17 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabOptions
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 0
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
       ImageIndex = 1
       object Label10: TLabel
         Left = 26
-        Top = 24
+        Top = 20
         Width = 374
         Height = 13
         Caption = 
@@ -59,14 +59,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label11: TLabel
         Left = 26
-        Top = 60
+        Top = 68
         Width = 259
         Height = 13
         Caption = 'Selection follows whatever you have selected in-game.'
       end
       object Label12: TLabel
         Left = 26
-        Top = 96
+        Top = 100
         Width = 324
         Height = 13
         Caption = 
@@ -75,28 +75,28 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label13: TLabel
         Left = 26
-        Top = 136
+        Top = 132
         Width = 247
         Height = 13
         Caption = 'Keep the Excalibur window on top of other windows.'
       end
       object Label14: TLabel
         Left = 26
-        Top = 176
+        Top = 164
         Width = 276
         Height = 13
         Caption = 'The map turns with the player instead of keeping North up.'
       end
       object Label15: TLabel
         Left = 26
-        Top = 216
+        Top = 196
         Width = 277
         Height = 13
         Caption = 'Draw zones adjacent to your current zone in the map view.'
       end
       object Label8: TLabel
         Left = 26
-        Top = 254
+        Top = 228
         Width = 320
         Height = 13
         Caption = 
@@ -105,14 +105,23 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label20: TLabel
         Left = 392
-        Top = 254
+        Top = 230
         Width = 5
         Height = 13
         Caption = 's'
       end
+      object Label35: TLabel
+        Left = 28
+        Top = 260
+        Width = 365
+        Height = 13
+        Caption = 
+          'Display a player'#39's inventory when you select them.  Use the '#39'?'#39' ' +
+          'key if disabled.'
+      end
       object chkAdjacentZones: TCheckBox
         Left = 8
-        Top = 200
+        Top = 180
         Width = 161
         Height = 17
         Caption = 'Draw adjacent zones'
@@ -121,7 +130,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkTypeTag: TCheckBox
         Left = 8
-        Top = 80
+        Top = 84
         Width = 153
         Height = 17
         Caption = 'Show NPC type tag (Y)'
@@ -130,7 +139,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkTrackMapClick: TCheckBox
         Left = 8
-        Top = 8
+        Top = 4
         Width = 153
         Height = 17
         Caption = 'Click in map selects object'
@@ -139,7 +148,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkTrackGameSelection: TCheckBox
         Left = 8
-        Top = 44
+        Top = 36
         Width = 153
         Height = 17
         Caption = 'Track in-game selection'
@@ -148,7 +157,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkStayOnTop: TCheckBox
         Left = 8
-        Top = 120
+        Top = 116
         Width = 153
         Height = 17
         Caption = 'Keep window on top (T)'
@@ -157,7 +166,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkRotateMap: TCheckBox
         Left = 8
-        Top = 160
+        Top = 148
         Width = 153
         Height = 17
         Caption = 'Rotate map with player'
@@ -166,7 +175,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkInvaderWarn: TCheckBox
         Left = 8
-        Top = 236
+        Top = 212
         Width = 241
         Height = 17
         Caption = 'Invader warning sound (A)'
@@ -175,13 +184,31 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object edtInvaderWarnTicks: TEdit
         Left = 352
-        Top = 250
+        Top = 226
         Width = 37
         Height = 21
         TabOrder = 7
         Text = 'edtInvaderWarnTicks'
         OnExit = edtInvaderWarnTicksExit
         OnKeyPress = edtInvaderWarnTicksKeyPress
+      end
+      object chkAutoScrollMoblist: TCheckBox
+        Left = 8
+        Top = 52
+        Width = 113
+        Height = 17
+        Caption = 'Autoscroll on select'
+        TabOrder = 8
+        OnClick = chkAutoScrollMoblistClick
+      end
+      object chkShowPlayerInventory: TCheckBox
+        Left = 8
+        Top = 244
+        Width = 181
+        Height = 17
+        Caption = 'Show select player'#39's inventory'
+        TabOrder = 9
+        OnClick = chkShowPlayerInventoryClick
       end
     end
     object tabExtras: TTabSheet
