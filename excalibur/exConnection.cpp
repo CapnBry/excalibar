@@ -213,7 +213,6 @@ void exConnection::processPacket(exPacket * p)
     unsigned int head;
     unsigned int linenum;
     unsigned int num;
-    unsigned int speed;
     QString name;
     QString surname;
     QString guild;
@@ -244,60 +243,15 @@ void exConnection::processPacket(exPacket * p)
 	seq = p->getShort();
 	command = p->getByte();
 	switch (command) {
-	  case 9:
-	      speed = p->getShort();
-	      head = p->getShort();
-	      x = p->getLong();
-	      y = p->getLong();
-	      p->skip(8);
-	      z = p->getShort();
-	      id = p->getShort();
-	      p->skip(2);
-	      hp = p->getByte();
-	      mob = mobs.find((void *) ((unsigned int) id));
-	      if (mob) {
-		  mob->setPosition(x, y, z);
-		  mob->setHead(head);
-                  mob->setSpeed(speed);
-		  mob->setHP(hp);
-		  ex->Map->dirty();
-		  if (prefs.sort_when == exPrefs::sortAlways)
-		      ex->ListViewMobs->sort();
-	      }
-	      break;
-	  case 1:
-	      id = p->getShort();
-	      speed = p->getShort();
-	      z = p->getShort();
-	      p->skip(2);
-	      x = p->getLong();
-	      y = p->getLong();
-	      head = p->getShort();
-	      mob = players.find((void *) ((unsigned int) id));
-	      if (mob) {
-		  mob->setPosition(x, y, z);
-		  mob->setHead(head);
-                  mob->setSpeed(speed);
-		  ex->Map->dirty();
-		  if (prefs.sort_when == exPrefs::sortAlways)
-		      ex->ListViewMobs->sort();
-	      }
-	      break;
+	  case 0x01:
+	    parsePlayerPosUpdate(p);
+	    break;
+	  case 0x09:
+	    parseMobPosUpdate(p);
+	    break;
 	  case 0x12:
-	      id = p->getShort();
-	      head = p->getShort();
-	      p->skip(4);
-	      hp = p->getByte();
-	      mob = players.find((void *) ((unsigned int) id));
-	      if (mob) {
-		  mob->setHead(head);
-		  if (hp < 100)
-		      mob->setHP(hp);
-		  ex->Map->dirty();
-		  if (prefs.sort_when == exPrefs::sortAlways)
-		      ex->ListViewMobs->sort();
-	      }
-	      break;
+	    parsePlayerHeadUpdate(p);
+	    break;
 	}
     } else if (!p->is_udp && !p->from_server) {
 	seq = p->getShort();
@@ -352,6 +306,15 @@ void exConnection::processPacket(exPacket * p)
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
 	switch (command) {
+	  case 0x01:
+	    parsePlayerPosUpdate(p);
+	    break;
+	  case 0x09:
+	    parseMobPosUpdate(p);
+	    break;
+	  case 0x12:
+	    parsePlayerHeadUpdate(p);
+	    break;
 	  case 0x8a:
 	      p->skip(2);
 	      bigver = p->getByte();
@@ -524,6 +487,66 @@ void exConnection::processPacket(exPacket * p)
 	  default:
 	      break;
 	}
+    }
+}
+
+void exConnection::parseMobPosUpdate(exPacket *p)
+{
+    unsigned int speed = p->getShort();
+    unsigned int head = p->getShort();
+    unsigned int x = p->getLong();
+    unsigned int y = p->getLong();
+    p->skip(8);
+    unsigned int z = p->getShort();
+    unsigned int id = p->getShort();
+    p->skip(2);
+    unsigned int hp = p->getByte();
+    exMob *mob = mobs.find((void *) ((unsigned int) id));
+    if (mob) {
+	mob->setPosition(x, y, z);
+	mob->setHead(head);
+	mob->setSpeed(speed);
+	mob->setHP(hp);
+	ex->Map->dirty();
+	if (prefs.sort_when == exPrefs::sortAlways)
+	    ex->ListViewMobs->sort();
+    }
+}
+
+void exConnection::parsePlayerPosUpdate(exPacket *p)
+{
+    unsigned int id = p->getShort();
+    unsigned int speed = p->getShort();
+    unsigned int z = p->getShort();
+    p->skip(2);
+    unsigned int x = p->getLong();
+    unsigned int y = p->getLong();
+    unsigned int head = p->getShort();
+    exMob *mob = players.find((void *) ((unsigned int) id));
+    if (mob) {
+	mob->setPosition(x, y, z);
+	mob->setHead(head);
+	mob->setSpeed(speed);
+	ex->Map->dirty();
+	if (prefs.sort_when == exPrefs::sortAlways)
+	    ex->ListViewMobs->sort();
+    }
+}
+
+void exConnection::parsePlayerHeadUpdate(exPacket *p)
+{
+    unsigned int id = p->getShort();
+    unsigned int head = p->getShort();
+    p->skip(4);
+    unsigned int hp = p->getByte();
+    exMob *mob = players.find((void *) ((unsigned int) id));
+    if (mob) {
+	mob->setHead(head);
+	if (hp < 100)
+	    mob->setHP(hp);
+	ex->Map->dirty();
+	if (prefs.sort_when == exPrefs::sortAlways)
+	    ex->ListViewMobs->sort();
     }
 }
 

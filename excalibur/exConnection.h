@@ -60,6 +60,10 @@ protected:
   QTimer timer;
   exPacket *nextpacket;
   exLink *link;
+  
+  void parsePlayerPosUpdate(exPacket *p);
+  void parseMobPosUpdate(exPacket *p);
+  void parsePlayerHeadUpdate(exPacket *p);
 public slots:
   void listSelectionChanged(QListViewItem *i);
   void replaytimer();
