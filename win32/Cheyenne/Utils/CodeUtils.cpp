@@ -144,6 +144,22 @@ void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& 
         } // end while result != -1
 } // end GET_LISTVIEW_SELECTED_ITEMS
 
+void GET_LIST_SEL_STRING(HWND hwnd,UINT control,std::string& std_str)
+{
+    LRESULT sel=SendDlgItemMessage(hwnd,control,LB_GETCURSEL,0,0);
+    
+    if(sel!=LB_ERR)
+        {
+        LRESULT len=SendDlgItemMessage(hwnd,control,LB_GETTEXTLEN,(WPARAM)sel,0);
+        TCHAR* text=new TCHAR[len+1];
+        text[0]='\0';
+        SendDlgItemMessage(hwnd,control,LB_GETTEXT,(WPARAM)sel,(LPARAM)&text[0]);
+        std_str=text;
+        delete[] text;
+        }
+    return;
+} // end GET_LIST_SEL_STRING
+
 void WM_SIZING_LIMIT
     (
     const WPARAM WM_SIZING_WPARAM,

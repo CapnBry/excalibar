@@ -190,6 +190,7 @@ bool GET_CHECK_BOOL(HWND hwnd,UINT control);
 void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str);
 void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& std_list);
+void GET_LIST_SEL_STRING(HWND hwnd,UINT control,std::string& std_str);
 
 // windows message helpers
 void WM_SIZING_LIMIT
