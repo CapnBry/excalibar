@@ -1,3 +1,9 @@
+Druppy (14/Feb/02)
+-----------------
+Changes:
+  + Made the mob filter a member of the connection class so each window can
+    have different filters.
+
 Teerex (13/Feb/02)
 -----------------
 
