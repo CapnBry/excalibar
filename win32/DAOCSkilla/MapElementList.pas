@@ -433,10 +433,12 @@ var
   yr, mo, da: WORD;
   hh, nn, ss: WORD;
 begin
-  Result := true;
-
-  if FVersionFile = '' then
+  if FVersionFile = '' then begin
+    Result := true;
     exit;
+  end;
+
+  Result := false;
 
   with TINIFile.Create(FVersionFile) do begin
     sVersionDate := ReadString(ASection, AKey, '');
@@ -448,10 +450,8 @@ begin
 
   if FileExists(ALocalFile) then
     dtFile := FileDateToDateTime(FileAge(ALocalFile))
-  else begin
-    Result := false;
+  else
     exit;
-  end;
 
   yr := StrToIntDef(copy(sVersionDate, 1, 4), 1899);
   mo := StrToIntDef(copy(sVersionDate, 5, 2), 12);
