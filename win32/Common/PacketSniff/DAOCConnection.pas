@@ -143,6 +143,7 @@ type
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
+    FMaxObjectStaleTime: DWORD;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -270,6 +271,7 @@ type
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
+    property MaxObjectStaleTime: DWORD read FMaxObjectStaleTime write FMaxObjectStaleTime; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
@@ -402,6 +404,7 @@ begin
   HookChatParseCallbacks;
 
   SetMaxObjectDistance(8000);
+  FMaxObjectStaleTime := 300000;  // 300,000ms = 5min
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -2027,8 +2030,13 @@ var
   I:    integer;
   pObj: TDAOCObject;
 begin
+    { remove really really old stuff from the stale list }
+  for I := FDAOCObjsStale.Count - 1 downto 0 do
+    if FDAOCObjsStale[I].TicksSinceUpdate > FMaxObjectStaleTime then
+      FDAOCObjsStale.Delete(I);
+
   I := 0;
-  while I < FDAOCObjs.Count - 1 do begin
+  while I < FDAOCObjs.Count do begin
     pObj := FDAOCObjs[I];
     pObj.CheckStale;
     if pObj.IsStale then begin
