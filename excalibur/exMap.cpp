@@ -1055,6 +1055,8 @@ void exMapPNGLoader::setParent ( exMap *parent )
   empldProgress.start();
 }
 
+/*this code was writting by Andon while he was toasted thats why it causes
+  segvs out the ass*/
 void exMapPNGLoader::run (void)
 {
   int x,y;

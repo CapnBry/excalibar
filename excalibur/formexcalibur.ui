@@ -88,6 +88,17 @@
                 </column>
                 <column>
                     <property name="text">
+                        <string>Distance</string>
+                    </property>
+                    <property name="clickable">
+                        <bool>true</bool>
+                    </property>
+                    <property name="resizeable">
+                        <bool>true</bool>
+                    </property>
+                </column>
+                <column>
+                    <property name="text">
                         <string>Health</string>
                     </property>
                     <property name="clickable">
@@ -122,17 +133,6 @@
                 <column>
                     <property name="text">
                         <string>Z</string>
-                    </property>
-                    <property name="clickable">
-                        <bool>true</bool>
-                    </property>
-                    <property name="resizeable">
-                        <bool>true</bool>
-                    </property>
-                </column>
-                <column>
-                    <property name="text">
-                        <string>Distance</string>
                     </property>
                     <property name="clickable">
                         <bool>true</bool>
