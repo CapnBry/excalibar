@@ -235,8 +235,8 @@ void exPrefs::loadSettings() {
   map_compress_textures=s.readBoolEntry("/Excalibur/TextureCompress",FALSE);
   map_objsize=s.readNumEntry("/Excalibur/MapObjSize", 150);
 
-  player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
-  player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 250);
+  player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 1000);
+  player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 1500);
 
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
   filter_circles=s.readBoolEntry("/Excalibur/FilterCircles", TRUE);
@@ -265,6 +265,7 @@ void exPrefs::loadSettings() {
   sticky_list=s.readBoolEntry("/Excalibur/StickyList", FALSE);
 
   maxfps=s.readBoolEntry("/Excalibur/MaxFPS", FALSE);
+  exclude_local=s.readBoolEntry("/Excalibur/ExcludeLocal", FALSE);
 }
 
 void exPrefs::saveSettings() {
@@ -319,6 +320,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/StickyList", sticky_list);
   s.writeEntry("/Excalibur/MaxFPS", maxfps);
   s.writeEntry("/Excalibur/MapObjSize", map_objsize);
+  s.writeEntry("/Excalibur/ExcludeLocal", exclude_local);
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {

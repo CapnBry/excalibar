@@ -84,6 +84,7 @@ int main( int argc, char ** argv )
 
     options.insert("--mobseen",&prefs.dump_mobseen);
     options.insert("--druppy-leak",&prefs.druppy_leak);
+    options.insert("--exclude-local",&prefs.exclude_local);
 
     QApplication a( argc, argv );
 
@@ -104,13 +105,16 @@ int main( int argc, char ** argv )
       printf ("Usage:\n  %s [<options>] [<capture file>]\n\n", argv[0]);
       printf ("  --help          Shows this help.\n");
       printf ("  --dumpunknown   Display unknown packet data in stdout.\n");
-      printf ("  --link          Run Excalibur in a special mode, so that\n");
-      printf ("                  the Java tools can link with it.\n");
+      printf ("  --link          Run Excalibur in a special mode, so that the Java tools\n");
+      printf ("                  can link with it.\n");
       printf ("  --capture       Turn packet capture files on\n");
-      printf ("  --realtime      Set the network thread realtime.\n\n");
+      printf ("  --realtime      Set the network thread realtime.\n");
       printf ("  --druppy-leak   Enable Druppy's message parsing code..\n"); 
-      printf ("                  * NOTE: It's a massive memory leak!!!\n\n");
+      printf ("                  * NOTE: It's a massive memory leak!!!\n");
       printf ("  --mobseen       Dump a mob description to stdout when seen\n");
+      printf ("  --exclude-local Do not process packets to/from the local machine.  Use this\n");
+      printf ("                  if you pass your DAoC traffic through the local maching and\n");
+      printf ("                  you are getting two Excalibur windows per DAoC connection.\n");
       qFatal ("Please run '%s' again, without the --help switch.", argv[0]);
     }
 

@@ -83,6 +83,7 @@ public:
   bool select_target;
   bool dump_mobseen;
   int map_objsize;
+  bool exclude_local;
 
   int win_width;
   int win_height;

@@ -557,6 +557,9 @@ void exSniffer::determineLocalIPs(void)
 
     local_ip_filter = "";
 
+    if (!prefs.exclude_local)
+        return;
+
     if (gethostname(hostname, sizeof(hostname) - 1) == -1)  {
         qWarning("Could not get host name for local IP filter!");
         return;
