@@ -223,9 +223,13 @@ begin
     pRequest := FRequestList.GetFirst;
     if not Assigned(pRequest) then
       exit;
-
     try
+      {$IFDEF VER150}
+      FIdHTTP.Request.CustomHeaders.Assign(pRequest.ExtraHeaders);
+      {$ENDIF}
+      {$IFDEF VER140}
       FIdHTTP.Request.ExtraHeaders.Assign(pRequest.ExtraHeaders);
+      {$ENDIF}
       FIdHTTP.DoRequest(pRequest.Method, pRequest.URL, nil, pRequest.ResponseStream);
       DoOnHTTPComplete(pRequest);
     except
