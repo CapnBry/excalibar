@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "main.h" 
 
 void SyncDialogToConfig(HWND hWnd);
-
+void RangeRingDialog(HWND hWnd,UINT control,bool& enable,unsigned int& range);
 INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
     switch(uMsg)
@@ -123,6 +123,96 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                 case IDC_SHOWMOBS:
                     ::RadarConfig.SetShowMobs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
                     break;
+                case IDC_SHOWRANGERING1:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing1(),
+                            ::RadarConfig.ModifyRangeRingRange1()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing1(false);
+                        }
+                    break;
+                case IDC_SHOWRANGERING2:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing2(),
+                            ::RadarConfig.ModifyRangeRingRange2()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing2(false);
+                        }
+                    break;
+                case IDC_SHOWRANGERING3:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing3(),
+                            ::RadarConfig.ModifyRangeRingRange3()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing3(false);
+                        }
+                    break;
+                case IDC_SHOWRANGERING4:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing4(),
+                            ::RadarConfig.ModifyRangeRingRange4()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing4(false);
+                        }
+                    break;
+                case IDC_SHOWRANGERING5:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing5(),
+                            ::RadarConfig.ModifyRangeRingRange5()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing5(false);
+                        }
+                    break;
+                case IDC_SHOWRANGERING6:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        RangeRingDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifyShowRangeRing6(),
+                            ::RadarConfig.ModifyRangeRingRange6()
+                            );
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetShowRangeRing6(false);
+                        }
+                    break;
                 case IDCLOSE:
                     // re-enable menu
                     EnableMenuItem(GetMenu(GetParent(hWnd)),ID_CONTROLDISPLAY_OPENCONFIGDIALOG,MF_BYCOMMAND|MF_ENABLED);
@@ -176,6 +266,44 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SHOWMIDS,::RadarConfig.GetShowMids());
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBS,::RadarConfig.GetShowMobs());
     
+    // range rings group
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING1,::RadarConfig.GetShowRangeRing1());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING2,::RadarConfig.GetShowRangeRing2());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING3,::RadarConfig.GetShowRangeRing3());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING4,::RadarConfig.GetShowRangeRing4());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING5,::RadarConfig.GetShowRangeRing5());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING6,::RadarConfig.GetShowRangeRing6());
+    
     // done
     return;
 } // end SyncDialogToConfig
+
+void RangeRingDialog(HWND hWnd,UINT control,bool& enable,unsigned int& range)
+{
+    std::pair<bool,unsigned int>param(true,range);
+    
+    INT_PTR result=DialogBoxParam
+        (
+        (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE),
+        MAKEINTRESOURCE(IDD_RANGERING),
+        hWnd,
+        (DLGPROC)ConfigRangeRingsDialogProc,
+        (LPARAM)&param
+        );
+
+    if(result==IDOK)
+        {
+        enable=true;
+        range=param.second;
+        }
+    else
+        {
+        // disable
+        enable=false;
+        
+        // uncheck the control
+        SET_CHECK_BOOL(hWnd,control,false);
+        }
+    // done
+    return;
+} // end RangeRingDialog

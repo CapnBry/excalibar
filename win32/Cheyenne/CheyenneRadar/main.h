@@ -43,3 +43,4 @@ LRESULT CALLBACK PPIWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 LRESULT CALLBACK DataWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 INT_PTR CALLBACK ConfigDialogProc(HWND hwndDlg,UINT uMsg,WPARAM wParam,LPARAM lParam);
 INT_PTR CALLBACK ConnectServerDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+INT_PTR CALLBACK ConfigRangeRingsDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);

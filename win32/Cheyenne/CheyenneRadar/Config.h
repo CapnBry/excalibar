@@ -60,4 +60,17 @@ private:
     DECL_MEMBER(bool,PlayMidSound);
     DECL_MEMBER(std::string,NamedMobSound);
     DECL_MEMBER(bool,PlayNamedMobSound);
+    DECL_MEMBER(std::string,NamedMobName);
+    DECL_MEMBER(bool,ShowRangeRing1);
+    DECL_MEMBER(unsigned int,RangeRingRange1);
+    DECL_MEMBER(bool,ShowRangeRing2);
+    DECL_MEMBER(unsigned int,RangeRingRange2);
+    DECL_MEMBER(bool,ShowRangeRing3);
+    DECL_MEMBER(unsigned int,RangeRingRange3);
+    DECL_MEMBER(bool,ShowRangeRing4);
+    DECL_MEMBER(unsigned int,RangeRingRange4);
+    DECL_MEMBER(bool,ShowRangeRing5);
+    DECL_MEMBER(unsigned int,RangeRingRange5);
+    DECL_MEMBER(bool,ShowRangeRing6);
+    DECL_MEMBER(unsigned int,RangeRingRange6);
 }; // end Config

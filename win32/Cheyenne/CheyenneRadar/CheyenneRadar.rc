@@ -131,7 +131,7 @@ END
 // Dialog
 //
 
-IDD_CONFIG DIALOGEX 0, 0, 264, 222
+IDD_CONFIG DIALOGEX 0, 0, 264, 288
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
@@ -174,7 +174,7 @@ BEGIN
                     WS_TABSTOP,187,102,56,10
     CONTROL         "Show Level",IDC_SHOWMOBLEVEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,187,116,52,10
-    DEFPUSHBUTTON   "Close",IDCLOSE,207,201,50,14
+    DEFPUSHBUTTON   "Close",IDCLOSE,207,267,50,14
     GROUPBOX        "System (change requires restart)",IDC_STATIC,7,7,250,40
     GROUPBOX        "Same Realm",IDC_STATIC,7,47,80,85
     GROUPBOX        "Enemy Realm",IDC_STATIC,92,47,80,85
@@ -190,6 +190,19 @@ BEGIN
                     WS_TABSTOP,17,181,71,10
     CONTROL         "Show MOBs",IDC_SHOWMOBS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,103,142,71,10
+    GROUPBOX        "Range Rings",IDC_STATIC,7,197,250,64
+    CONTROL         "Show Range Ring #1",IDC_SHOWRANGERING1,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,209,81,10
+    CONTROL         "Show Range Ring #2",IDC_SHOWRANGERING2,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,222,81,10
+    CONTROL         "Show Range Ring #3",IDC_SHOWRANGERING3,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,235,81,10
+    CONTROL         "Show Range Ring #4",IDC_SHOWRANGERING4,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,208,81,10
+    CONTROL         "Show Range Ring #5",IDC_SHOWRANGERING5,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,221,81,10
+    CONTROL         "Show Range Ring #6",IDC_SHOWRANGERING6,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,235,81,10
 END
 
 IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60
@@ -206,6 +219,18 @@ BEGIN
     LTEXT           "Port",IDC_STATIC,81,7,14,8
 END
 
+IDD_RANGERING DIALOGEX 0, 0, 117, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Config Range Ring"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_RANGE,46,7,64,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,26,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,60,26,50,14
+    LTEXT           "Range: ",IDC_STATIC,7,10,26,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -220,7 +245,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 257
         TOPMARGIN, 7
-        BOTTOMMARGIN, 215
+        BOTTOMMARGIN, 281
     END
 
     IDD_CONNECTSERVER, DIALOG
@@ -229,6 +254,14 @@ BEGIN
         RIGHTMARGIN, 121
         TOPMARGIN, 7
         BOTTOMMARGIN, 53
+    END
+
+    IDD_RANGERING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 110
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
     END
 END
 #endif    // APSTUDIO_INVOKED

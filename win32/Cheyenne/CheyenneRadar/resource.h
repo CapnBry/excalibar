@@ -6,6 +6,7 @@
 #define IDI_A                           102
 #define IDD_CONFIG                      103
 #define IDD_CONNECTSERVER               104
+#define IDD_RANGERING                   105
 #define IDC_RAISEPRIORITY               1001
 #define IDC_LOADZONETEXTURES            1002
 #define IDC_LOADVECTORMAPS              1003
@@ -31,6 +32,14 @@
 #define IDC_PORT                        1021
 #define IDC_SHOWMIDS                    1022
 #define IDC_SHOWMOBS                    1023
+#define IDC_SHOWRANGERING1              1024
+#define IDC_SHOWRANGERING2              1025
+#define IDC_SHOWRANGERING3              1026
+#define IDC_EDIT1                       1026
+#define IDC_RANGE                       1026
+#define IDC_SHOWRANGERING4              1027
+#define IDC_SHOWRANGERING5              1028
+#define IDC_SHOWRANGERING6              1029
 #define ID_FILE_EXIT                    40001
 #define ID_CONTROLDISPLAY_OPENCONFIGDIALOG 40002
 #define ID_HELP_ABOUT                   40003
@@ -41,9 +50,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        105
+#define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40006
-#define _APS_NEXT_CONTROL_VALUE         1021
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -56,6 +56,19 @@ Config::Config()
     SetPlayMidSound(false);
     SetNamedMobSound("<no sound>");
     SetPlayNamedMobSound(false);
+    SetNamedMobName("<no mob name>");
+    SetShowRangeRing1(false);
+    SetRangeRingRange1(350);
+    SetShowRangeRing2(false);
+    SetRangeRingRange2(1500);
+    SetShowRangeRing3(false);
+    SetRangeRingRange3(1875);
+    SetShowRangeRing4(false);
+    SetRangeRingRange4(0);
+    SetShowRangeRing5(false);
+    SetRangeRingRange5(0);
+    SetShowRangeRing6(false);
+    SetRangeRingRange6(0);
     
 } // end Config
 
@@ -117,7 +130,26 @@ bool Config::Load(const std::string& filename)
     
     std::getline(file,ModifyNamedMobSound());
     file >> ModifyPlayNamedMobSound() >> std::ws;
+    std::getline(file,ModifyNamedMobName());
     
+    file >> ModifyShowRangeRing1() >> std::ws;
+    file >> ModifyRangeRingRange1() >> std::ws;
+    
+    file >> ModifyShowRangeRing2() >> std::ws;
+    file >> ModifyRangeRingRange2() >> std::ws;
+
+    file >> ModifyShowRangeRing3() >> std::ws;
+    file >> ModifyRangeRingRange3() >> std::ws;
+
+    file >> ModifyShowRangeRing4() >> std::ws;
+    file >> ModifyRangeRingRange4() >> std::ws;
+
+    file >> ModifyShowRangeRing5() >> std::ws;
+    file >> ModifyRangeRingRange5() >> std::ws;
+
+    file >> ModifyShowRangeRing6() >> std::ws;
+    file >> ModifyRangeRingRange6() >> std::ws;
+
     // done
     return(true);
 } // end Load
@@ -154,8 +186,21 @@ bool Config::Save(const std::string& filename)const
          << (GetNewMidSound().length()? GetNewMidSound():"<no sound>") << std::endl
          << GetPlayMidSound() << std::endl
          << (GetNamedMobSound().length()? GetNamedMobSound():"<no sound>") << std::endl
-         << GetPlayNamedMobSound() << std::endl;
-    
+         << GetPlayNamedMobSound() << std::endl
+         << (GetNamedMobName().length()? GetNamedMobName():"<no mob name>") << std::endl
+         << GetShowRangeRing1() << std::endl
+         << GetRangeRingRange1() << std::endl
+         << GetRangeRingRange2() << std::endl
+         << GetRangeRingRange2() << std::endl
+         << GetShowRangeRing3() << std::endl
+         << GetRangeRingRange3() << std::endl
+         << GetShowRangeRing4() << std::endl
+         << GetRangeRingRange4() << std::endl
+         << GetShowRangeRing5() << std::endl
+         << GetRangeRingRange5() << std::endl
+         << GetShowRangeRing6() << std::endl
+         << GetRangeRingRange6() << std::endl;
+
     // done
     return(true);
 } // end Save
@@ -185,5 +230,18 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(PlayMidSound);
     MEMBER_ASSIGN(NamedMobSound);
     MEMBER_ASSIGN(PlayNamedMobSound);
+    MEMBER_ASSIGN(NamedMobName);
+    MEMBER_ASSIGN(ShowRangeRing1);
+    MEMBER_ASSIGN(RangeRingRange1);
+    MEMBER_ASSIGN(ShowRangeRing2);
+    MEMBER_ASSIGN(RangeRingRange2);
+    MEMBER_ASSIGN(ShowRangeRing3);
+    MEMBER_ASSIGN(RangeRingRange3);
+    MEMBER_ASSIGN(ShowRangeRing4);
+    MEMBER_ASSIGN(RangeRingRange4);
+    MEMBER_ASSIGN(ShowRangeRing5);
+    MEMBER_ASSIGN(RangeRingRange5);
+    MEMBER_ASSIGN(ShowRangeRing6);
+    MEMBER_ASSIGN(RangeRingRange6);
 
 } // end set
