@@ -163,6 +163,7 @@ type
     function CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
     procedure SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
     procedure UpdateRealmRank(AObj: TDAOCPlayer);
+    procedure SetAggressorTarget(AAggressor: TDAOCObject; wTargetID: WORD);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -1158,7 +1159,8 @@ begin
     bAddedObject := false;
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then begin
-    pPacket.seek(-(iIDOffset + 2));
+    pPacket.seek(-(iIDOffset+2));
+
     with TDAOCMovingObject(pDAOCObject) do begin
       SpeedWord := pPacket.getShort;
       HeadWord := pPacket.getShort;
@@ -1170,7 +1172,7 @@ begin
         Z := pPacket.getShort;
         DestinationZ := pPacket.getShort;
         pPacket.seek(2);  // ID again
-        pPacket.seek(2);
+        SetAggressorTarget(pDAOCObject, pPacket.getShort);
         HitPoints := pPacket.getByte;
         pPacket.seek(1);
 
@@ -1201,7 +1203,7 @@ begin
         DestinationY := pPacket.getLong;  //+c
         z := pPacket.getShort;  //+10
         pPacket.seek(2);  // ID again //+12
-        pPacket.seek(2);  //+14
+        SetAggressorTarget(pDAOCObject, pPacket.getShort);  // +14
         HitPoints := pPacket.getByte; //+15
       end;
     end;  { with TDAOCMovingObject(pDAOCObject) }
@@ -2414,22 +2416,12 @@ var
 begin
   pPacket.HandlerName := 'Aggro/ChaseIndicator?';
 (* BRY: removed because I'm not sure about the validity of the packet type.
-  the code works though ;) 
+  the code works though ;)
   wTarget := pPacket.getShort;
   wAggressor := pPacket.getShort;
 
   pAggressor := FDAOCObjs.FindByInfoID(wAggressor);
-
-  if pAggressor is TDAOCMob then begin
-    if FLocalPlayer.InfoID = wTarget then
-      pTarget := FLocalPlayer
-    else
-      pTarget := FDAOCObjs.FindByInfoID(wTarget);
-    if pTarget is TDAOCMovingObject then begin
-      TDAOCMob(pAggressor).Target := TDAOCMovingObject(pTarget);
-      DoOnMobTargetChanged(TDAOCMob(pAggressor));
-    end;
-  end;
+  SetAggressorTarget(pAggressor, wTarget);
 *)
 end;
 
@@ -2625,6 +2617,39 @@ procedure TDAOCConnection.DoOnLocalHealthUpdate;
 begin
   if Assigned(FOnLocalHealthUpdate) then
     FOnLocalHealthUpdate(Self);
+end;
+
+procedure TDAOCConnection.SetAggressorTarget(AAggressor: TDAOCObject; wTargetID: WORD);
+var
+  pTarget:    TDAOCObject;
+begin
+  if AAggressor is TDAOCMob then begin
+      { first check if the mob it getting unaggressive }
+    if wTargetID = 0 then begin
+      if Assigned(TDAOCMob(AAggressor).Target) then begin
+        TDAOCMob(AAggressor).Target := nil;
+        DoOnMobTargetChanged(TDAOCMob(AAggressor));
+      end;
+
+      exit;
+    end;  { if targetid = 0 }
+
+      { next see if this is just a re-send of a known target }
+    if Assigned(TDAOCMob(AAggressor).Target) and
+      (TDAOCMob(AAggressor).Target.InfoID = wTargetID) then
+      exit;
+
+      { finally, find the target and link em }
+    if FLocalPlayer.InfoID = wTargetID then
+      pTarget := FLocalPlayer
+    else
+      pTarget := FDAOCObjs.FindByInfoID(wTargetID);
+
+    if Assigned(pTarget) and (pTarget is TDAOCMovingObject) then begin
+      TDAOCMob(AAggressor).Target := TDAOCMovingObject(pTarget);
+      DoOnMobTargetChanged(TDAOCMob(AAggressor));
+    end;
+  end;
 end;
 
 end.
