@@ -3,9 +3,13 @@ unit RenderPrefs;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, INIFiles, DAOCObjs, DAOCRegion, StdCtrls, Buttons, ComCtrls,
-  DAOCConSystem, ColorGrd, Spin, GLRenderObjects, ExtCtrls;
+{$IFDEF LINUX}
+{$ELSE}
+  Windows, Messages, Graphics, Controls, Forms, Dialogs, ColorGrd, Spin,
+  StdCtrls, 
+{$ENDIF !LINUX}
+  SysUtils, Classes, INIFiles, DAOCObjs, DAOCRegion, DAOCConSystem,
+  GLRenderObjects, ExtCtrls, ComCtrls, Buttons;
 
 type
   TMobListSortOrder = (msoName, msoDistance);

@@ -35,7 +35,7 @@ object frmAddPushpin: TfrmAddPushpin
     ItemHeight = 16
     TabOrder = 1
   end
-  object BitBtn1: TBitBtn
+  object btnOK: TBitBtn
     Left = 248
     Top = 4
     Width = 75
@@ -44,7 +44,7 @@ object frmAddPushpin: TfrmAddPushpin
     TabOrder = 2
     Kind = bkOK
   end
-  object BitBtn2: TBitBtn
+  object btnCancel: TBitBtn
     Left = 248
     Top = 36
     Width = 75

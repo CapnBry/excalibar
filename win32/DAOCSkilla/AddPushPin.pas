@@ -3,18 +3,22 @@ unit AddPushPin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Buttons, GLRenderObjects;
+{$IFDEF LINUX}
+  QForms, QControls,
+{$ELSE}
+  Windows, Messages, Forms, Buttons, ExtCtrls, 
+{$ENDIF !LINUX}
+  SysUtils, Classes, Controls, StdCtrls, GLRenderObjects;
 
 type
   TfrmAddPushpin = class(TForm)
     edtLabel: TEdit;
     cbxColor: TColorBox;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
   private
   public
-    class function Execute(X, Y, Z: DWORD; ALabel: string) : TMapElementPoint;
+    class function Execute(X, Y, Z: Cardinal; const ALabel: string) : TMapElementPoint;
   end;
 
 implementation
@@ -23,8 +27,7 @@ implementation
 
 { TfrmAddPushpin }
 
-class function TfrmAddPushpin.Execute(X, Y, Z: DWORD;
-  ALabel: string): TMapElementPoint;
+class function TfrmAddPushpin.Execute(X, Y, Z: Cardinal; const ALabel: string): TMapElementPoint;
 begin
   with Self.Create(Application) do
   try

@@ -3,10 +3,15 @@ unit GLRender;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
-  StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs,
-  DAOCClasses, QuickSinCos, MMSystem, BackgroundHTTP, TexFont, GLUT;
+{$IFDEF LINUX}
+  QForms, QControls, QGraphics,
+{$ELSE}
+  Windows, Messages, Controls, Forms, Graphics, MMSystem,
+  StdCtrls, ExtCtrls, ComCtrls,
+{$ENDIF !LINUX}
+  SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCObjs,
+  GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
+  QuickSinCos, BackgroundHTTP, TexFont, GLUT;
 
 type
   { A simple list box that you can prevent drawing }
@@ -14,8 +19,13 @@ type
   private
     FLocked: boolean;
   protected
+{$IFDEF MSWINDOWS}
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+{$ENDIF}
+{$IFDEF LINUX}
+    function WidgetFlags: integer; override;
+{$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -58,12 +68,12 @@ type
   private
     glMap:     TglWindow;
     FDControl: TDAOCConnection;
-    FRange:         DWORD;
+    FRange:         Cardinal;
     FRenderBounds:  TRect;
     FGLInitsCalled:       boolean;
     FDirty:   boolean;
     FInvaderHighlight:    boolean;
-    FInvaderHighlightLastSwap:  DWORD;
+    FInvaderHighlightLastSwap:  Cardinal;
     FMapElementsListList:   TVectorMapElementListList;
     FMapTexturesListList:   TTextureMapElementListList;
     FRangeCircles:  TRangeCircleList;
@@ -80,11 +90,11 @@ type
     FDirtyCount:    integer;
     FInvalidateCount: integer;
     FZoneName:      string;
-    FLastInvaderWarningTicks:   DWORD;
+    FLastInvaderWarningTicks:   Cardinal;
     FBoat:    TGLBoat;
     FTargetHUDWidth:  integer;
-    FMouseLocX:   DWORD;
-    FMouseLocY:   DWORD;
+    FMouseLocX:   Cardinal;
+    FMouseLocY:   Cardinal;
     FHTTPFetch:   TBackgroundHTTPManager;
     FTxfH10:      TTexFont;
     FTxfH12:      TTexFont;
@@ -137,7 +147,7 @@ type
     procedure ReloadMapElementsAndTextures;
     procedure DoPrefsDialog;
     function PlayerMobListText(AMob: TDAOCPlayer) : string;
-    procedure MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
+    procedure MapUnproject(var X, Y: Cardinal; ANeedMVPSetup: boolean);
     function CompareObjectClasses(A, B: TDAOCObjectClass): integer;
     procedure UpdateMapURLs;
     function WriteTXFTextH10(X, Y: integer; const s: string) : integer;
@@ -230,10 +240,19 @@ begin
   ControlStyle := ControlStyle + [csOpaque];
 end;
 
+{$IFDEF LINUX}
+function TLockableListBox.WidgetFlags: integer;
+begin
+  Result := inherited WidgetFlags or integer(WidgetFlags_WRepaintNoErase) or
+    integer(WidgetFlags_WResizeNoErase);
+end;
+{$ENDIF LINUX}
+
+{$IFDEF MSWINDOWS}
 procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
     { redraw the background only if our list doesn't fill the whole area }
-  if not FLocked and ((Count * ItemHeight) < Height) then 
+  if not FLocked and ((Count * ItemHeight) < Height) then
     inherited
   else
     Message.Result := 1;
@@ -244,6 +263,7 @@ begin
   if not FLocked then
     inherited;
 end;
+{$ENDIF MSWINDOWS}
 
 { TfrmGLRender }
 
@@ -263,7 +283,7 @@ end;
 
 procedure TfrmGLRender.glMapDraw(Sender: TObject);
 var
-  dwStartTickCount:  DWORD;
+  dwStartTickCount:  Cardinal;
 begin
   if not Assigned(FDControl) then
     exit;
@@ -521,6 +541,7 @@ begin
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
 
+{$IFDEF MSWINDOWS}
     if FRenderPrefs.InvaderWarning and
       (AObj.ObjectClass = ocPlayer) and
       (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive then
@@ -529,6 +550,7 @@ begin
         PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
         FLastInvaderWarningTicks := GlobalTickCount;
       end;
+{$ENDIF MSWINDOWS}
   end;  { if onject in filter }
 end;
 
@@ -583,7 +605,7 @@ end;
 procedure TfrmGLRender.glMapClick(Sender: TObject);
 var
   pNearest: TDAOCObject;
-  x, y:     DWORD;
+  x, y:     Cardinal;
 begin
   if not FRenderPrefs.TrackMapClick then
     exit;
@@ -1470,7 +1492,7 @@ end;
 
 procedure TfrmGLRender.UpdateStayOnTop;
 var
-  dwStyle:  DWORD;
+  dwStyle:  Cardinal;
 begin
   dwStyle := GetWindowLong(Handle, GWL_EXSTYLE);
   if FRenderPrefs.StayOnTop then begin
@@ -1634,7 +1656,7 @@ begin
   end;  { for X }
 end;
 
-procedure TfrmGLRender.MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
+procedure TfrmGLRender.MapUnproject(var X, Y: Cardinal; ANeedMVPSetup: boolean);
 var
   projmatrix: T16dArray;
   modmatrix:  T16dArray;
@@ -1673,8 +1695,8 @@ var
   ptMouse:  TPoint;
   iHeight:  integer;
   iDist:    integer;
-  ZoneX:    DWORD;
-  ZoneY:    DWORD;
+  ZoneX:    Cardinal;
+  ZoneY:    Cardinal;
   pNearest: TDAOCObject;
 begin
   if (GetAsyncKeyState(VK_CONTROL) = 0) or not Assigned(FDControl.Zone) then
@@ -1701,8 +1723,8 @@ begin
   ptMouse.X := ptMouse.X + 2;
   ptMouse.Y := glMap.ClientHeight - ptMouse.Y + iHeight;
 
-  ZoneX := FMouseLocX - DWORD(FDControl.Zone.BaseLoc.X);
-  ZoneY := FMouseLocY - DWORD(FDControl.Zone.BaseLoc.Y);
+  ZoneX := FMouseLocX - Cardinal(FDControl.Zone.BaseLoc.X);
+  ZoneY := FMouseLocY - Cardinal(FDControl.Zone.BaseLoc.Y);
 
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
