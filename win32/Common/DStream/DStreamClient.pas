@@ -2,7 +2,7 @@ unit DStreamClient;
 
 (****************************************************************************
 **
-** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+** Copyright (C) 2004 Bryan Mayland.  All rights reserved.
 **
 ** This file may be distributed and/or modified under the terms of the
 ** GNU General Public License version 2 as published by the Free Software
@@ -279,11 +279,15 @@ end;
 procedure TDStreamClient.Execute;
 begin
   FStatus := 'Executing';
-  
+
   while not Terminated do begin
     if FActive then
       if FClientSock.Connected then
-        DoRead
+        try
+          DoRead;
+        except
+          // should put some error passup code here
+        end
       else
         DoConnect
     else
