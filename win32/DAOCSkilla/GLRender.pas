@@ -11,13 +11,14 @@ uses
 {$ENDIF !LINUX}
   SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCConnectionList,
   DAOCObjs, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
-  QuickSinCos, BackgroundHTTP, TexFont, GLUT;
+  QuickSinCos, BackgroundHTTP, TexFont, GLUT, Menus;
 
 type
   { A simple list box that you can prevent drawing }
   TLockableListBox = class(TListBox)
   private
     FLocked: boolean;
+    procedure SetLocked(const Value: boolean);
   protected
 {$IFDEF MSWINDOWS}
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
@@ -29,7 +30,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    property Locked: boolean read FLocked write FLocked;
+    property Locked: boolean read FLocked write SetLocked;
   end;
 
   TfrmGLRender = class(TForm)
@@ -39,6 +40,12 @@ type
     pnlLeft: TPanel;
     lblObjCounts: TLabel;
     pnlGridHeader: TPanel;
+    pumRadar: TPopupMenu;
+    mniShowZoneInfo: TMenuItem;
+    pnlInventory: TPanel;
+    lblInventory: TLabel;
+    lblInventoryHeader: TLabel;
+    mniForceContextCurrent: TMenuItem;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -65,6 +72,9 @@ type
     procedure MobListMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure pnlLeftEndDock(Sender, Target: TObject; X, Y: Integer);
+    procedure mniShowZoneInfoClick(Sender: TObject);
+    procedure pumRadarPopup(Sender: TObject);
+    procedure mniForceContextCurrentClick(Sender: TObject);
   private
     glMap:     TglWindow;
     FCurrConn: TDAOCConnection;
@@ -160,11 +170,11 @@ type
     procedure UpdateMapURLs;
     function WriteTXFTextH10(X, Y: integer; const s: string) : integer;
     function WriteTXFTextH12(X, Y: integer; const s: string) : integer;
-    procedure CreateObjectListBox;
     procedure LoadRegionPushpins;
     procedure AddPushPin;
     procedure SetSmoothingOpts;
     procedure CreateGLWindow;
+    procedure CreateObjectListBox;
     procedure AdjustMobTriangleSize;
     procedure AdjustMinFPSTimer;
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
@@ -176,6 +186,7 @@ type
     procedure SetCurrentConnection(AConn: TDAOCConnection);
     procedure AutoSelectConnection;
     procedure UpdateCaption;
+    procedure UpdateInventoryPanel;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure DumpMVM(const where: string);
@@ -193,6 +204,7 @@ type
     procedure DAOCPlayerPosUpdate(Sender: TObject);
     procedure DAOCUnknownStealther(Sender: TObject; AObj: TDAOCObject);
     procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
+    procedure DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
 
     procedure Dirty;
     property DAOCConnectionList: TDAOCConnectionList read FDAOCConnectionList write SetDAOCConnectionList;
@@ -267,6 +279,14 @@ constructor TLockableListBox.Create(AOwner: TComponent);
 begin
   inherited;
   ControlStyle := ControlStyle + [csOpaque];
+end;
+
+procedure TLockableListBox.SetLocked(const Value: boolean);
+begin
+    { if we're unlocking, invalidate us }
+  if FLocked and not Value then
+    Invalidate;
+  FLocked := Value;
 end;
 
 {$IFDEF LINUX}
@@ -374,6 +394,7 @@ begin
     DrawMouseTooltip;
     DrawStealtherAlert;
 
+    glFlush();
     CheckGLError();
 
     inc(FFrameCount);
@@ -440,6 +461,7 @@ procedure TfrmGLRender.FormShow(Sender: TObject);
 begin
   LoadSettings;
   UpdateStayOnTop;
+  UpdateInventoryPanel;
 end;
 
 procedure TfrmGLRender.Log(const s: string);
@@ -524,17 +546,17 @@ var
   iPos:       integer;
 begin
   if Sender <> FCurrConn then exit;
-  
+
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     iPos := FilteredObjectInsert(AObj);
 
     UpdateObjectCounts;
+
     lstObjects.Locked := true;
 
     iOldIndex := lstObjects.ItemIndex;
     iOldTop := lstObjects.TopIndex;
     SetObjectListRowCount(FFilteredObjects.Count);
-
       { if we inserted an object before the selected index, update the
         selected index to keep it the same }
     if iPos <= iOldIndex then
@@ -548,7 +570,6 @@ begin
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
     lstObjects.Locked := false;
-    lstObjects.Invalidate;
 
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
@@ -605,7 +626,6 @@ begin
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
     lstObjects.Locked := false;
-    lstObjects.Invalidate;
 
     if FRenderPrefs.RedrawOnDelete then
       Dirty;
@@ -943,12 +963,31 @@ end;
 
 procedure TfrmGLRender.GridSelectObject(ADAOCObject: TDAOCObject);
 var
-  I:    integer;
+  I:        integer;
+  iOldTop:  integer;
 begin
-  I := FFilteredObjects.IndexOf(ADAOCObject);
+  UpdateInventoryPanel;
+  
+  if Assigned(ADAOCObject) then
+    I := FFilteredObjects.IndexOf(ADAOCObject)
+  else
+    I := -1;
 
-  if I <> lstObjects.ItemIndex then
+  if I = lstObjects.ItemIndex then
+    exit;
+
+  iOldTop := lstObjects.TopIndex;
+
+  if FRenderPrefs.AutoScrollMoblist then begin
     lstObjects.ItemIndex := I;
+  end
+
+  else begin
+    lstObjects.Locked := true;
+    SendMessage(lstObjects.Handle, LB_SETCURSEL, I, 0);
+    SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
+    lstObjects.Locked := false;
+  end;
 end;
 
 procedure TfrmGLRender.DAOCSelectedObjectChanged(Sender: TObject; AObj: TDAOCObject);
@@ -1478,6 +1517,12 @@ var
   sText:  string;
   cl:     TColor;
 begin
+    { we have to make a check here because LB_SETCURSEL forces a CNDrawItem call.
+      This would cause us to draw the selected item every time it changes, even
+      if it is not on the screen at the time }
+  if lstObjects.Locked then
+    exit;
+
   if Index < FFilteredObjects.Count then
     with lstObjects.Canvas do begin
       pMob := FFilteredObjects[Index];
@@ -1905,6 +1950,7 @@ procedure TfrmGLRender.RENDERPrefsMobListOptionChanged(Sender: TObject);
 begin
   RefreshFilteredList;
   lstObjects.Invalidate;
+  UpdateInventoryPanel;
 end;
 
 function TfrmGLRender.FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject): integer;
@@ -2140,6 +2186,7 @@ begin
   glMap.ColorDepth := c16bits;
   glMap.DepthBufferEnabled := False;
   glMap.WindowFlags := [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer];
+  glMap.PopupMenu := pumRadar;
 
   glMap.Initialize;
 end;
@@ -2416,6 +2463,47 @@ begin
     FRenderPrefs.SaveSettings(FPrefsFile);
     FRangeCircles.SaveToFile(FPrefsFile);
   end;
+end;
+
+procedure TfrmGLRender.mniShowZoneInfoClick(Sender: TObject);
+begin
+  if Assigned(FCurrConn) and Assigned(FCurrConn.Zone) then
+    ShowMessage(FCurrConn.Zone.AsString);
+end;
+
+procedure TfrmGLRender.pumRadarPopup(Sender: TObject);
+begin
+  mniShowZoneInfo.Enabled := Assigned(FCurrConn) and Assigned(FCurrConn.Zone);
+end;
+
+procedure TfrmGLRender.UpdateInventoryPanel;
+var
+  pObj:   TDAOCMovingObject;
+begin
+  if FRenderPrefs.ShowPlayerInventory and
+    Assigned(FCurrConn) and Assigned(FCurrConn.SelectedObject) and
+    (FCurrConn.SelectedObject.ObjectClass = ocPlayer) then begin
+
+    pObj := TDAOCPlayer(FCurrConn.SelectedObject);
+    lblInventory.Caption := pObj.Inventory.AsString(false);
+    pnlInventory.Height := lblInventoryHeader.Height + (pObj.Inventory.Count * 13);
+    pnlInventory.Visible := true;
+  end
+  else begin
+    lblInventory.Caption := '';
+    pnlInventory.Visible := false;
+  end;
+end;
+
+procedure TfrmGLRender.DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
+begin
+  if (Sender = FCurrConn) and (AObj = FCurrConn.SelectedObject) then
+    UpdateInventoryPanel;
+end;
+
+procedure TfrmGLRender.mniForceContextCurrentClick(Sender: TObject);
+begin
+  glMap.MakeCurrent;
 end;
 
 end.

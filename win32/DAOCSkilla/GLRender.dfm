@@ -97,6 +97,42 @@ object frmGLRender: TfrmGLRender
       TabOrder = 0
       OnMouseDown = MobListMouseDown
     end
+    object pnlInventory: TPanel
+      Left = 0
+      Top = 472
+      Width = 217
+      Height = 144
+      Align = alBottom
+      BevelOuter = bvNone
+      Color = clBtnShadow
+      TabOrder = 1
+      object lblInventory: TLabel
+        Left = 0
+        Top = 13
+        Width = 217
+        Height = 131
+        Align = alClient
+        AutoSize = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblInventoryHeader: TLabel
+        Left = 0
+        Top = 0
+        Width = 217
+        Height = 13
+        Align = alTop
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Selected Player Inventory'
+        Color = clBtnFace
+        ParentColor = False
+      end
+    end
   end
   object tmrMinFPS: TTimer
     Enabled = False
@@ -104,5 +140,18 @@ object frmGLRender: TfrmGLRender
     OnTimer = tmrMinFPSTimer
     Left = 32
     Top = 136
+  end
+  object pumRadar: TPopupMenu
+    OnPopup = pumRadarPopup
+    Left = 300
+    Top = 144
+    object mniForceContextCurrent: TMenuItem
+      Caption = 'Force context current'
+      OnClick = mniForceContextCurrentClick
+    end
+    object mniShowZoneInfo: TMenuItem
+      Caption = 'Show zone information'
+      OnClick = mniShowZoneInfoClick
+    end
   end
 end
