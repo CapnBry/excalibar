@@ -89,6 +89,7 @@ type
 {$ENDIF MSWINDOWS}
     procedure HTTPDownload(const AURL, ADestFile: string; ATag: integer = 0);
     function HaveLatestVersion(const ALocalFile, ASection: string) : boolean;
+    procedure ForceToLatestVersion(const ALocalFile, ASection: string);
   public
     procedure GLInitialize;
     procedure GLRender(const ARenderBounds: TRect);
@@ -377,6 +378,49 @@ procedure TZoneGLRenderObjectListList.AddZone(AZone: TDAOCZoneInfo);
 begin
 end;
 
+procedure TZoneGLRenderObjectListList.ForceToLatestVersion(const ALocalFile,
+  ASection: string);
+var
+  sVersionDate:   string;
+  dtVersion:      TDateTime;
+  yr, mo, da: WORD;
+  hh, nn, ss: WORD;
+  hFile:      THandle;
+begin
+  if FVersionFile = '' then
+    exit;
+  if not FileExists(ALocalFile) then
+    exit;
+
+    { get the date of the latest version from the version file }
+  with TINIFile.Create(FVersionFile) do begin
+    sVersionDate := ReadString(ASection, ExtractFileName(ALocalFile), '');
+    Free;
+  end;
+
+  if sVersionDate = '' then
+    exit;
+
+  yr := StrToIntDef(copy(sVersionDate, 1, 4), 1899);
+  mo := StrToIntDef(copy(sVersionDate, 5, 2), 12);
+  da := StrToIntDef(copy(sVersionDate, 7, 2), 30);
+  hh := StrToIntDef(copy(sVersionDate, 9, 2), 0);
+  nn := StrToIntDef(copy(sVersionDate, 11, 2), 0);
+  ss := StrToIntDef(copy(sVersionDate, 13, 2), 0);
+
+    { add one minute to the version date to offset any rounding.  This means our
+      fileage will be in the future of the version date, which will prevent it
+      from downloading again for sure. }
+  dtVersion := EncodeDate(yr, mo, da) + EncodeTime(hh, nn, ss, 0) +
+    (1 / 24 / 60);
+
+  hFile := FileOpen(ALocalFile, fmOpenWrite or fmShareDenyNone);
+  if hFile > 0 then begin
+    FileSetDate(hFile, DateTimeToFileDate(dtVersion));
+    FileClose(hFile);
+  end;
+end;
+
 function TZoneGLRenderObjectListList.GetItems(I: integer): TZoneGLRenderObjectList;
 begin
   Result := TZoneGLRenderObjectList(inherited Items[I]);
@@ -612,6 +656,7 @@ begin
       { we have to close the stream to make sure window will share the file }
     ARequest.ResponseStream.Free;
     ARequest.ResponseStream := nil;
+    ForceToLatestVersion(pZoneVecList.FileName, 'vector');
     pZoneVecList.ReloadFile;
   end;
 end;
@@ -715,6 +760,7 @@ begin
       { we have to close the stream to make sure window will share the file }
     ARequest.ResponseStream.Free;
     ARequest.ResponseStream := nil;
+    ForceToLatestVersion(pZoneTexList.FileName, 'dds');
     pZoneTexList.ReloadFile;
   end;
 end;
