@@ -230,7 +230,7 @@ begin
     WriteBool('RenderPrefs', 'ViewFrustum', ViewFrustum);
     WriteBool('RenderPrefs', 'AlternateMobListText', AlternateMobListText);
     WriteBool('RenderPrefs', 'AttemptMapDownload', AttemptMapDownload);
-    WriteString('RenderPrefs', 'MapBaseURL', MapBaseURL);
+    WriteString('RenderPrefs', 'MapBaseURL', '');  // MapBaseURL
     WriteBool('RenderPrefs', 'InvaderWarning', InvaderWarning);
   end;
 end;
