@@ -1,3 +1,10 @@
+Teerex (31/May/02)-2
+------------------
+Changes:
+ + Fixed agro circles always being yellow.
+ + Rewound PNG texture quad to be front-facing.
+ + Enabled backface culling to halve polygon count
+
 Teerex (31/May/02)
 ------------------
 Changes:
