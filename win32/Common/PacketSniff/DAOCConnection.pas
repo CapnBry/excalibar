@@ -77,6 +77,7 @@ type
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
+    FMaxObjectUpdtDistSqr: double;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -123,6 +124,7 @@ type
     procedure ClearDAOCObjectList;
     procedure CheckObjectsOutOfRange;
     procedure SetMaxObjectDistance(const Value: double);
+    procedure SetMaxObjectUpdtDistance(const Value: double);
     function CheckZoneChanged : boolean;
     function SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
   protected
@@ -250,6 +252,7 @@ type
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: integer read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
+    property MaxObjectUpdtDistance: double write SetMaxObjectUpdtDistance; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
     property RegionID: integer read FRegionID;
@@ -295,6 +298,11 @@ type
 
 
 implementation
+
+{$IFDEF GLOBAL_TICK_COUNTER}
+uses
+  GlobalTickCounter;
+{$ENDIF GLOBAL_TICK_COUNTER}
 
 { TAccountCharInfoList }
 
@@ -371,7 +379,8 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectDistance(6000);
+  SetMaxObjectUpdtDistance(6000);
+  SetMaxObjectDistance(8000);
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -759,6 +768,10 @@ begin
     exit;
 
   pFrag := TTCPFragment.CreateFrom(ASegment);
+
+{$IFDEF GLOBAL_TICK_COUNTER}
+  UpdateGlobalTickCount;
+{$ENDIF GLOBAL_TICK_COUNTER}
 
   if pFrag.IsAck then begin
     while pAssembler.OtherSide.ParsePacket(pFrag.AckNo, pPacket) do begin
@@ -1845,14 +1858,20 @@ procedure TDAOCConnection.CheckObjectsOutOfRange;
 var
   I:      integer;
   fDist:  double;
+  pObj:   TDAOCObject;
 begin
   I := FDAOCObjs.Count - 1;
   while I >= 0 do begin
-    fDist := FDAOCObjs[I].DistanceSqr3D(FLocalPlayer);
+    pObj := FDAOCObjs[I];
+    fDist := pObj.DistanceSqr3D(FLocalPlayer);
     if fDist > FMaxObjectDistSqr then begin
-      DoOnDeleteDAOCObject(FDAOCObjs[I]);
+      DoOnDeleteDAOCObject(pObj);
       FDAOCObjs.Delete(I);
-    end;
+    end
+    else if fDist > FMaxObjectUpdtDistSqr then
+      pObj.IsInUpdateRange := false
+    else
+      pObj.IsInUpdateRange := true;
 
     dec(I);
   end;  { while I > 0 }
@@ -1924,6 +1943,11 @@ var
 begin
   for I := 0 to FDAOCObjs.Count - 1 do
     FDAOCObjs[I].CheckStale;
+end;
+
+procedure TDAOCConnection.SetMaxObjectUpdtDistance(const Value: double);
+begin
+  FMaxObjectUpdtDistSqr := Value * Value;
 end;
 
 end.
