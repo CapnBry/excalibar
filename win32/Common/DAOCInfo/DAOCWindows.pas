@@ -529,9 +529,10 @@ end;
 procedure TTradeRecipeWindow.ClickRecipe(AItem: TTradeSkillRecipe;
   ACraft: TCraftRecipeCollection; ACurrentSkill: integer);
 var
-  iGroupIdx:  integer;
-  iTierIdx:   integer;
-  iSubTierIdx:  integer;
+  iGroupIdx:    integer;
+//  iSubGroupIdx: integer;
+//  iTierIdx:     integer;
+  iAdjustedOrdinal:  integer;
 begin
   ExpandGroup(AItem, ACraft, ACurrentSkill);
   sleep(500);
@@ -540,6 +541,13 @@ begin
   if iGroupIdx = -1 then
     exit;
 
+  iAdjustedOrdinal := ACraft.AdjustOrdinalInGroupForSkill(AItem, ACurrentSkill);
+  if iAdjustedOrdinal = -1 then
+    exit;
+
+  FItemLeftOffset := FItemRecipeLeft;
+  SelectItem(iGroupIdx + 1 + iAdjustedOrdinal);
+(***
   iTierIdx := ACraft.OrdinalOfTierInGroup(AItem.Group, AItem.Tier);
   if iTierIdx = -1 then
     exit;
@@ -548,6 +556,7 @@ begin
 
   FItemLeftOffset := FItemRecipeLeft;
   SelectItem(iGroupIdx + 1 + iTierIdx + iSubTierIdx);
+**)
 end;
 
 constructor TTradeRecipeWindow.Create(AWndManager: TDAOCWindowManager);
