@@ -3,7 +3,7 @@ unit Unit1;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   DAOCWindows, DAOCInventory, Buttons, PowerSkill, DAOCSkilla_TLB,
   DAOCObjs, DAOCPlayerAttributes, Recipes, Dialogs, DAOCPackets;
@@ -20,43 +20,27 @@ type
     lstAdapters: TListBox;
     Memo1: TMemo;
     lblPlayerPos: TLabel;
-    lblPlayerHead: TLabel;
-    lblPlayerSpeed: TLabel;
-    chkCapture: TCheckBox;
-    btnOpenPlayback: TButton;
-    edtPlayback: TEdit;
-    btnPlayPacket: TButton;
-    tmrPlayback: TTimer;
-    btnPlayTimer: TButton;
-    lblFilePos: TLabel;
-    chkDumpPackets: TCheckBox;
-    chkProcessPackets: TCheckBox;
+    lblPlayerHeadSpeed: TLabel;
     tmrTimeoutDelay: TTimer;
     chkAutosell: TCheckBox;
     btnPowerskillBuy: TSpeedButton;
-    Button3: TButton;
-    chkPCAPFile: TCheckBox;
     imgAdapter: TImage;
-    Bevel1: TBevel;
-    Bevel2: TBevel;    btnMacroTradeskill: TButton;
+    Bevel1: TBevel;    btnMacroTradeskill: TButton;
     btnAFK: TButton;
     btnGLRender: TButton;
     lblZone: TLabel;
     btnTellMacro: TButton;
     btnSpellcraftHlp: TButton;
-    Button1: TButton;
-    chkRecordMobseen: TCheckBox;
+    btnDebugging: TButton;
+    chkAutolaunchExcal: TCheckBox;
+    btnShowMapModes: TButton;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure chkCaptureClick(Sender: TObject);
-    procedure btnOpenPlaybackClick(Sender: TObject);
-    procedure btnPlayPacketClick(Sender: TObject);
-    procedure tmrPlaybackTimer(Sender: TObject);
-    procedure btnPlayTimerClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure tmrTimeoutDelayTimer(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure btnShowMapModesClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);
     procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -67,36 +51,31 @@ type
     procedure lstAdaptersClick(Sender: TObject);
     procedure btnTellMacroClick(Sender: TObject);
     procedure btnSpellcraftHlpClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure chkRecordMobseenClick(Sender: TObject);
+    procedure btnDebuggingClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
-    FCaptureStream: TFileStream;
-    FMobseenFile:   TFileStream;
-    FInPlayback:    boolean;
     FAutoSell:      boolean;
     FInSellOff:     boolean;
     FPSItemList:    TPowerSkillItemList;
 
     FLastConnection:  TSavedCaptureState;
 
+    FProcessPackets:  boolean;
     procedure LoadSettings;
     procedure SaveSettings;
     function GetConfigFileName : string;
     procedure SetupDAOCConnectionObj;
     procedure UpdatePlayer;
-    procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
     procedure DoAutoSell;
     procedure DoAutoBuy;
     procedure CheckNeedMorePSMaterials;
     function CheckConflictingWindows(AWindowList: array of const) : boolean;
-    procedure CheckWriteMobseen(ADAOCObject: TDAOCObject);
-    procedure CheckWriteAllMobseen;
     procedure SaveConnectionState;
     procedure LoadConnectionState;
     procedure RestoreConnectionState;
+    procedure ShowGLRenderer(AConnection: TDAOCConnection);
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -116,8 +95,10 @@ type
     procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCSetGroundTarget(ASender: TObject);
   public
-    procedure UpdateGLRender;
     procedure Log(const s: string);
+    procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
+
+    property ProcessPackets: boolean read FProcessPackets write FProcessPackets;
   end;
 
 var
@@ -129,7 +110,7 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  TellMacro, SpellcraftHelp, FrameFns
+  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -220,6 +201,16 @@ begin
   end;
 end;
 
+function StrToHNet(const AIP: string) : Cardinal;
+begin
+  Result := ntohl(inet_addr(PChar(AIP)));
+end;
+
+function HNetToStr(AIP: Cardinal) : string;
+begin
+  Result := string(my_inet_ntoa(ntohl(AIP)));
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   SetupDAOCConnectionObj;
@@ -230,7 +221,10 @@ begin
   FPSItemList := TPowerSkillItemList.Create;
 
   lstAdapters.Items.Assign(FPReader.AdapterList);
+  Memo1.Lines.Clear;
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
+
+  FProcessPackets := true;
 
 {$IFNDEF OPENGL_RENDERER}
   btnGLRender.Visible := false;
@@ -247,115 +241,54 @@ begin
   FIConnection := nil;
   FConnection := nil; // interface release frees obj
   FPReader.Free;
-
-  if Assigned(FCaptureStream) then
-    FreeAndNil(FCaptureStream);
 end;
 
-procedure TfrmMain.EthernetSegment(Sender: TObject;
-  ASegment: TEthernetSegment);
+procedure TfrmMain.EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
 begin
-  if not FInPlayback and Assigned(FCaptureStream) then
-    ASegment.SaveToStream(FCaptureStream);
+  frmDebugging.EthernetSegment(Sender, ASegment);
 
-  if not chkProcessPackets.Checked then
+  if not FProcessPackets then
     exit;
-    
+
   FConnection.ProcessEthernetSegment(ASegment);
-  // Log(ASegment.AsString);
 end;
 
 procedure TfrmMain.UpdatePlayer;
 begin
   with FConnection do begin
     lblPlayerPos.Caption := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
-    lblPlayerHead.Caption := 'Heading: ' + IntToStr(PlayerZoneHead);
-    lblPlayerSpeed.Caption := 'Speed: ' + IntToStr(LocalPlayer.Speed);
+    lblPlayerHeadSpeed.Caption := 'Heading: ' + IntToStr(PlayerZoneHead) +
+      ' Speed: ' + IntToStr(LocalPlayer.Speed);
   end;
-end;
-
-procedure TfrmMain.chkCaptureClick(Sender: TObject);
-begin
-  if chkCapture.Checked then
-    FCaptureStream := TFileStream.Create('c:\mycap.cap', fmCreate or fmShareDenyWrite)
-  else
-    FreeAndNil(FCaptureStream);
-end;
-
-procedure TfrmMain.btnOpenPlaybackClick(Sender: TObject);
-begin
-  if chkCapture.Checked then begin
-    chkCapture.Checked := false;
-    FCaptureStream.Free;
-  end;
-
-  FCaptureStream := TFileStream.Create(edtPlayback.Text, fmOpenRead or fmShareDenyNone);
-  FInPlayback := true;
-
-    { 24 bytes of header before packets start }
-  if chkPCAPFile.Checked then
-    FCaptureStream.seek(24, soFromCurrent);
-
-  lblFilePos.Caption := IntToStr(FCaptureStream.Position);
-end;
-
-procedure TfrmMain.btnPlayPacketClick(Sender: TObject);
-var
-  tmpSegment:   TEthernetSegment;
-  iCapLen:      integer;
-begin
-  if not Assigned(FCaptureStream) then
-    btnOpenPlaybackClick(Self);
-
-  if not Assigned(FCaptureStream) then
-    exit;
-
-  if FCaptureStream.Position >= FCaptureStream.Size then
-    exit;
-
-    { 8 header + 4 frame size gets us to caplen }
-  if chkPCAPFile.Checked then begin
-    FCaptureStream.seek(8, soFromCurrent);
-    FCaptureStream.Read(iCapLen, sizeof(iCapLen));
-  end
-  else
-    iCapLen := 0;
-
-  tmpSegment := TEthernetSegment.Create;
-  tmpSegment.LoadFromStream(FCaptureStream, iCapLen);
-  EthernetSegment(nil, tmpSegment);
-  tmpSegment.Free;
-
-  lblFilePos.Caption := IntToStr(FCaptureStream.Position);
-end;
-
-procedure TfrmMain.tmrPlaybackTimer(Sender: TObject);
-begin
-  tmrPlayback.Enabled := false;
-  btnPlayPacketClick(nil);
-  tmrPlayback.Enabled := FCaptureStream.Position < FCaptureStream.Size;
-end;
-
-procedure TfrmMain.btnPlayTimerClick(Sender: TObject);
-begin
-  tmrPlayback.Enabled := not tmrPlayback.Enabled;
 end;
 
 procedure TfrmMain.DAOCConnect(Sender: TObject);
 begin
   Log('New connection: ' + FConnection.ClientIP + '->' +
     FConnection.ServerIP);
+
+{$IFDEF OPENGL_RENDERER}
+  if chkAutolaunchExcal.Checked then
+    ShowGLRenderer(FConnection);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
   Log('Connection closed.  Largest packet was: ' + IntToStr(FConnection.LargestDAOCPacketSeen));
+
+{$IFDEF OPENGL_RENDERER}
+  if chkAutolaunchExcal.Checked then
+    frmGLRender.Hide;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCPlayerPosUpdate(Sender: TObject);
 begin
   UpdatePlayer;
-  UpdateGLRender;
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.Dirty;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.SetupDAOCConnectionObj;
@@ -404,7 +337,7 @@ procedure TfrmMain.DAOCZoneChange(Sender: TObject);
 begin
   if Assigned(FConnection.Zone) then begin
     lblZone.Caption := FConnection.Zone.Name;
-    CheckWriteAllMobseen;
+    frmDebugging.DAOCZoneChange;
   end
   else
     lblZone.Caption := 'Region ' + IntToStr(FConnection.RegionID);
@@ -424,13 +357,13 @@ begin
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
     FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 6000);
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
+    chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
-    edtPlayback.Text := ReadString('Main', 'CaptureFile', 'c:\savedcap.cap');
 
       { The ServerNet is stored in host order like 1.2.3.4 = $01020304,
         also remember it is a NET not an IP so the last number should be 00 }
-    BP_Instns[4].k := ReadInteger('Main', 'ServerNet', BP_Instns[4].k);
+    BP_Instns[4].k := StrToHNet(ReadString('Main', 'ServerNet', HNetToStr(BP_Instns[4].k)));
     BP_Instns[7].k := BP_Instns[4].k;
 
     s := ReadString('Main', 'Adapter', '');
@@ -469,6 +402,10 @@ begin
     frmSpellcraftHelp.Top := ReadInteger('SpellcraftHelp', 'Top', frmSpellcraftHelp.Top);
     frmSpellcraftHelp.Height := ReadInteger('SpellcraftHelp', 'Height', frmSpellcraftHelp.Height);
     frmSpellcraftHelp.CraftRealm := TCraftRealm(ReadInteger('SpellcraftHelp', 'CraftRealm', ord(frmSpellcraftHelp.CraftRealm)));
+
+    frmDebugging.CaptureFile := ReadString('Debugging', 'CaptureFile', 'c:\savedcap.cap');
+    frmDebugging.Left := ReadInteger('Debugging', 'Left', frmDebugging.Left);
+    frmDebugging.Top := ReadInteger('Debugging', 'Top', frmDebugging.Top);
     Free;
   end;  { with INI }
 end;
@@ -478,11 +415,11 @@ begin
   with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
+    WriteBool('Main', 'AutolaunchExcal', chkAutolaunchExcal.Checked);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
     if lstAdapters.ItemIndex <> -1 then
       WriteString('Main', 'Adapter', lstAdapters.Items[lstAdapters.ItemIndex]);
-    WriteString('Main', 'CaptureFile', edtPlayback.Text);
 
     SaveConnectionState;
 
@@ -514,37 +451,18 @@ begin
     WriteInteger('SpellcraftHelp', 'Top', frmSpellcraftHelp.Top);
     WriteInteger('SpellcraftHelp', 'Height', frmSpellcraftHelp.Height);
     WriteInteger('SpellcraftHelp', 'CraftRealm', ord(frmSpellcraftHelp.CraftRealm));
+
+    WriteString('Debugging', 'CaptureFile', frmDebugging.CaptureFile);
+    WriteInteger('Debugging', 'Left', frmDebugging.Left);
+    WriteInteger('Debugging', 'Top', frmDebugging.Top);
+
     Free;
   end;  { with INI }
 end;
 
 procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
-var
-  sProto:   string;
-  sDirec:   string;
-//  kk:       TDAOCCryptKey;
 begin
-  if chkDumpPackets.Checked then begin
-    if APacket.IPProtocol = daocpTCP then
-      sProto := 'TCP'
-    else
-      sProto := 'UDP';
-
-    if APacket.IsFromServer then
-      sDirec := 'FROM'
-    else
-      sDirec := ' TO ';
-
-    Log('---- ' + sProto + ' packet ' + sDirec + ' server ---- ' + APacket.HandlerName);
-    Log(APacket.AsString);
-
-//    if FConnection.CryptKey <> '000000000000000000000000' then begin
-//      Log('++++ ' + sProto + ' packet ' + sDirec + ' server ++++ ' + APacket.HandlerName);
-//      StringToDAOCCryptKey(FConnection.CryptKey, kk);
-//      APacket.Decrypt(kk);
-//      Log(APacket.AsString);
-//    end;
-  end;
+  frmDebugging.DAOCPacket(Sender, APacket);
 end;
 
 procedure TfrmMain.DAOCInventoryChanged(Sender: TObject);
@@ -662,7 +580,7 @@ begin
   Log('Purchase complete');
 end;
 
-procedure TfrmMain.Button3Click(Sender: TObject);
+procedure TfrmMain.btnShowMapModesClick(Sender: TObject);
 begin
   if frmShowMapNodes.Visible then
     frmShowMapNodes.Close
@@ -727,7 +645,6 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FreeAndNil(FMobseenFile);
   SaveSettings;
 {$IFDEF OPENGL_RENDERER}
   if frmGLRender.Visible then
@@ -760,12 +677,10 @@ end;
 procedure TfrmMain.btnGLRenderClick(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCControl := FConnection;
-  frmGLRender.PrefsFile := GetConfigFileName;
   if frmGLRender.Visible then
     frmGLRender.Close
   else
-    frmGLRender.Show;
+    ShowGLRenderer(FConnection);
 {$ENDIF}
 end;
 
@@ -786,21 +701,13 @@ end;
 
 procedure TfrmMain.btnTellMacroClick(Sender: TObject);
 begin
-{$IFNDEF DAOC_AUTO_SERVER}
+{$IFDEF DAOC_AUTO_SERVER}
   frmTellMacro.DAOCControl := FConnection;
   if frmTellMacro.Visible then
     frmTellMacro.Close
   else
     frmTellMacro.Show;
 {$ENDIF DAOC_AUTO_SERVER}
-end;
-
-procedure TfrmMain.UpdateGLRender;
-begin
-{$IFDEF OPENGL_RENDERER}
-  if frmGLRender.Visible then
-    frmGLRender.Dirty;
-{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
@@ -814,10 +721,10 @@ end;
 procedure TfrmMain.DAOCNewObject(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
+  frmDebugging.DAOCNewObject(ADAOCObject);
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCAddObject(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
-  CheckWriteMobseen(ADAOCObject);
 end;
 
 procedure TfrmMain.DAOCObjectMoved(ASender: TObject;
@@ -872,52 +779,6 @@ begin
     for I := low(AWindowList) to high(AWindowList) do
       if TForm(AWindowList[I].VObject).Visible then
         TForm(AWindowList[I].VObject).Close;
-end;
-
-procedure TfrmMain.Button1Click(Sender: TObject);
-var
-  I:    integer;
-begin
-  for I := 0 to FConnection.DAOCObjects.Count - 1 do
-    Log(FConnection.DAOCObjects[I].AsString);
-end;
-
-procedure TfrmMain.CheckWriteMobseen(ADAOCObject: TDAOCObject);
-var
-  s:         string;
-  X, Y, Z:   integer;
-begin
-  if (ADAOCObject.ObjectClass = ocMob) and Assigned(FMobseenFile) and
-    Assigned(FConnection.Zone) then begin
-    X := FConnection.Zone.ZoneConvertX(ADAOCObject.X);
-    Y := FConnection.Zone.ZoneConvertY(ADAOCObject.Y);
-    Z := FConnection.Zone.ZoneConvertZ(ADAOCObject.Z);
-    if (X >= 65535) or (Y > 65535) then
-      exit;
-    s := Format('MOBseen,%d,%d,%d,%d,%d,%s,%s'#13#10, [
-      FConnection.Zone.ZoneNum, X, Y, Z,
-      ADAOCObject.Level, ADAOCObject.Name, TDAOCMob(ADAOCObject).TypeTag
-      ]);
-    FMobseenFile.Write(s[1], Length(s));
-  end;
-end;
-
-procedure TfrmMain.chkRecordMobseenClick(Sender: TObject);
-begin
-  if chkRecordMobseen.Checked then begin
-    FMobseenFile := TFileStream.Create('mobseen', fmCreate or fmShareDenyWrite);
-    CheckWriteAllMobseen;
-  end
-  else
-    FreeAndNil(FMobseenFile);
-end;
-
-procedure TfrmMain.CheckWriteAllMobseen;
-var
-  I:  integer;
-begin
-  for I := 0 to FConnection.DAOCObjects.Count - 1 do
-    CheckWriteMobseen(FConnection.DAOCObjects[I]);
 end;
 
 function TfrmMain.GetConfigFileName: string;
@@ -985,6 +846,23 @@ procedure TfrmMain.DAOCSetGroundTarget(ASender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCSetGroundTarget;
+{$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.btnDebuggingClick(Sender: TObject);
+begin
+  if frmDebugging.Visible then
+    frmDebugging.Close
+  else
+    frmDebugging.Show;
+end;
+
+procedure TfrmMain.ShowGLRenderer(AConnection: TDAOCConnection);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCControl := AConnection;
+  frmGLRender.PrefsFile := GetConfigFileName;
+  frmGLRender.Show;
 {$ENDIF OPENGL_RENDERER}
 end;
 
