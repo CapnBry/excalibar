@@ -400,8 +400,8 @@ end;
 
 procedure TMapElementPoint.Assign(AX, AY, AZ: GLuint);
 begin
-  FX := AX + FOffsetX;
-  FY := AY + FOffsetY;
+  FX := AX + GLuint(FOffsetX);
+  FY := AY + GLuint(FOffsetY);
   FZ := AZ;
 end;
 
