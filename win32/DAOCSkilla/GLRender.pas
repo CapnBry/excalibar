@@ -145,6 +145,7 @@ type
     procedure CreateObjectListBox;
     procedure LoadRegionPushpins;
     procedure AddPushPin;
+    procedure SetSmoothingOpts;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -284,6 +285,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    SetSmoothingOpts;
       { at origin }
     if GetAsyncKeyState(VK_CONTROL) <> 0 then
       MapUnproject(FMouseLocX, FMouseLocY, false);
@@ -1931,6 +1933,24 @@ begin
   glColor3f(1, 0, 0);
   WriteTXFTextH12(glMap.ClientWidth - 118, 16, 'Stealther in proximity');
   glDisable(GL_TEXTURE_2D);
+end;
+
+procedure TfrmGLRender.SetSmoothingOpts;
+begin
+  if FRenderPrefs.SmoothLines then
+    glEnable(GL_LINE_SMOOTH)
+  else
+    glDisable(GL_LINE_SMOOTH);
+
+  if FRenderPrefs.SmoothPolygons then
+    glEnable(GL_POLYGON_SMOOTH)
+  else
+    glDisable(GL_POLYGON_SMOOTH);
+
+  if FRenderPrefs.SmoothPoints then
+    glEnable(GL_POINT_SMOOTH)
+  else
+    glDisable(GL_POINT_SMOOTH);
 end;
 
 end.

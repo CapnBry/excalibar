@@ -67,6 +67,9 @@ type
     DrawGrid:         boolean;
     DrawPushPins:     boolean;
     AnonymousStealthers: boolean;
+    SmoothLines:      boolean;
+    SmoothPolygons:   boolean;
+    SmoothPoints:     boolean;
 
     constructor Create;
 
@@ -165,6 +168,10 @@ type
     chkPushpins: TCheckBox;
     Label23: TLabel;
     chkRenderUnkStealthers: TCheckBox;
+    tabGraphics: TTabSheet;
+    chkSmoothLines: TCheckBox;
+    chkSmoothPolys: TCheckBox;
+    chkSmoothPoints: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -198,6 +205,9 @@ type
     procedure edtInvaderWarnTicksKeyPress(Sender: TObject; var Key: Char);
     procedure chkPushpinsClick(Sender: TObject);
     procedure chkRenderUnkStealthersClick(Sender: TObject);
+    procedure chkSmoothLinesClick(Sender: TObject);
+    procedure chkSmoothPolysClick(Sender: TObject);
+    procedure chkSmoothPointsClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -260,7 +270,10 @@ begin
   Result.MobListSortOrder := MobListSortOrder;
   Result.GroupByClass := GroupByClass;
   Result.DrawPushPins := DrawPushPins;
-  Result.AnonymousStealthers := AnonymousStealthers; 
+  Result.AnonymousStealthers := AnonymousStealthers;
+  Result.SmoothLines := SmoothLines; 
+  Result.SmoothPolygons := SmoothPolygons;
+  Result.SmoothPoints := SmoothPoints;
 end;
 
 constructor TRenderPreferences.Create;
@@ -333,6 +346,9 @@ begin
     GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
     DrawPushPins := ReadBool('RenderPrefs', 'DrawPushPins', true);
     AnonymousStealthers := ReadBool('RenderPrefs', 'AnonymousStealthers', true);
+    SmoothLines := ReadBool('RenderPrefs', 'SmoothLines', false);
+    SmoothPolygons := ReadBool('RenderPrefs', 'SmoothPolygons', false);
+    SmoothPoints := ReadBool('RenderPrefs', 'SmoothPoints', false);
   end;
 end;
 
@@ -376,6 +392,9 @@ begin
     WriteBool('RenderPrefs', 'GroupByClass', GroupByClass);
     WriteBool('RenderPrefs', 'DrawPushPins', DrawPushPins);
     WriteBool('RenderPrefs', 'AnonymousStealthers', AnonymousStealthers);
+    WriteBool('RenderPrefs', 'SmoothLines', SmoothLines);
+    WriteBool('RenderPrefs', 'SmoothPolygons', SmoothPolygons);
+    WriteBool('RenderPrefs', 'SmoothPoints', SmoothPoints);
   end;
 end;
 
@@ -566,6 +585,10 @@ begin
 
   RefreshRangeCircleList;
   SelectFirstRangeCircle;
+
+  chkSmoothLines.Checked := FRenderPrefs.SmoothLines;
+  chkSmoothPolys.Checked := FRenderPrefs.SmoothPolygons;
+  chkSmoothPoints.Checked := FRenderPrefs.SmoothPoints;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -773,6 +796,21 @@ end;
 procedure TfrmRenderPrefs.chkRenderUnkStealthersClick(Sender: TObject);
 begin
   FRenderPrefs.AnonymousStealthers := chkRenderUnkStealthers.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkSmoothLinesClick(Sender: TObject);
+begin
+  FRenderPrefs.SmoothLines := chkSmoothLines.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkSmoothPolysClick(Sender: TObject);
+begin
+  FRenderPrefs.SmoothPolygons := chkSmoothPolys.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkSmoothPointsClick(Sender: TObject);
+begin
+  FRenderPrefs.SmoothPoints := chkSmoothPoints.Checked;
 end;
 
 end.

@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabFilter
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 2
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -682,6 +682,37 @@ object frmRenderPrefs: TfrmRenderPrefs
           'Sort by distance')
         TabOrder = 2
         OnClick = grpListSortClick
+      end
+    end
+    object tabGraphics: TTabSheet
+      Caption = 'Graphics'
+      ImageIndex = 5
+      object chkSmoothLines: TCheckBox
+        Left = 8
+        Top = 8
+        Width = 241
+        Height = 17
+        Caption = 'Smooth lines'
+        TabOrder = 0
+        OnClick = chkSmoothLinesClick
+      end
+      object chkSmoothPolys: TCheckBox
+        Left = 8
+        Top = 44
+        Width = 241
+        Height = 17
+        Caption = 'Smooth polygons'
+        TabOrder = 1
+        OnClick = chkSmoothPolysClick
+      end
+      object chkSmoothPoints: TCheckBox
+        Left = 8
+        Top = 80
+        Width = 237
+        Height = 17
+        Caption = 'Smooth points'
+        TabOrder = 2
+        OnClick = chkSmoothPointsClick
       end
     end
   end
