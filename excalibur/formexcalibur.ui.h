@@ -54,12 +54,15 @@ void FormExcalibur::init()
 
     Zone      = new QLabel( statusBar(), "Zone" );
     xyzstatus = new QLabel( statusBar(), "xyzstatus" );
-    
+
+    xyzstatus->setMinimumWidth(125);
+    xyzstatus->setAlignment(AlignHCenter);
+    Zone->setMinimumWidth(110);
+    Zone->setAlignment(AlignHCenter);
+
     statusBar()->addWidget(Zone, 0, TRUE);
-    statusBar()->addWidget(xyzstatus, 2, TRUE);
-    
-    Zone->setText("Zone:\t000\t");
-    xyzstatus->setText("X: 0\tY: 0\tZ: 0");
+    statusBar()->addWidget(xyzstatus, 0, TRUE);
+
 }
 
 void FormExcalibur::destroy()
