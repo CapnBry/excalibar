@@ -34,7 +34,7 @@ type
     RedrawOnUpdate:   boolean;
     RedrawOnTimer:    boolean;
     StayOnTop:        boolean;
-    RotateMapToPlayer:  boolean;
+    RotateMapWithPlayer:  boolean;
 
     constructor Create;
 
@@ -74,6 +74,7 @@ type
     chkTrackGameSelection: TCheckBox;
     chkTypeTag: TCheckBox;
     chkStayOnTop: TCheckBox;
+    chkRotateMap: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -85,6 +86,7 @@ type
     procedure chkTrackGameSelectionClick(Sender: TObject);
     procedure chkTypeTagClick(Sender: TObject);
     procedure chkStayOnTopClick(Sender: TObject);
+    procedure chkRotateMapClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -124,7 +126,7 @@ begin
   Result.RedrawOnUpdate := RedrawOnUpdate;
   Result.RedrawOnTimer := RedrawOnTimer;
   Result.StayOnTop := StayOnTop;
-  Result.RotateMapToPlayer := RotateMapToPlayer;
+  Result.RotateMapWithPlayer := RotateMapWithPlayer;
 end;
 
 constructor TRenderPreferences.Create;
@@ -167,7 +169,7 @@ begin
     RedrawOnUpdate := ReadBool('RenderPrefs', 'RedrawOnUpdate', true);
     RedrawOnTimer := ReadBool('RenderPrefs', 'RedrawOnTimer', true);
     StayOnTop := ReadBool('RenderPrefs', 'StayOnTop', false);
-    RotateMapToPlayer := ReadBool('RenderPrefs', 'RotateMapToPlayer', false);
+    RotateMapWithPlayer := ReadBool('RenderPrefs', 'RotateMapWithPlayer', false);
   end;
 end;
 
@@ -195,7 +197,7 @@ begin
     WriteBool('RenderPrefs', 'RedrawOnUpdate', RedrawOnUpdate);
     WriteBool('RenderPrefs', 'RedrawOnTimer', RedrawOnTimer);
     WriteBool('RenderPrefs', 'StayOnTop', StayOnTop);
-    WriteBool('RenderPrefs', 'RotateMapToPlayer', RotateMapToPlayer);
+    WriteBool('RenderPrefs', 'RotateMapWithPlayer', RotateMapWithPlayer);
   end;
 end;
 
@@ -300,6 +302,7 @@ begin
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
   chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
   chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
+  chkRotateMap.Checked := FRenderPrefs.RotateMapWithPlayer;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -320,6 +323,11 @@ end;
 procedure TfrmRenderPrefs.chkStayOnTopClick(Sender: TObject);
 begin
   FRenderPrefs.StayOnTop := chkStayOnTop.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRotateMapClick(Sender: TObject);
+begin
+  FRenderPrefs.RotateMapWithPlayer := chkRotateMap.Checked;
 end;
 
 end.

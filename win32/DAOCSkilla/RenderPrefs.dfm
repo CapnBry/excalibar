@@ -3,7 +3,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   Top = 257
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
-  ClientHeight = 321
+  ClientHeight = 346
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   TextHeight = 13
   object grpExtras: TGroupBox
     Left = 4
-    Top = 104
+    Top = 124
     Width = 457
     Height = 213
     Caption = ' Include this extra information '
@@ -130,13 +130,13 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 4
     Top = 0
     Width = 165
-    Height = 101
+    Height = 117
     Caption = ' Show these types of objects'
     TabOrder = 0
     object chkRenderPlayers: TCheckBox
       Tag = 3
       Left = 8
-      Top = 16
+      Top = 20
       Width = 141
       Height = 17
       Caption = 'Players (P)'
@@ -146,7 +146,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderMobs: TCheckBox
       Tag = 2
       Left = 8
-      Top = 36
+      Top = 44
       Width = 141
       Height = 17
       Caption = 'Monsters and NPCs (M)'
@@ -156,7 +156,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderObjects: TCheckBox
       Tag = 1
       Left = 8
-      Top = 56
+      Top = 68
       Width = 141
       Height = 17
       Caption = 'Graves and objects (O)'
@@ -165,7 +165,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     end
     object chkRenderUnknown: TCheckBox
       Left = 8
-      Top = 76
+      Top = 92
       Width = 141
       Height = 17
       Caption = 'Unknown (U)'
@@ -195,7 +195,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 176
     Top = 0
     Width = 177
-    Height = 101
+    Height = 117
     Caption = ' UI options'
     TabOrder = 2
     object chkTrackMapClick: TCheckBox
@@ -233,6 +233,15 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'Keep window on top (T)'
       TabOrder = 3
       OnClick = chkStayOnTopClick
+    end
+    object chkRotateMap: TCheckBox
+      Left = 8
+      Top = 96
+      Width = 153
+      Height = 17
+      Caption = 'Rotate map with player'
+      TabOrder = 4
+      OnClick = chkRotateMapClick
     end
   end
 end
