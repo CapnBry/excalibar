@@ -1,5 +1,11 @@
 Andon (08/Feb/02)
 ------------------
+
+Bug fixes (Me):
+ + CapnBry's mob delta position prediction has been disabled
+   by default now.. For testing purposes, it can still be
+   enabled by removing the #undef ALPHA_QUALITY in excalibur.h
+
 Additions (Snowblind):
  + Enhanced the status bar.. Displays zone name now
 

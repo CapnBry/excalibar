@@ -65,8 +65,10 @@ class exMob : public QListViewItem {
     unsigned int getX() const;
     unsigned int getY() const;
     unsigned int getZ() const;
+#ifdef ALPHA_QUALITY
     unsigned int getProjectedX();
     unsigned int getProjectedY();
+#endif
     unsigned int getHead() const;
     unsigned int getSpeed() const;
     unsigned int getLevel() const;

@@ -33,7 +33,7 @@
 
 #include "exPrefs.h"
 
-#define EX_VERSION "1.0.5"
+#define EX_VERSION "1.0.5a"
 
 typedef long int exTimeType;
 extern exTimeType exTick;
