@@ -10,7 +10,7 @@ uses
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
   TDAOCObjectClasses = set of TDAOCObjectClass;
-
+                          
   TDAOCObject = class(TObject)
   private
     FDestinationZ: WORD;
@@ -38,8 +38,9 @@ type
     FLastUpdate:  DWORD;
     FLevel: integer;
     FRealm: TDAOCRealm;
-    FHeadWord:   WORD;
-    FStealthed:  boolean;
+    FHeadWord:    WORD;
+    FStealthed:   boolean;
+    FStale:       boolean;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
@@ -49,13 +50,9 @@ type
     constructor Create; virtual;
 
     procedure Assign(ASrc: TDAOCObject);
-    procedure Touch;
-    procedure Clear; virtual;
-    function SameLoc(AObject: TDAOCObject) : boolean;
     function AsString: string;
-    procedure LoadFromReader(AReader: TReader); virtual;
-    procedure SaveToWriter(AWriter: TWriter); virtual;
-    function GetConColor(AToLevel: integer) : TColor;
+    procedure CheckStale; virtual;
+    procedure Clear; virtual;
     function Distance2D(AObject: TDAOCObject) : double; overload;
     function Distance2D(X, Y: DWORD) : double; overload;
     function Distance3D(AObject: TDAOCObject) : double; overload;
@@ -64,6 +61,12 @@ type
     function DistanceSqr2D(X, Y: DWORD) : double; overload;
     function DistanceSqr3D(AObject: TDAOCObject) : double; overload;
     function DistanceSqr3D(X, Y, Z: DWORD) : double; overload;
+    function GetConColor(AToLevel: integer) : TColor;
+    procedure LoadFromReader(AReader: TReader); virtual;
+    procedure MarkStaleAtDestination; virtual;
+    function SameLoc(AObject: TDAOCObject) : boolean;
+    procedure SaveToWriter(AWriter: TWriter); virtual;
+    procedure Touch;
 
     property InfoID: WORD read FInfoID write FInfoID;
     property PlayerID: WORD read FPlayerID write FPlayerID;
@@ -78,6 +81,7 @@ type
     property HeadWord: WORD read FHeadWord write SetHeadWord;
     property Level: integer read FLevel write SetLevel;
     property Realm: TDAOCRealm read FReam write SetRealm;
+    property Stale: boolean read FStale;
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
@@ -120,8 +124,10 @@ type
 
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
+    procedure CheckStale; override;
     function DestinationAhead : boolean;
     procedure InventoryChanged; virtual;
+    procedure MarkStaleAtDestination; override;
 
     property XProjected: DWORD read GetXProjected;
     property YProjected: DWORD read GetYProjected;
@@ -166,6 +172,7 @@ type
     procedure Assign(ASrc: TDAOCPlayer);
     procedure Clear; override;
 
+    procedure CheckStale; override;
     procedure InventoryChanged; override;
 
     property Guild: string read FGuild write FGuild;
@@ -309,6 +316,15 @@ begin
 end;
 *)
 
+procedure TDAOCMovingObject.CheckStale;
+begin
+  if FStale then
+    exit;
+
+  if not DestinationAhead then
+    MarkStaleAtDestination;
+end;
+
 procedure TDAOCMovingObject.Clear;
 begin
   inherited;
@@ -347,13 +363,20 @@ begin
       AcceptableQuads := AcceptableQuads - [q2, q3]
     else if vx < 0 then
       AcceptableQuads := AcceptableQuads - [q1, q4];
-    if vy > 0 then
+    if vy < 0 then
       AcceptableQuads := AcceptableQuads - [q3, q4]
-    else if vy < 0 then
+    else if vy > 0 then
       AcceptableQuads := AcceptableQuads - [q1, q2];
 
       { head should be between 0..359 }
-    HeadQuad := TQuadrant(((Head div 90) mod 4) + 1);
+    case (Head div 90) mod 4 of
+      0:  HeadQuad := q1;
+      1:  HeadQuad := q4;
+      2:  HeadQuad := q3;
+      3:  HeadQuad := q2;
+      else
+        HeadQuad := q1;
+    end;
     Result := HeadQuad in AcceptableQuads;
   end;
 end;
@@ -420,6 +443,12 @@ end;
 
 procedure TDAOCMovingObject.InventoryChanged;
 begin
+end;
+
+procedure TDAOCMovingObject.MarkStaleAtDestination;
+begin
+  inherited;
+  FSpeedWord := 0;
 end;
 
 procedure TDAOCMovingObject.SetHitPoints(const Value: BYTE);
@@ -607,6 +636,7 @@ end;
 procedure TDAOCObject.Touch;
 begin
   FLastUpdate := GetTickCount;
+  FStale := false;
 end;
 
 function TDAOCObject.Distance2D(X, Y: DWORD): double;
@@ -670,6 +700,21 @@ begin
   Result := X * X + Y * Y + Z * Z;
 end;
 
+procedure TDAOCObject.MarkStaleAtDestination;
+begin
+  FStale := true;
+  if (FDestinationX <> 0) and (FDestinationY <> 0) then begin
+    FX := FDestinationX;
+    FY := FDestinationY;
+    FZ := FDestinationZ;
+  end;
+end;
+
+procedure TDAOCObject.CheckStale;
+begin
+;
+end;
+
 { TDAOCLocalPlayer }
 
 procedure TDAOCLocalPlayer.Clear;
@@ -722,6 +767,17 @@ begin
   
   FGuild := ASrc.Guild;
   FLastName := ASrc.FLastName;
+end;
+
+procedure TDAOCPlayer.CheckStale;
+begin
+  if FStale then
+    exit;
+
+  FStale := (Speed <> 0) and (GetTickCount - FLastUpdate > 20000);
+
+  if FStale then
+    FSpeedWord := 0;
 end;
 
 procedure TDAOCPlayer.Clear;
