@@ -66,12 +66,18 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	AttachConsole();
 	#endif
 	
+	#ifdef _DEBUG
+	if(strlen(lpCmdLine)>0)
+	    {
+	    TestSegSearch(lpCmdLine);
+	    }
+	#endif
 	cMain MainApp(hInstance);
 	cSniffer Sniffer;
 	cDStream DStream;
 
 	MainApp.Run();
-	
+    
 	bContinue=false;
 	Sleep(1000);
 

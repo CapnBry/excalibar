@@ -53,6 +53,7 @@ cMemory::~cMemory()
 }
 
 //decrypt source from dol project, thx :p
+/*
 void cMemory::Decrypt( unsigned char *buf, unsigned int len) 
 {
 	if( CryptKey ==NULL) return;
@@ -95,7 +96,45 @@ void cMemory::Decrypt( unsigned char *buf, unsigned int len)
 		bl +=buf[edi];
 	}
 }
+*/
+void cMemory::Decrypt(unsigned char *buff, unsigned int len) 
+/* This is mostly a copy of the libTomCrypt::rc4_read() */ 
+{ 
+    const int SYMKEY_SIZE=256;
+    unsigned int x, y; 
+    unsigned char *s, tmp, tmp_sym_sbox[SYMKEY_SIZE];; 
+    unsigned int midpoint, pos; 
 
+    /* restart the key stream generator on every crypt */ 
+    memcpy(tmp_sym_sbox, CryptKey, SYMKEY_SIZE); 
+
+    x = 0; 
+    y = 0; 
+    s = tmp_sym_sbox; 
+    /* it is not standard RC4 practice to break a block in half, but packets 
+     from mythic's client have a sequence number at the beginning which 
+     would be easily guessable */ 
+    midpoint = len / 2; 
+
+    for (pos=midpoint; pos<len; pos++) { 
+        x = (x + 1) & 255; 
+        y = (y + s[x]) & 255; 
+        tmp = s[x]; s[x] = s[y]; s[y] = tmp; 
+        tmp = (s[x] + s[y]) & 255; 
+        buff[pos] ^= s[tmp]; 
+        y = (y + buff[pos]) & 255;  // this is not standard RC4 here 
+    } 
+    for (pos=0; pos<midpoint; pos++) { 
+        x = (x + 1) & 255; 
+        y = (y + s[x]) & 255; 
+        tmp = s[x]; s[x] = s[y]; s[y] = tmp; 
+        tmp = (s[x] + s[y]) & 255; 
+        buff[pos] ^= s[tmp]; 
+        y = (y + buff[pos]) & 255;  // this is not standard RC4 here 
+    } 
+} // end Decrypt
+
+/*
 DWORD cMemory::FindGameProcess() 
 { 
     HANDLE         hProcessSnap = NULL; 
@@ -120,8 +159,24 @@ DWORD cMemory::FindGameProcess()
 
     CloseHandle (hProcessSnap); 
     return(0); 
-} 
+}
+*/
+DWORD cMemory::FindGameProcess() 
+{ 
+  HWND hDAOCWnd; 
+  DWORD retVal; 
+  
+  hDAOCWnd = FindWindow("DAoCMWC", NULL); 
+  if (hDAOCWnd) 
+    {
+    if (GetWindowThreadProcessId(hDAOCWnd,&retVal))
+        {
+        return retVal; 
+        }
+    }
 
+  return 0; 
+}
 unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 {
 	size_t i,i2;
@@ -229,6 +284,7 @@ bool cMemory::GetKey()
 	if(KeyOffset == 0)
 	{
 		pMain->StatusUpdate("crypt key NOT FOUND in memory\r\n");
+    	CloseHandle(hGameProc);
 		return false;
 	}
 	

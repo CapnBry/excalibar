@@ -40,6 +40,7 @@ extern "C" // gotta make extern "C" for a C library!
 using namespace Network;
 
 unsigned short GetWord(unsigned char *data);
+void TestSegSearch(const char* cmd_line);
 
 extern cMain *pMain;
 extern cSniffer *pSniffer;
