@@ -746,6 +746,11 @@ QString exInventoryItem::getDescription(void)
         case 0xec:  return "NI " + getSlotDesc();  // sleeves
         case 0xed:  return "NI " + getSlotDesc();  // gloves
         case 0xee:  return "NI " + getSlotDesc();  // boots
+        case 0xef:  return "BZ " + getSlotDesc();  // Beserker chest
+        case 0xf0:  return "BZ " + getSlotDesc();  // leggings
+        case 0xf1:  return "BZ " + getSlotDesc();  // sleeves
+        case 0xf2:  return "BZ " + getSlotDesc();  // gloves
+        case 0xf3:  return "BZ " + getSlotDesc();  // boots
         case 0xf4:  return "HU " + getSlotDesc();  // hunter chest
         case 0xf5:  return "HU " + getSlotDesc();  // leggings
         case 0xf6:  return "HU " + getSlotDesc();  // sleeves
