@@ -1,7 +1,7 @@
 unit BoyerMoore;
 
 //------------------------------------------------------------------------------
-// Components        TTextSearch, TMemorySearch & TFileSearch                  .
+// Components        TTextSearch, TMemorySearch & TFileBoyMooSearch                  .
 // Version:          2.0                                                       .
 // Date:             28 December 2001                                          .
 // Compilers:        Delphi 3 - Delphi 6                                       .
@@ -18,7 +18,6 @@ uses
   windows, sysutils, classes;
 
 type
-
   TBaseBoyMooSearch = class(TObject)
   private
      fStart          : pchar;
@@ -56,6 +55,20 @@ type
   published
      property CaseSensitive: boolean
        read fCaseSensitive write SetCaseSensitive;
+  end;
+
+  TFileBoyMooSearch = class(TBaseBoyMooSearch)
+  private
+    fFilename: string;
+    procedure SetFilename(const Filename: string);
+    procedure Closefile;
+  public
+    destructor Destroy; override;
+  published
+    //Assigning 'Filename' creates a memory map of the named file.
+    //This memory mapping will be closed when either the Filename property is
+    //assigned to '' or the FileSearch object is destroyed.
+    property Filename: string read fFilename write SetFilename;
   end;
 
 const
@@ -249,5 +262,50 @@ begin
     end;
   end;
 end;
+
+//------------------------------------------------------------------------------
+// TFileBoyMooSearch methods ...
+//------------------------------------------------------------------------------
+
+destructor TFileBoyMooSearch.Destroy;
+begin
+  CloseFile;
+  inherited Destroy;
+end;
+//------------------------------------------------------------------------------
+
+procedure TFileBoyMooSearch.SetFilename(const Filename: string);
+var
+   filehandle: integer;
+   filemappinghandle: thandle;
+   size, highsize: integer;
+begin
+  CloseFile;
+  if (Filename = '') or not FileExists(Filename) then exit;
+  filehandle := sysutils.FileOpen(Filename, fmopenread or fmsharedenynone);
+  if filehandle = 0 then exit; 		       //error
+  size := GetFileSize(filehandle, @highsize);
+  if (size <= 0) or (highsize <> 0) then      //nb: files >2 gig not supported
+  begin
+     CloseHandle(filehandle);
+     exit;
+  end;
+  filemappinghandle := CreateFileMapping(filehandle, nil, page_readonly, 0, 0, nil);
+  if GetLastError = error_already_exists then filemappinghandle := 0;
+  if filemappinghandle <> 0 then
+    SetData(MapViewOfFile(filemappinghandle,file_map_read,0,0,0),size);
+  if fStart <> nil then fFilename := Filename;
+  CloseHandle(filemappinghandle);
+  CloseHandle(filehandle);
+end;
+//------------------------------------------------------------------------------
+
+procedure TFileBoyMooSearch.CloseFile;
+begin
+   if (fStart <> nil) then UnmapViewOfFile(fStart);
+   fFilename := '';
+   ClearData;
+end;
+//------------------------------------------------------------------------------
 
 end.
