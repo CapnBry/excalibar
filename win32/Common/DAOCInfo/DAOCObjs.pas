@@ -213,6 +213,8 @@ type
 
   TDAOCMobNotify = procedure (ASender: TObject; ADAOCMob: TDAOCMob) of Object;
 
+  TRealmRank = (rrUnknown, rr1, rr2, rr3, rr4, rr5, rr6, rr7, rr8, rr9, rr10);
+
   TDAOCPlayer = class(TDAOCMovingObject)
   private
   protected
@@ -222,7 +224,11 @@ type
     FIsInGuild: boolean;
     FIsInGroup: boolean;
     FCharacterClass:  TDAOCCharacterClass;
+    FRealmRank: TRealmRank;
+    FRealmRankStr:  string;
     procedure UpdateFullName;
+    procedure UpdateRealmRank;
+    procedure UpdateRealmRankStr;
     procedure SetName(const Value: string); override;
     procedure SetLastName(const Value: string);
     function GetObjectClass : TDAOCObjectClass; override;
@@ -239,6 +245,8 @@ type
     property LastName: string read FLastName write SetLastName;
     property FullName: string read FFullName;
     property CharacterClass: TDAOCCharacterClass read FCharacterClass;
+    property RealmRank: TRealmRank read FRealmRank;
+    property RealmRankStr: string read FRealmRankStr;
   end;
 
   TDAOCCurrency = class(TObject)
@@ -941,6 +949,8 @@ begin
   FGuild := '';
   FLastName := '';
   FInventory.Clear;
+  FRealmRank := rrUnknown;
+  FRealmRankStr := '';
 end;
 
 function TDAOCPlayer.GetObjectClass: TDAOCObjectClass;
@@ -966,6 +976,7 @@ end;
 procedure TDAOCPlayer.SetLastName(const Value: string);
 begin
   FLastName := Value;
+  UpdateRealmRank;
   UpdateFullName;
 end;
 
@@ -981,6 +992,111 @@ begin
     FFullName := FName + ' ' + FLastName
   else
     FFullName := FName;
+end;
+
+procedure TDAOCPlayer.UpdateRealmRank;
+begin
+  case FRealm of
+    drAlbion:
+      begin
+        if FLastName = 'Guardian' then
+          FRealmRank := rr1
+        else if FLastName = 'Warder' then
+          FRealmRank := rr2
+        else if FLastName = 'Myrmidon' then
+          FRealmRank := rr3
+        else if FLastName = 'Gryphon Knight' then
+          FRealmRank := rr4
+        else if FLastName = 'Eagle Knight' then
+          FRealmRank := rr5
+        else if FLastName = 'Phoenix Knight' then
+          FRealmRank := rr6
+        else if FLastName = 'Alerion Knight' then
+          FRealmRank := rr7
+        else if FLastName = 'Unicorn Knight' then
+          FRealmRank := rr8
+        else if FLastName = 'Lion Knight' then
+          FRealmRank := rr9
+        else if FLastName = 'Dragon Knight' then
+          FRealmRank := rr10
+        else
+          FRealmRank := rrUnknown;
+      end;  { albion }
+
+    drMidgard:
+      begin
+        if FLastName = 'Skiltvakten' then
+          FRealmRank := rr1
+        else if FLastName = 'Isen Vakten' then
+          FRealmRank := rr2
+        else if FLastName = 'Flammen Vakten' then
+          FRealmRank := rr3
+        else if FLastName = 'Elding Vakten' then
+          FRealmRank := rr4
+        else if FLastName = 'Stormur Vakten' then
+          FRealmRank := rr5
+        else if FLastName = 'Isen Herra' then
+          FRealmRank := rr6
+        else if FLastName = 'Flammen Herra' then
+          FRealmRank := rr7
+        else if FLastName = 'Elding Herra' then
+          FRealmRank := rr8
+        else if FLastName = 'Stormur Herra' then
+          FRealmRank := rr9
+        else if FLastName = 'Einherjar' then
+          FRealmRank := rr10
+        else
+          FRealmRank := rrUnknown;
+      end;  { midgard }
+
+    drHibernia:
+      begin
+        if FLastName = 'Savant' then
+          FRealmRank := rr1
+        else if FLastName = 'Cosantoir' then
+          FRealmRank := rr2
+        else if FLastName = 'Brehon' then
+          FRealmRank := rr3
+        else if FLastName = 'Grove Protector' then
+          FRealmRank := rr4
+        else if FLastName = 'Raven Ardent' then
+          FRealmRank := rr5
+        else if FLastName = 'Silver Hand' then
+          FRealmRank := rr6
+        else if FLastName = 'Thunderer' then
+          FRealmRank := rr7
+        else if FLastName = 'Gilded Spear' then
+          FRealmRank := rr8
+        else if FLastName = 'Tiarna' then
+          FRealmRank := rr9
+        else if FLastName = 'Emerald Ridere' then
+          FRealmRank := rr10
+        else
+          FRealmRank := rrUnknown;
+      end;  { hibernia }
+
+    else
+      FRealmRank := rrUnknown;
+  end;  { case FRealm }
+
+  UpdateRealmRankStr;
+end;
+
+procedure TDAOCPlayer.UpdateRealmRankStr;
+begin
+  case FRealmRank of
+    rrUnknown:  FRealmRankStr := '';
+    rr1:  FRealmRankStr := 'RR1';
+    rr2:  FRealmRankStr := 'RR2';
+    rr3:  FRealmRankStr := 'RR3';
+    rr4:  FRealmRankStr := 'RR4';
+    rr5:  FRealmRankStr := 'RR5';
+    rr6:  FRealmRankStr := 'RR6';
+    rr7:  FRealmRankStr := 'RR7';
+    rr8:  FRealmRankStr := 'RR8';
+    rr9:  FRealmRankStr := 'RR9';
+    rr10: FRealmRankStr := 'RR10';
+  end;
 end;
 
 { TDAOCMob }
