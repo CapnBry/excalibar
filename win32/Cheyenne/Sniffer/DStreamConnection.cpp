@@ -724,9 +724,9 @@ bool DStreamConnection::ValidateHelo(const dstream::DPACKET_HELO& helo)const
         }
     
     // check version
-    if(helo.version_no != 1)
+    if(helo.version_no < 1 || helo.version_no > 2)
         {
-        LOG_FUNC << "version check failed: expected 1, got " << helo.version_no << "\n";
+        LOG_FUNC << "version check failed: expected 1 or 2, got " << helo.version_no << "\n";
         return(false);
         }
     
