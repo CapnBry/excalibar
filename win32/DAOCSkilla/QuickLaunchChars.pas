@@ -92,6 +92,9 @@ procedure TQuickLaunchCharList.AddOrUpdateChar(const AAccountName,
 var
   pTmpItem:   TQuickLaunchChar;
 begin
+  if AServerAddr = 0 then
+    exit;
+    
   pTmpItem := FindChar(AAccountName, ACharacterName, AServerAddr);
   if not Assigned(pTmpItem) then begin
     pTmpItem := TQuickLaunchChar.Create;
