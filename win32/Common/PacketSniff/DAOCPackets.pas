@@ -55,6 +55,7 @@ type
     FIPProtocol:  TDAOCIPProtocol;
     FHandlerName: string;
     FOwnsPacketData:  boolean;
+    FConnectionID: Cardinal;
     function GetIsFromServer: boolean;
     procedure FreePacketData;
   public
@@ -77,6 +78,7 @@ type
     function AsString : string;
     function EOF : boolean;
 
+    property ConnectionID: Cardinal read FConnectionID write FConnectionID; 
     property HandlerName: string read FHandlerName write FHandlerName;
     property Size: Cardinal read FSize;
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;

@@ -108,6 +108,7 @@ type
     FSelectedObjectCached:  TDAOCObject;
     FPacketHandlerDefFile: string;
     FLastUDPSeq:    WORD;
+    FWatchedConnectionID: Cardinal;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -345,7 +346,7 @@ type
     property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
     property CryptKey: string read GetCryptKey write SetCryptKey;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
-    property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers; 
+    property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
     property LargestDAOCPacketSeen: Cardinal read FLargestDAOCPacketSeen;
@@ -362,6 +363,7 @@ type
     property TradeCommissionNPC: string read FTradeCommissionNPC;
     property TradeCommissionItem: string read FTradeCommissionItem;
     property VendorItems: TDAOCVendorItemList read FVendorItems;
+    property WatchedConnectionID: Cardinal read FWatchedConnectionID write FWatchedConnectionID;
     property Zone: TDAOCZoneInfo read FZone;
     property ZoneList: TDAOCZoneInfoList read FZoneList;
 
@@ -1987,6 +1989,11 @@ end;
 
 procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TDAOCPacket);
 begin
+    { if we're already active and we have a preferred connection ID, then
+      make sure this packet is for the right connection }
+  if FActive and (FWatchedConnectionID <> 0) and (pPacket.ConnectionID <> FWatchedConnectionID) then
+    exit;
+
 {$IFDEF GLOBAL_TICK_COUNTER}
   UpdateGlobalTickCount;
 {$ENDIF GLOBAL_TICK_COUNTER}
@@ -1994,6 +2001,7 @@ begin
   if not FActive then begin
     FActive := true;
     FCryptKeySet := false;
+    FWatchedConnectionID := pPacket.ConnectionID;
     DoOnConnect;
   end;
 
