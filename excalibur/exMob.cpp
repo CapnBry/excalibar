@@ -69,8 +69,8 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
    if we see anything that's further out than our stale range,
    increase the stale range to encompass this object
    */
-  if (lastdist > max_stale_range)
-      max_stale_range = lastdist;
+//  if (lastdist > max_stale_range)
+//      max_stale_range = lastdist;
 }
 
 int exMob::compare(QListViewItem *i, int col, bool ascending) const {
@@ -83,9 +83,9 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
   mob=(exMob *)i;
 
   if (prefs.sort_group_players &&
-      ((isMobOrObj() && !mob->isMobOrObj()) || (!isMobOrObj() && mob->isMobOrObj()))
+      ((isPlayer() && !mob->isPlayer()) || (!isPlayer() && mob->isPlayer()))
      ) {
-    if (!isMobOrObj())
+    if (isPlayer())
       updown=false;
     else
       updown=true;
@@ -371,24 +371,57 @@ const QColor exMob::getRealmColor() const {
 
 const QColor exMob::getConColor(unsigned int to_level) const
 {
-  int l_quanta;
-  l_quanta = (to_level / 10) + 1;
+    int l_quanta;
+    int l_steps_taken;
 
-  if (level < (to_level - l_quanta * 3))
-    return gray;
-  else if (level <= (to_level - l_quanta * 2))
-    return green;
-  else if (level <= (to_level - l_quanta * 1))
-    return blue;
-  else if (level <= to_level)
-    return yellow;
-  else if (level <= (to_level + l_quanta * 1))
-    return QColor(255, 127, 0);  // orange
-  else if (level <= (to_level + l_quanta * 2))
-    return red;
-  else
-    return magenta;
+    l_steps_taken = 0;
+    while ((to_level > 0) && (to_level < 100) &&
+           (l_steps_taken > -3) && (l_steps_taken < 3))  {
 
+        l_quanta = (to_level / 10) + 1;
+        if (l_quanta > 5)
+            l_quanta = 5;
+
+        if ((level > (to_level - l_quanta)) &&
+            (level <= to_level))
+            break;
+
+        if (level < to_level)  {
+            to_level -= l_quanta;
+            l_steps_taken--;
+        }
+        else  {
+            to_level += l_quanta;
+            l_steps_taken++;
+        }
+    }  /* while to_level in range */
+
+    switch (l_steps_taken)  {
+    case -3:
+        return gray;
+        break;
+    case -2:
+        return green;
+        break;
+    case -1:
+        return blue;
+        break;
+    case  0:
+        return yellow;
+        break;
+    case  1:
+        return QColor(255, 127, 0); // orange
+        break;  
+    case  2:
+        return red;
+        break;
+    case  3:
+        return magenta;
+        break;
+    default:
+        return black;
+        break;
+    }
 }
 
 QColor exMob::getColorForRealm(Realm r) {
@@ -449,7 +482,7 @@ void exMob::checkStale() {
       (!obj && ((exTick - _lasttick) > maxtime))
      ) {
     current = false;
-    c->ex->ListViewMobs->takeItem(this);
+    c->mobWentStale(this);
   }
 }
 
@@ -467,8 +500,7 @@ ostream& operator << (ostream& os, const exMob &p)
 {
   return os << "exMob ID: " << p.id << " InfoID: " << p.infoid << " = "
         << (p.isMob() ? "mob" : (p.isObj() ? "object" : "player")) << endl
-        << "  Name: [" << p.name << "] Surname: [" << p.surname << "] Guild: <" << p.guild << ">" << endl
-        << "  Realm: [" << p.realm << endl
+        << "  Name: [" << p.name << "] Surname: [" << p.surname << "] Guild: <" << p.guild << ">" << " Realm: " << p.realm << endl
         << "  X: " << p.x << " Y: " << p.y << " Z: " << p.z << endl
         << "  Head: " << p.head << " Speed: " << p.speed << endl;
 }
