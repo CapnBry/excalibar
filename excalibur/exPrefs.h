@@ -42,6 +42,7 @@ public slots:
   void show();
 public:
   bool sort_group_players;
+  bool sort_group_items;
   bool sort_distance;
   bool vaderWarn;
   exPrefs::SortOptions sort_when;

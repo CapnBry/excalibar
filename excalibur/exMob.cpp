@@ -87,6 +87,22 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
       return -1;
   }
 
+  // Players should be sorted out now if group_players is true
+  if (prefs.sort_group_items &&
+      ((isObj() && !mob->isObj()) || (!isObj() && mob->isObj()))
+     ) {
+    if (!isObj())
+      updown=false;
+    else
+      updown=true;
+    if (! ascending)
+      updown=!updown;
+    if (updown)
+      return 1;
+    else
+      return -1;
+  }
+
   if (prefs.sort_distance) {
     updown=((exMob *)this)->playerDist() > mob->playerDist();
     if (! ascending)
