@@ -1,5 +1,15 @@
 unit DStreamDefs;
 
+(****************************************************************************
+**
+** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation.
+**
+****************************************************************************)
+
 interface
 
 type
@@ -29,7 +39,7 @@ type
   TDStreamPacketNotify = procedure (Sender: TObject; AHeader: PDStream_Header) of object;
 
 const
-  DEFAULT_DSTREAM_PORT = 9867;
+  DSTREAM_DEFAULT_PORT = 9867;
 
   DSTREAM_PROTOCOL_VER = 1;
 
