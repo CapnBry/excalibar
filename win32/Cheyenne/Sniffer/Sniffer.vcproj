@@ -106,9 +106,6 @@
 			<File
 				RelativePath=".\DStreamConnection.cpp">
 			</File>
-			<File
-				RelativePath=".\sniffer.cpp">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -119,9 +116,6 @@
 			</File>
 			<File
 				RelativePath=".\DStreamConnection.h">
-			</File>
-			<File
-				RelativePath=".\sniffer.h">
 			</File>
 		</Filter>
 		<Filter
