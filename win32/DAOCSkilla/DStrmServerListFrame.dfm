@@ -83,6 +83,7 @@ object frmDStrmServerList: TfrmDStrmServerList
     ParentCtl3D = False
     TabOrder = 1
     OnClick = lstServersClick
+    OnDblClick = lblEditClick
     OnDrawItem = lstServersDrawItem
   end
   object Panel1: TPanel
