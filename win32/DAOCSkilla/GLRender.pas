@@ -172,6 +172,7 @@ type
     procedure SetCurrentConnection(AConn: TDAOCConnection);
     procedure AutoSelectConnection;
     procedure UpdateCaption;
+    procedure DumpMVM(const where: string);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -290,6 +291,19 @@ end;
 {$ENDIF MSWINDOWS}
 
 { TfrmGLRender }
+
+procedure TfrmGLRender.DumpMVM(const where: string);
+var
+  modmatrix:  T16dArray;
+begin
+exit;
+  glGetDoublev(GL_MODELVIEW_MATRIX, @modmatrix);
+  Log(Format('%s: %f %f %f %f, %f %f %f %f, %f %f %f %f, %f %f %f %f',
+    [where, modmatrix[0], modmatrix[1], modmatrix[2], modmatrix[3],
+    modmatrix[4], modmatrix[5], modmatrix[6], modmatrix[7],
+    modmatrix[8], modmatrix[9], modmatrix[10], modmatrix[11],
+    modmatrix[12], modmatrix[13], modmatrix[14], modmatrix[15]]));
+end;
 
 procedure TfrmGLRender.CreateParams(var Params: TCreateParams);
 begin
@@ -430,7 +444,7 @@ begin
     FRange := FRenderPrefs.Range;
     slideZoom.Position := FRange;
     UpdateStayOnTop;
-    
+
     FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
     FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
   end
@@ -703,8 +717,9 @@ begin
         glColor3ubv(@clMob);
       FMobTriangle.GLRender(FRenderBounds);
 
-      glRotatef(pObj.Head, 0, 0, -1);
-      glTranslatef(-pMovingObj.XProjected, -pMovingObj.YProjected, 0);
+      //glRotatef(-pObj.Head, 0, 0, 1);
+      //glTranslatef(-pMovingObj.XProjected, -pMovingObj.YProjected, 0);
+      glLoadIdentity();
     end  { if a class to draw }
 
     else if pObj.ObjectClass = ocObject then begin
@@ -715,13 +730,13 @@ begin
         FObjectTriangle.Color := clWhite;
         FObjectTriangle.GLRender(FRenderBounds);
       end;
-      glTranslatef(-pObj.X, -pObj.Y, 0);
+      //glTranslatef(-pObj.X, -pObj.Y, 0);
+      glLoadIdentity();
     end
 
     else if pObj.ObjectClass = ocVehicle then begin
       DrawAIDestination(pObj, FBoat.Color);  // brown
 
-      glPushMatrix();
       glTranslatef(TDAOCVehicle(pObj).XProjected, TDAOCVehicle(pObj).YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
       if pObj.LiveDataConfidence < LIVE_DATA_CONFIDENCE_MAX then
@@ -729,7 +744,8 @@ begin
       else
         FBoat.Alpha := 1;
       FBoat.GLRender(FRenderBounds);
-      glPopMatrix();
+      //glTranslatef(-pObj.X, -pObj.Y, 0);
+      glLoadIdentity();
     end
 
     else if pObj.ObjectClass = ocDoor then begin
@@ -739,7 +755,8 @@ begin
       else
         FObjectTriangle.Color := clMaroon;
       FObjectTriangle.GLRender(FRenderBounds);
-      glTranslatef(-pObj.X, -pObj.Y, 0);
+      //glTranslatef(-pObj.X, -pObj.Y, 0);
+      glLoadIdentity();
     end
   end;  { for each object }
 end;
@@ -2075,7 +2092,8 @@ begin
     glTranslatef(pObj.X, pObj.Y, 0);
     FUnknownStealther.Alpha := pObj.LiveDataConfidencePct * 0.33;
     FUnknownStealther.GLRender(FRenderBounds);
-    glTranslatef(-pObj.X, -pObj.Y, 0);
+    //glTranslatef(-pObj.X, -pObj.Y, 0);
+    glLoadIdentity();
 
     pObj := pObj.Next;
   end;
