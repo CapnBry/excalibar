@@ -1,3 +1,7 @@
+2003 Set 26 - v1.45
+-------------------
+  + Fix for malformed URLs requesting DDSes for zones < 100.
+
 2003 Sep 26 - v1.44
 -------------------
   + Mobs in the stale list now time out after 5 minutes
