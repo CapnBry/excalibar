@@ -49,12 +49,12 @@ int WINAPI WinMain
     InitCommonControlsEx(&xx);
     }
 
-    // start clock
-    Clock.Go();
-    
     // load config
     Config.Load();
 
+    // start clock
+    Clock.Go();
+    
     // enter main loop
     {
     Central* ShareCentral=new Central;
@@ -64,12 +64,12 @@ int WINAPI WinMain
     delete ShareCentral;
     }
 
-    // save config
-    Config.Save();
-    
     // stop the clock
     Clock.Stop();
 
+    // save config
+    Config.Save();
+    
     // exit
     //Exit:
 

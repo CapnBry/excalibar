@@ -82,6 +82,8 @@ WPARAM Central::Go(HINSTANCE hInst)
         return(-1);
         }
        
+    // setup port and go
+    ShareNet.SetServerPort(::Config.GetListenPort());
     ShareNet.Go();
 
     MSG msg;

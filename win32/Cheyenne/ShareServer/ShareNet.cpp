@@ -31,7 +31,7 @@ public:
 }; // end class WaitSingleFunctor
 
 ShareNetManager::ShareNetManager() :
-    ServerPort(10001),
+    ServerPort(10001), // default to 10001
     ServerSock(INVALID_SOCKET)
 {
     WSADATA wsa;

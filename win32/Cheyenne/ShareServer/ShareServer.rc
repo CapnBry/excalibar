@@ -31,8 +31,8 @@ BEGIN
     POPUP "&System"
     BEGIN
         MENUITEM "&Allowed Hosts",              ID_SYSTEM_ALLOWEDHOSTS
-        MENUITEM "E&xit",                       ID_SYSTEM_EXIT
         MENUITEM "&Set Server Port",            ID_SYSTEM_SETSERVERPORT
+        MENUITEM "E&xit",                       ID_SYSTEM_EXIT
     END
 END
 

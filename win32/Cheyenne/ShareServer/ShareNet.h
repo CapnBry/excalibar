@@ -374,6 +374,14 @@ public:
                 }
             }
     }
+
+    inline void SetServerPort(unsigned short sp)
+    {
+        if(!IsInUse())
+            {
+            ServerPort=sp;
+            }
+    }
 protected:
 private:
     virtual DWORD Run(const bool& bContinue);
@@ -382,6 +390,6 @@ private:
     bool MaintainClients(MultiWaitSignal& signals);
 
     SOCKET ServerSock;
-    const unsigned short ServerPort;
+    unsigned short ServerPort;
     ShareNetClientData Clients[max_clients];
 };
