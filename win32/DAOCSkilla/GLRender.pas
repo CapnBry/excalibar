@@ -93,6 +93,7 @@ type
     FUnknownStealther:  TGLUnkownStealther;
     FPresicenceNode:    TGLPrescienceNode;
     FBasePath:    string;
+    FMaxTXFTextWidth:   integer;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -950,6 +951,12 @@ begin
 
   rastery := glMap.ClientHeight - 1;
 
+  if FTargetHUDWidth = 0 then
+    FMaxTXFTextWidth := 0;
+
+    { BRY: we don't use FTargetHUDWidth yet, because is needs to also be
+      recalculated when the object's speed changes, and I'm not sure how I
+      want to do that to keep the box from lagging one frame every time }
   ShadedRect(1, rastery, 146, rastery - 57);
 
   glEnable(GL_TEXTURE_2D);
@@ -993,6 +1000,9 @@ begin
     s := s + '  Speed: ' + TDAOCMovingObject(pMob).SpeedString;
   rastery := WriteTXFTextH12(4, rastery, s);
 
+  if FTargetHUDWidth = 0 then
+    FTargetHUDWidth := FMaxTXFTextWidth + 7;
+    
   glDisable(GL_TEXTURE_2D);
 end;
 
@@ -1826,15 +1836,23 @@ begin
 end;
 
 function TfrmGLRender.WriteTXFTextH10(X, Y: integer; const s: string): integer;
+var
+  iWidth:   integer;
 begin
   Result := Y - 13;
-  FTxfH10.RenderStringXYBind(X, Result, s);
+  iWidth := FTxfH10.RenderStringXYBind(X, Result, s);
+  if iWidth > FMaxTXFTextWidth then
+    FMaxTXFTextWidth := iWidth;
 end;
 
 function TfrmGLRender.WriteTXFTextH12(X, Y: integer; const s: string): integer;
+var
+  iWidth:   integer;
 begin
   Result := Y - 13;
-  FTxfH12.RenderStringXYBind(X, Result, s);
+  iWidth := FTxfH12.RenderStringXYBind(X, Result, s);
+  if iWidth > FMaxTXFTextWidth then
+    FMaxTXFTextWidth := iWidth;
 end;
 
 procedure TfrmGLRender.CreateObjectListBox;
