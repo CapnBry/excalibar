@@ -301,22 +301,13 @@ end;
 
 procedure TfrmDebugging.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
 var
-  I:    integer;
   s:    string;
 begin
   if not (Assigned(FDelveseenFile) and Assigned(AItem.DelveInfo)) then
     exit;
 
-  with AItem do begin
-    s := Format('DELVE,%d,"%s",0x%2.2x,%d,%d,%d,%d,%d,%d,%d,0x%2.2x%2.2x,%d',
-      [ord(FDControl.LocalPlayer.Realm), CountlessDescription, Slot, Count,
-      Condition, Durability, Quality, Bonus, Level, Color, ItemIDMajor,
-      ItemIDMinor, DelveInfo.Count]);
-    for I := 0 to DelveInfo.Count - 1 do
-      s := s + ',"' + DelveInfo[I] + '"';
-  end;  { with AItem }
-
-  s := s + #13#10;
+  s := 'DELVE,' + IntToStr(ord(FDControl.LocalPlayer.Realm)) + ',' +
+    AItem.SummaryLine + #13#10;
   FDelveseenFile.Write(s[1], Length(s));
 end;
 
