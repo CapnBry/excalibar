@@ -421,7 +421,7 @@ template<typename T> bool FindIntercept(INTERCEPT_DATA<T>& intercept_data)
 {
     intercept_data.TimeToIntercept=FindInterceptTime(intercept_data.params);
     
-    if(intercept_data.TimeToIntercept < std::numeric_limits<float>::max() && not_near(intercept_data.TimeToIntercept,T(0)))
+    if(intercept_data.TimeToIntercept < std::numeric_limits<T>::max() && not_near(intercept_data.TimeToIntercept,T(0)))
         {
         // we have a viable solution, get x and y intercept
         // points then convert to speed
