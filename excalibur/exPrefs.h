@@ -62,7 +62,7 @@ public:
   bool agro_fading;
   bool dump_unknown_packets;
   bool MobListColors;
-
+  bool sticky_list;
   bool select_target;
 
   int win_width;

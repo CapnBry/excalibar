@@ -815,6 +815,78 @@
         </widget>
         <widget class="QWidget">
             <property name="name">
+                <cstring>tab</cstring>
+            </property>
+            <attribute name="title">
+                <string>Misc</string>
+            </attribute>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>MobListColorsBox</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>8</x>
+                        <y>10</y>
+                        <width>131</width>
+                        <height>51</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Mob List Colors</string>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>MobListColors</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>101</width>
+                            <height>21</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Enabled</string>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox9</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>150</x>
+                        <y>10</y>
+                        <width>120</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Sticky Mob List</string>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>StickyList</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>101</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Enabled</string>
+                    </property>
+                </widget>
+            </widget>
+        </widget>
+        <widget class="QWidget">
+            <property name="name">
                 <cstring>Debug</cstring>
             </property>
             <attribute name="title">
@@ -956,46 +1028,6 @@
                 <property name="alignment">
                     <set>WordBreak|AlignVCenter</set>
                 </property>
-            </widget>
-        </widget>
-        <widget class="QWidget">
-            <property name="name">
-                <cstring>tab</cstring>
-            </property>
-            <attribute name="title">
-                <string>Misc</string>
-            </attribute>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>MobListColorsBox</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>8</x>
-                        <y>10</y>
-                        <width>131</width>
-                        <height>51</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Mob List Colors</string>
-                </property>
-                <widget class="QCheckBox">
-                    <property name="name">
-                        <cstring>MobListColors</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>101</width>
-                            <height>21</height>
-                        </rect>
-                    </property>
-                    <property name="text">
-                        <string>Enabled</string>
-                    </property>
-                </widget>
             </widget>
         </widget>
     </widget>

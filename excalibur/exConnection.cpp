@@ -35,6 +35,7 @@
 #include <qprocess.h>
 #include <math.h>
 #include <qmessagebox.h>
+#include <qstatusbar.h>
 #include "exConnection.h"
 #include "exItem.h"
 
@@ -224,6 +225,7 @@ void exConnection::processPacket(exPacket * p)
     QString info;
     QString title;
     QByteArray data;
+    QListViewItem *selected;
     unsigned int level;
     exMob *mob;
     Realm mobrealm;
@@ -302,8 +304,14 @@ END_EXPERIMENTAL_CODE
                      .arg((mi) ? playerx - mi->getBaseX() : playerx)
                      .arg((mi) ? playery - mi->getBaseY() : playery)
                      .arg(playerz));
-              ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
+	      ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
 	      ex->Map->dirty();
+
+              if (prefs.sticky_list){
+                 selected = ex->ListViewMobs->selectedItem();
+                   if(selected)
+                      ex->ListViewMobs->ensureItemVisible(selected);
+              }
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
               if (link && mi)

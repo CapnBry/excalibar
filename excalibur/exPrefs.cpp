@@ -94,6 +94,7 @@ void exPrefs::show() {
   dlg->ShowUnknown->setChecked(dump_unknown_packets);
   dlg->PlayerCircle1->setValue(player_circle_1);
   dlg->PlayerCircle2->setValue(player_circle_2);
+  dlg->StickyList->setChecked(sticky_list);
 
   dlg->SliderAliveColor->setValue(brightness_alive);
   dlg->SliderDeadColor->setValue(brightness_dead);
@@ -148,6 +149,7 @@ void exPrefs::accept() {
 
   player_circle_1=dlg->PlayerCircle1->value();
   player_circle_2=dlg->PlayerCircle2->value();
+  sticky_list=dlg->StickyList->isOn();
 
 
 
@@ -227,6 +229,7 @@ void exPrefs::loadSettings() {
   enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
 
   MobListColors=s.readBoolEntry("/Excalibur/MobListColors",TRUE);
+  sticky_list=s.readBoolEntry("/Excalibur/StickyList",TRUE);
 }
 
 void exPrefs::saveSettings() {
