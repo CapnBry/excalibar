@@ -41,7 +41,7 @@
                 <number>6</number>
             </property>
             <spacer>
-                <property name="name">
+                <property name="name" stdset="0">
                     <cstring>Horizontal Spacing2</cstring>
                 </property>
                 <property name="orientation">
@@ -49,6 +49,12 @@
                 </property>
                 <property name="sizeType">
                     <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>20</height>
+                    </size>
                 </property>
             </spacer>
             <widget class="QPushButton">
@@ -320,7 +326,7 @@
                                 <bool>false</bool>
                             </property>
                             <property name="text">
-                                <string>Use Texture Filtering</string>
+                                <string>Use Linear Filtering</string>
                             </property>
                         </widget>
                     </vbox>
