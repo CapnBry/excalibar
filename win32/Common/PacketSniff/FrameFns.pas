@@ -3,7 +3,12 @@ unit FrameFns;
 interface
 
 uses
-  Winsock, SysUtils, Windows, Classes, SyncObjs;
+{$IFDEF LINUX}
+  Libc,
+{$ELSE}
+  Winsock, Windows,
+{$ENDIF !LINUX}
+  SysUtils, Classes, SyncObjs;
   
 type
   PEthernetHeader = ^TEthernetHeader;
@@ -30,8 +35,8 @@ type
     TTL:            byte;
     Protocol:       byte;
     CheckSum:       WORD;
-    SrcAddr:        DWORD;
-    DestAddr:       DWORD;
+    SrcAddr:        Cardinal;
+    DestAddr:       Cardinal;
   end;
 
   PTCPHeader = ^TTCPHeader;
@@ -39,8 +44,8 @@ type
     IPHead:         TIPHeader;
     SrcPort:        WORD;
     DestPort:       WORD;
-    SeqNumber:      DWORD;
-    AckNumber:      DWORD;
+    SeqNumber:      Cardinal;
+    AckNumber:      Cardinal;
     DataOffsetAndReserved:  byte;
     ECNAndControlBits:      byte;
     Window:         WORD;
@@ -68,26 +73,26 @@ type
 
   TNXFileHeader = packed record
     SIG:          array[0..11] of char;
-    dwStart:      DWORD;  // UNIX time
-    dwNumPackets: DWORD;
+    dwStart:      Cardinal;  // UNIX time
+    dwNumPackets: Cardinal;
     Buff:         array[20..51] of byte;
     qwTicks:      Int64;
-    dwVal:        DWORD;
+    dwVal:        Cardinal;
     Padding:      array[64..127] of byte;
   end;
 
   TEthernetSegment = class(TObject)
   private
-    FDataLen: DWORD;
-    FData: Pointer;
+    FDataLen:   Cardinal;
+    FData:      Pointer;
   protected
     FNext:    TEthernetSegment;
   public
-    constructor CreateFor(AData: Pointer; ADataLen: DWORD);
+    constructor CreateFor(AData: Pointer; ADataLen: Cardinal);
     destructor Destroy; override;
 
     procedure SaveToStream(AStream: TStream);
-    procedure LoadFromStream(AStream: TStream; ACapLen: DWORD);
+    procedure LoadFromStream(AStream: TStream; ACapLen: Cardinal);
     procedure Clear;
     procedure ReleaseData;
 
@@ -97,7 +102,7 @@ type
     function AsUDP : PUDPHeader;
     function AsString : string;
 
-    property Size: DWORD read FDataLen;
+    property Size: Cardinal read FDataLen;
     property Data: Pointer read FData;
   end;
 
@@ -130,8 +135,8 @@ const
   SOL_TCP = $06;
   SOL_UDP = $11;
 
-function my_inet_ntoa(inaddr : DWORD) : string;
-function my_inet_htoa(inaddr : DWORD) : string;
+function my_inet_ntoa(inaddr : Cardinal) : string;
+function my_inet_htoa(inaddr : Cardinal) : string;
 function EtherFrameToString(pFrame : PEthernetFrame) : string;
 function IPHeaderToString(pHeader : PIPHeader) : string;
 function TCPHeaderToString(pHeader : PTCPHeader) : string;
@@ -148,7 +153,7 @@ function IsUrg(pFrame : PTCPHeader) : boolean;
 
 implementation
 
-function my_inet_ntoa(inaddr : DWORD) : string;
+function my_inet_ntoa(inaddr : Cardinal) : string;
 var
   inadd:    in_addr;
 begin
@@ -156,7 +161,7 @@ begin
   Result := inet_ntoa(inadd);
 end;
 
-function my_inet_htoa(inaddr : DWORD) : string;
+function my_inet_htoa(inaddr : Cardinal) : string;
 var
   inadd:    in_addr;
 begin
@@ -338,7 +343,7 @@ begin
   FDataLen := 0;
 end;
 
-constructor TEthernetSegment.CreateFor(AData: Pointer; ADataLen: DWORD);
+constructor TEthernetSegment.CreateFor(AData: Pointer; ADataLen: Cardinal);
 begin
   inherited Create;
   FDataLen := ADataLen;
@@ -352,7 +357,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TEthernetSegment.LoadFromStream(AStream: TStream; ACapLen: DWORD);
+procedure TEthernetSegment.LoadFromStream(AStream: TStream; ACapLen: Cardinal);
 begin
   Clear;
   AStream.Read(FDataLen, sizeof(FDataLen));

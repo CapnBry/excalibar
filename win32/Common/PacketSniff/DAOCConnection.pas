@@ -3,7 +3,12 @@ unit DAOCConnection;
 interface
 
 uses
-  Windows, SysUtils, Classes, Dialogs, ExtCtrls, Contnrs, WinSock,
+{$IFDEF LINUX}
+  Libc,
+{$ELSE}
+  Windows, WinSock, Dialogs, ExtCtrls,
+{$ENDIF !LINUX}
+  SysUtils, Classes, Contnrs,
 {$IFDEF DAOC_AUTO_SERVER}
   ComObj,
 {$ENDIF}
@@ -13,7 +18,7 @@ uses
 type
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;
   TIntegerEvent = procedure (Sender: TObject; AVal: integer) of Object;
-  TSheduledCallback = procedure (Sender: TObject; AParm: LPARAM) of Object;
+  TSheduledCallback = procedure (Sender: TObject; AParm: Cardinal) of Object;
   TChatMessageEvent = procedure (Sender: TObject; const AWho, AMsg: string) of Object;
   TVersionEvent = procedure (Sender: TObject; AMajor, AMinor, ARelease: BYTE) of Object;
   TCurrencyChangeEvent = procedure (Sender: TObject; AReason: TDAOCCurrencyChangeReason;
@@ -52,9 +57,9 @@ type
 
   PCallbackEventInfo = ^TCallbackEventInfo;
   TCallbackEventInfo = record
-    dwTime:   DWORD;
+    dwTime:   Cardinal;
     fn:       TSheduledCallback;
-    parm:     LPARAM;
+    parm:     Cardinal;
   end;
 
 {$IFDEF DAOC_AUTO_SERVER}
@@ -63,16 +68,16 @@ type
   TDAOCConnection = class(TObject)
 {$ENDIF}
   private
-    FClientAddr: DWORD;
-    FServerAddr: DWORD;
-    FUDPServerAddr: DWORD;
+    FClientAddr: Cardinal;
+    FServerAddr: Cardinal;
+    FUDPServerAddr: Cardinal;
     FActive:  boolean;
     FVersionMajor: byte;
     FVersionMinor: byte;
     FVersionRelease: byte;
     FCryptKey:  TDAOCCryptKey;
     FCryptKeySet: boolean;
-    FLargestDAOCPacketSeen: DWORD;
+    FLargestDAOCPacketSeen: Cardinal;
     FAccountCharacters:  TAccountCharInfoList;
     FServerProtocol:  byte;
 
@@ -84,7 +89,7 @@ type
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
-    FPingRequestSentTime: DWORD;
+    FPingRequestSentTime: Cardinal;
     FLastPingTime:      integer;
 
     FOnPlayerPosUpdate: TNotifyEvent;
@@ -156,7 +161,7 @@ type
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
-    FMaxObjectStaleTime: DWORD;
+    FMaxObjectStaleTime: Cardinal;
     FLastDelveRequestPos: BYTE;
     FLastCurrencyChangeReason: TDAOCCurrencyChangeReason;
 
@@ -264,7 +269,7 @@ type
     procedure ChatSend(const ALine: string);
     procedure HookChatParseCallbacks;
     procedure MergeVendorItemsToMaster;
-    procedure ScheduleCallback(ATimeout: DWORD; ACallback: TSheduledCallback; AParm: LPARAM);
+    procedure ScheduleCallback(ATimeout: Cardinal; ACallback: TSheduledCallback; AParm: Cardinal);
     procedure UpdatePlayersInGuild;
     procedure ResetPlayersInGroup;
   public
@@ -279,16 +284,16 @@ type
 
       { Functions to use zone information to find relative player coords }
     function PlayerZoneHead : integer;
-    function PlayerZoneX : DWORD;
-    function PlayerZoneY : DWORD;
-    function PlayerZoneZ : DWORD;
+    function PlayerZoneX : Cardinal;
+    function PlayerZoneY : Cardinal;
+    function PlayerZoneZ : Cardinal;
 
     property Active: boolean read FActive;
-    property ClientAddr: DWORD read FClientAddr;
+    property ClientAddr: Cardinal read FClientAddr;
     property ClientIP: string read GetClientIP write SetClientIP;
-    property ServerAddr: DWORD read FServerAddr;
+    property ServerAddr: Cardinal read FServerAddr;
     property ServerIP: string read GetServerIP write SetServerIP;
-    property UDPServerAddr: DWORD read FUDPServerAddr;
+    property UDPServerAddr: Cardinal read FUDPServerAddr;
     property UDPServerIP: string read GetUDPServerIP;
 
     property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
@@ -296,9 +301,9 @@ type
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers; 
     property GroundTarget: TMapNode read FGroundTarget;
-    property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
+    property LargestDAOCPacketSeen: Cardinal read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
-    property MaxObjectStaleTime: DWORD read FMaxObjectStaleTime write FMaxObjectStaleTime; 
+    property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
@@ -734,21 +739,21 @@ begin
     Result := FZone.ZoneConvertHead(Result);
 end;
 
-function TDAOCConnection.PlayerZoneX: DWORD;
+function TDAOCConnection.PlayerZoneX: Cardinal;
 begin
   Result := FLocalPlayer.X;
   if Assigned(FZone) then
     Result := FZone.WorldToZoneX(Result);
 end;
 
-function TDAOCConnection.PlayerZoneY: DWORD;
+function TDAOCConnection.PlayerZoneY: Cardinal;
 begin
   Result := FLocalPlayer.Y;
   if Assigned(FZone) then
     Result := FZone.WorldToZoneY(Result);
 end;
 
-function TDAOCConnection.PlayerZoneZ: DWORD;
+function TDAOCConnection.PlayerZoneZ: Cardinal;
 begin
   Result := FLocalPlayer.Z;
 end;
@@ -1426,7 +1431,7 @@ end;
 
 procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TDAOCPacket);
 var
-  dwPrevious: DWORD;
+  dwPrevious: Cardinal;
 begin
   pPacket.HandlerName := 'MoneyUpdate';
 
@@ -1613,14 +1618,14 @@ begin
   FScheduledCallbacks.Clear;
 end;
 
-procedure TDAOCConnection.ScheduleCallback(ATimeout: DWORD;
-  ACallback: TSheduledCallback; AParm: LPARAM);
+procedure TDAOCConnection.ScheduleCallback(ATimeout: Cardinal;
+  ACallback: TSheduledCallback; AParm: Cardinal);
 var
   pInfo:  PCallbackEventInfo;
 begin
   New(pInfo);
   FScheduledCallbacks.Add(pInfo);
-  pInfo^.dwTime := GetTickCount + ATimeout;
+  pInfo^.dwTime := GlobalTickCount + ATimeout;
   pInfo^.fn := ACallback;
   pInfo^.parm := AParm;
 end;
@@ -1628,11 +1633,11 @@ end;
 procedure TDAOCConnection.CheckScheduledTimeoutCallback;
 var
   I:      integer;
-  dwTime: DWORD;
+  dwTime: Cardinal;
   pItem:  PCallbackEventInfo;
 begin
   I := 0;
-  dwTime := GetTickCount;
+  dwTime := GlobalTickCount;
   while I < FScheduledCallbacks.Count do begin
     pItem := PCallbackEventInfo(FScheduledCallbacks[I]);
     if pItem^.dwTime < dwTime then begin
@@ -1874,7 +1879,7 @@ begin
 
     { DataLen is the (declared UDP total len) - (UDP Header len) }
   iDataLen := wUDPDatagramLen - (sizeof(TUDPHeader) - sizeof(TIPHeader));
-  pPayloadDataPtr := Pointer(DWORD(ASegment.Data) + sizeof(TUDPHeader));
+  pPayloadDataPtr := Pointer(Cardinal(ASegment.Data) + sizeof(TUDPHeader));
 
   pDAOCPacket := TDAOCPacket.Create;
   pDAOCPacket.IsFromClient := bIsFromClient;
@@ -1890,7 +1895,7 @@ begin
 
       { remove the packet len from the buffer }
     dec(iDataLen, 2);
-    inc(DWORD(pPayloadDataPtr), 2);
+    inc(Cardinal(pPayloadDataPtr), 2);
 
     if iDataLen < iPacketLen then begin
       Log('UDP packet too short to contain stated DAOC packet, discarded');
@@ -1902,7 +1907,7 @@ begin
     ProcessDAOCPacket(pDAOCPacket);
 
     dec(iDataLen, iPacketLen);
-    inc(DWORD(pPayloadDataPtr), iPacketLen);
+    inc(Cardinal(pPayloadDataPtr), iPacketLen);
   end;
 
   pDAOCPacket.Free;

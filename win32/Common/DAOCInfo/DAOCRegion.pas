@@ -10,7 +10,7 @@ unit DAOCRegion;
 interface
 
 uses
-  Types, Windows, SysUtils, Contnrs, StringParseHlprs, Intersections;
+  Types, SysUtils, Contnrs, StringParseHlprs, Intersections;
 
 type
   TDAOCRealm = (drNeutral, drAlbion, drMidgard, drHibernia);
@@ -37,10 +37,10 @@ type
 
     function ContainsPoint(ARegion, AX, AY: integer) : boolean;
     function ZoneConvertHead(AHead: integer) : integer;
-    function ZoneToWorldX(AX: DWORD) : DWORD;
-    function ZoneToWorldY(AY: DWORD) : DWORD;
-    function WorldToZoneX(AX: DWORD) : DWORD;
-    function WorldToZoneY(AY: DWORD) : DWORD;
+    function ZoneToWorldX(AX: Cardinal) : Cardinal;
+    function ZoneToWorldY(AY: Cardinal) : Cardinal;
+    function WorldToZoneX(AX: Cardinal) : Cardinal;
+    function WorldToZoneY(AY: Cardinal) : Cardinal;
 
     property AdjacentZones: TDAOCZoneInfoList read FAdjacentZones;
   	property Region: integer read FRegion;
@@ -139,24 +139,24 @@ begin
     dec(Result, 360);
 end;
 
-function TDAOCZoneInfo.ZoneToWorldX(AX: DWORD) : DWORD;
+function TDAOCZoneInfo.ZoneToWorldX(AX: Cardinal) : Cardinal;
 begin
-  Result := AX + DWORD(FBaseLoc.X);
+  Result := AX + Cardinal(FBaseLoc.X);
 end;
 
-function TDAOCZoneInfo.ZoneToWorldY(AY: DWORD) : DWORD;
+function TDAOCZoneInfo.ZoneToWorldY(AY: Cardinal) : Cardinal;
 begin
-  Result := AY + DWORD(FBaseLoc.Y);
+  Result := AY + Cardinal(FBaseLoc.Y);
 end;
 
-function TDAOCZoneInfo.WorldToZoneX(AX: DWORD) : DWORD;
+function TDAOCZoneInfo.WorldToZoneX(AX: Cardinal) : Cardinal;
 begin
-  Result := AX - DWORD(FBaseLoc.X);
+  Result := AX - Cardinal(FBaseLoc.X);
 end;
 
-function TDAOCZoneInfo.WorldToZoneY(AY: DWORD) : DWORD;
+function TDAOCZoneInfo.WorldToZoneY(AY: Cardinal) : Cardinal;
 begin
-  Result := AY - DWORD(FBaseLoc.Y);
+  Result := AY - Cardinal(FBaseLoc.Y);
 end;
 
 constructor TDAOCZoneInfo.Create;

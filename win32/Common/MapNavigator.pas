@@ -24,7 +24,7 @@ interface
 ****)
 
 uses
-  Windows, SysUtils, Classes, Math, Contnrs;
+  Types, SysUtils, Classes, Math, Contnrs;
 
 type
   TMapNode = class;
@@ -125,7 +125,7 @@ type
     procedure SaveToFile(const AFName: string);
     procedure SaveToStream(AStream: TStream);
     procedure LoadFromFile(const AFName: string);
-    procedure FindBoundingRect(var R: TRect); 
+    procedure FindBoundingRect(var R: TRect);
 
     property DefaultRadius: integer read FDefaultRadius write FDefaultRadius;
     property OwnsNodes: boolean read FOwnsNodes write FOwnsNodes;
@@ -376,8 +376,8 @@ begin
   if vNodeIdx = -1 then
     Result := nil
   else begin
-    OutputDebugString(PChar('Shortest path is distance: ' +
-      IntToStr(Pdijkstra_info(lstSPaths[vNodeIdx])^.weight)));
+    //ODS(PChar('Shortest path is distance: ' +
+    //  IntToStr(Pdijkstra_info(lstSPaths[vNodeIdx])^.weight)));
     Result := TMapNodeList.Create;
     Result.OwnsNodes := false;
     repeat

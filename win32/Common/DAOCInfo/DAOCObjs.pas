@@ -3,7 +3,12 @@ unit DAOCObjs;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, Graphics,
+{$IFDEF LINUX}
+  QGraphics,
+{$ELSE}
+  Graphics,
+{$ENDIF !LINUX}
+  SysUtils, Classes, Contnrs,
   DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem, DAOCClasses,
   QuickSinCos;
 
@@ -14,11 +19,11 @@ type
 
   TDAOCObject = class(TObject)
   private
-    procedure SetX(const Value: DWORD);
-    procedure SetY(const Value: DWORD);
-    procedure SetZ(const Value: DWORD);
-    procedure SetDestinationX(const Value: DWORD);
-    procedure SetDestinationY(const Value: DWORD);
+    procedure SetX(const Value: Cardinal);
+    procedure SetY(const Value: Cardinal);
+    procedure SetZ(const Value: Cardinal);
+    procedure SetDestinationX(const Value: Cardinal);
+    procedure SetDestinationY(const Value: Cardinal);
     procedure SetDestinationZ(const Value: WORD);
     procedure SetLevel(const Value: integer);
     procedure SetRealm(const Value: TDAOCRealm);
@@ -32,14 +37,14 @@ type
   protected
     FInfoID:WORD;
     FPlayerID: WORD;
-    FX:     DWORD;
-    FY:     DWORD;
-    FZ:     DWORD;
-    FDestinationX:  DWORD;
-    FDestinationY:  DWORD;
+    FX:     Cardinal;
+    FY:     Cardinal;
+    FZ:     Cardinal;
+    FDestinationX:  Cardinal;
+    FDestinationY:  Cardinal;
     FDestinationZ:  WORD;
     FName:  string;
-    FLastUpdate:  DWORD;
+    FLastUpdate:  Cardinal;
     FLevel: integer;
     FRealm: TDAOCRealm;
     FHeadWord:    WORD;
@@ -56,7 +61,7 @@ type
     function GetName : string; virtual;
     procedure SetHitPoints(const Value: BYTE);
   public
-    LongestUpdateTime:    DWORD;
+    LongestUpdateTime:    Cardinal;
     constructor Create; virtual;
 
     procedure Assign(ASrc: TDAOCObject);
@@ -64,29 +69,29 @@ type
     procedure CheckStale; virtual;
     procedure Clear; virtual;
     function Distance2D(AObject: TDAOCObject) : double; overload;
-    function Distance2D(X, Y: DWORD) : double; overload;
+    function Distance2D(X, Y: Cardinal) : double; overload;
     function Distance3D(AObject: TDAOCObject) : double; overload;
-    function Distance3D(X, Y, Z: DWORD) : double; overload;
+    function Distance3D(X, Y, Z: Cardinal) : double; overload;
     function DistanceSqr2D(AObject: TDAOCObject) : double; overload;
-    function DistanceSqr2D(X, Y: DWORD) : double; overload; virtual;
+    function DistanceSqr2D(X, Y: Cardinal) : double; overload; virtual;
     function DistanceSqr3D(AObject: TDAOCObject) : double; overload;
-    function DistanceSqr3D(X, Y, Z: DWORD) : double; overload; virtual;
+    function DistanceSqr3D(X, Y, Z: Cardinal) : double; overload; virtual;
     function GetConColor(AToLevel: integer) : TColor;
     procedure LoadFromReader(AReader: TReader); virtual;
     procedure AssumeAtDestination; virtual;
     function SameLoc(AObject: TDAOCObject) : boolean;
     procedure SaveToWriter(AWriter: TWriter); virtual;
     procedure Touch;
-    function TicksSinceUpdate : DWORD;
+    function TicksSinceUpdate : Cardinal;
 
     property InfoID: WORD read FInfoID write FInfoID;
     property PlayerID: WORD read FPlayerID write FPlayerID;
-    property LastUpdate: DWORD read FLastUpdate;
-    property X: DWORD read FX write SetX;
-    property Y: DWORD read FY write SetY;
-    property Z: DWORD read FZ write SetZ;
-    property DestinationX: DWORD read FDestinationX write SetDestinationX;
-    property DestinationY: DWORD read FDestinationY write SetDestinationY;
+    property LastUpdate: Cardinal read FLastUpdate;
+    property X: Cardinal read FX write SetX;
+    property Y: Cardinal read FY write SetY;
+    property Z: Cardinal read FZ write SetZ;
+    property DestinationX: Cardinal read FDestinationX write SetDestinationX;
+    property DestinationY: Cardinal read FDestinationY write SetDestinationY;
     property DestinationZ: WORD read FDestinationZ write SetDestinationZ;
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
@@ -119,8 +124,8 @@ type
     function IndexOfPlayerID(APlayerID: integer) : integer;
     function FindByInfoID(AInfoID: integer) : TDAOCObject;
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
-    function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
-    function FindNearest2D(X, Y: DWORD) : TDAOCObject;
+    function FindNearest3D(X, Y, Z: Cardinal) : TDAOCObject;
+    function FindNearest2D(X, Y: Cardinal) : TDAOCObject;
     function Take(I: integer) : TDAOCObject;
 
     property Items[I: integer]: TDAOCObject read GetItems; default;
@@ -141,8 +146,8 @@ type
     procedure Clear;
     function FindByInfoID(AInfoID: integer) : TDAOCObject;
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
-    function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
-    function FindNearest2D(X, Y: DWORD) : TDAOCObject;
+    function FindNearest3D(X, Y, Z: Cardinal) : TDAOCObject;
+    function FindNearest2D(X, Y: Cardinal) : TDAOCObject;
 
     property Head: TDAOCObject read FHead;
     property Count: integer read FCount;
@@ -158,14 +163,14 @@ type
     function GetSpeed: integer;
     procedure SetSpeedWord(const Value: WORD);
     function GetIsSwimming: boolean;
-    function GetXProjected: DWORD;
-    function GetYProjected: DWORD;
+    function GetXProjected: Cardinal;
+    function GetYProjected: Cardinal;
     function GetSpeedString: string;
   protected
-    FSpeedWord:  WORD;
-    FProjectedX:  DWORD;
-    FProjectedY:  DWORD;
-    FProjectedLastUpdate: DWORD;
+    FSpeedWord:   WORD;
+    FProjectedX:  Cardinal;
+    FProjectedY:  Cardinal;
+    FProjectedLastUpdate: Cardinal;
     FInventory: TDAOCInventory;
 
     procedure UpdateLastProjected;
@@ -173,8 +178,8 @@ type
     constructor Create; override;
     destructor Destroy; override;
 
-    function DistanceSqr2D(X, Y: DWORD) : double; override; 
-    function DistanceSqr3D(X, Y, Z: DWORD) : double; override; 
+    function DistanceSqr2D(X, Y: Cardinal) : double; override; 
+    function DistanceSqr3D(X, Y, Z: Cardinal) : double; override; 
 
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
@@ -183,8 +188,8 @@ type
     procedure InventoryChanged; virtual;
     procedure AssumeAtDestination; override;
 
-    property XProjected: DWORD read GetXProjected;
-    property YProjected: DWORD read GetYProjected;
+    property XProjected: Cardinal read GetXProjected;
+    property YProjected: Cardinal read GetYProjected;
     property Speed: integer read GetSpeed;
     property SpeedWord: WORD read FSpeedWord write SetSpeedWord;
     property SpeedString: string read GetSpeedString;
@@ -326,7 +331,7 @@ function DAOCObjectClassToStr(AClass: TDAOCObjectClass) : string;
 function IntToObjectClasses(AVal: integer) : TDAOCObjectClasses;
 function ObjectClassesToInt(AVal: TDAOCObjectClasses) : integer;
 function CopperToStr(ACopper: integer) : string;
-function DWORDDelta(A, B: DWORD) : DWORD;
+function CardinalDelta(A, B: Cardinal) : Cardinal;
 
 const
     LIVE_DATA_CONFIDENCE_MAX = 100;
@@ -366,7 +371,7 @@ begin
       Result := Result or (1 shl ord(I));
 end;
 
-function DWORDDelta(A, B: DWORD) : DWORD;
+function CardinalDelta(A, B: Cardinal) : Cardinal;
 begin
   if A > B then
     Result := A - B
@@ -426,7 +431,7 @@ begin
     PrependStr(IntToStr(ACopper mod 1000) + 'm');
 end;
 
-function LocalTickCount : DWORD;
+function LocalTickCount : Cardinal;
 begin
 {$IFDEF GLOBAL_TICK_COUNTER}
   Result := GlobalTickCount;
@@ -549,13 +554,13 @@ begin
   Result := IntToStr(iSpeed) + '%';
 end;
 
-function TDAOCMovingObject.GetXProjected: DWORD;
+function TDAOCMovingObject.GetXProjected: Cardinal;
 begin
   UpdateLastProjected;
   Result := FProjectedX;
 end;
 
-function TDAOCMovingObject.GetYProjected: DWORD;
+function TDAOCMovingObject.GetYProjected: Cardinal;
 begin
   UpdateLastProjected;
   Result := FProjectedY;
@@ -601,23 +606,23 @@ begin
   end;
 end;
 
-function TDAOCMovingObject.DistanceSqr2D(X, Y: DWORD): double;
+function TDAOCMovingObject.DistanceSqr2D(X, Y: Cardinal): double;
 var
   fx, fy:   double;
 begin
-  fx := DWORDDelta(X, Self.FProjectedX);
-  fy := DWORDDelta(Y, Self.FProjectedY);
+  fx := CardinalDelta(X, Self.FProjectedX);
+  fy := CardinalDelta(Y, Self.FProjectedY);
 
   Result := fx * fx + fy * fy;
 end;
 
-function TDAOCMovingObject.DistanceSqr3D(X, Y, Z: DWORD): double;
+function TDAOCMovingObject.DistanceSqr3D(X, Y, Z: Cardinal): double;
 var
   fx, fy, fz:   double;
 begin
-  fx := DWORDDelta(X, Self.FProjectedX);
-  fy := DWORDDelta(Y, Self.FProjectedY);
-  fz := DWORDDelta(Z, Self.FZ);
+  fx := CardinalDelta(X, Self.FProjectedX);
+  fy := CardinalDelta(Y, Self.FProjectedY);
+  fz := CardinalDelta(Z, Self.FZ);
 
   Result := fx * fx + fy * fy + fz * fz;
 end;
@@ -680,7 +685,7 @@ begin
   Result := sqrt(DistanceSqr3D(AObject.X, AObject.Y, AObject.Z));
 end;
 
-function TDAOCObject.Distance3D(X, Y, Z: DWORD): double;
+function TDAOCObject.Distance3D(X, Y, Z: Cardinal): double;
 begin
   Result := sqrt(DistanceSqr3D(X, Y, Z));
 end;
@@ -776,19 +781,19 @@ begin
   Touch;
 end;
 
-procedure TDAOCObject.SetX(const Value: DWORD);
+procedure TDAOCObject.SetX(const Value: Cardinal);
 begin
   FX := Value;
   Touch;
 end;
 
-procedure TDAOCObject.SetY(const Value: DWORD);
+procedure TDAOCObject.SetY(const Value: Cardinal);
 begin
   FY := Value;
   Touch;
 end;
 
-procedure TDAOCObject.SetZ(const Value: DWORD);
+procedure TDAOCObject.SetZ(const Value: Cardinal);
 begin
   FZ := Value;
   Touch;
@@ -796,7 +801,7 @@ end;
 
 procedure TDAOCObject.Touch;
 var
-  dw:   DWORD;
+  dw:   Cardinal;
 begin
   dw := TicksSinceUpdate;
   if (FLastUpdate > 0) and (dw > LongestUpdateTime) then
@@ -806,18 +811,18 @@ begin
   FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX;
 end;
 
-function TDAOCObject.Distance2D(X, Y: DWORD): double;
+function TDAOCObject.Distance2D(X, Y: Cardinal): double;
 begin
   Result := Sqrt(DistanceSqr2D(X, Y));
 end;
 
-procedure TDAOCObject.SetDestinationX(const Value: DWORD);
+procedure TDAOCObject.SetDestinationX(const Value: Cardinal);
 begin
   FDestinationX := Value;
   Touch;
 end;
 
-procedure TDAOCObject.SetDestinationY(const Value: DWORD);
+procedure TDAOCObject.SetDestinationY(const Value: Cardinal);
 begin
   FDestinationY := Value;
   Touch;
@@ -845,12 +850,12 @@ begin
   Result := DistanceSqr2D(AObject.X, AObject.Y);
 end;
 
-function TDAOCObject.DistanceSqr2D(X, Y: DWORD): double;
+function TDAOCObject.DistanceSqr2D(X, Y: Cardinal): double;
 var
   fx, fy:   double;
 begin
-  fx := DWORDDelta(X, Self.FX);
-  fy := DWORDDelta(Y, Self.FY);
+  fx := CardinalDelta(X, Self.FX);
+  fy := CardinalDelta(Y, Self.FY);
 
   Result := fx * fx + fy * fy;
 end;
@@ -860,13 +865,13 @@ begin
   Result := DistanceSqr3D(AObject.X, AObject.Y, AObject.Z);
 end;
 
-function TDAOCObject.DistanceSqr3D(X, Y, Z: DWORD): double;
+function TDAOCObject.DistanceSqr3D(X, Y, Z: Cardinal): double;
 var
   fx, fy, fz:   double;
 begin
-  fx := DWORDDelta(X, Self.FX);
-  fy := DWORDDelta(Y, Self.FY);
-  fz := DWORDDelta(Z, Self.FZ);
+  fx := CardinalDelta(X, Self.FX);
+  fy := CardinalDelta(Y, Self.FY);
+  fz := CardinalDelta(Z, Self.FZ);
 
   Result := fx * fx + fy * fy + fz * fz;
 end;
@@ -886,7 +891,7 @@ begin
 ;
 end;
 
-function TDAOCObject.TicksSinceUpdate: DWORD;
+function TDAOCObject.TicksSinceUpdate: Cardinal;
 begin
   Result := LocalTickCount - FLastUpdate;
 end;
@@ -978,7 +983,7 @@ end;
 
 procedure TDAOCPlayer.CheckStale;
 var
-  dwLastUpdateDelta:  DWORD;
+  dwLastUpdateDelta:  Cardinal;
 begin
   if IsStale then
     exit;
@@ -1175,7 +1180,7 @@ end;
 
 procedure TDAOCMob.CheckStale;
 var
-  dwTicksSinceUpdate:   DWORD;
+  dwTicksSinceUpdate:   Cardinal;
 begin
   inherited;
   if IsStale then
@@ -1294,7 +1299,7 @@ begin
     Result := nil;
 end;
 
-function TDAOCObjectList.FindNearest2D(X, Y: DWORD): TDAOCObject;
+function TDAOCObjectList.FindNearest2D(X, Y: Cardinal): TDAOCObject;
 var
   dDist:    double;
   dMinDist: double;
@@ -1312,7 +1317,7 @@ begin
   end;  { for I .. count }
 end;
 
-function TDAOCObjectList.FindNearest3D(X, Y, Z: DWORD): TDAOCObject;
+function TDAOCObjectList.FindNearest3D(X, Y, Z: Cardinal): TDAOCObject;
 var
   dDist:    double;
   dMinDist: double;
@@ -1370,7 +1375,7 @@ end;
 
 procedure TDAOCUnknownMovingObject.CheckStale;
 var
-  dwTicksSinceUpdate:   DWORD;
+  dwTicksSinceUpdate:   Cardinal;
 begin
   inherited;
   if IsStale then
@@ -1467,7 +1472,7 @@ begin
   end;
 end;
 
-function TDAOCObjectLinkedList.FindNearest2D(X, Y: DWORD): TDAOCObject;
+function TDAOCObjectLinkedList.FindNearest2D(X, Y: Cardinal): TDAOCObject;
 var
   dDist:    double;
   dMinDist: double;
@@ -1488,7 +1493,7 @@ begin
   end;  { while pTmp }
 end;
 
-function TDAOCObjectLinkedList.FindNearest3D(X, Y, Z: DWORD): TDAOCObject;
+function TDAOCObjectLinkedList.FindNearest3D(X, Y, Z: Cardinal): TDAOCObject;
 var
   dDist:    double;
   dMinDist: double;
@@ -1535,7 +1540,7 @@ end;
 
 procedure TDAOCVehicle.CheckStale;
 var
-  dwTicksSinceUpdate:   DWORD;
+  dwTicksSinceUpdate:   Cardinal;
 begin
   inherited;
   if IsStale then
@@ -1557,7 +1562,7 @@ end;
 
 procedure TDAOCUnknownStealther.CheckStale;
 var
-  dwLastUpdateDelta:  DWORD;
+  dwLastUpdateDelta:  Cardinal;
 begin
   if IsStale then
     exit;

@@ -3,7 +3,12 @@ unit DAOCPackets;
 interface
 
 uses
-  Windows, WinSock, Classes, SysUtils, FrameFns;
+{$IFDEF LINUX}
+  Libc,
+{$ELSE}
+  Windows, WinSock,
+{$ENDIF !LINUX}
+  Classes, SysUtils, FrameFns;
 
 type
   TDAOCCryptKey = array[0..11] of byte;
@@ -11,20 +16,20 @@ type
   TTCPFragment = class(TObject)
   private
     FEtherData:     Pointer;
-    FEtherDataLen:  DWORD;
+    FEtherDataLen:  Cardinal;
     FPayloadDataPtr:  Pointer;
-    FPayloadDataLen:  DWORD;
-    function GetSeqNo: DWORD;
-    function GetAckNo: DWORD;
+    FPayloadDataLen:  Cardinal;
+    function GetSeqNo: Cardinal;
+    function GetAckNo: Cardinal;
     function GetIsAck: boolean;
   public
     constructor CreateFrom(ASegment: TEthernetSegment);
     destructor Destroy; override;
 
     property PayloadDataPtr: Pointer read FPayloadDataPtr;
-    property PayloadDataLen: DWORD read FPayloadDataLen;
-    property SeqNo: DWORD read GetSeqNo;
-    property AckNo: DWORD read GetAckNo;
+    property PayloadDataLen: Cardinal read FPayloadDataLen;
+    property SeqNo: Cardinal read GetSeqNo;
+    property AckNo: Cardinal read GetAckNo;
     property IsAck: boolean read GetIsAck;
   end;
 
@@ -35,7 +40,7 @@ type
     FPacketDataStart: PChar;
     FPacketDataPos:   PChar;
     FPacketDataEnd:   PChar;
-    FSize:        DWORD;
+    FSize:        Cardinal;
     FIsFromClient: boolean;
     FIPProtocol:  TDAOCIPPrococol;
     FHandlerName: string;
@@ -53,7 +58,7 @@ type
     procedure seek(iCount: integer);
     function getByte : BYTE;
     function getShort : WORD;
-    function getLong : DWORD;
+    function getLong : Cardinal;
     function getPascalString : string;
     function getNullTermString(AMinLen: integer) : string;
     procedure getBytes(var dest; iBytes: integer);
@@ -61,7 +66,7 @@ type
     function EOF : boolean;
 
     property HandlerName: string read FHandlerName write FHandlerName;
-    property Size: DWORD read FSize;
+    property Size: Cardinal read FSize;
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;
     property IsFromServer: boolean read GetIsFromServer;
     property IPProtocol: TDAOCIPPrococol read FIPProtocol write FIPProtocol;
@@ -72,10 +77,10 @@ type
   TDAOCTCPPacketAssembler = class(TObject)
   private
     FFragmentList:    TList;
-    FNextExpectedSeq: DWORD;
+    FNextExpectedSeq: Cardinal;
     FPacketDataBuff:  Pointer;
-    FPacketDataSize:  DWORD;
-    FPacketDataPos:   DWORD;
+    FPacketDataSize:  Cardinal;
+    FPacketDataPos:   Cardinal;
     FIsFromClient:    boolean;
     FOtherSide:       TDAOCTCPPacketAssembler;
 
@@ -88,10 +93,10 @@ type
 
     procedure Clear;
     procedure AddFragment(AFragment: TTCPFragment);
-    function ParsePacket(AThroughSeq: DWORD; var APacket: TDAOCPacket) : boolean;
+    function ParsePacket(AThroughSeq: Cardinal; var APacket: TDAOCPacket) : boolean;
 
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;
-    property NextExpectedSeq: DWORD read FNextExpectedSeq write FNextExpectedSeq;
+    property NextExpectedSeq: Cardinal read FNextExpectedSeq write FNextExpectedSeq;
     property OtherSide: TDAOCTCPPacketAssembler read FOtherSide write FOtherSide;
   end;
 
@@ -110,7 +115,7 @@ const
 procedure ODS(const s: string);
 begin
 //  WriteLn(s);
-  OutputDebugString(PChar(s));
+//  OutputDebugString(PChar(s));
 end;
 
 function BytesToStr(AData: Pointer; ADataSize: integer) : string;
@@ -184,13 +189,13 @@ begin
     { The payload is lotated after the ether, ip, and tcp header, so add their
       sizes to the FEtherData pointer to get a pointer to payload }
   FPayloadDataPtr := Pointer(
-    DWORD(FEtherData) +
+    Cardinal(FEtherData) +
     sizeof(TEthernetHeader) +
     GetIPHeaderLen(PIPHeader(FEtherData)) +
     GetTCPHeaderLen(PTCPHeader(FEtherData))
   );
 
-   { This was: FEtherDataLen - (DWORD(FPayloadDataPtr) - DWORD(FEtherData));
+   { This was: FEtherDataLen - (Cardinal(FPayloadDataPtr) - Cardinal(FEtherData));
      but that does not take into account Ethernet Trailer which may come
      at the end of the packet }
   FPayloadDataLen := ntohs(PIPHeader(FEtherData)^.TotalLength) -
@@ -203,7 +208,7 @@ begin
   if FEtherDataLen < (FPayloadDataLen + sizeof(TEthernetHeader) +
     GetIPHeaderLen(PIPHeader(FEtherData)) +
     GetTCPHeaderLen(PTCPHeader(FEtherData))) then begin
-    OutputDebugString('Ethernet frame does not have enough data to hold tcp data.  Dropped.');
+    ODS('Ethernet frame does not have enough data to hold tcp data.  Dropped.');
     FPayloadDataLen := 0;
   end;
 
@@ -217,7 +222,7 @@ begin
   inherited Destroy;
 end;
 
-function TTCPFragment.GetAckNo: DWORD;
+function TTCPFragment.GetAckNo: Cardinal;
 begin
   if Assigned(FEtherData) then
     Result := ntohl(PTCPHeader(FEtherData)^.AckNumber)
@@ -233,7 +238,7 @@ begin
     Result := false;
 end;
 
-function TTCPFragment.GetSeqNo: DWORD;
+function TTCPFragment.GetSeqNo: Cardinal;
 begin
   if Assigned(FEtherData) then
     Result := ntohl(PTCPHeader(FEtherData)^.SeqNumber)
@@ -366,7 +371,7 @@ procedure TDAOCTCPPacketAssembler.InsertFragmentInOrder(
   AFragment: TTCPFragment);
 var
   I:  integer;
-  dwSeqNo:    DWORD;
+  dwSeqNo:    Cardinal;
 begin
   for I := 0 to FFragmentList.Count - 1 do begin
     dwSeqNo := TTCPFragment(FFragmentList[I]).SeqNo;
@@ -387,10 +392,10 @@ begin
   FFragmentList.Add(AFragment);
 end;
 
-function TDAOCTCPPacketAssembler.ParsePacket(AThroughSeq: DWORD; var APacket: TDAOCPacket): boolean;
+function TDAOCTCPPacketAssembler.ParsePacket(AThroughSeq: Cardinal; var APacket: TDAOCPacket): boolean;
 var
   wExpectedPackSize:  WORD;
-  dwNewSize:          DWORD;
+  dwNewSize:          Cardinal;
   pFragment:  TTCPFragment;
 begin
   APacket := nil;
@@ -452,7 +457,7 @@ begin
   end;
 
 {$IFDEF CLEAR_PACKET_BUFFER}
-  FillChar(Pointer(DWORD(FPacketDataBuff) + FPacketDataPos)^, FPacketDataSize - FPacketDataPos, 0);
+  FillChar(Pointer(Cardinal(FPacketDataBuff) + FPacketDataPos)^, FPacketDataSize - FPacketDataPos, 0);
 {$ENDIF}
 end;
 
@@ -483,12 +488,12 @@ end;
 
 procedure TDAOCPacket.Decrypt(const AKey: TDAOCCryptKey);
 var
-  data_pos: DWORD;
-  key_pos:  DWORD;
-  status_vect:  DWORD;
-  seed_1:   DWORD;
-  seed_2:   DWORD;
-  work_val: DWORD;
+  data_pos: Cardinal;
+  key_pos:  Cardinal;
+  status_vect:  Cardinal;
+  seed_1:   Cardinal;
+  seed_2:   Cardinal;
+  work_val: Cardinal;
   pData:    PChar;
 begin
   if not Assigned(FPacketDataStart) then
@@ -557,14 +562,14 @@ begin
 end;
 
 {$IFDEF PASCAL_GETS}
-function TDAOCPacket.getLong: DWORD;
+function TDAOCPacket.getLong: Cardinal;
 begin
   Result := (BYTE(FPacketDataPos[0]) shl 24) or (BYTE(FPacketDataPos[1]) shl 16) or
     (BYTE(FPacketDataPos[2]) shl 8) or BYTE(FPacketDataPos[3]);
   seek(4);
 end;
 {$ELSE}
-function TDAOCPacket.getLong: DWORD; assembler;
+function TDAOCPacket.getLong: Cardinal; assembler;
 asm
   mov edx, [eax+offset(FPacketDataPos)]
   add [eax+offset(FPacketDataPos)], 4
