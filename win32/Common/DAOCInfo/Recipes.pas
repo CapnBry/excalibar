@@ -52,6 +52,7 @@ type
     FMaterials: TMaterialReqList;
     FCraftName: string;
     FTier: integer;
+    FOrdinalInGroup: integer;
     function GetDisplayName: string;
   public
     constructor Create;
@@ -61,18 +62,19 @@ type
     procedure SaveToWriter(AWriter: TWriter);
     procedure LoadFromReader(AReader: TReader);
 
-    property Name: string read FName;
-    property ID: integer read FID;
-    property Group: integer read FGroup;
-    property Tier: integer read FTier;
-    property SkillLevel: integer read FSkillLevel;
-    property Materials: TMaterialReqList read FMaterials;
     property CraftName: string read FCraftName;
     property DisplayName: string read GetDisplayName;
+    property Group: integer read FGroup;
+    property ID: integer read FID;
+    property Materials: TMaterialReqList read FMaterials;
+    property Name: string read FName;
+    property OrdinalInGroup: integer read FOrdinalInGroup;
+    property SkillLevel: integer read FSkillLevel;
+    property Tier: integer read FTier;
   end;
 
   TCraftRealm = (crNone, crAlbion, crMidgard, crHibernia);
-  TRecipeSortOrder = (rsoNone, rsoSkill, rsoGroupTierSkill);
+  TRecipeSortOrder = (rsoNone, rsoSkill, rsoGroupTierSkill, rsoGroupOrdinal);
 
   TCraftRecipeCollection = class(TObjectList)
   private
@@ -87,6 +89,7 @@ type
 
     procedure SortBySkill;
     procedure SortByGroupTierAndSkill;
+    procedure SortByGroupAndOrdinal;
 
     procedure SaveToWriter(AWriter: TWriter);
     procedure LoadFromReader(AReader: TReader);
@@ -101,6 +104,7 @@ type
     function OrdinalOfGroup(AGroup: integer) : integer;
     function OrdinalOfTierInGroup(AGroup, ATier: integer) : integer;
     function OrdinalOfItemInTier(AGroup, ATier, ASkill: integer) : integer;
+    function AdjustOrdinalInGroupForSkill(AItem: TTradeSkillRecipe; ASkill: integer) : integer;
     function VisibleRecipesInGroup(AGroup: integer; AAtSkill: integer) : integer;
 
     property Realm: TCraftRealm read FRealm;
@@ -292,6 +296,38 @@ begin
 end;
 
 { TCraftRecipeCollection }
+
+function TCraftRecipeCollection.AdjustOrdinalInGroupForSkill(
+  AItem: TTradeSkillRecipe; ASkill: integer): integer;
+var
+  iIdx:       integer;
+begin
+    { if this is purple, it's not freakin there }
+  if AItem.CraftCon(ASkill) = rccPurple then begin
+    Result := -1;
+    exit;
+  end;
+
+  SetSortOrder(rsoGroupOrdinal);
+  Result := 0;
+  iIdx := 0;
+
+    { scroll while we're not in the right group }
+  while (iIdx < Count) and (Items[iIdx].Group <> AItem.Group) do
+    inc(iIdx);
+
+    { look at all the stuff in the tier up to our item }
+  while (iIdx < Count) and (Items[iIdx].Group = AItem.Group) do begin
+    if Items[iIdx].ID = AItem.ID then
+      exit;
+
+    if Items[iIdx].CraftCon(ASkill) <> rccPurple then
+      inc(Result);
+    inc(iIdx);
+  end;
+
+  Result := -1;
+end;
 
 function TCraftRecipeCollection.AsString(AForSkill: integer): string;
 var
@@ -576,7 +612,7 @@ var
   I:    integer;
   iLastGroup:   integer;
 begin
-  SetSortOrder(rsoGroupTierSkill);
+  SetSortOrder(rsoGroupOrdinal);
 
   iLastGroup := -1;
   Result := -1;
@@ -596,9 +632,9 @@ function TCraftRecipeCollection.OrdinalOfItemInTier(AGroup, ATier,
 (*** For tiers that have more than one item in them (eg Alchemy) return the offset
   in the tier of this item.  Returns 0 if only thing in tier. ***)
 var
-  iIdx:   integer;
+  iIdx:       integer;
 begin
-  SetSortOrder(rsoGroupTierSkill);
+  SetSortOrder(rsoGroupOrdinal);
   Result := 0;
   iIdx := 0;
 
@@ -623,7 +659,7 @@ function TCraftRecipeCollection.OrdinalOfTierInGroup(AGroup, ATier: integer): in
 var
   iIdx:   integer;
 begin
-  SetSortOrder(rsoGroupTierSkill);
+  SetSortOrder(rsoGroupOrdinal);
   Result := 0;
   iIdx := 0;
 
@@ -657,9 +693,37 @@ begin
   case Value of
     rsoSkill: SortBySkill;
     rsoGroupTierSkill: SortByGroupTierAndSkill;
+    rsoGroupOrdinal: SortByGroupAndOrdinal;
     else
       FSortOrder := rsoNone;
   end;
+end;
+
+procedure TCraftRecipeCollection.SortByGroupAndOrdinal;
+var
+  I:    integer;
+  J:    integer;
+  iMinIdx: integer;
+begin
+  if FSortOrder = rsoGroupOrdinal then
+    exit;
+
+  for I := 0 to Count - 2 do begin
+    iMinIdx := I;
+
+    for J := I + 1 to Count - 1 do
+        { if group is lower, or group is same and ordinal is lower,
+          or group and tier is same and skill is lower }
+      if (Items[J].Group < Items[iMinIdx].Group) or
+        ((Items[J].Group = Items[iMinIdx].Group) and (Items[J].OrdinalInGroup < Items[iMinIdx].OrdinalInGroup))
+        then
+        iMinIdx := J;
+
+    if iMinIdx <> I then
+      Exchange(I, iMinIdx);
+  end;
+
+  FSortOrder := rsoGroupOrdinal;
 end;
 
 procedure TCraftRecipeCollection.SortByGroupTierAndSkill;
@@ -722,9 +786,8 @@ function TCraftRecipeCollection.VisibleRecipesInGroup(AGroup,
 var
   iIdx:   integer;
 begin
-  SetSortOrder(rsoGroupTierSkill);
+  SetSortOrder(rsoGroupOrdinal);
   Result := 0;
-
   iIdx := 0;
 
     { scroll while we're not in the right group }
@@ -861,6 +924,7 @@ var
   sMaterial:      string;
   pMaterial:      TMaterialReq;
   iLastGroup:     integer;
+  iOrdinalInGroup:  integer;
   sCraftName:     string;
 begin
   FS := TLinedStreamWrapper.Create(AStrm);
@@ -869,7 +933,8 @@ begin
   pCraft := nil;
   iLastGroup := -1;
   sCraftName := '';
-
+  iOrdinalInGroup := 0;
+  
   try
     while not FS.EOF do begin
       s := Trim(FS.ReadLn);
@@ -901,6 +966,7 @@ begin
       else if Assigned(pCraft) then begin
         if CSVP.Group <> iLastGroup then begin
           iLastGroup := CSVP.Group;
+          iOrdinalInGroup := 0;
           if CSVP.SkillLevel = 9999 then begin
             sCraftName := CSVP.CraftName;
             continue;
@@ -911,6 +977,7 @@ begin
 
         pRecipe := TTradeSkillRecipe.Create;
         pCraft.Add(pRecipe);
+        pRecipe.FOrdinalInGroup := iOrdinalInGroup;
         pRecipe.FID := CSVP.ID;
         pRecipe.FGroup := CSVP.Group;
         pRecipe.FTier := CSVP.Tier;
@@ -930,6 +997,8 @@ begin
           pMaterial.Count := pMaterial.Count + CSVP.MaterialsCount[iMaterialPos];
           inc(iMaterialPos);
         end;
+
+        inc(iOrdinalInGroup);
       end;  { if pCraft }
     end;  { while !EOF }
   finally
