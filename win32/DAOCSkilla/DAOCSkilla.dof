@@ -61,7 +61,7 @@ IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=2
 MinorVer=0
-Release=0
+Release=1
 Build=0
 Debug=0
 PreRelease=1
@@ -73,7 +73,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Network Utility for Dark Age of Camelot
-FileVersion=2.0.0.0
+FileVersion=2.0.1.0
 InternalName=
 LegalCopyright=
 LegalTrademarks=
