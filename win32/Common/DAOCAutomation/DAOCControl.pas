@@ -26,6 +26,8 @@ type
 
     FMainHWND: HWND;
     FDAOCHWND: HWND;
+    FDAOCWindowClass: string;
+
     FArrowLeft: boolean;
     FArrowUp: boolean;
     FArrowDown: boolean;
@@ -205,6 +207,7 @@ type
       { Configuration tweaks }
     property AFKMessage: string read FAFKMessage write FAFKMessage;
     property DAOCPath: string read FDAOCPath write SetDAOCPath;
+    property DAOCWindowClass: string read FDAOCWindowClass write FDAOCWindowClass;
     property GotoDistTolerance: integer read FGotoDistTolerance write FGotoDistTolerance;
     property ForceStationaryTurnDegrees: integer read FForceStationaryTurnDegrees
       write FForceStationaryTurnDegrees;
@@ -1103,7 +1106,7 @@ end;
 
 function TDAOCControl.FindDAOCWindow: HWND;
 begin
-  Result := FindWindow('DAoCMWC', nil); // nil, 'Dark Age of Camelot,  (c) 2002 Mythic Entertainment, Inc.');
+  Result := FindWindow(PChar(FDAOCWindowClass), nil); // nil, 'Dark Age of Camelot,  (c) 2002 Mythic Entertainment, Inc.');
 end;
 
 procedure TDAOCControl.SendOneKeyNoFocus(c: char);
@@ -1200,7 +1203,9 @@ end;
 procedure TDAOCControl.Initialize;
 begin
   inherited Initialize;
-  
+
+  FDAOCWindowClass := 'DAoCMWC';
+
   FConnectionPoints := TConnectionPoints.Create(Self);
   if AutoFactory.EventTypeInfo <> nil then
     FConnectionPoint := FConnectionPoints.CreateConnectionPoint(
