@@ -63,6 +63,8 @@ exConnection::exConnection(exNet * s, bool dolink, bool docapture)
     addr.s_addr = sniff->n_server_addr;
     to = inet_ntoa(addr);
 
+    qWarning("New connection established: " + from + " -> " + to);
+
     if(writecapture){
         fname = "Capture-" + from + "-" + to + "-" + QDateTime::currentDateTime().toString("yyyy.MM.dd-hh:mm:ss");
 
