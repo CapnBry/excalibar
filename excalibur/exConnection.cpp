@@ -36,6 +36,7 @@
 #include <qprocess.h>
 #include <math.h>
 #include <qmessagebox.h>
+#include <qstatusbar.h>
 #include "exConnection.h"
 
 template <class S>
@@ -110,7 +111,6 @@ void exConnection::setup()
     msgui = new exMessagesUi;
 
     alive = true;
-    vaderWarn = prefs.vaderWarn;
     mobs.setAutoDelete(true);
     objs.setAutoDelete(true);
     players.setAutoDelete(true);
@@ -513,7 +513,16 @@ END_EXPERIMENTAL_CODE
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
               } else {
-		  players.insert((void *) ((unsigned int) id), mob);
+                  players.insert((void *) ((unsigned int) id), mob);
+                  if (prefs.vader_warn && mob->isInvader() && (mob->getLevel() > 15))
+                  {
+                      title = QString(
+                          "*** INVADER DETECTED *** Name: %1, Level: %2, Distance: %3").
+                          arg(mob->getName()).arg(mob->getLevel()).arg(mob->playerDist());
+                      qWarning(title);
+                      ex->statusBar()->message(title, 10000);
+                      qApp->beep();
+                  }
               }
 	      mobinfo.insert((void *) ((unsigned int) infoid), mob);
               updateObjectTypeCounts();
