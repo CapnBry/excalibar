@@ -1,6 +1,11 @@
 Andon (10/Feb/02)
 ------------------
-
+Additions (SnowBlind):
+ + Added a way to turn off drawing of each range circle PLEASE
+   CLICK DOWN DOWN BUTTON UNTILL IT SAYS 'No Draw' IF YOU DONT
+   WANT THEM TO DRAW
+ + Changed the steping of the range circle to 25
+ 
 Bug fixes:
  + Fixed a SERIOUS stack corruption issue with the dump unknown
    data code..  Using printf on a plain string is BAD BAD BAD,
