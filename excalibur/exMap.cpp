@@ -43,7 +43,7 @@
 
 exMap::exMap(QWidget *parent, const char *name)
  : QGLWidget(QGLFormat(DoubleBuffer|DirectRendering|Rgba),parent,name) {
-  objsize = 150; 
+  objsize = 150;
   range = 16000;
   c = NULL; 
   is_dirty = true; 
@@ -631,6 +631,8 @@ void exMap::drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pc
             gluDisk(qoCircle, 0, 500, 18, 18);
         } else
             gluSphere(qoCircle, 500, 32, 32);
+
+        gluDeleteQuadric(qoCircle);
         glPopAttrib();
     }
 
