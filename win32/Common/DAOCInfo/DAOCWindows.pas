@@ -202,6 +202,10 @@ end;
 
 function TDAOCWindowManager.GetSettingsFile: string;
 begin
+  if (FDAOCPath = '') or not DirectoryExists(FDAOCPath) then
+    raise Exception.Create('DAOCPath is not set correctly.'#13  +
+      'Windows on Dark Age can not be located properly.');
+
   Result :=
 {$IFDEF VER130}
     IncludeTrailingBackslash(FDAOCPath)
