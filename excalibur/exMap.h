@@ -111,10 +111,10 @@ class exMapElementLine : public exMapElement {
     bool tessError;
     exMapElementLineTess *tessTess;
     static class exMapElementLine *tessLine;
-    static void ErrorCallback(GLenum errno);
-    static void BeginCallback(GLenum type);
-    static void VertexCallback(void *vertex_data);
-    static void CombineCallback(GLdouble coords[3], void *vertex_data[4], GLfloat weight[4], void **outData);
+    static void TessErrorCallback(GLenum err);
+    static void TessBeginCallback(GLenum type);
+    static void TessVertexCallback(void *vertex_data);
+    static void TessCombineCallback(GLdouble coords[3], void *vertex_data[4], GLfloat weight[4], void **outData);
     void tesselate();
   public:
     exMapElementLine();

@@ -1140,22 +1140,22 @@ bool exMapElementLine::fromString(QStringList lst, int xadd, int yadd) {
 
 exMapElementLine *exMapElementLine::tessLine;
 
-void exMapElementLine::BeginCallback(GLenum type) {
+void exMapElementLine::TessBeginCallback(GLenum type) {
   tessLine->tessTess=new exMapElementLineTess(type);
   tessLine->tesspoints.append(tessLine->tessTess);
 }
 
-void exMapElementLine::ErrorCallback(GLenum err) {
+void exMapElementLine::TessErrorCallback(GLenum err) {
   qWarning("Tesselation failed with error %s",gluErrorString(err));
   tessLine->tessError = TRUE;
 }
 
-void exMapElementLine::VertexCallback(void *vertex_data) {
+void exMapElementLine::TessVertexCallback(void *vertex_data) {
   exMapElementLinePoint *p=(exMapElementLinePoint *)vertex_data;
   tessLine->tessTess->points.append(p);
 }
 
-void exMapElementLine::CombineCallback(GLdouble coords[3], void **, GLfloat *, void **outData) {
+void exMapElementLine::TessCombineCallback(GLdouble coords[3], void **, GLfloat *, void **outData) {
   exMapElementLinePoint *p=new exMapElementLinePoint((int) coords[0], (int) coords[1], (int) coords[2]);
   tessLine->allpoints.append(p);
   *outData = (void *) p;
@@ -1180,10 +1180,10 @@ void exMapElementLine::tesselate() {
   tessTess = NULL;
   tessLine = this;
 
-  gluTessCallback(tess, (GLenum) GLU_TESS_BEGIN, (void (*)()) exMapElementLine::BeginCallback);
-  gluTessCallback(tess, (GLenum) GLU_TESS_VERTEX, (void (*)()) exMapElementLine::VertexCallback);
-  gluTessCallback(tess, (GLenum) GLU_TESS_ERROR, (void (*)()) exMapElementLine::ErrorCallback);
-  gluTessCallback(tess, (GLenum) GLU_TESS_COMBINE, (void (*)()) exMapElementLine::CombineCallback);
+  gluTessCallback(tess, (GLenum) GLU_TESS_BEGIN, (void (*)()) exMapElementLine::TessBeginCallback);
+  gluTessCallback(tess, (GLenum) GLU_TESS_VERTEX, (void (*)()) exMapElementLine::TessVertexCallback);
+  gluTessCallback(tess, (GLenum) GLU_TESS_ERROR, (void (*)()) exMapElementLine::TessErrorCallback);
+  gluTessCallback(tess, (GLenum) GLU_TESS_COMBINE, (void (*)()) exMapElementLine::TessCombineCallback);
 
 #ifdef GLU_11
   gluBeginPolygon(tess);
