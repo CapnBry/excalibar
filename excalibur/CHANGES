@@ -1,3 +1,7 @@
+Teerex (26/May/03)
+ + Fixed a bug in exMob that made a non-moving mob spawn in random 
+   locations on the map view.  (Bug added in last patch)
+
 Teerex (23/May/03)
 ------------------
  + Added L1 (Manhattan) distance from player to exMob, stale check
