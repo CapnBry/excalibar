@@ -318,7 +318,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_LICENSE             "Cheyenne uses the GNU General Public License. Please see the included ""license.txt"" file for the complete license text."
-    IDS_COPYRIGHT           "Copyright (C) 2003, the Cheyenne Developers"
+    IDS_COPYRIGHT           "Copyright (C) 2002-2004, the Cheyenne Developers"
     IDS_DESCRIPTION         "Cheyenne: a real-time packet analyzer/sniffer for Dark Age of Camelot"
 END
 
