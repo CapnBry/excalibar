@@ -1,4 +1,23 @@
+  + Enemy players which are selected will now show their name instead
+    of their race.
+  + Added filter option to not show players from your realm. (F)
+  + Added render preference for a basic grid over the current zone. (G)
+  + Hold the control key and move your mouse over the map for tooltip.
+    (Tooltips require GLUT).
+  + Fixed laziness that made it hard to click moving objects between
+    updates.  Also fixes distance calculation for mobs on the go.
+  + Added hotkey (A) for invader warning.
+  + Fixed bug with distances > 65000 overflowing.
+
+2003 Oct 13 - v1.54
+-------------------
   + Added Realm Rank for players from other realms.
+  + Mob list now groups by realm.  This can be disabled via the
+    GroupByRealm INI setting.
+  + Draw HUD option now grays if GLUT is not availaible.
+  + DrawHUD and DrawBackgroundTexture now disable if their requirements
+    are not met.
+  + Added Questions section to documentation.
 
 2003 Oct 08 - v1.51
 -------------------
