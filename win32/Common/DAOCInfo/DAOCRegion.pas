@@ -51,6 +51,7 @@ type
   public
     procedure LoadFromFile(const AFName: string);
     function FindZoneForPoint(ARegion, AX, AY: integer) : TDAOCZoneInfo;
+    function FindZone(AZoneNum: integer) : TDAOCZoneInfo;
     
     property Items[I: Integer]: TDAOCZoneInfo read GetItems; default;
   end;
@@ -133,6 +134,18 @@ begin
 end;
 
 { TDAOCZoneInfoList }
+
+function TDAOCZoneInfoList.FindZone(AZoneNum: integer): TDAOCZoneInfo;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].ZoneNum = AZoneNum then begin
+      Result := Items[I];
+      exit;
+    end;
+  Result := nil;
+end;
 
 function TDAOCZoneInfoList.FindZoneForPoint(ARegion, AX, AY: integer): TDAOCZoneInfo;
 var
