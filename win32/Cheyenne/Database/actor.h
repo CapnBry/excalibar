@@ -111,6 +111,7 @@ public:
         SetTargetId(0);
         SetRegion(0);
         SetActorType(Player);
+        SetOld(false);
         SetStealth(false);
         SetStealthCycleA(0.0f);
         SetStealthCycleB(0.0f);
