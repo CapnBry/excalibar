@@ -4,3 +4,7 @@ See the source code for complete license and copyright information (source avail
 
 + lfont/lfontrenderer
 Copyright (c) 2002, Lev Povalahev. Modifications to the original were made for Cheyenne's use. See the lfontrenderer source files in the Utils directory for specifics.
+
++ pcapdstream is also available open-source at sourceforge.net
+
++ UndSieBrutus.dll is only available in binary form
