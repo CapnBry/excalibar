@@ -1,0 +1,31 @@
+set numT 10
+set name(0) {Sva Gothis}
+set val(0) {10:20}
+set loop(0) 1
+set name(1) {Hauberk}
+set val(1) {10:00}
+set loop(1) 0
+set name(2) {Purge}
+set val(2) {30:00}
+set loop(2) 0
+set name(3) {First Aid}
+set val(3) {15:00}
+set loop(3) 0
+set name(4) {}
+set val(4) {0:00.0}
+set loop(4) 1
+set name(5) {}
+set val(5) {0:00.0}
+set loop(5) 1
+set name(6) {}
+set val(6) {0:00.0}
+set loop(6) 1
+set name(7) {}
+set val(7) {0:00.0}
+set loop(7) 1
+set name(8) {}
+set val(8) {0:00.0}
+set loop(8) 1
+set name(9) {}
+set val(9) {0:00.0}
+set loop(9) 1
