@@ -34,6 +34,21 @@ type
     Data:         array[0..1499] of byte;
   end;
 
+  PPPPoEHeader = ^TPPPoEHeader;
+  TPPPoEHeader = packed record
+    EtherHead:    TEthernetHeader;
+    VerAndType:   BYTE;
+    Code:         BYTE;
+    SessionID:    WORD;
+    Length:       WORD;
+  end;
+
+  PPPPoESessionHeader = ^TPPPoESessionHeader;
+  TPPPoESessionHeader = packed record
+    PPPoEHead:    TPPPoEHeader;
+    ProtocolID:   WORD;
+  end;
+
   PIPHeader = ^TIPHeader;
   TIPHeader = packed record
     EtherHead:      TEthernetHeader;
@@ -105,8 +120,9 @@ type
     procedure LoadFromStream(AStream: TStream; ACapLen: Cardinal);
     procedure Clear;
     procedure ReleaseData;
+    function DecapsulatePPPoE : TEthernetSegment;
 
-    function AsEthernet: PEthernetFrame;
+    function AsEthernet: PEthernetHeader;
     function AsIP : PIPHeader;
     function AsTCP : PTCPHeader;
     function AsUDP : PUDPHeader;
@@ -138,6 +154,8 @@ type
 const
     { NET_ consts are in network byte order }
   NET_IP_TYPE = $0008;
+  NET_PPPOE_SESSION_TYPE = $6488;
+  NET_PPP_PROTOCOL_IP = $2100;
 
   IP_TYPE = $0800;
   ICMP_TYPE = $0806;
@@ -147,7 +165,7 @@ const
 
 function my_inet_ntoa(inaddr : Cardinal) : string;
 function my_inet_htoa(inaddr : Cardinal) : string;
-function EtherFrameToString(pFrame : PEthernetFrame) : string;
+function EtherHeaderToString(pHeader : PEthernetHeader) : string;
 function IPHeaderToString(pHeader : PIPHeader) : string;
 function TCPHeaderToString(pHeader : PTCPHeader) : string;
 function UDPHeaderToString(pHeader : PUDPHeader) : string;
@@ -179,12 +197,12 @@ begin
   Result := inet_ntoa(inadd);
 end;
 
-function EtherFrameToString(pFrame : PEthernetFrame) : string;
+function EtherHeaderToString(pHeader: PEthernetHeader) : string;
 begin
-  if not Assigned(pFrame) then
+  if not Assigned(pHeader) then
     exit;
 
-  with pFrame^.Header do begin
+  with pHeader^ do begin
     Result := Format('Destination: [%2.2x-%2.2x-%2.2x-%2.2x-%2.2x-%2.2x]'#13#10,
       [DestAddr[0], DestAddr[1], DestAddr[2], DestAddr[3],
       DestAddr[4], DestAddr[5]]);
@@ -195,7 +213,7 @@ begin
 
     case htons(FrameType) of
       IP_TYPE:
-        Result := Result + IPHeaderToString(PIPHeader(pFrame));
+        Result := Result + IPHeaderToString(PIPHeader(pHeader));
       ICMP_TYPE:
         Result := Result + 'ICMP Protocol'#13#10;
       else
@@ -318,9 +336,9 @@ end;
 
 { TEthernetSegment }
 
-function TEthernetSegment.AsEthernet: PEthernetFrame;
+function TEthernetSegment.AsEthernet: PEthernetHeader;
 begin
-  Result := PEthernetFrame(FData);
+  Result := PEthernetHeader(FData);
 end;
 
 function TEthernetSegment.AsIP: PIPHeader;
@@ -330,7 +348,7 @@ end;
 
 function TEthernetSegment.AsString: string;
 begin
-  Result := EtherFrameToString(AsEthernet);
+  Result := EtherHeaderToString(AsEthernet);
 end;
 
 function TEthernetSegment.AsTCP: PTCPHeader;
@@ -359,6 +377,21 @@ begin
   FDataLen := ADataLen;
   GetMem(FData, FDataLen);
   Move(AData^, FData^, FDataLen);
+end;
+
+function TEthernetSegment.DecapsulatePPPoE: TEthernetSegment;
+begin
+  if (AsEthernet^.FrameType <> NET_PPPOE_SESSION_TYPE) or (FDataLen < 22)
+    or (PPPPoESessionHeader(FData)^.ProtocolID <> NET_PPP_PROTOCOL_IP) then begin
+    Result := nil;
+    exit;
+  end;
+
+    { we create a copy 8 bytes in, since PPPoE plus PPP = 6 + 2 = 8 }
+  Result := TEthernetSegment.CreateFor(PChar(FData) + 8, FDataLen - 8);
+    { now we need to copy the ethernet MACs from the head of the orignal packet }
+  Move(FData^, Result.FData^, 12);
+  Result.AsEthernet^.FrameType := NET_IP_TYPE;
 end;
 
 destructor TEthernetSegment.Destroy;
