@@ -101,7 +101,8 @@ type
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
     FPingRequestSentTime: Cardinal;
-    FLastPingTime:      integer;
+    FLastPingTime:        integer;
+    FRealmRanks:          TStringList;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -160,6 +161,7 @@ type
     function CheckAndMoveFromStaleListByInfoID(wID: WORD) : TDAOCObject;
     function CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
     procedure SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
+    procedure UpdateRealmRank(AObj: TDAOCPlayer);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -292,6 +294,7 @@ type
     procedure CheckForStaleObjects;
     procedure SaveConnectionState(const AFileName: string);
     procedure ResumeConnection(const AFileName: string);
+    procedure LoadRealmRanks(const AFileName: string);
 
       { Functions to use zone information to find relative player coords }
     function PlayerZoneHead : integer;
@@ -481,6 +484,7 @@ begin
   FZoneList.Free;
   FGroundTarget.Free;
   FLocalPlayer.Free;
+  FRealmRanks.Free;
 
   inherited Destroy;
 end;
@@ -1351,6 +1355,7 @@ begin
           LastName := pPacket.getPascalString;
 
           IsInGuild := (FLocalPlayer.Guild <> '') and AnsiSameText(Guild, FLocalPlayer.Guild);
+          UpdateRealmRank(TDAOCPlayer(tmpObject));
 
              { if this guy is in our unknown stealther list, now we know who he is }
           pOldObject := FUnknownStealthers.FindByInfoID(tmpObject.InfoID);
@@ -2532,6 +2537,28 @@ end;
 procedure TDAOCConnection.CPARSETradeSkillFailureWithLoss(ASender: TDAOCChatParser);
 begin
   DoOnTradeSkillFailureWithLoss;
+end;
+
+procedure TDAOCConnection.UpdateRealmRank(AObj: TDAOCPlayer);
+var
+  sRank:    string;
+begin
+  if Assigned(FRealmRanks) then begin
+    sRank := FRealmRanks.Values[AObj.LastName];
+    if sRank = '' then
+      AObj.RealmRank := rrUnknown
+    else
+      AObj.RealmRank := TRealmRank(StrToIntDef(sRank, 0));
+  end;
+end;
+
+procedure TDAOCConnection.LoadRealmRanks(const AFileName: string);
+begin
+  if not Assigned(FRealmRanks) then
+    FRealmRanks := TStringList.Create;
+
+  FRealmRanks.LoadFromFile(AFileName);
+  FRealmRanks.Sorted := true;
 end;
 
 end.
