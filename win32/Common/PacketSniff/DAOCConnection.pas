@@ -51,7 +51,6 @@ type
     FVersionMinor: byte;
     FVersionRelease: byte;
     FAccountCharacters:  TDAOCAccountCharInfoList;
-    FServerProtocol:  byte;
 
     FSelectedID:    WORD;
     FTradeCommissionItem: string;
@@ -215,6 +214,7 @@ type
     procedure ParseDelveInformation(pPacket: TGameNetPacket);
     procedure ParseVendorWindowRequest(pPacket: TGameNetPacket);
     procedure ParseDoorPositionUpdate(pPacket: TGameNetPacket);
+    procedure ParseSetHomeRealm(pPacket: TGameNetPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TGameNetPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TGameNetPacket);
@@ -313,7 +313,7 @@ type
     property PacketHandlerDefFile: string read FPacketHandlerDefFile write FPacketHandlerDefFile;
     property RegionID: integer read FRegionID write FRegionID;
     property SelectedID: WORD read FSelectedID;
-    property ServerProtocol: BYTE read FServerProtocol write FServerProtocol;
+//    property ServerProtocol: BYTE read FServerProtocol write SetServerProtocol;
     property SelectedObject: TDAOCObject read GetSelectedObject write SetSelectedObject;
     property TradeCommissionNPC: string read FTradeCommissionNPC;
     property TradeCommissionItem: string read FTradeCommissionItem;
@@ -414,7 +414,6 @@ begin
   FGroupMembers := TDAOCObjectList.Create(false);
   HookChatParseCallbacks;
 
-  FServerProtocol := $01;
   SetMaxObjectDistance(8500);
   FMaxObjectStaleTime := 240000;  // 240,000ms = 4min
   FDefaultLocalPlayerLevel := 50;
@@ -499,37 +498,9 @@ begin
 end;
 
 procedure TDAOCConnection.ParseAccountCharacters(pPacket: TGameNetPacket);
-var
-  sName:  string;
-  iCharsLeft: integer;
-  iRegion:  integer;
-  iRealm:   integer;
-  iLevel:   integer;
-  pAcctChar: TDAOCAccountCharInfo;
 begin
   pPacket.HandlerName := 'AccountCharacters';
-  FAccountCharacters.AccountName := pPacket.getNullTermString(24);
-
-    { parse up to 8 characters }
-  iCharsLeft := 8;
-
-  while (iCharsLeft > 0) and not pPacket.EOF do begin
-    sName := pPacket.getNullTermString(48);
-    pPacket.Seek(72);
-    iLevel := pPacket.getByte;
-    pPacket.Seek(1);
-    iRealm := pPacket.getByte;
-    pPacket.Seek(3);
-    iRegion := pPacket.getByte;
-    pPacket.Seek(57);
-    if (iRegion <> 0) and (sName <> '') then begin
-      pAcctChar := FAccountCharacters.FindOrAddChar(sName);
-      pAcctChar.RegionID := iRegion;
-      pAcctChar.Realm := TDAOCRealm(iRealm);
-      pAcctChar.Level := iLevel;
-    end;
-    dec(iCharsLeft);
-  end;    { for chars }
+  FAccountCharacters.AppendListFromPacketData(pPacket);
 end;
 
 procedure TDAOCConnection.ParsePlayerDetails(pPacket: TGameNetPacket);
@@ -944,7 +915,7 @@ var
 begin
   pPacket.HandlerName := 'MobUpdate';
 
-  V162OrGreater := FServerProtocol = $01;
+  V162OrGreater := FAccountCharacters.ServerProtocol = $01;
   if V162OrGreater then
     iIDOffset := 16
   else
@@ -1946,11 +1917,7 @@ end;
 procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'ServerProcotolInit';
-  
-  FServerProtocol := pPacket.GetByte;
-  pPacket.seek(3);
-  FAccountCharacters.AccountName := pPacket.getPascalString;
-  FAccountCharacters.ServerName := pPacket.getPascalString;
+  FAccountCharacters.ResetFromPacketData(pPacket);
 end;
 
 procedure TDAOCConnection.SetClientIP(const Value: string);
@@ -2493,6 +2460,8 @@ begin
         Handler := ParseSpellPulse
       else if AnsiSameText(Name, 'GroupWindowUpdate') then
         Handler := ParseGroupWindowUpdate
+      else if AnsiSameText(Name, 'SetHomeRealm') then
+        Handler := ParseSetHomeRealm
 
         { client handlers }
       else if AnsiSameText(Name, 'LocalPosUpdateFromClient') then
@@ -2616,6 +2585,11 @@ begin
     exit;
 
   FLocalPlayer.Realm := APlayer.Realm;
+end;
+
+procedure TDAOCConnection.ParseSetHomeRealm(pPacket: TGameNetPacket);
+begin
+  pPacket.HandlerName := 'SetHomeRealm NOTIMPL';
 end;
 
 end.

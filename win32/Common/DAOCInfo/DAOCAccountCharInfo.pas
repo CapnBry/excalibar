@@ -13,7 +13,7 @@ unit DAOCAccountCharInfo;
 interface
 
 uses
-  SysUtils, Contnrs, DAOCRegion;
+  SysUtils, Contnrs, DAOCRegion, GameNetPackets;
   
 type
   TDAOCAccountCharInfo = class(TObject)
@@ -36,15 +36,21 @@ type
     FAccountName:   string;
     FServerName: string;
     FAccountPassword: string;
+    FServerProtocol: byte;
     function GetItems(iIndex: integer): TDAOCAccountCharInfo;
   public
+    constructor Create; 
+    
     procedure Clear; override;
     function FindOrAddChar(const AName: string) : TDAOCAccountCharInfo;
+    procedure AppendListFromPacketData(APacket: TGameNetPacket);
+    procedure ResetFromPacketData(APacket: TGameNetPacket);
 
     property Items[iIndex: integer]: TDAOCAccountCharInfo read GetItems; default;
     property AccountName: string read FAccountName write FAccountName;
     property AccountPassword: string read FAccountPassword write FAccountPassword;
     property ServerName: string read FServerName write FServerName;
+    property ServerProtocol: byte read FServerProtocol write FServerProtocol;
   end;
 
 implementation
@@ -54,6 +60,7 @@ implementation
 procedure TDAOCAccountCharInfoList.Clear;
 begin
   inherited;
+  FServerProtocol := $01;
   FAccountName := '';
   FAccountPassword := '';
   FServerName := '';    
@@ -77,6 +84,55 @@ end;
 function TDAOCAccountCharInfoList.GetItems(iIndex: integer): TDAOCAccountCharInfo;
 begin
   Result := TDAOCAccountCharInfo(inherited Items[iIndex]);
+end;
+
+procedure TDAOCAccountCharInfoList.AppendListFromPacketData(APacket: TGameNetPacket);
+var
+  sName:  string;
+  iCharsLeft: integer;
+  iRegion:  integer;
+  iRealm:   integer;
+  iLevel:   integer;
+  pAcctChar: TDAOCAccountCharInfo;
+begin
+  Clear;
+  AccountName := APacket.getNullTermString(24);
+
+    { parse up to 8 characters }
+  iCharsLeft := 8;
+
+  while (iCharsLeft > 0) and not APacket.EOF do begin
+    sName := APacket.getNullTermString(48);
+    APacket.Seek(72);
+    iLevel := APacket.getByte;
+    APacket.Seek(1);
+    iRealm := APacket.getByte;
+    APacket.Seek(3);
+    iRegion := APacket.getByte;
+    APacket.Seek(57);
+    if (iRegion <> 0) and (sName <> '') then begin
+      pAcctChar := FindOrAddChar(sName);
+      pAcctChar.RegionID := iRegion;
+      pAcctChar.Realm := TDAOCRealm(iRealm);
+      pAcctChar.Level := iLevel;
+    end;
+    dec(iCharsLeft);
+  end;    { for chars }
+end;
+
+procedure TDAOCAccountCharInfoList.ResetFromPacketData(APacket: TGameNetPacket);
+begin
+  Clear;
+  FServerProtocol := APacket.GetByte;
+  APacket.seek(3);
+  FAccountName := APacket.getPascalString;
+  FServerName := APacket.getPascalString;
+end;
+
+constructor TDAOCAccountCharInfoList.Create;
+begin
+  inherited Create(true);
+  Clear;
 end;
 
 { TDAOCAccountCharInfo }
