@@ -1,4 +1,12 @@
-2003 Sep 02 - v1.58
+2003 Nov 09 - v1.59
+-------------------
+  + Now throws an exception when DAOCPath is not set properly and a
+    daoc window is needed.
+  + Fixed bug not enabling "Track Character Logins" whne check was on.
+  + Fixed flipping "Show NPC typetag" not properly swapping until you
+    closed and reopened the radar window.
+
+2003 Nov 02 - v1.58
 -------------------
   + Added automatic update checker which fires once every 7 days.
     Set [Main] CheckForUpdates=0 to disable.
