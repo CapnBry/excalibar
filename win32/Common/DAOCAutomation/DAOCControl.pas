@@ -1311,8 +1311,10 @@ begin
     exit;
 
   FTradeSkillProgression := Value;
-  FTradeSkillProgressionIdx := 1;
-Log('Resetting TradeskillProgression ' + IntToStr(FTradeSkillProgressionIdx));
+  if FTradeSkillProgressionIdx <> 1 then begin
+    FTradeSkillProgressionIdx := 1;
+    Log('Resetting TradeskillProgression ' + IntToStr(FTradeSkillProgressionIdx));
+  end;
 end;
 
 procedure TDAOCControl.DoOnChatSendIncoming(const AWho, AMessage: string);
