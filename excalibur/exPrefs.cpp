@@ -263,6 +263,8 @@ void exPrefs::loadSettings() {
 
   MobListColors=s.readBoolEntry("/Excalibur/MobListColors",TRUE);
   sticky_list=s.readBoolEntry("/Excalibur/StickyList", FALSE);
+
+  maxfps=s.readBoolEntry("/Excalibur/MaxFPS", FALSE);
 }
 
 void exPrefs::saveSettings() {
@@ -315,6 +317,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/DebugOpenGL", gl_debug);
   s.writeEntry("/Excalibur/MobListColors", MobListColors);
   s.writeEntry("/Excalibur/StickyList", sticky_list);
+  s.writeEntry("/Excalibur/MaxFPS", maxfps);
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {

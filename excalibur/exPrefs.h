@@ -69,6 +69,7 @@ public:
   bool map_linear_filter;
   bool map_mipmap;
   bool map_compress_textures;
+  bool maxfps;
   bool agro_circles;
   bool filter_circles;
   bool agro_fading;
