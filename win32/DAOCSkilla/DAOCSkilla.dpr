@@ -36,14 +36,14 @@ uses
   AXScript in '..\Common\DAOCAutomation\AXScript.pas',
   ScriptSiteImpl in '..\Common\DAOCAutomation\ScriptSiteImpl.pas',
   SpellcraftHelp in '..\Common\DAOCAutomation\SpellcraftHelp.pas' {frmSpellcraftHelp},
-  RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
   GLRenderObjects in 'GLRenderObjects.pas',
   MapElementList in 'MapElementList.pas',
   DDSImage in 'DDSImage.pas',
   VCLMemStrms in '..\Common\VCLMemStrms.pas',
   DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
   RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
-  DAOCConSystem in '\\benny\c\utils\Excalibar\win32\Common\DAOCInfo\DAOCConSystem.pas';
+  DAOCConSystem in '\\benny\c\utils\Excalibar\win32\Common\DAOCInfo\DAOCConSystem.pas',
+  DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas';
 
 {$R *.TLB}
 
@@ -59,7 +59,6 @@ begin
   Application.CreateForm(TfrmAFK, frmAFK);
   Application.CreateForm(TfrmTellMacro, frmTellMacro);
   Application.CreateForm(TfrmSpellcraftHelp, frmSpellcraftHelp);
-  Application.CreateForm(TdmdRemoteAdmin, dmdRemoteAdmin);
   CreateOptionalForms;
   Application.Run;
 end.

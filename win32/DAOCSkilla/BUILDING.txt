@@ -100,3 +100,6 @@ OPENGL_RENDERER: Enables the building of all OpenGL-based render
 DAOC_AUTO_SERVER: Enables the building of the Automation Object for
     TDaocControl.  Needed if you're going to use a macro script.
     Most functions have not been extended to the Automation interface.
+
+REMOTE_ADMIN:  Enables a telnet server in DAOCSkilla that can be
+    used to control it when Dark Age is running full screen.
