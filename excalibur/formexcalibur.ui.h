@@ -153,8 +153,20 @@ void FormExcalibur::MapPNGs_toggled( bool ena )
 
 void FormExcalibur::MapAdjacentZones_toggled( bool ena )
 {
-    prefs.map_load_adjacent_zones = ena;
-    prefs.activate();
+  prefs.map_load_adjacent_zones = ena;
+  prefs.activate();
+}
+
+void FormExcalibur::MapPlayerNames_toggled( bool ena )
+{
+  prefs.map_rasterize_player_names = ena;
+  prefs.activate();
+}
+
+void FormExcalibur::MapMerchatTypes_toggled( bool ena )
+{
+  prefs.map_rasterize_merchant_types = ena;
+  prefs.activate();
 }
 
 void FormExcalibur::MapRecache_activated( void )

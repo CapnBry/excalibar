@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>632</width>
+            <width>634</width>
             <height>250</height>
         </rect>
     </property>
@@ -92,7 +92,7 @@
     </widget>
     <widget class="QTabWidget">
         <property name="name">
-            <cstring>MiscTab</cstring>
+            <cstring>MapText</cstring>
         </property>
         <property name="geometry">
             <rect>
@@ -123,6 +123,9 @@
                 </property>
                 <property name="title">
                     <string>GL Smoothing</string>
+                </property>
+                <property name="alignment">
+                    <set>AlignHCenter</set>
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
@@ -175,70 +178,6 @@
             </widget>
             <widget class="QGroupBox">
                 <property name="name">
-                    <cstring>GroupBox2</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>130</x>
-                        <y>10</y>
-                        <width>160</width>
-                        <height>140</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Drawing Options</string>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout5</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>138</width>
-                            <height>110</height>
-                        </rect>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>0</number>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLMapRotate</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Rotate Display</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSimpleObjects</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Simple Objects</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLMapFill</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Fill Map Polygons</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
                     <cstring>AutoSimplifyGroup</cstring>
                 </property>
                 <property name="enabled">
@@ -246,9 +185,9 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>490</x>
+                        <x>495</x>
                         <y>10</y>
-                        <width>110</width>
+                        <width>105</width>
                         <height>70</height>
                     </rect>
                 </property>
@@ -266,6 +205,11 @@
                             <width>90</width>
                             <height>22</height>
                         </rect>
+                    </property>
+                    <property name="font">
+                        <font>
+                            <pointsize>9</pointsize>
+                        </font>
                     </property>
                     <property name="text">
                         <string>TextLabel1</string>
@@ -305,13 +249,101 @@
             </widget>
             <widget class="QGroupBox">
                 <property name="name">
+                    <cstring>GroupBox2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>125</x>
+                        <y>10</y>
+                        <width>165</width>
+                        <height>140</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Drawing Options</string>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>GLSimpleObjects</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>40</y>
+                            <width>148</width>
+                            <height>27</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Simple Objects</string>
+                    </property>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout10</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>150</width>
+                            <height>110</height>
+                        </rect>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>-4</number>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLMapRotate</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Rotate Display</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLMapFill</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Fill Map Polygons</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>RasterizePlayerNames</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Player Names</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>RasterizeMerchantTypes</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Merchant Types</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
                     <cstring>MapLoader</cstring>
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>298</x>
-                        <y>9</y>
-                        <width>180</width>
+                        <x>295</x>
+                        <y>10</y>
+                        <width>195</width>
                         <height>140</height>
                     </rect>
                 </property>
@@ -326,7 +358,7 @@
                         <rect>
                             <x>10</x>
                             <y>21</y>
-                            <width>163</width>
+                            <width>179</width>
                             <height>110</height>
                         </rect>
                     </property>
@@ -338,7 +370,7 @@
                             <number>0</number>
                         </property>
                         <property name="spacing">
-                            <number>0</number>
+                            <number>-4</number>
                         </property>
                         <widget class="QCheckBox">
                             <property name="name">
@@ -418,7 +450,7 @@
                         <rect>
                             <x>9</x>
                             <y>21</y>
-                            <width>150</width>
+                            <width>155</width>
                             <height>110</height>
                         </rect>
                     </property>
@@ -430,7 +462,7 @@
                             <number>0</number>
                         </property>
                         <property name="spacing">
-                            <number>0</number>
+                            <number>-4</number>
                         </property>
                         <widget class="QCheckBox">
                             <property name="name">
@@ -476,9 +508,9 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>190</x>
+                        <x>185</x>
                         <y>10</y>
-                        <width>231</width>
+                        <width>230</width>
                         <height>140</height>
                     </rect>
                 </property>
@@ -491,10 +523,10 @@
                     </property>
                     <property name="geometry">
                         <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>210</width>
-                            <height>110</height>
+                            <x>5</x>
+                            <y>40</y>
+                            <width>215</width>
+                            <height>68</height>
                         </rect>
                     </property>
                     <grid>
@@ -505,37 +537,22 @@
                             <number>0</number>
                         </property>
                         <property name="spacing">
-                            <number>0</number>
+                            <number>6</number>
                         </property>
+                        <widget class="QLabel" row="1" column="0">
+                            <property name="name">
+                                <cstring>TextLabel2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Circle No. 2</string>
+                            </property>
+                        </widget>
                         <widget class="QLabel" row="0" column="0">
                             <property name="name">
                                 <cstring>TextLabel1_3</cstring>
                             </property>
                             <property name="text">
-                                <string>Range Circle 1</string>
-                            </property>
-                        </widget>
-                        <widget class="QSpinBox" row="0" column="1">
-                            <property name="name">
-                                <cstring>PlayerCircle1</cstring>
-                            </property>
-                            <property name="suffix">
-                                <string> radius</string>
-                            </property>
-                            <property name="specialValueText">
-                                <string>Don't Draw</string>
-                            </property>
-                            <property name="maxValue">
-                                <number>2000</number>
-                            </property>
-                            <property name="minValue">
-                                <number>225</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>25</number>
-                            </property>
-                            <property name="value">
-                                <number>225</number>
+                                <string>Circle No. 1</string>
                             </property>
                         </widget>
                         <widget class="QSpinBox" row="1" column="1">
@@ -561,12 +578,27 @@
                                 <number>250</number>
                             </property>
                         </widget>
-                        <widget class="QLabel" row="1" column="0">
+                        <widget class="QSpinBox" row="0" column="1">
                             <property name="name">
-                                <cstring>TextLabel2</cstring>
+                                <cstring>PlayerCircle1</cstring>
                             </property>
-                            <property name="text">
-                                <string>Range Circle 2</string>
+                            <property name="suffix">
+                                <string> radius</string>
+                            </property>
+                            <property name="specialValueText">
+                                <string>Don't Draw</string>
+                            </property>
+                            <property name="maxValue">
+                                <number>2000</number>
+                            </property>
+                            <property name="minValue">
+                                <number>225</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>25</number>
+                            </property>
+                            <property name="value">
+                                <number>225</number>
                             </property>
                         </widget>
                     </grid>
@@ -581,9 +613,9 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>428</x>
+                        <x>419</x>
                         <y>9</y>
-                        <width>171</width>
+                        <width>180</width>
                         <height>140</height>
                     </rect>
                 </property>
@@ -598,7 +630,7 @@
                         <rect>
                             <x>10</x>
                             <y>23</y>
-                            <width>150</width>
+                            <width>167</width>
                             <height>110</height>
                         </rect>
                     </property>
@@ -653,6 +685,256 @@
             <attribute name="title">
                 <string>Mob List</string>
             </attribute>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox3</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>180</x>
+                        <y>10</y>
+                        <width>420</width>
+                        <height>100</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Player Colors</string>
+                </property>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>MidDead</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>100</x>
+                            <y>60</y>
+                            <width>30</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>AlbDead</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>69</x>
+                            <y>60</y>
+                            <width>30</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>HibDead</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>39</x>
+                            <y>60</y>
+                            <width>31</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>FriendDead</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>60</y>
+                            <width>31</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QSlider">
+                    <property name="name">
+                        <cstring>SliderDeadColor</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>140</x>
+                            <y>60</y>
+                            <width>270</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="minValue">
+                        <number>100</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>200</number>
+                    </property>
+                    <property name="value">
+                        <number>160</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QSlider">
+                    <property name="name">
+                        <cstring>SliderAliveColor</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>140</x>
+                            <y>25</y>
+                            <width>270</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="minValue">
+                        <number>100</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>200</number>
+                    </property>
+                    <property name="value">
+                        <number>120</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>HibAlive</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>39</x>
+                            <y>25</y>
+                            <width>31</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>AlbAlive</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>69</x>
+                            <y>25</y>
+                            <width>30</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>FriendAlive</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>25</y>
+                            <width>31</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>MidAlive</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>100</x>
+                            <y>25</y>
+                            <width>30</width>
+                            <height>31</height>
+                        </rect>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>MobListColors</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>180</x>
+                        <y>110</y>
+                        <width>180</width>
+                        <height>21</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Colorize the Mob List</string>
+                </property>
+            </widget>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>StickyList</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>180</x>
+                        <y>130</y>
+                        <width>195</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Enable "sticky" mob list</string>
+                </property>
+            </widget>
             <widget class="QButtonGroup">
                 <property name="name">
                     <cstring>ButtonGroup2</cstring>
@@ -661,7 +943,7 @@
                     <rect>
                         <x>10</x>
                         <y>10</y>
-                        <width>150</width>
+                        <width>160</width>
                         <height>140</height>
                     </rect>
                 </property>
@@ -679,7 +961,7 @@
                         <rect>
                             <x>9</x>
                             <y>20</y>
-                            <width>130</width>
+                            <width>139</width>
                             <height>110</height>
                         </rect>
                     </property>
@@ -720,256 +1002,6 @@
                     </vbox>
                 </widget>
             </widget>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>GroupBox3</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>170</x>
-                        <y>10</y>
-                        <width>430</width>
-                        <height>100</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Player Colors</string>
-                </property>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>FriendDead</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>60</y>
-                            <width>31</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QSlider">
-                    <property name="name">
-                        <cstring>SliderDeadColor</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>140</x>
-                            <y>60</y>
-                            <width>280</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="minValue">
-                        <number>100</number>
-                    </property>
-                    <property name="maxValue">
-                        <number>200</number>
-                    </property>
-                    <property name="value">
-                        <number>160</number>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>HibDead</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>39</x>
-                            <y>60</y>
-                            <width>31</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>HibAlive</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>39</x>
-                            <y>20</y>
-                            <width>31</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>AlbDead</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>69</x>
-                            <y>60</y>
-                            <width>30</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>MidDead</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>100</x>
-                            <y>60</y>
-                            <width>30</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>MidAlive</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>100</x>
-                            <y>20</y>
-                            <width>30</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>AlbAlive</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>69</x>
-                            <y>20</y>
-                            <width>30</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>FriendAlive</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>31</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                </widget>
-                <widget class="QSlider">
-                    <property name="name">
-                        <cstring>SliderAliveColor</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>140</x>
-                            <y>20</y>
-                            <width>280</width>
-                            <height>31</height>
-                        </rect>
-                    </property>
-                    <property name="minValue">
-                        <number>100</number>
-                    </property>
-                    <property name="maxValue">
-                        <number>200</number>
-                    </property>
-                    <property name="value">
-                        <number>120</number>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                </widget>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>StickyList</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>170</x>
-                        <y>130</y>
-                        <width>170</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Enable "sticky" mob list</string>
-                </property>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>MobListColors</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>170</x>
-                        <y>110</y>
-                        <width>160</width>
-                        <height>21</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Colorize the Mob List</string>
-                </property>
-            </widget>
         </widget>
         <widget class="QWidget">
             <property name="name">
@@ -978,35 +1010,6 @@
             <attribute name="title">
                 <string>Items</string>
             </attribute>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>TextLabel1</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>11</x>
-                        <y>9</y>
-                        <width>80</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Your Name</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit">
-                <property name="name">
-                    <cstring>ItemContributor</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>90</x>
-                        <y>10</y>
-                        <width>510</width>
-                        <height>28</height>
-                    </rect>
-                </property>
-            </widget>
             <widget class="QCheckBox">
                 <property name="name">
                     <cstring>ItemAutoUpload</cstring>
@@ -1021,6 +1024,35 @@
                 </property>
                 <property name="text">
                     <string>Upload Items on Window Close</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit">
+                <property name="name">
+                    <cstring>ItemContributor</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>100</x>
+                        <y>10</y>
+                        <width>500</width>
+                        <height>32</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>TextLabel1</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>10</y>
+                        <width>88</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Your Name</string>
                 </property>
             </widget>
         </widget>
@@ -1073,7 +1105,7 @@
                                 <cstring>ShowUnknown</cstring>
                             </property>
                             <property name="text">
-                                <string>Log uknown packets to stdout</string>
+                                <string>Log uknown packets</string>
                             </property>
                         </widget>
                         <widget class="QCheckBox">
@@ -1111,7 +1143,7 @@
                 <property name="geometry">
                     <rect>
                         <x>260</x>
-                        <y>40</y>
+                        <y>35</y>
                         <width>330</width>
                         <height>24</height>
                     </rect>
@@ -1126,10 +1158,10 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>270</x>
-                        <y>80</y>
-                        <width>290</width>
-                        <height>40</height>
+                        <x>260</x>
+                        <y>60</y>
+                        <width>330</width>
+                        <height>80</height>
                     </rect>
                 </property>
                 <property name="paletteForegroundColor">
@@ -1247,9 +1279,6 @@
         <slot>setEnabled(bool)</slot>
     </connection>
 </connections>
-<includes>
-    <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
-</includes>
 <slots>
     <slot>SliderAliveColor_valueChanged(int v)</slot>
     <slot>SliderDeadColor_valueChanged(int v)</slot>

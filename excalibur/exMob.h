@@ -34,6 +34,8 @@ class exMob : public QListViewItem {
     unsigned int id;
     unsigned int infoid;
     QString name;
+    QString surname;
+    QString guild;
     unsigned int level;
     unsigned int hp;
     unsigned int mana;
@@ -56,7 +58,7 @@ class exMob : public QListViewItem {
 	void exMob::setConnection( exConnection *con);
 
   public:
-    exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
+    exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
     virtual int compare(QListViewItem *i, int col, bool ascending) const;
     virtual QString text(int column) const;
     void paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align);
@@ -64,6 +66,8 @@ class exMob : public QListViewItem {
     unsigned int getID() const;
     unsigned int getInfoID() const;
     QString getName() const;
+    QString getSurname() const;
+    QString getGuild() const;
     bool isMob() const;
     bool isObj() const;
     bool isInvader() const;

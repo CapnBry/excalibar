@@ -1,3 +1,34 @@
+Andon (25/Feb/02)
+Additions:
+ + Added rasterization of player names as an option..
+ + Added rasterization of merchant types as an option
+   (Defaults to ON now)
+
+  * Hotkeys are:  N / M respectively.  They may also
+    be permanently set or unset in the preferences. 
+
+Changes:
+ + The render process has been tweaked a bit more..
+   Reduced the number of times per frame that Excalibur
+   has to Backup / Restore rendering settings.
+ + The preferences dialog has been tweaked to accomidate
+   a much wider spectrum of resolutions.
+ + Added preliminary support for a HUGE array of new
+   packet OpCodes recently discovered.. Though their
+   structures are still unknown, they won't be listed
+   under unknown packets anymore.
+
+Bug Fixes:
+ + The player triangle is now depth buffered using a 
+   "normal" algorithm.. That is, it won't CONSTANTLY be
+   on top of everything else.
+ + Fixed a few memory leaks in Druppy's exMessage class.
+ + A few issues have been addressed where surface attr-
+   ibutes were incorrectly being reset during rendering.
+
+  * Version bumped to 1.1.3b
+
+
 Andon (24/Feb/02)
 -----------------
 Additions:

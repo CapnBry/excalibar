@@ -71,6 +71,8 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->vaderWarn->setOn(vaderWarn);
     frm->MapPNGs->setOn(map_load_png_maps);
     frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
+    frm->MapPlayerNames->setOn(map_rasterize_player_names);
+    frm->MapMerchantTypes->setOn(map_rasterize_merchant_types);
   }
   frm->Map->makeObjects(map_simple);
   frm->Map->dirty();
@@ -89,6 +91,8 @@ void exPrefs::show() {
   dlg->GLMapRotate->setChecked(map_rotate);
   dlg->GLSimpleObjects->setChecked(map_simple);
   dlg->GLMapFill->setChecked(map_fill);
+  dlg->RasterizePlayerNames->setChecked(map_rasterize_player_names);
+  dlg->RasterizeMerchantTypes->setChecked(map_rasterize_merchant_types);
   dlg->LoadAdjacentZones->setChecked(map_load_adjacent_zones);
   dlg->LoadPNGMaps->setChecked(map_load_png_maps);
   dlg->TextureMipMap->setChecked(map_mipmap);
@@ -154,6 +158,9 @@ void exPrefs::accept() {
   map_autosimplifyrange=dlg->MapSimplifyRange->value();
 
   map_fill=dlg->GLMapFill->isOn();
+
+  map_rasterize_player_names = dlg->RasterizePlayerNames->isOn();
+  map_rasterize_merchant_types = dlg->RasterizeMerchantTypes->isOn();
 
   map_load_adjacent_zones=dlg->LoadAdjacentZones->isOn();
   map_load_png_maps=dlg->LoadPNGMaps->isOn();
@@ -228,6 +235,8 @@ void exPrefs::loadSettings() {
   map_fade=s.readBoolEntry("/Excalibur/GLMapFade", TRUE);
   map_fill=s.readBoolEntry("/Excalibur/GLMapFill", TRUE);
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
+  map_rasterize_player_names=s.readBoolEntry("/Excalibur/RasterizePlayerNames", FALSE);
+  map_rasterize_merchant_types=s.readBoolEntry("/Excalibur/RasterizeMerchantTypes", TRUE);
   map_load_adjacent_zones=s.readBoolEntry("/Excalibur/LoadAdjacentZones", FALSE);
   map_load_png_maps=s.readBoolEntry("/Excalibur/LoadPNGMaps", FALSE);
   map_mipmap=s.readBoolEntry("/Excalibur/TextureMipMap", FALSE);
@@ -283,6 +292,8 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/MapRange", map_range);
   s.writeEntry("/Excalibur/GLMapFade", map_fade);
   s.writeEntry("/Excalibur/GLMapFill", map_fill);
+  s.writeEntry("/Excalibur/RasterizePlayerNames", map_rasterize_player_names);
+  s.writeEntry("/Excalibur/RasterizeMerchantTypes", map_rasterize_merchant_types);
   s.writeEntry("/Excalibur/MapAutoSimplifyRange", map_autosimplifyrange);
   s.writeEntry("/Excalibur/LoadAdjacentZones", map_load_adjacent_zones);
   s.writeEntry("/Excalibur/LoadPNGMaps", map_load_png_maps);

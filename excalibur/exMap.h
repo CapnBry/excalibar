@@ -163,6 +163,7 @@ protected:
   bool lastfill;
   int lastz;
   bool recache;
+  bool rasterize_player_names;
 public:
   exConnection *c;
   int range;

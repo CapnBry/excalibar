@@ -266,6 +266,7 @@ void exMap::paintGL() {
   int minx, maxx, miny,maxy;
 
   if (map_load) {
+    recache = true;
     map_load=false;
     if (mi) {
       mapRead();
@@ -371,6 +372,17 @@ void exMap::paintGL() {
     glDisable(GL_DEPTH_TEST);
   }
 
+  qglColor( yellow ); 
+
+  glPushMatrix();
+  glDepthFunc  (GL_LEQUAL);
+  glColor3f    (1.0f, 1.0f, 0.0f);
+  glTranslated (c->playerx, c->playery, c->playerz);
+  objRotate    (c->playerhead);
+  glCallList   (listTriangle);
+  glPopMatrix();
+
+
  if ((exTick - _lastDarken) > 250) {
     mobDarken = ! mobDarken;
     _lastDarken = exTick;
@@ -379,15 +391,59 @@ void exMap::paintGL() {
   for(;mobi.current();++mobi) {
     m=mobi.current();
 
+    glPushMatrix();
     if (m->isCurrent()) {
-      glPushMatrix();
       /* if it is filtered draw a yellow circle around it */
 
       if (m->getZ() >= 0.01f)
         glTranslated(m->getProjectedX(), m->getProjectedY(), 0.01f);
       else
         glTranslated(m->getProjectedX(), m->getProjectedY(), m->getZ() - 0.01f);
- 
+
+        glPushMatrix();
+        if ((m->isMob() && m->getGuild().length() > 0 && prefs.map_rasterize_merchant_types) || (! m->isMob() && ! m->isObj() && prefs.map_rasterize_player_names)) {
+          glPushAttrib (GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
+          glDisable    (GL_LIGHTING);
+          glEnable     (GL_DEPTH_TEST);
+          glDepthFunc  (GL_ALWAYS);
+          glColor3f (1.0, 1.0, 1.0);
+
+          glBegin(GL_POINTS);
+          glVertex3i(0,0,m->getZ()+((int)(2.5*objsize)));
+          glEnd();
+
+          glColor3f (1.0,1.0,1.0);
+
+          QString qsPlayerName;
+          QString qsFormattedName;
+
+          if (m->isMob())
+            qsFormattedName = m->getGuild();
+
+          else {
+            if (m->getSurname().length() > 0)
+              qsPlayerName.sprintf("%s %s", m->getName().latin1(), m->getSurname().
+latin1());
+            else
+              qsPlayerName.sprintf("%s", m->getName().latin1());
+
+            if (m->getGuild().length() > 0)
+              qsFormattedName.sprintf("%s <%s>",qsPlayerName.latin1(), m->getGuild(
+).latin1());
+            else
+              qsFormattedName = qsPlayerName;
+          }
+
+          glRasterPos3i(20,20,m->getZ()+(3*objsize));
+          for (unsigned int i=0;i<qsFormattedName.length();i++) {
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName.at(i).latin1()); }
+
+          glPopAttrib();
+        }
+        glPopMatrix();
+
+
+      glPushMatrix();
       if( m->isFiltered() && prefs.filter_circles ) {
 
         if (prefs.alpha_circles && ! prefs.map_simple) {
@@ -421,7 +477,6 @@ void exMap::paintGL() {
           glColor3f   (1.0f, 1.0f, 0.0f);
           drawCircle  (0, 0, 500, 18);
         }
-        
       }
 
       /* if the mob is within range, draw an agro circle around it */
@@ -474,11 +529,11 @@ void exMap::paintGL() {
       }
       glPopMatrix();
 
-      qglColor( yellow );
- 
+      glPopMatrix();
+
       glPushMatrix();
       glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glDepthFunc  (GL_LEQUAL);
+      glDepthFunc  (GL_LESS);
       glTranslated(m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
 
@@ -527,6 +582,7 @@ void exMap::paintGL() {
     }
 
     m->checkStale();
+    glPopMatrix();
   }
 
   m=mobs.find((void *)c->selectedid);
@@ -539,14 +595,6 @@ void exMap::paintGL() {
     glEnd();
   }
 
-  glPushMatrix();
-  glDepthFunc  (GL_ALWAYS);
-  glColor3f    (1.0f, 1.0f, 0.0f);
-  glTranslated (c->playerx, c->playery, c->playerz);
-  objRotate    (c->playerhead);
-  glCallList   (listTriangle);
-  glPopMatrix();
- 
   is_dirty = false;
 
   glFlush();
@@ -852,8 +900,6 @@ exMapElementPoint::exMapElementPoint() {
 }
 
 void exMapElementPoint::draw(exMap *map) {
-  unsigned int i;
-
   map->setGLColor(r, g, b, zpos);
 
   glBegin(GL_POINTS);
@@ -862,7 +908,7 @@ void exMapElementPoint::draw(exMap *map) {
   map->setGLColor(1.0,1.0,1.0,zpos);
 
   glRasterPos3i(xpos+50,ypos+20,zpos);
-  for (i=0;i<text.length();i++) 
+  for (unsigned int i=0;i<text.length();i++) 
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, text[i].latin1());
 }
 

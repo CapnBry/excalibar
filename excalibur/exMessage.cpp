@@ -26,11 +26,11 @@
 #include "exMessage.h"
 #include "exPrefs.h"
 
-exMessage::exMessage( QString* newMsg, uint8_t opCode, uint8_t typeCode)
+exMessage::exMessage(QString newMsg, uint8_t opCode, uint8_t typeCode)
 { 
-	this->Msg = *newMsg;
+	this->Msg = newMsg;
 	this->MsgType = "Unknown";
-	this->FormattedText = *newMsg;
+	this->FormattedText = newMsg;
 	this->opCode = opCode;
 	this->typeCode = typeCode;
 }

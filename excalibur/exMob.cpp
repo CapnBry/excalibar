@@ -33,13 +33,14 @@ static const QColor cAlbion(255,0,0);
 static const QColor cFriendly(0,255,255);
 
 exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int
-newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny,
-int nz, int nhp, bool newobj)
+newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj)
  : QListViewItem(view)
 { 
   id=newid;
   infoid=newinfoid;
   name=newname;
+  surname=newsurname;
+  guild=newguild;
   x=nx;
   y=ny;
   z=nz;
@@ -239,6 +240,14 @@ unsigned int exMob::getInfoID() const {
 
 QString exMob::getName() const {
   return name;
+}
+
+QString exMob::getSurname() const {
+  return surname;
+}
+
+QString exMob::getGuild() const {
+  return guild;
 }
 
 bool exMob::isMob() const {

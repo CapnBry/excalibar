@@ -90,10 +90,10 @@ void exConnection::setup()
     connect(ex->ListViewMobs, SIGNAL(selectionChanged(QListViewItem *)), this, SLOT(listSelectionChanged(QListViewItem *)));
 
 
-	msgui = new exMessagesUi;
+    msgui = new exMessagesUi;
 
     alive = true;
-	vaderWarn = prefs.vaderWarn;
+    vaderWarn = prefs.vaderWarn;
     mobs.setAutoDelete(true);
     objs.setAutoDelete(true);
     players.setAutoDelete(true);
@@ -116,7 +116,7 @@ exConnection::~exConnection()
     mobinfo.clear();
 
     if (ex)
-    delete ex;
+      delete ex;
 
     if ( NULL != ds && writecapture)
 	delete ds;
@@ -126,6 +126,9 @@ exConnection::~exConnection()
 
     if (link)
 	delete link;
+
+    if (msgui)
+      delete msgui;
 
 }
 
@@ -437,7 +440,6 @@ void exConnection::processPacket(exPacket * p)
 		  p->seek(2);
 		  name = p->getPascalString();
 		  guild = p->getPascalString();
-		  surname = p->getPascalString();
 		  ismob = true;
                   isobj = false;
 	      } else {
@@ -471,7 +473,7 @@ END_EXPERIMENTAL_CODE
 	      }
 	      mobinfo.remove((void *) ((unsigned int) infoid));
 
-	      mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, level, x, y, z, 100, isobj);
+	      mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, surname, guild, level, x, y, z, 100, isobj);
 	      mob->setHead(head);
               mob->setRealm(mobrealm);
 
@@ -521,7 +523,7 @@ END_EXPERIMENTAL_CODE
                 if (linenum != 0) 
                   info=info.append(p->getPascalString()).append("\n");
               } while (linenum != 0);              
-              exItem::seen(name,info);              
+              exItem::seen(name,info);
               break;
 	  case 0xbe:
 	      what = p->getByte();
@@ -546,9 +548,38 @@ END_EXPERIMENTAL_CODE
 		      }
 		  }
 	      }
-	      break;
+              break;
+
+    /***************************************************************/
+    /* OpCodes with known purpose but unknown structure, or no use */
+    /***************************************************************/
+
+//          case 0xbe: /* Status updates - Ability points, group members
+//                        etc... */
+//              dumpPacket(command, p);
+//              break;
+          case 0x39: /* EXP */
+              BEGIN_EXPERIMENTAL_CODE
+                dumpPacket(command, p);
+              END_EXPERIMENTAL_CODE
+              break;
           case 0x1e: /* Stealth */
           case 0x25: /* OpCodes */
+              break; 
+          case 0xd7: /* BUFF OpCode */
+              BEGIN_EXPERIMENTAL_CODE
+                dumpPacket(command, p);
+              END_EXPERIMENTAL_CODE
+              break;
+          case 0x36: /* Region Server Address Info */
+              BEGIN_EXPERIMENTAL_CODE
+                dumpPacket(command, p);
+              END_EXPERIMENTAL_CODE
+          case 0x2b: /* Quest Journal Updates */
+              break;
+          case 0xbf: /* Vemdor Window */
+              break;
+          case 0x29: /* Confirmation Dialog */
               break;
 	  default:
 	      if (prefs.dump_unknown_packets)
@@ -627,35 +658,36 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
 void exConnection::parseSystemMessage (exPacket *p)
 {
     exMessage *msg;
-    QWidget *tab;
+    QWidget   *tab;
     QTextEdit *textbox;
 
-	p->seek(4);
-    uint8_t 		opCode	 = p->getByte();
-	p->seek(1);
-    uint8_t 		typeCode = p->getByte();
-	p->seek(1);
+    p->seek(4);
+    uint8_t opCode   = p->getByte();
+    p->seek(1);
+    uint8_t typeCode = p->getByte();
+    p->seek(1);
 
-    char*        Message     = strdup(p->getZeroString().ascii());
-
-    msg = new exMessage( new QString( Message), opCode, typeCode);
+    msg = new exMessage(p->getZeroString(), opCode, typeCode);
     msg->parseMsg();
 
     // Insert it into the ALL tab
-    tab = msgui->tabWidget->page( 0);
+    tab = msgui->tabWidget->page(0);
     textbox = (QTextEdit*)tab->childAt( 10, 10);
-    textbox->append( QString( "[%1] %2").arg( msg->getMsgType()).arg(msg->getFormattedText()));
+    textbox->append(QString("[%1] %2").arg(msg->getMsgType()).arg(msg->getFormattedText()));
 
-	for( int x = 1; x < msgui->tabWidget->count(); x++)
-		{
-		tab = msgui->tabWidget->page( x);
-		if( msg->getMsgType() == tab->name())
-			{
-    		textbox = (QTextEdit*)tab->childAt( 10, 10);
-    		textbox->append( msg->getFormattedText());
-			break;
-			}
-		}
+    for(int x = 1; x < msgui->tabWidget->count(); x++)
+    {
+          tab = msgui->tabWidget->page(x);
+          if(msg->getMsgType() == tab->name())
+          {
+              textbox = (QTextEdit*)tab->childAt(10, 10);
+    	      textbox->append(msg->getFormattedText());
+              break;
+          }
+    }
+
+    if (msg != NULL)
+      delete msg;
 }
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)

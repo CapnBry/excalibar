@@ -59,6 +59,8 @@ public:
   bool gl_smooth_lines;
   bool gl_smooth_polygons;
   bool map_fill;
+  bool map_rasterize_player_names;
+  bool map_rasterize_merchant_types;
   bool map_load_adjacent_zones;
   bool map_load_png_maps;
   bool map_linear_filter;

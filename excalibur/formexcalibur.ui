@@ -216,6 +216,9 @@
         <action name="GLObjectSizes"/>
         <action name="GLMapFade"/>
         <separator/>
+        <action name="MapMerchantTypes"/>
+        <action name="MapPlayerNames"/>
+        <separator/>
         <action name="MapAdjacentZones"/>
         <action name="MapPNGs"/>
         <action name="GLRulers"/>
@@ -481,7 +484,7 @@
             <bool>true</bool>
         </property>
         <property name="on">
-            <bool>true</bool>
+            <bool>false</bool>
         </property>
         <property name="text">
             <string>Render PNG maps</string>
@@ -497,6 +500,43 @@
         </property>
         <property name="accel">
             <number>4194384</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>MapPlayerNames</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Rasterize Player Names</string>
+        </property>
+        <property name="toolTip">
+            <string>Toggle the rasterization of player names.</string>
+        </property>
+        <property name="statusTip">
+            <string>Toggle the rasterization of player names.</string>
+        </property>
+        <property name="accel">
+            <number>78</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>MapMerchantTypes</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Rasterize Merchant Types</string>
+        </property>
+        <property name="toolTip">
+            <string>Toggle the rasterization of merchant types.</string>
+        </property>
+        <property name="accel">
+            <number>77</number>
         </property>
     </action>
 </actions>
@@ -602,29 +642,43 @@
         <receiver>FormExcalibur</receiver>
         <slot>MapRecache_activated()</slot>
     </connection>
+    <connection>
+        <sender>MapMerchantTypes</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MapMerchatTypes_toggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>MapPlayerNames</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MapPlayerNames_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
 </includes>
 <slots>
-    <slot>resizeEvent( QResizeEvent * e )</slot>
-    <slot>showEvent( QShowEvent * e )</slot>
+    <slot>resizeEvent(QResizeEvent * e)</slot>
+    <slot>showEvent(QShowEvent * e)</slot>
     <slot>init()</slot>
     <slot>destroy()</slot>
     <slot>ReloadMaps_activated()</slot>
-    <slot>MapSlider_valueChanged( int range )</slot>
-    <slot>GroupPlayers_toggled( bool ena )</slot>
-    <slot>GLObjectSizes_selected( QAction * act )</slot>
-    <slot>SortDistance_toggled( bool ena )</slot>
+    <slot>MapSlider_valueChanged(int range)</slot>
+    <slot>GroupPlayers_toggled(bool ena)</slot>
+    <slot>GLObjectSizes_selected(QAction * act)</slot>
+    <slot>SortDistance_toggled(bool ena)</slot>
     <slot>Preferences_activated()</slot>
-    <slot>GLRulers_toggled( bool ena )</slot>
+    <slot>GLRulers_toggled(bool ena)</slot>
     <slot>ItemUpload_activated()</slot>
-    <slot>GLMapFade_toggled( bool ena )</slot>
+    <slot>GLMapFade_toggled(bool ena)</slot>
     <slot>ProfileExit_activated()</slot>
-    <slot>vaderWarn_toggled( bool ena )</slot>
-    <slot>MapPNGs_toggled( bool ena )</slot>
-    <slot>MapAdjacentZones_toggled( bool ena )</slot>
-    <slot>MapRecache_activated( void )</slot>
+    <slot>vaderWarn_toggled(bool ena)</slot>
+    <slot>MapPNGs_toggled(bool ena)</slot>
+    <slot>MapAdjacentZones_toggled(bool ena)</slot>
+    <slot>MapPlayerNames_toggled(bool ena)</slot>
+    <slot>MapMerchatTypes_toggled(bool ena)</slot>
+    <slot>MapRecache_activated(void)</slot>
     <slot>MobFilter_returnPressed()</slot>
     <slot>showMsgs()</slot>
 </slots>
