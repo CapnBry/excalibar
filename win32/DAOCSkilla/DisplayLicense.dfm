@@ -20,13 +20,11 @@ object frmDisplayLicense: TfrmDisplayLicense
     Left = 0
     Top = 0
     Width = 556
-    Height = 49
+    Height = 21
     Align = alTop
     Alignment = taCenter
     AutoSize = False
-    Caption = 
-      'If you paid for this program, you have been screwed.  DaocSkilla' +
-      ' is FREE and released under the GPL.'
+    Caption = 'DaocSkilla is FREE and released under the GPL.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -19
@@ -35,11 +33,23 @@ object frmDisplayLicense: TfrmDisplayLicense
     ParentFont = False
     WordWrap = True
   end
+  object Label2: TLabel
+    Left = 0
+    Top = 21
+    Width = 556
+    Height = 16
+    Align = alTop
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 
+      'More information is available at http://excalibar.sourceforge.ne' +
+      't/'
+  end
   object memLicense: TMemo
     Left = 0
-    Top = 49
+    Top = 37
     Width = 556
-    Height = 187
+    Height = 199
     Align = alClient
     Color = clBtnFace
     Font.Charset = ANSI_CHARSET

@@ -22,6 +22,7 @@ type
     memLicense: TMemo;
     Panel1: TPanel;
     BitBtn1: TBitBtn;
+    Label2: TLabel;
     procedure FormCreate(Sender: TObject);
   private
   public
