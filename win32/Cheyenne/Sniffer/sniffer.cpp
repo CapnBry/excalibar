@@ -572,7 +572,7 @@ void Sniffer::PrintConnections(void)const
     for(sniff_map_const_iterator it=sniff_map.begin(); it != sniff_map.end();++it)
         {
         // print the first connection
-        Logger << "\t" << it->first << "\n";
+        Logger << it->first << "\n";
         } // end for each connection still in the map
 
     Logger << "[Sniffer::PrintConnections] end connections\n";
