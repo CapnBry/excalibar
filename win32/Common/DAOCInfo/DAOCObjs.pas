@@ -367,10 +367,10 @@ begin
 
       { head should be between 0..359 }
     case (Head div 90) mod 4 of
-      0:  HeadQuad := q1;
-      1:  HeadQuad := q4;
-      2:  HeadQuad := q3;
-      3:  HeadQuad := q2;
+      0:  HeadQuad := q3;
+      1:  HeadQuad := q2;
+      2:  HeadQuad := q1;
+      3:  HeadQuad := q4;
       else
         HeadQuad := q1;
     end;
