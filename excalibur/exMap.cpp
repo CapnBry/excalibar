@@ -881,7 +881,7 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *
       else
           tex_compression = GL_RGB16;
   else
-      tex_compression = 3;
+      tex_compression = GL_RGB;
 
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
