@@ -143,6 +143,7 @@ type
     FOnBountyPointsChanged: TIntegerEvent;
     FOnRealmPointsChanged: TIntegerEvent;
     FOnLocalHealthUpdate: TNotifyEvent;
+    FOnGroupMembersChanged: TNotifyEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -180,6 +181,7 @@ type
     FMaxObjectStaleTime: Cardinal;
     FLastDelveRequestPos: BYTE;
     FLastCurrencyChangeReason: TDAOCCurrencyChangeReason;
+    FGroupMembers:  TDAOCObjectList;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -282,7 +284,9 @@ type
     procedure DoOnUnknownStealther(AUnk: TDAOCUnknownStealther); virtual;
     procedure DoOnDelveItem(AItem: TDAOCInventoryItem); virtual;
     procedure DoOnVendorWindowRequest(AMob: TDAOCMob); virtual;
-    procedure DoOnLocalHealthUpdate; virtual; 
+    procedure DoOnLocalHealthUpdate; virtual;
+    procedure DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem); virtual;
+    procedure DoOnGroupMembersChanged; virtual; 
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -323,6 +327,7 @@ type
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers; 
     property GroundTarget: TMapNode read FGroundTarget;
+    property GroupMembers: TDAOCObjectList read FGroupMembers;
     property LargestDAOCPacketSeen: Cardinal read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
     property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime; 
@@ -357,6 +362,7 @@ type
     property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
     property OnDelveItem: TDAOCInventoryItemNotify read FOnDelveItem write FOnDelveItem;
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
+    property OnGroupMembersChanged: TNotifyEvent read FOnGroupMembersChanged write FOnGroupMembersChanged;
     property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
     property OnLocalHealthUpdate: TNotifyEvent read FOnLocalHealthUpdate write FOnLocalHealthUpdate;
     property OnLog: TStringEvent read FOnLog write FOnLog;
@@ -433,6 +439,7 @@ begin
   FCryptKeySet := false;
   FMasterVendorList.Clear;
   FAccountCharacters.Clear;
+  ResetPlayersInGroup;
   ClearDAOCObjectList;
   FVendorItems.Clear;
   FLocalPlayer.Clear;
@@ -469,6 +476,7 @@ begin
   FDAOCObjsStale := TDAOCObjectLinkedList.Create;
   FUnknownStealthers := TDAOCObjectLinkedList.Create;
   FChatParser := TDAOCChatParser.Create;
+  FGroupMembers := TDAOCObjectList.Create(false);
   HookChatParseCallbacks;
 
   SetMaxObjectDistance(8500);
@@ -493,6 +501,7 @@ begin
   FGroundTarget.Free;
   FLocalPlayer.Free;
   FRealmRanks.Free;
+  FGroupMembers.Free;
 
   inherited Destroy;
 end;
@@ -670,8 +679,7 @@ begin
     pTmpItem.Quality := pPacket.getByte;
     pTmpItem.Bonus := pPacket.getByte;
     pPacket.seek(1);
-    pTmpItem.ItemIDMajor := pPacket.getByte;
-    pTmpItem.ItemIDMinor := pPacket.getByte;
+    pTmpItem.ItemID := pPacket.getShort;
     pTmpItem.Color := pPacket.getByte;
     pPacket.seek(2);
     pTmpItem.Description := pPacket.getPascalString;
@@ -1439,8 +1447,7 @@ var
   ID:   integer;
   iCnt: integer;
   bSlot:    byte;
-  obj_major:   byte;
-  obj_minor:  byte;
+  obj_id:   WORD;
   obj_color:  byte;
   tmpInvItem: TDAOCInventoryItem;
   pMob:   TDAOCObject;
@@ -1454,8 +1461,7 @@ begin
   iCnt := pPacket.getByte;
 
   while (iCnt > 0) and not pPacket.EOF do begin
-    obj_major := 0;
-    obj_minor := 0;
+    obj_id := 0;
     obj_color := 0;
     bSlot := pPacket.getByte;
 
@@ -1464,23 +1470,21 @@ begin
       $15..$17,  // head, hands, feet
       $19..$1c:  // chest, cloak, legs, sleeves
         begin
-          obj_major := pPacket.getByte;    // which object list the index is for
-          obj_minor := pPacket.getByte;   // index in the object list
-          if (obj_major and $40) <> 0 then
+          obj_id := pPacket.getShort;    // which object list the index is for
+          if (obj_id and $4000) <> 0 then
             obj_color := pPacket.getByte;
-          if (obj_major and $20) <> 0 then
+          if (obj_id and $2000) <> 0 then
             pPacket.getShort;  // particle effect?
-          if (obj_major and $80) <> 0 then
+          if (obj_id and $8000) <> 0 then
             pPacket.getShort;  // guild emblem?
         end;  { if in a real slot }
     end;  { case bSlot }
 
     tmpInvItem := TDAOCInventoryItem.Create;
     tmpInvItem.Slot := bSlot;
-    tmpInvItem.ItemIDMajor := obj_major and $0f;
-    tmpInvItem.ItemIDMinor := obj_minor;
+    tmpInvItem.ItemID := obj_id and $0fff;
     tmpInvItem.Color := obj_color;
-    TDAOCMovingObject(pMob).Inventory.TakeItem(tmpInvItem);
+    DoMobInventoryUpdate(TDAOCMovingObject(pMob), tmpInvItem);
 
     dec(iCnt);
   end;  { while cnt and !EOF }
@@ -2350,6 +2354,7 @@ var
   iCnt:   integer;
   wID:    WORD;
   pObj:   TDAOCObject;
+  bMana:  BYTE;
 begin
   pPacket.HandlerName := 'GroupMembersUpdate';
   ResetPlayersInGroup;
@@ -2361,19 +2366,24 @@ begin
   while not pPacket.EOF do begin
     pPacket.getByte; // level
     pPacket.getByte; // health
-    pPacket.getByte; // mana
+    bMana := pPacket.getByte; 
     pPacket.seek(1);
     wID := pPacket.getShort;
 
     pObj := FDAOCObjs.FindByInfoID(wID);
-    if Assigned(pObj) and (pObj.ObjectClass = ocPlayer) then
-      TDAOCPlayer(pObj).IsInGroup := true
+    if Assigned(pObj) and (pObj.ObjectClass = ocPlayer) then begin
+      FGroupMembers.Add(pObj);
+      TDAOCPlayer(pObj).IsInGroup := true;
+      TDAOCPlayer(pObj).ManaPct := bMana;
+    end
     else if wID <> FLocalPlayer.InfoID then
       Log('GroupMembersUpdate: Can not find player by InfoID 0x' + IntToHex(wID, 4));
 
     pPacket.getPascalString;  // name
     pPacket.getPascalString;  // class
   end;  { while !EOF }
+
+  DoOnGroupMembersChanged;
 end;
 
 procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TDAOCPacket);
@@ -2396,14 +2406,13 @@ end;
 
 procedure TDAOCConnection.ResetPlayersInGroup;
 var
-  pObj: TDAOCObject;
+  I:  integer;
 begin
-  pObj := FDAOCObjs.Head;
-  while Assigned(pObj) do begin
-    if pObj.ObjectClass = ocPlayer then
-      TDAOCPlayer(pObj).IsInGroup := false;
-    pObj := pObj.Next;
+  for I := 0 to FGroupMembers.Count - 1 do begin
+      TDAOCPlayer(FGroupMembers[I]).IsInGroup := false;
+      TDAOCPlayer(FGroupMembers[I]).ManaPct := 0;
   end;
+  FGroupMembers.Clear;
 end;
 
 procedure TDAOCConnection.ParseAggroIndicator(pPacket: TDAOCPacket);
@@ -2651,6 +2660,17 @@ begin
       DoOnMobTargetChanged(TDAOCMob(AAggressor));
     end;
   end;
+end;
+
+procedure TDAOCConnection.DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem);
+begin
+  AMob.Inventory.TakeItem(AItem);
+end;
+
+procedure TDAOCConnection.DoOnGroupMembersChanged;
+begin
+  if Assigned(FOnGroupMembersChanged) then
+    FOnGroupMembersChanged(Self);
 end;
 
 end.
