@@ -10,7 +10,9 @@ IN DEVELOPMENT
     hit.
   + No longer needs a region change to load zone if connected
     mid-stream.
-  + Initial DAOCSkilla 2.0 UI
+  + Initial DAOCSkilla 2.0 UI.
+  + DaocPath no longer needs to be set in advance for many connection
+    operations.
 
 2004 Feb 18 - v1.86
 -------------------
