@@ -97,12 +97,7 @@ QString exMapInfo::getZoneName() {
     return (QString(fileName).replace(QRegExp("_"), " ").replace(QRegExp(".map"), "")).ascii();
 }
 
-exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck = -1) {
-  if (&maps == NULL || maps.isEmpty() || &region == NULL) {
-    Q_ASSERT (true);
-    return NULL;
-  }
-
+exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck) {
   exMapInfoList *mil;
   exMapInfo *mi;
   mil=maps.find((void *)region);
@@ -143,9 +138,6 @@ void exMapInfo::setup(QString infofile) {
   QString fname;
   int zn;
   int nrotate;
-
-  if (&maps == NULL)
-    Q_ASSERT(true);
 
   maps.setAutoDelete(TRUE);
   maps.clear();
