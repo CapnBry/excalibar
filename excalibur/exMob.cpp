@@ -289,10 +289,10 @@ unsigned int exMob::getY() const {
 }
 
 unsigned int exMob::getProjectedX() {
-    unsigned int real_speed;
-    real_speed = speed & 0xfff;
+    int real_speed;
+    real_speed = getSpeed();
 
-    if (!mob || !real_speed)
+    if (!real_speed)
         return x;
 
     if (exTick == _lastprojectedX)
@@ -306,10 +306,10 @@ unsigned int exMob::getProjectedX() {
 }
 
 unsigned int exMob::getProjectedY() {
-    unsigned int real_speed;
-    real_speed = speed & 0xfff;
+    int real_speed;
+    real_speed = getSpeed();
 
-    if (!mob || !real_speed)
+    if (!real_speed)
         return y;
 
     if (exTick == _lastprojectedY)
@@ -330,8 +330,12 @@ unsigned int exMob::getHead() const {
    return head;
 }
 
-unsigned int exMob::getSpeed() const {
-   return speed;
+int exMob::getSpeed() const {
+    /* the bit 9 is the sign, 10 = swimming? */
+    if (speed & 0x0200)
+        return -((speed & 0x3ff) & 0x1ff);
+    else
+        return (speed & 0x3ff);
 }
 
 unsigned int exMob::getLevel() const {

@@ -86,7 +86,7 @@ class exMob : public QListViewItem {
     unsigned int getProjectedX();
     unsigned int getProjectedY();
     unsigned int getHead() const;
-    unsigned int getSpeed() const;
+    int getSpeed() const;
     unsigned int getLevel() const;
     double playerDist();
     Realm getRealm() const;
