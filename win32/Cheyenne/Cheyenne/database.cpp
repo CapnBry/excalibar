@@ -112,6 +112,7 @@ DWORD Database::Run(const bool& bContinue)
 
     msg->player_id=1;
     msg->speed=100;
+    //msg->heading=1024*2; // 180°
     msg->heading=0;
     msg->x=737280;
     msg->y=606208;
@@ -421,6 +422,24 @@ void Database::DeleteActor(const unsigned int& info_id)
     // fire event
     ActorEvents[DatabaseEvents::ActorDeleted](ThisActor);
 
+    // DEBUG CODE
+    
+    if(ThisActor.IsType(Actor::Player))
+        {
+        if(ThisActor.GetId() == ThisActor.GetInfoId())
+            {
+            std::ostringstream oss;
+            ThisActor.Print(oss);
+
+            // this, most likely, is a LOCAL PLAYER AND IS BEING
+            // DELETED. LOG IT
+            Logger << "[Database::DeleteActor] deleting a local player:\n"
+                   << oss.str() << "\n";
+            }
+        }
+
+    // END DEBUG CODE
+
     // see if its a player
     if(ThisActor.IsType(Actor::Player))
         {
@@ -527,7 +546,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(!pa)
                 {
-                Logger << "[Database::HandleSniffedMessage] (mob_pos_update) unable to find mob id " << p->mob_id << "\n";
+                //Logger << "[Database::HandleSniffedMessage] (mob_pos_update) unable to find mob id " << p->mob_id << "\n";
                 break;
                 }
 
@@ -739,7 +758,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // delete the actor
             DeleteActor(p->object_id);
 
-            //Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
+            Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
 
             }
             break;
@@ -1048,7 +1067,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(!pa)
                 {
-                Logger << "[Database::HandleSniffedMessage] (set_hp) unable to find id " << p->id << "\n";
+                //Logger << "[Database::HandleSniffedMessage] (set_hp) unable to find id " << p->id << "\n";
                 break;
                 }
 
@@ -1176,7 +1195,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             if(!pa)
                 {
-                Logger << "[Database::HandleSniffedMessage] unable to find id " << p->player_id << "\n";
+                Logger << "[Database::HandleSniffedMessage] (player_target) unable to find id " << p->player_id << "\n";
                 break;
                 }
 

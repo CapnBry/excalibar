@@ -67,6 +67,7 @@ Central::Central() :
 Central::~Central()
 {
     // stop
+    VmLoader.Stop();
     sniffer.Stop();
     db.Stop();
 
@@ -105,7 +106,7 @@ WPARAM Central::Go(HINSTANCE hInst)
         if(msg.message != WM_QUIT)
             {
             // see if time has advanced at all
-            if((Clock.Current() - LastRenderTime).Seconds() >= 0.020)
+            if((Clock.Current() - LastRenderTime).Seconds() >= 0.020) // <-- this sets FPS to a max of 50
                 {
                 // save time
                 LastRenderTime=Clock.Current();
@@ -453,7 +454,7 @@ void Central::DrawDataWindow(HDC hFront)const
         Endurance=%endurance%
         Mana=%mana%
         Zone=get zone name
-        Loc=%<x,y,z>%  <-- this shoud be in zone relative coords
+        Loc=%<x,y,z>%  <-- this shoud be in zone-relative coords
         Heading=heading degrees
         Speed=%speed%
         Valid Time=%valid time%
@@ -529,9 +530,10 @@ void Central::DrawDataWindow(HDC hFront)const
             zone
             );
 
-        // save zone and level
+        // save zone and level and realm
         IDToFollowZone=zone;
         IDToFollowLevel=Followed.GetLevel();
+        IDToFollowRealm=Followed.GetRealm();
 
         // get realm name
         switch(Followed.GetRealm())
@@ -579,6 +581,7 @@ void Central::DrawDataWindow(HDC hFront)const
         << "Mobs=" << stats.GetNumMobs() << "\n"
         << "InfoId Mappings=" << stats.GetInfoIdSize() << "\n";
 
+    // draw double buffered to prevent flickering
     HDC hBack=CreateCompatibleDC(hFront);
     HBITMAP hBmp=CreateCompatibleBitmap(hBack,rClient.right-rClient.left,rClient.bottom-rClient.top);
     
@@ -1432,6 +1435,7 @@ void Central::InitOpenGL(void)
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
     glPolygonMode(GL_FRONT,GL_FILL);
+    glShadeModel(GL_SMOOTH);
 
     // initialize the display lists
     InitDisplayLists();
@@ -1492,6 +1496,7 @@ void Central::InitDisplayLists(void)
 
     // generate vector map display lists
     VectorMapListBase=glGenLists(NumVectorMapLists);
+    
     // this must be done AFTER the fonts are loaded because it uses them
     LoadVectorMaps();
 
@@ -1567,20 +1572,53 @@ void Central::InitTextures(void)
         oss.fill('0');
         oss << zone << ".png";
 
-        unsigned int id=pngBind(oss.str().c_str(),PNG_BUILDMIPMAPS,PNG_SOLID,NULL,GL_CLAMP,GL_LINEAR_MIPMAP_NEAREST,GL_LINEAR_MIPMAP_NEAREST);
+        unsigned int id=PngBindContainer(ZoneTextureMap,zone,oss.str().c_str());
+        //pngBind(oss.str().c_str(),PNG_BUILDMIPMAPS,PNG_SOLID,NULL,GL_CLAMP,GL_LINEAR_MIPMAP_NEAREST,GL_LINEAR_MIPMAP_NEAREST);
 
         if(id != 0)
             {
             Logger << "[Central::InitTextures] loaded texture \"" << oss.str().c_str() << "\""
                    << " with id " << id << "\n";
+            }
+        } // end for each zone
 
-            TextureMap.insert(TextureMapValueType(zone,id));
-            }
-        else
-            {
-            //Logger << "[Central::InitTextures] failed to load texture \"" << oss.str().c_str() << "\"\n";
-            }
-        }
+    // load the actor con textures
+    PngBindContainer(ConTextureMap,Central::alb_gray,"skins\\alb_gray.png");
+    PngBindContainer(ConTextureMap,Central::alb_green,"skins\\alb_green.png");
+    PngBindContainer(ConTextureMap,Central::alb_blue,"skins\\alb_blue.png");
+    PngBindContainer(ConTextureMap,Central::alb_yellow,"skins\\alb_yellow.png");
+    PngBindContainer(ConTextureMap,Central::alb_orange,"skins\\alb_orange.png");
+    PngBindContainer(ConTextureMap,Central::alb_red,"skins\\alb_red.png");
+    PngBindContainer(ConTextureMap,Central::alb_purple,"skins\\alb_purple.png");
+
+    PngBindContainer(ConTextureMap,Central::hib_gray,"skins\\hib_gray.png");
+    PngBindContainer(ConTextureMap,Central::hib_green,"skins\\hib_green.png");
+    PngBindContainer(ConTextureMap,Central::hib_blue,"skins\\hib_blue.png");
+    PngBindContainer(ConTextureMap,Central::hib_yellow,"skins\\hib_yellow.png");
+    PngBindContainer(ConTextureMap,Central::hib_orange,"skins\\hib_orange.png");
+    PngBindContainer(ConTextureMap,Central::hib_red,"skins\\hib_red.png");
+    PngBindContainer(ConTextureMap,Central::hib_purple,"skins\\hib_purple.png");
+
+    PngBindContainer(ConTextureMap,Central::mid_gray,"skins\\mid_gray.png");
+    PngBindContainer(ConTextureMap,Central::mid_green,"skins\\mid_green.png");
+    PngBindContainer(ConTextureMap,Central::mid_blue,"skins\\mid_blue.png");
+    PngBindContainer(ConTextureMap,Central::mid_yellow,"skins\\mid_yellow.png");
+    PngBindContainer(ConTextureMap,Central::mid_orange,"skins\\mid_orange.png");
+    PngBindContainer(ConTextureMap,Central::mid_red,"skins\\mid_red.png");
+    PngBindContainer(ConTextureMap,Central::mid_purple,"skins\\mid_purple.png");
+
+    PngBindContainer(ConTextureMap,Central::mob_gray,"skins\\mob_gray.png");
+    PngBindContainer(ConTextureMap,Central::mob_green,"skins\\mob_green.png");
+    PngBindContainer(ConTextureMap,Central::mob_blue,"skins\\mob_blue.png");
+    PngBindContainer(ConTextureMap,Central::mob_yellow,"skins\\mob_yellow.png");
+    PngBindContainer(ConTextureMap,Central::mob_orange,"skins\\mob_orange.png");
+    PngBindContainer(ConTextureMap,Central::mob_red,"skins\\mob_red.png");
+    PngBindContainer(ConTextureMap,Central::mob_purple,"skins\\mob_purple.png");
+
+    PngBindContainer(ConTextureMap,Central::generic_alb,"skins\\generic_alb.png");
+    PngBindContainer(ConTextureMap,Central::generic_hib,"skins\\generic_hib.png");
+    PngBindContainer(ConTextureMap,Central::generic_mid,"skins\\generic_mid.png");
+    PngBindContainer(ConTextureMap,Central::generic_mob,"skins\\generic_mob.png");
 
     // flag
     bTexturesCreated=true;
@@ -1594,15 +1632,15 @@ void Central::DestroyTextures(void)
     Logger << "Cleaning up textures\n";
     
     // cleanup all textures
-    while(TextureMap.begin() != TextureMap.end())
+    while(ZoneTextureMap.begin() != ZoneTextureMap.end())
         {
-        TextureMapIteratorType it=TextureMap.begin();
+        ZoneTextureMapIteratorType it=ZoneTextureMap.begin();
 
         // cleanup texture
         glDeleteTextures(1,&(it->second));
 
         // erase it
-        TextureMap.erase(it);
+        ZoneTextureMap.erase(it);
         }
 
     // flag
@@ -1629,75 +1667,20 @@ void Central::RenderActor(const Actor& ThisActor)const
         ((ThisActor.GetActorType() == Actor::Object) && Config.GetRenderObjects())
       )
         { 
-        // set color by realm
-        switch(ThisActor.GetRealm())
-            {
-            case Actor::Albion:
-                glColor3f(0.75f,0.0f,0.0f);
-                break;
-            case Actor::Midgard:
-                glColor3f(0.0f,0.0f,0.75f);
-                break;
-            case Actor::Hibernia:
-                glColor3f(0.0f,0.75f,0.0f);
-                break;
-            case Actor::MOB:
-                {
-                if(Config.GetShowMOBConColor())
-                    {
-                    switch(Actor::GetRelativeCon(IDToFollowLevel,ThisActor.GetLevel()))
-                        {
-                        case Actor::Gray:
-                            glColor4f(0.25f,0.25f,0.25f,1.0f);
-                            break;
-
-                        case Actor::Green:
-                            glColor4f(0.0f,1.0f,0.0f,1.0f);
-                            break;
-
-                        case Actor::Blue:
-                            glColor4f(0.0f,0.0f,1.0f,1.0f);
-                            break;
-
-                        case Actor::Orange:
-                            glColor4f(1.0f,0.5f,0.0f,1.0f);
-                            break;
-
-                        case Actor::Red:
-                            glColor4f(1.0f,0.0f,0.0f,1.0f);
-                            break;
-
-                        case Actor::Purple:
-                            glColor4f(0.5f,0.0f,0.5f,1.0f);
-                            break;
-
-                        default:
-                        case Actor::Yellow:
-                            glColor3f(1.0f,1.0f,0.0f);
-                            break;
-                        } // end switch relative con
-                    } // end if show mob con colors
-                else
-                    {
-                    // show all as yellow
-                    glColor4f(1.0f,1.0f,0.0f,1.0f);
-                    }
-                }
-                break;
-
-            default:
-                glColor3f(0.0f,0.0f,0.0f);
-                break;
-            } // end switch get realm
-
         // store position with display offsets
         Motion Position;
         GetRenderPosition(ThisActor,Position);
 
         glTranslatef(Position.GetXPos(),Position.GetYPos(),0.0f);
 
+        // set texture by realm and con
+        glBindTexture(GL_TEXTURE_2D,GetConTexture(ThisActor,true));
+
         if(Config.GetPPIText())
             {
+            // disable textures for this
+            glDisable(GL_TEXTURE_2D);
+
             // draw text
             // name
             glRasterPos3f(0.0f,2.0f*ActorVertexY,0.0f);
@@ -1748,16 +1731,30 @@ void Central::RenderActor(const Actor& ThisActor)const
         glRotatef(180.0f+Position.GetHeading()*57.295779513082320876798154814105f,0.0f,0.0f,1.0f);
         //                                 convert to degrees for glRotatef
 
+        // enable textures
+        glEnable(GL_TEXTURE_2D);
+
         // draw actor symbol
         glBegin(GL_TRIANGLES);
+
+        glTexCoord2f(0.5f,1.0f);
         glVertex3f(0.0f,ActorVertexY,0.0f);
+
+        glTexCoord2f(0.0f,0.0f);
         glVertex3f(-ActorVertexX,-ActorVertexY,0.0f);
+
+        glTexCoord2f(1.0f,0.0f);
         glVertex3f(ActorVertexX,-ActorVertexY,0.0f);
+
         glEnd();
+
+        // disable textures
+        glDisable(GL_TEXTURE_2D);
 
         // if it's "hooked" draw a hook
         if(ThisActor.GetInfoId() == HookedActor)
             {
+
             // radius for hook is (ActorVertexX + ActorVertexY)/2 + 25;
             const float radius=25.0f+(0.5f*(ActorVertexX + ActorVertexY));
 
@@ -1775,10 +1772,7 @@ void Central::RenderActor(const Actor& ThisActor)const
                     // draw it
                     glPushMatrix();
 
-                    // scale
-                    glScalef(Config.GetRangeRings().Rings[i].Radius*0.01f,Config.GetRangeRings().Rings[i].Radius*0.01f,Config.GetRangeRings().Rings[i].Radius*0.01f);
-                    // draw
-                    glCallList(CircleList);
+                    DrawCircle(float(Config.GetRangeRings().Rings[i].Radius));
 
                     glPopMatrix();
                     }
@@ -1795,9 +1789,6 @@ void Central::RenderActor(const Actor& ThisActor)const
 
 void Central::RenderWorld(void)const
 {
-    // push matrix stack
-    glPushMatrix();
-
     // set the list base for font bitmaps
     glListBase(FontListBase);
 
@@ -1807,7 +1798,8 @@ void Central::RenderWorld(void)const
     // render every zone
     for(unsigned char i=0;i<=254;++i)
         {
-        if(Zones.GetZone(i).bValid && ::Zones.GetLimitsFromRegion(Zones.GetZone(i).Region).XOffset!=0)
+        // only render valid zones (XOffset==0 is a special case of an invalid zone)
+        if(Zones.GetZone(i).bValid && Zones.GetLimitsFromRegion(Zones.GetZone(i).Region).XOffset!=0)
             {
             // alias 
             const MapInfo::ZoneInfo& zone=Zones.GetZone(i);
@@ -1835,9 +1827,9 @@ void Central::RenderWorld(void)const
                     glEnable(GL_TEXTURE_2D);
 
                     // activate the proper texture
-                    TextureMapConstIteratorType it=TextureMap.find(i);
+                    ZoneTextureMapConstIteratorType it=ZoneTextureMap.find(i);
 
-                    if(it != TextureMap.end())
+                    if(it != ZoneTextureMap.end())
                         {
                         glBindTexture(GL_TEXTURE_2D,it->second);
                         }
@@ -1854,19 +1846,15 @@ void Central::RenderWorld(void)const
                 glColor3f(0.5f,0.5f,0.5f);
 
                 glTexCoord2i(0,1);
-                //glVertex3i(BaseX,MaxY,0);
                 glVertex3i(0,MaxY-BaseY,0);
 
                 glTexCoord2i(0,0);
-                //glVertex3i(BaseX,BaseY,0);
                 glVertex3i(0,0,0);
 
                 glTexCoord2i(1,0);
-                //glVertex3i(MaxX,BaseY,0);
                 glVertex3i(MaxX-BaseX,0,0);
 
                 glTexCoord2i(1,1);
-                //glVertex3i(MaxX,MaxY,0);
                 glVertex3i(MaxX-BaseX,MaxY-BaseY,0);
 
                 glEnd();
@@ -1890,8 +1878,11 @@ void Central::RenderWorld(void)const
                 //glCallLists(zone.ZoneFile.length(),GL_UNSIGNED_BYTE,zone.ZoneFile.c_str());
                 DrawGLFontString(zone.ZoneFile);
 
+                // draw vector map only if enabled in options
                 if(Config.GetVectorMapInPPI())
                     {
+                    // only draw if we are drawing the followed actor's zone AND only followed
+                    // zones are drawn OR if we are drawing vector maps regardless of followed zone
                     if((Config.GetVectorMapOnlyInFollowedZone() && i==IDToFollowZone) || 
                        !Config.GetVectorMapOnlyInFollowedZone())
                         {
@@ -1905,9 +1896,6 @@ void Central::RenderWorld(void)const
                 } // end if zone is visible
             } // end if zone is valid
         } // end for each zone
-
-    // pop matrix stack
-    glPopMatrix();
 
     // done
     return;
@@ -1943,9 +1931,8 @@ void Central::DrawPPI(void)
     RenderWorld();
 
     // render all actors with no depth test so they all display
-    // and no textures
     glDisable(GL_DEPTH_TEST);
-    
+
     // see which database iteration function we are supposed to use
     if(Config.GetUpdateWhenRendered())
         {

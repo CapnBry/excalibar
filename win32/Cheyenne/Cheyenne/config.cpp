@@ -67,7 +67,6 @@ CheyenneConfig::CheyenneConfig() : m_ConfigFileName("cheyenne.cfg")
     SetTexturesInPPI(true);
     SetVectorMapInPPI(true);
     SetVectorMapOnlyInFollowedZone(false);
-    SetShowMOBConColor(false);
 
 } // end CheyenneConfig
 
@@ -118,7 +117,6 @@ bool CheyenneConfig::Load(void)
     file >> ModifyTexturesInPPI();
     file >> ModifyVectorMapInPPI();
     file >> ModifyVectorMapOnlyInFollowedZone();
-    file >> ModifyShowMOBConColor();
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 
@@ -194,7 +192,6 @@ bool CheyenneConfig::Save(void)const
     file << GetTexturesInPPI() << std::endl;
     file << GetVectorMapInPPI() << std::endl;
     file << GetVectorMapOnlyInFollowedZone() << std::endl;
-    file << GetShowMOBConColor() << std::endl;
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 

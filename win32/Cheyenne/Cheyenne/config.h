@@ -117,7 +117,6 @@ private:
         MEMBER_ASSIGN(TexturesInPPI);
         MEMBER_ASSIGN(VectorMapInPPI);
         MEMBER_ASSIGN(VectorMapOnlyInFollowedZone);
-        MEMBER_ASSIGN(ShowMOBConColor);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -145,6 +144,5 @@ private:
     DECL_MEMBER(bool,TexturesInPPI);
     DECL_MEMBER(bool,VectorMapInPPI);
     DECL_MEMBER(bool,VectorMapOnlyInFollowedZone);
-    DECL_MEMBER(bool,ShowMOBConColor)
 
 }; // end class CheyenneConfig

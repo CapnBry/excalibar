@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "times.h"
 #include "config.h"
 #include "gl\glut.h"
+#include "gl\glpng.h"
 
 // the logger
 EXTERN logger_t Logger;
@@ -67,4 +68,28 @@ inline void DrawGLFontString(const std::string& text)
     DrawGLUTFontString(text);
 }
 
+template<class container> container::value_type::second_type PngBindContainer
+    (
+    container& Container,
+    container::value_type::first_type association,
+    const char *filename,
+    int mipmap=PNG_BUILDMIPMAPS,
+    int trans=PNG_SOLID,
+    pngInfo *info=NULL,
+    int wrapst=GL_CLAMP,
+    int minfilter=GL_LINEAR_MIPMAP_NEAREST,
+    int magfilter=GL_LINEAR_MIPMAP_NEAREST
+    )
+{
+    container::value_type::second_type id=pngBind(filename,mipmap,trans,info,wrapst,minfilter,magfilter);
+
+    if(id != 0)
+        {
+        Logger << "[PngBindContainer] loaded \"" << filename << "\" with id " << id << "\n";
+        Container.insert(container::value_type(association,id));
+        }
+
+    // done
+    return(id);
+}; // end PngBindContainer
 #endif // GLOBAL_H
