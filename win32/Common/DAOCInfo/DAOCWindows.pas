@@ -49,10 +49,12 @@ type
   public
     constructor Create;
 
-    property SettingsFile: string read GetSettingsFile;
-    property DAOCPath: string read FDAOCPath write FDAOCPath;
+    procedure GetAvailableUIStyles(AStyles: TStrings);
+
     property CharacterName: string read FCharacterName write FCharacterName;
+    property DAOCPath: string read FDAOCPath write FDAOCPath;
     property ServerIP: string read FServerIP write FServerIP;
+    property SettingsFile: string read GetSettingsFile;
     property UIStyle: string read FUIStyle write FUIStyle;
 
       { inventory functions }
@@ -82,6 +84,7 @@ type
     procedure DoVKDown(vk: byte);
     procedure DoVKUp(vk: byte);
     function GetUIOffset(const AName: string; ADefault: integer) : integer;
+    procedure FixupWindowName;
   public
     constructor Create(AWndManager: TDAOCWindowManager); virtual;
     destructor Destroy; override;
@@ -134,6 +137,7 @@ type
     FPage:  integer;
     FItem:  integer;
     FTopItem: integer;
+    FScrollSmooth:  boolean;
 
     FItemsPerPage: integer;
     FScrollLeftOffset: integer;
@@ -242,6 +246,14 @@ begin
     FOnNeedVKUp(Sender, vk);
 end;
 
+procedure TDAOCWindowManager.GetAvailableUIStyles(AStyles: TStrings);
+begin
+  with TINIFile.Create(ExtractFilePath(ParamStr(0)) + 'UI.ini') do begin
+    ReadSections(AStyles);
+    Free;
+  end;
+end;
+
 function TDAOCWindowManager.GetSettingsFile: string;
 begin
   if (FDAOCPath = '') or not DirectoryExists(FDAOCPath) then
@@ -284,6 +296,7 @@ begin
   inherited Create;
   FWndManager := AWndManager;
   FSettings := TStringList.Create;
+  FixupWindowName;
   LoadSettingsLine;
 end;
 
@@ -348,6 +361,14 @@ begin
     Result := FSettings[2] = '1'
   else
     Result := false;
+end;
+
+procedure TDAOCWindow.FixupWindowName;
+begin
+  with TINIFile.Create(ExtractFilePath(ParamStr(0)) + 'UI.ini') do begin
+    FWindowName := ReadString(FWndManager.UIStyle, FWindowName + 'WindowName', FWindowName);
+    Free;
+  end;  { with }
 end;
 
 procedure TDAOCWindow.LoadSettingsLine;
@@ -479,13 +500,14 @@ end;
 
 constructor TVendorWindow.Create(AWndManager: TDAOCWindowManager);
 begin
-  FWindowName := 'Train';
+  FWindowName := 'Merchant';
   inherited Create(AWndManager);
 
   FItemsPerPage := GetUIOffset('MerchantItemsPerPage', 20);
   FScrollLeftOffset := GetUIOffset('MerchantScrollbarLeft', 345);
   FScrollUpTopOffset := GetUIOffset('MerchantScrollbarUpTop', 25);
   FScrollDownTopOffset := GetUIOffset('MerchantScrollbarDownTop', 370);
+  FScrollSmooth := GetUIOffset('MerchantScrollSmooth', 0) = 1;
   FPageTopOffset := GetUIOffset('MerchantPageTop', 430);
   FPageLeftLeftOffset := GetUIOffset('MerchantPageLeftLeft', 258);
   FPageRightLeftOffset := GetUIOffset('MerchantPageRightLeft', 278);
@@ -683,12 +705,18 @@ procedure TScrollableListWindow.PageLeft;
 begin
   DoLeftClick(Left + FPageLeftLeftOffset, Top + FPageTopOffset);
   dec(FPage);
+
+  if FScrollSmooth then
+    FTopItem := 0;
 end;
 
 procedure TScrollableListWindow.PageRight;
 begin
   DoLeftClick(Left + FPageRightLeftOffset, Top + FPageTopOffset);
   inc(FPage);
+
+  if FScrollSmooth then
+    FTopItem := 0;
 end;
 
 procedure TScrollableListWindow.ScrollDown;
@@ -720,7 +748,10 @@ begin
   while Value < FTopItem do begin
     ScrollUp;
     sleep(200);
-    dec(FTopItem, FItemsPerPage);
+    if FScrollSmooth then
+      dec(FTopItem, 1)
+    else
+      dec(FTopItem, FItemsPerPage);
   end;
 
   if FTopItem < 0 then
@@ -730,7 +761,10 @@ begin
   while Value >= (FTopItem + FItemsPerPage) do begin
     ScrollDown;
     sleep(200);
-    inc(FTopItem, FItemsPerPage);
+    if FScrollSmooth then
+      inc(FTopItem, 1)
+    else
+      inc(FTopItem, FItemsPerPage);
   end;
 
   DoLeftClick(Left + FItemLeftOffset + XOff, Top + FItemTopOffset +
