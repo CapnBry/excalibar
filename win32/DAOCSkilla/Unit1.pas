@@ -1336,9 +1336,9 @@ begin
     dec(ADataLen, 2);
     inc(pData, 2);
 
-    FPacket.ConnectionID := PCardinal(pData)^;
-    dec(ADataLen, 4);
-    inc(pData, 4);
+    FPacket.ConnectionID := 0; // PCardinal(pData)^;
+    //dec(ADataLen, 4);
+    //inc(pData, 4);
 
     bIPType := PBYTE(pData)^;
     dec(ADataLen);
