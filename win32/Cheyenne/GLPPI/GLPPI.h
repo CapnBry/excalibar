@@ -61,7 +61,8 @@ public:
 
         return(it->second);
     }
-    void Enable(const unsigned int flag)
+    // Enable() returns the previous state of the flag
+    bool Enable(const unsigned int flag)
     {
         StateFlagIterator it=StateFlags.find(flag);
         
@@ -77,12 +78,16 @@ public:
             // set to true and enable
             it->second=true;
             glEnable(flag);
+            return(false);
             }
-        // done
-        return;
+        else
+            {
+            return(true);
+            }
     } // end Enable
     
-    void Disable(const unsigned int flag)
+    // Disable() returns the previous state of the flag
+    bool Disable(const unsigned int flag)
     {
         StateFlagIterator it=StateFlags.find(flag);
         
@@ -98,9 +103,12 @@ public:
             // set to false and disable
             it->second=false;
             glDisable(flag);
+            return(true);
             }
-        // done
-        return;
+        else
+            {
+            return(false);
+            }
     } // end Disable
     
     void MakeAllCurrent(void)const
@@ -327,10 +335,25 @@ public:
             const float SpanY,
             const unsigned char Region
             );
+        void RenderHook
+            (
+            const Actor& Center,
+            const float Red=1.0f,
+            const float Green=1.0f,
+            const float Blue=1.0f
+            );
         void RenderRangeRing
             (
             const Actor& Center,
             const float Radius,
+            const float Red=1.0f,
+            const float Green=1.0f,
+            const float Blue=1.0f
+            );
+        void RenderPairingLine
+            (
+            const Actor& a1,
+            const Actor& a2,
             const float Red=1.0f,
             const float Green=1.0f,
             const float Blue=1.0f

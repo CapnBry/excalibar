@@ -248,13 +248,15 @@ void OnRenderActor(const Actor& a)
     // if hooked actor, draw a hook symbol too
     if(a.GetInfoId() == HookedActor.GetInfoId() && HookedSet)
         {
-        ppi.RenderRangeRing(HookedActor,150.0f,0.0f,1.0f,0.0f);
+        ppi.RenderHook(HookedActor,0.0f,1.0f,0.0f);
+        //ppi.RenderRangeRing(HookedActor,200.0f,0.0f,1.0f,0.0f);
         }
     
     // if reference's target actor, draw target symbol too
     if(a.GetInfoId() == ReferenceTarget.GetInfoId() && ReferenceTargetSet)
         {
-        ppi.RenderRangeRing(ReferenceTarget,150.0f,1.0f,0.0f,0.0f);
+        ppi.RenderHook(ReferenceTarget,1.0f,0.0f,0.0f);
+        //ppi.RenderRangeRing(ReferenceTarget,200.0f,1.0f,0.0f,0.0f);
         }
     
     // done
@@ -380,6 +382,53 @@ private:
     ActorRenderFunctor& operator=(const ActorRenderFunctor& s); // disallow
     USERDATA& data;
 };
+
+class UncorrelatedStealthRenderFunctor
+{
+public:
+    UncorrelatedStealthRenderFunctor(const UncorrelatedStealthRenderFunctor& s):data(s.data){};
+    explicit UncorrelatedStealthRenderFunctor(USERDATA& s):data(s){};
+    ~UncorrelatedStealthRenderFunctor(){};
+
+    void operator()(const Database::stealth_map_value& s)
+    {
+        // alias
+        const Database::id_type& infoid=s.first;
+        const UncorrelatedStealthInfo& usi=s.second;
+        const StealthMask& sm=usi.GetMask();
+        
+        // get original id and region
+        unsigned short original_region;
+        Database::id_type original_id;
+        Database::CrackUniqueId(infoid,original_region,original_id);
+        MapInfo::RegionIndexType region=(MapInfo::RegionIndexType)original_region;
+        
+        for(int y=0;y<15;++y)
+            {
+            for(int x=0;x<15;++x)
+                {
+                if(sm.Get(x,y))
+                    {
+                    const float offset_x=StealthMask::SpanX*(8-x);
+                    const float offset_y=StealthMask::SpanY*(8-y);
+                    
+                    data.ppi.RenderUncorrelatedStealthBlock
+                        (
+                        usi.GetAverageX() + offset_x,
+                        usi.GetAverageY() + offset_y,
+                        StealthMask::SpanX,
+                        StealthMask::SpanY,
+                        region
+                        );
+                    }
+                }
+            }
+    }
+
+private:
+    UncorrelatedStealthRenderFunctor& operator=(const UncorrelatedStealthRenderFunctor& s); // disallow
+    USERDATA& data;
+}; // end class UncorrelatedStealthRenderFunctor
 
 class ClosestActorFinder
 {
@@ -1343,11 +1392,21 @@ void Render(USERDATA* data)
     // on-screen
     data->ppi.RenderAllZones();
     
+    // for the newer stealth mask-based UncorrelatedStealthers member
+    // of the database: 
+    // we need to iterate over all stealthers the database holds
+    // in the map, center the drawing on each stealthers average <x,y,z>
+    // and draw the enabled bits in the stealth mask offset by the mask's
+    // <x,y> offset
+    data->database.IterateUncorrelatedStealthers(UncorrelatedStealthRenderFunctor(*data));
+    
+    /*
     // if uncorrelated stealth is present, draw that
     if(data->database.IsUncorrelatedStealth())
         {
         data->ppi.RenderUncorrelatedStealth(data->database.GetUncorrelatedStealthCenter());
         }
+    */
     
     if(::RadarConfig.GetUpdateActorsOnRender())
         {
@@ -1360,6 +1419,30 @@ void Render(USERDATA* data)
         // just iterate all actors -- ppi will only render the ones
         // that are on-screen
         data->database.IterateActors(ActorRenderFunctor(*data));
+        }
+        
+    // render pairing lines
+    if(data->ReferenceSet && data->ReferenceTargetSet)
+        {
+        data->ppi.RenderPairingLine
+            (
+            data->ReferenceActor,
+            data->ReferenceTarget,
+            1.0f,
+            0.0f,
+            0.0f
+            );
+        }
+    if(data->ReferenceSet && data->HookedSet)
+        {
+        data->ppi.RenderPairingLine
+            (
+            data->ReferenceActor,
+            data->HookedActor,
+            0.0f,
+            1.0f,
+            0.0f
+            );
         }
     
     // end rendering and clear flag

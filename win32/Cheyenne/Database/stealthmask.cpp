@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "stealthmask.h" // for my class defs
 
+const float StealthMask::SpanX=200.0f;
+const float StealthMask::SpanY=200.0f;
+
 StealthMask::StealthMask(bool InitSphere)
 {
     // zero this out

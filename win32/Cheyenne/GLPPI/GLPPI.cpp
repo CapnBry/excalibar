@@ -1031,6 +1031,57 @@ void GLPPI::RenderActor
     return;
 } // end RenderActor
 
+void GLPPI::RenderHook
+    (
+    const Actor& Center,
+    const float Red,
+    const float Green,
+    const float Blue
+    )
+{
+    // get position to render
+    Motion RenderPosition;
+    GetRenderPosition(Center,RenderPosition);
+    
+    // don't bother if not visible
+    if(!IsVisible(RenderPosition.GetXPos(),RenderPosition.GetYPos()))
+        {
+        // do nothing
+        return;
+        }
+    
+    // push matrix stack
+    glPushMatrix();
+    
+    // move to position
+    glTranslatef(RenderPosition.GetXPos(),RenderPosition.GetYPos(),0.0f);
+    
+    // set color
+    glColor4f(Red,Green,Blue,1.0f);
+    
+    // disable textures
+    bool ReenableTextures=RenderState.Disable(GL_TEXTURE_2D);
+    
+    float ScaledRadius=0.5f*(ActorVertexX+ActorVertexY);
+    ScaledRadius += ScaledRadius*0.5f;
+    
+    // draw ring
+    DrawCircle(ScaledRadius);
+    
+    // reenable textures if they were enabled before
+    if(ReenableTextures)
+        {
+        // enable texturing
+        RenderState.Enable(GL_TEXTURE_2D);
+        }
+    
+    // pop matrix stack
+    glPopMatrix();
+    
+    // done
+    return;
+} // end RenderHook
+
 void GLPPI::RenderRangeRing
     (
     const Actor& Center,
@@ -1060,13 +1111,8 @@ void GLPPI::RenderRangeRing
     // set color
     glColor4f(Red,Green,Blue,1.0f);
     
-    bool ReenableTextures=RenderState.IsEnabled(GL_TEXTURE_2D);
-    
-    if(ReenableTextures)
-        {
-        // disable texturing
-        RenderState.Disable(GL_TEXTURE_2D);
-        }
+    // disable textures
+    bool ReenableTextures=RenderState.Disable(GL_TEXTURE_2D);
     
     // draw ring
     DrawCircle(Radius);
@@ -1084,6 +1130,42 @@ void GLPPI::RenderRangeRing
     // done
     return;
 } // end RenderRangeRing
+
+void GLPPI::RenderPairingLine
+    (
+    const Actor& a1,
+    const Actor& a2,
+    const float Red,
+    const float Green,
+    const float Blue
+    )
+{
+    // get position to render
+    Motion r1,r2;
+    GetRenderPosition(a1,r1);
+    GetRenderPosition(a2,r2);
+    
+    // disable texturing
+    bool ReenableTextures=RenderState.Disable(GL_TEXTURE_2D);
+    
+    // set color
+    glColor4f(Red,Green,Blue,1.0f);
+    
+    glBegin(GL_LINES); // begin lines
+        glVertex3f(r1.GetXPos(),r1.GetYPos(),0.0f);
+        glVertex3f(r2.GetXPos(),r2.GetYPos(),0.0f);
+    glEnd(); // end lines
+    
+    // reenable textures if they were enabled before
+    if(ReenableTextures)
+        {
+        // enable texturing
+        RenderState.Enable(GL_TEXTURE_2D);
+        }
+    
+    // done
+    return;
+} // end RenderPairingLine
 
 void GLPPI::RenderVectorMap(const VectorMap& Map)
 {

@@ -201,8 +201,8 @@ public:
         
         // return result
         return(std::for_each(Actors.begin(),Actors.end(),func));
-    };
-
+    }; // end IterateActors
+    
     template<class F> F UpdateAndIterateActors(F func)
     {
         // lock the database
@@ -222,7 +222,16 @@ public:
 
         // return result
         return(func);
-    };
+    }; // end UpdateAndIterateActors
+    template<class F> F IterateUncorrelatedStealthers(F func)const
+    {
+        // lock the database
+        AutoLock al(DBMutex);
+        
+        // return result
+        return(std::for_each(UncorrelatedStealthers.begin(),UncorrelatedStealthers.end(),func));
+    }; // end IterateUncorrelatedStealthers
+
     enum DatabaseEvents
     {
         LocalUpdate,
@@ -253,6 +262,12 @@ public:
     bool IsUncorrelatedStealth(void)const;
     Actor GetUncorrelatedStealthCenter(void)const;
     static Database::id_type GetUniqueId(const unsigned short region,const Database::id_type id_or_infoid);
+    static void CrackUniqueId
+        (
+        const Database::id_type& id,
+        unsigned short& id_region,
+        Database::id_type& original_id_or_infoid
+        );
 
     void RequestFullUpdate(void);
 

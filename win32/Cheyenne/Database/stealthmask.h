@@ -45,6 +45,9 @@ public:
     StealthMask operator|(const StealthMask& a)const;
     StealthMask& operator&=(const StealthMask& a);
     StealthMask& operator|=(const StealthMask& a);
+    
+    static const float SpanX;
+    static const float SpanY;
 protected:
 private:
     // x and y --> [0,15]

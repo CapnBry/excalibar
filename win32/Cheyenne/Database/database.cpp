@@ -96,8 +96,8 @@ void UncorrelatedStealthInfo::Merge(void)
         // we do a bit of math here to get offsets in 
         // mask bit positions instead of world units
         
-        const int x_offset=(const int)((it->second.GetXPos() - GetAverageX())/200.0f);
-        const int y_offset=(const int)((it->second.GetYPos() - GetAverageY())/200.0f);
+        const int x_offset=(const int)((it->second.GetXPos() - GetAverageX())/StealthMask::SpanX);
+        const int y_offset=(const int)((it->second.GetYPos() - GetAverageY())/StealthMask::SpanY);
         
         for(int y=0;y<16;++y)
             {
@@ -502,6 +502,9 @@ void Database::DoMaintenance(void)
         IdToDelete.erase(IdToDelete.begin());
         }
 
+    // maintain the uncorrelated stealth database
+    MaintainUncorrelatedStealth();
+    
     // fire event -- we did the maintenance
     ActorEvents[DatabaseEvents::MaintenanceIntervalDone]();
     
@@ -814,6 +817,24 @@ Database::id_type Database::GetUniqueId
     
     return(Database::id_type(wb.dword));
 } // end GetUniqueId
+
+void Database::CrackUniqueId
+    (
+    const Database::id_type& id,
+    unsigned short& id_region,
+    Database::id_type& original_id_or_infoid
+    )
+{
+    // un-smush id_region and original_id_or_infoid from the id that 
+    // that GetUniqueId(0 makes
+    word_builder wb;
+    wb.dword=id;
+    original_id_or_infoid=wb.word[0];
+    id_region=wb.word[1];
+
+    // done
+    return;
+} // end CrackUniqueId
 
 void Database::SendNetworkUpdate
     (
