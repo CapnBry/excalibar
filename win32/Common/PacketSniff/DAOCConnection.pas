@@ -77,7 +77,6 @@ type
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
-    FMaxObjectUpdtDistSqr: double;
     FPingRequestSentTime: DWORD;
     FLastPingTime:      integer;
 
@@ -128,9 +127,11 @@ type
     procedure ClearDAOCObjectList;
     procedure CheckObjectsOutOfRange;
     procedure SetMaxObjectDistance(const Value: double);
-    procedure SetMaxObjectUpdtDistance(const Value: double);
     function CheckZoneChanged : boolean;
     function SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
+    function CheckAndMoveFromStaleListByInfoID(wID: WORD) : TDAOCObject;
+    function CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
+    procedure SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -269,7 +270,6 @@ type
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
-    property MaxObjectUpdtDistance: double write SetMaxObjectUpdtDistance; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
@@ -401,7 +401,6 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectUpdtDistance(6000);
   SetMaxObjectDistance(8000);
 end;
 
@@ -960,6 +959,10 @@ begin
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
 
+    { check the stale list for a recent item, moving it over if necessary }
+  if not Assigned(pDAOCObject) then
+    pDAOCObject := CheckAndMoveFromStaleListByPlayerID(wID);
+
   if not Assigned(pDAOCObject) then
     exit;
 (* This is removed because when the client gets this message it
@@ -1026,14 +1029,10 @@ begin
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
 
-  if not Assigned(pDAOCObject) then begin
-    pDAOCObject := FDAOCObjsStale.FindByInfoID(wID);
-    if Assigned(pDAOCObject) then 
-      Log(Format('MobUpdate: %4.4x after stale %dms', [
-        pDAOCObject.InfoID, pDAOCObject.TicksSinceUpdate]));
-    pDAOCObject := nil;
-  end;
-  
+    { check the stale list for a recent item, moving it over if necessary }
+  if not Assigned(pDAOCObject) then
+    pDAOCObject := CheckAndMoveFromStaleListByInfoID(wID);
+
     { here we can add the object, even though we don't know what it is.
       The client will request the object via RequestObjectByInfoID
       and we'll just replace this object with the real mob.  Make sure
@@ -1041,7 +1040,7 @@ begin
   if not Assigned(pDAOCObject) then begin
     pDAOCObject := TDAOCUnknownMovingObject.Create;
     pDAOCObject.InfoID := wID;
-    pDAOCObject.PlayerID := wID;
+    pDAOCObject.PlayerID := 0;
     FDAOCObjs.AddOrReplace(pDAOCObject);
     bAddedObject := true;
   end
@@ -1120,6 +1119,10 @@ begin
   pPacket.HandlerName := 'PlayerHeadUpdate';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
+
+    { check the stale list for a recent item, moving it over if necessary }
+  if not Assigned(pDAOCObject) then
+    pDAOCObject := CheckAndMoveFromStaleListByPlayerID(wID);
 
   if not Assigned(pDAOCObject) then
     exit;
@@ -1201,7 +1204,6 @@ var
   pOldObject: TDAOCObject;
 begin
   pPacket.HandlerName := 'NewObject (' + DAOCObjectClassToStr(AClass) + ')';
-  pOldObject := nil;
 
   case AClass of
     ocObject:
@@ -1278,16 +1280,8 @@ begin
       tmpObject := nil;
   end;  { case AClass }
 
-  if Assigned(tmpObject) then begin
-    if not Assigned(pOldObject) then
-      pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
-        { BRY: this might actually be a bad idea since it is actually still
-          in the list and we're going to delete it /after/ the event }
-    if Assigned(pOldObject) then
-      DoOnDeleteDAOCObject(pOldObject);
-    FDAOCObjs.AddOrReplace(tmpObject);
-    DoOnNewDAOCObject(tmpObject);
-  end;
+  if Assigned(tmpObject) then
+    SafeAddDAOCObjectAndNotify(tmpObject);
 end;
 
 procedure TDAOCConnection.ParseObjectEquipment(pPacket: TDAOCPacket);
@@ -1962,11 +1956,7 @@ begin
     if fDist > FMaxObjectDistSqr then begin
       DoOnDeleteDAOCObject(pObj);
       FDAOCObjs.Delete(I);
-    end
-    else if fDist > FMaxObjectUpdtDistSqr then
-      pObj.IsInUpdateRange := false
-    else
-      pObj.IsInUpdateRange := true;
+    end;
 
     dec(I);
   end;  { while I > 0 }
@@ -2042,17 +2032,12 @@ begin
     pObj := FDAOCObjs[I];
     pObj.CheckStale;
     if pObj.IsStale then begin
-      FDAOCObjsStale.Add(FDAOCObjs.Take(I));
       DoOnDeleteDAOCObject(pObj);
+      FDAOCObjsStale.Add(FDAOCObjs.Take(I));
     end  { if stale }
     else
       inc(I);
   end;  { for I to count }
-end;
-
-procedure TDAOCConnection.SetMaxObjectUpdtDistance(const Value: double);
-begin
-  FMaxObjectUpdtDistSqr := Value * Value;
 end;
 
 procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
@@ -2217,6 +2202,49 @@ procedure TDAOCConnection.DoOnMobTargetChanged(AMob: TDAOCMob);
 begin
   if Assigned(FOnMobTargetChanged) then
     FOnMobTargetChanged(Self, AMob);
+end;
+
+function TDAOCConnection.CheckAndMoveFromStaleListByInfoID(wID: WORD): TDAOCObject;
+var
+  iIdx:   integer;
+begin
+  iIdx := FDAOCObjsStale.IndexOfInfoID(wID);
+  if iIdx <> -1 then begin
+    Result := FDAOCObjsStale.Take(iIdx);
+      { we shouldn't need to do an AddOrReplace (and notify on delete of old)
+        because this function should only be called if the InfoID wasn't in
+        the list already }
+    FDAOCObjs.Add(Result);
+    DoOnNewDAOCObject(Result);
+  end
+  else
+    Result := nil;
+end;
+
+function TDAOCConnection.CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
+var
+  iIdx:   integer;
+begin
+  iIdx := FDAOCObjsStale.IndexOfPlayerID(wID);
+  if iIdx <> -1 then begin
+    Result := FDAOCObjsStale.Take(iIdx);
+    SafeAddDAOCObjectAndNotify(Result);
+  end
+  else
+    Result := nil;
+end;
+
+procedure TDAOCConnection.SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
+{ does an add by infoid into the object list, deleting an existing one of the
+  same ID if it exists, and notifying on the delete and the add }
+var
+  pOldObject: TDAOCObject;
+begin
+  pOldObject := FDAOCObjs.FindByInfoID(ADAOCObject.InfoID);
+  if Assigned(pOldObject) then
+    DoOnDeleteDAOCObject(pOldObject);
+  FDAOCObjs.AddOrReplace(ADAOCObject);
+  DoOnNewDAOCObject(ADAOCObject);
 end;
 
 end.
