@@ -189,7 +189,7 @@ begin
     ViewFrustum := ReadBool('RenderPrefs', 'ViewFrustum', true);
     AlternateMobListText := DrawTypeTag; //ReadBool('RenderPrefs', 'AlternateMobListText', false);
     AttemptMapDownload := ReadBool('RenderPrefs', 'AttemptMapDownload', true);
-    MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%3d');
+    MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%d');
   end;
 end;
 
