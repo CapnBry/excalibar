@@ -175,6 +175,7 @@ type
     procedure DAOCCharacterLogin;
     procedure DAOCPlayerPosUpdate;
     procedure DAOCUnknownStealther(AObj: TDAOCObject);
+    procedure DAOCDoorPositionUpdate(ADoor: TDAOCObject);
 
     procedure Dirty;
     property DAOCControl: TDAOCConnection read FDControl write SetDControl;
@@ -681,8 +682,10 @@ begin
       glTranslatef(pObj.X, pObj.Y, 0);
       if AnsiSameText(pObj.Name, 'Prescience Node') then
         FPresicenceNode.GLRender(FRenderBounds)
-      else
+      else begin
+        FObjectTriangle.Color := clWhite;
         FObjectTriangle.GLRender(FRenderBounds);
+      end;
       glTranslatef(-pObj.X, -pObj.Y, 0);
     end
 
@@ -698,7 +701,17 @@ begin
         FBoat.Alpha := 1;
       FBoat.GLRender(FRenderBounds);
       glPopMatrix();
-    end;
+    end
+
+    else if pObj.ObjectClass = ocDoor then begin
+      glTranslatef(pObj.X, pObj.Y, 0);
+      if pObj.DoorIsOpen then
+        FObjectTriangle.Color := clGreen
+      else
+        FObjectTriangle.Color := clMaroon;
+      FObjectTriangle.GLRender(FRenderBounds);
+      glTranslatef(-pObj.X, -pObj.Y, 0);
+    end
   end;  { for each object }
 end;
 
@@ -989,11 +1002,16 @@ begin
 
   glEnable(GL_TEXTURE_2D);
   case pMob.ObjectClass of
-    ocObject:
+    ocObject, ocDoor:
       begin
         glColor3f(0.9, 0.9, 0.9);
         rastery := WriteTXFTextH12(4, rastery, pMob.Name);
         glColor4fv(@TEXT_COLOR);
+        if pMob.ObjectClass = ocDoor then
+          if pMob.DoorIsOpen then
+            rastery := WriteTXFTextH12(4, rastery, 'Door is OPEN')
+          else
+            rastery := WriteTXFTextH12(4, rastery, 'Door is CLOSED');
       end;
 
     ocMob:
@@ -1853,7 +1871,7 @@ end;
 
 function TfrmGLRender.CompareObjectClasses(A, B: TDAOCObjectClass) : integer;
 const
-  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (5, 4, 3, 2, 1, 0);
+  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (5, 4, 3, 2, 1, 0, 6);
 begin
   if not FRenderPrefs.GroupByClass then
     Result := 0
@@ -2100,6 +2118,11 @@ begin
     FMouseLocX := 0;
     FMouseLocY := 0;
   end;
+end;
+
+procedure TfrmGLRender.DAOCDoorPositionUpdate(ADoor: TDAOCObject);
+begin
+  DAOCUpdateObject(ADoor);
 end;
 
 end.
