@@ -1,8 +1,8 @@
 SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp \
   exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp \
-  exMapInfo.cpp main.cpp quickmath.c
+  exMapInfo.cpp main.cpp quickmath.c exConSystem.c
 HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h \
-  exMap.h exMessage.h 
+  exMap.h exMessage.h exConSystem.h
 
 # SOURCES += exMessage.cpp
 # HEADERS += messages.ui.h
