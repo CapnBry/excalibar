@@ -624,6 +624,9 @@ void Database::ResetDatabase(void)
             }
         }
     
+    // call functor
+    ActorEvents[DatabaseEvents::DatabaseReset]();
+    
     // done
     return;
 } // end ResetDatabase

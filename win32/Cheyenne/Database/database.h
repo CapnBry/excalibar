@@ -199,6 +199,7 @@ public:
         ActorReassigned,
         MaintenanceIntervalDone,
         SharenetMessage,
+        DatabaseReset,
         _LastEvent
     };
 
