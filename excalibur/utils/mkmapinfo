@@ -5,6 +5,7 @@
 
 # yet another hard code .... remove -_???_clone from map name
 # Aerus dungeon is not rotated
+# also create zones.ini for DOL
 
 if [ "$1" = "" ]
 then
@@ -17,6 +18,7 @@ fi
 # if you cat this file, (as oppossed to cat -v) you dont see the <ctrl>-M in the first sed pattern
 # haha, infact you dont see the sed either :P
 sed -e 's///g' -e 's/ *$//' $1 2>/dev/null | awk '
+BEGIN { M = 8192 }
 $1 ~ "^;" { next }	# skip commented lines (begin with a ;)
 $1 ~ "^[[]zone" {	# start of new zone data, init defaults, turn on zon flag
 	zon = 1; z = substr($1,6,3); sub("^0", "", z); zone = z + 0; proxy_zone[zone] = "-"; type[zone]=0 }
@@ -28,11 +30,23 @@ NF == 0 {	# blank line, process previous info, then turn off zon flag
 		rot = 0
 		if (zone == 26)
 			rot = 90
-		if (zone == 90 || zone == 120 || zone == 209)
+		if (zone == 120 || zone == 209)
 			rot = 180
 		# now print 2x into a pipe to sort for nice output
-		printf "%3s %3s %3s %s %3s %8d %8d - %8d %8d %s\n", zone, region[zone], proxy_zone[zone], type[zone], rot, region_offset_x[zone], region_offset_y[zone], region_offset_x[zone]+width[zone], region_offset_y[zone]+height[zone], zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
-		printf "%4s  %08x %08x  -  %08x %08x  %s  %-25s %-3s  %s\n", region[zone], region_offset_x[zone], region_offset_y[zone], region_offset_x[zone]+width[zone], region_offset_y[zone]+height[zone], type[zone], zonename[zone] ".map", zone, rot | "sort -n +8 -o mapinfo.txt"
+		x = region_offset_x[zone] * M
+		y = region_offset_y[zone] * M
+		w = width[zone] * M
+		h = height[zone] * M
+		printf "%3s %3s %3s %s %3s %8d %8d - %8d %8d %s\n", zone, region[zone], proxy_zone[zone], type[zone], rot, x, y, x+w, y+h, zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
+		printf "%4s  %08x %08x  -  %08x %08x  %s  %-25s %-3s  %s\n", region[zone], x, y, x+w, y+h, type[zone], zonename[zone] ".map", zone, rot | "sort -n +8 -o mapinfo.txt"
+		printf "[%s]\r\n", rawzonename[zone] > "zones.ini"
+		printf "width = %s\r\n", width[zone] > "zones.ini"
+		printf "zoneID = %s\r\n", zone > "zones.ini"
+		printf "offsetx = %s\r\n", region_offset_x[zone] > "zones.ini"
+		printf "height = %s\r\n", height[zone] > "zones.ini"
+		printf "offsety = %s\r\n", region_offset_y[zone] > "zones.ini"
+		printf "regionID = %s\r\n", region[zone] > "zones.ini"
+		printf "\r\n" > "zones.ini"
 		}
 	zon = 0
 	}
@@ -47,6 +61,7 @@ $1 ~ "=" { split($0, a, "=");	# reparse on "=" for var=value
 		if (a[1] == "name")
 		{
 			zn = a[2]	# mythic names need "adjusting" :)
+			rawzonename[zone] = zn
 			gsub(" ", "_", zn)
 			gsub("[.]", "", zn)
 			gsub("\047", "", zn)
@@ -54,13 +69,13 @@ $1 ~ "=" { split($0, a, "=");	# reparse on "=" for var=value
 			zonename[zone] = zn
 		}
 		if (a[1] == "width")
-			width[zone] = a[2] * 8192
+			width[zone] = a[2]
 		if (a[1] == "height")
-			height[zone] = a[2] * 8192
+			height[zone] = a[2]
 		if (a[1] == "region_offset_x")
-			region_offset_x[zone] = a[2] * 8192
+			region_offset_x[zone] = a[2]
 		if (a[1] == "region_offset_y")
-			region_offset_y[zone] = a[2] * 8192
+			region_offset_y[zone] = a[2]
 		if (a[1] == "region")
 		{
 			z = substr(a[2], 1, 3)
@@ -70,3 +85,4 @@ $1 ~ "=" { split($0, a, "=");	# reparse on "=" for var=value
 		}
 	}
 ' -
+
