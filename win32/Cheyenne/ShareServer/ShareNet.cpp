@@ -44,7 +44,7 @@ ShareNetManager::~ShareNetManager()
     
     for(int i=0;i<max_clients;++i)
         {
-        std::cout << "[ShareNetManager::~ShareNetManager] waiting on stop for client["<<i<<"]" << std::endl;
+        Logger << "[ShareNetManager::~ShareNetManager] waiting on stop for client["<<i<<"]" << std::endl;
         // stop all clients
         Clients[i].Stop();
         }
@@ -85,7 +85,7 @@ bool ShareNetManager::Init(void)
     if(s==INVALID_SOCKET)
         {
         // ugh
-        std::cout << "[ShareNetManager::Init] unable to create socket!\n";
+        Logger << "[ShareNetManager::Init] unable to create socket!\n";
         return(false);
         }
 
@@ -101,7 +101,7 @@ bool ShareNetManager::Init(void)
     if(err == SOCKET_ERROR)
         {
         closesocket(s);
-        std::cout << "[ShareNetManager::Init] unable to bind to local address!\n";
+        Logger << "[ShareNetManager::Init] unable to bind to local address!\n";
         return(false);
         }
        
@@ -111,7 +111,7 @@ bool ShareNetManager::Init(void)
     if(err == SOCKET_ERROR)
         {
         closesocket(s);
-        std::cout << "[ShareNetManager::Init] unable to listen to local address!\n";
+        Logger << "[ShareNetManager::Init] unable to listen to local address!\n";
         return(false);
         }
     
@@ -119,7 +119,7 @@ bool ShareNetManager::Init(void)
     u_long argp=1;
     ioctlsocket(s,FIONBIO,&argp);
     
-    std::cout << "[ShareNetManager::Init] listening on " << addr << std::endl;
+    Logger << "[ShareNetManager::Init] listening on " << addr << std::endl;
     
     // save
     ServerSock=s;
@@ -132,7 +132,7 @@ DWORD ShareNetManager::Run(const bool& bContinue)
 {
     if(!Init())
         {
-        std::cout << "[ShareNetManager::Run] failed to initialize!\n";
+        Logger << "[ShareNetManager::Run] failed to initialize!\n";
         return(-1);
         }
        
@@ -159,7 +159,7 @@ DWORD ShareNetManager::Run(const bool& bContinue)
             ioctlsocket(s,FIONBIO,&argp);
 
             // we have a new socket
-            std::cout << "[ShareNetManager::Run] new connection on " << addr << std::endl;
+            Logger << "[ShareNetManager::Run] new connection on " << addr << std::endl;
             
             for(int i=0;i<max_clients;++i)
                 {
@@ -175,12 +175,12 @@ DWORD ShareNetManager::Run(const bool& bContinue)
             if(i==max_clients)
                 {
                 // we did not find a free client
-                std::cout << "[ShareNetManager::Run] unable to find a free client to handle the connection, closing it.\n";
+                Logger << "[ShareNetManager::Run] unable to find a free client to handle the connection, closing it.\n";
                 closesocket(s);
                 }
             } // end if new connection
             
-        //std::cout << "[ShareNetManager::Run] maintaining clients\n";
+        //Logger << "[ShareNetManager::Run] maintaining clients\n";
         MaintainClients(signals);
         } // end forever
 
@@ -204,7 +204,7 @@ bool ShareNetManager::MaintainClients(MultiWaitSignal& signals)
     if(wait_result.first != NULL)
         {
         // at least 1 is set, and process it
-        //std::cout << "[ShareNetManager::MaintainClients] got data from Clients[" << wait_result.second << "]\n";
+        //Logger << "[ShareNetManager::MaintainClients] got data from Clients[" << wait_result.second << "]\n";
         
         // see how big it needs to be
         unsigned short sz=0;
@@ -234,7 +234,7 @@ bool ShareNetManager::MaintainClients(MultiWaitSignal& signals)
                         if(i!=wait_result.second && Clients[i].IsInUse())
                             {
                             /*
-                            std::cout << "[ShareNetManager::MaintainClients] replicating "
+                            Logger << "[ShareNetManager::MaintainClients] replicating "
                                     << sz 
                                     << " bytes to Clients[" << i << "]\n";
                             */
@@ -244,7 +244,7 @@ bool ShareNetManager::MaintainClients(MultiWaitSignal& signals)
                             } // end echo check
                         } // end for all signals
                     //data[sz]='\0';
-                    //std::cout << &data[2] << std::endl;
+                    //Logger << &data[2] << std::endl;
                     } // end else not a ping
                 } // end if we have an entire message available
             else
@@ -280,17 +280,17 @@ VOID CALLBACK ShareNetClientData::ReadCompletionRoutine
     // "context" parameter.
     ShareNetClientData* pMe=(ShareNetClientData*)lpOverlapped->hEvent;
     
-    //std::cout << "[ShareNetClientData::ReadCompletionRoutine] size=" << dwNumberOfBytesTransfered << std::endl;
+    //Logger << "[ShareNetClientData::ReadCompletionRoutine] size=" << dwNumberOfBytesTransfered << std::endl;
     
     // if we get here and there's no data, assume something bad happened
     if(dwNumberOfBytesTransfered == 0)
         {
-        std::cout << "[ShareNetClientData::ReadCompletionRoutine] closing!" << std::endl;
+        Logger << "[ShareNetClientData::ReadCompletionRoutine] closing!" << std::endl;
         pMe->Close();
         return;
         }
     
-    //std::cout << "[ShareNetClientData::ReadCompletionRoutine] got " 
+    //Logger << "[ShareNetClientData::ReadCompletionRoutine] got " 
               //<< dwNumberOfBytesTransfered << " bytes" << std::endl;
     // we got some data,
     // maintain the statistics and put it on the input buffer
@@ -360,12 +360,12 @@ bool ShareNetClientData::DoInputMaintenance(void)
     if(status)
         {
         // done: read in progress
-        //std::cout << "[ShareNetClientData::DoInputMaintenance] read started with status " << GetLastError() << std::endl;
+        //Logger << "[ShareNetClientData::DoInputMaintenance] read started with status " << GetLastError() << std::endl;
         return(true);
         }
     
     // close the socket
-    std::cout << "[ShareNetClientData::DoInputMaintenance] read failed to start with status " << GetLastError() << std::endl;
+    Logger << "[ShareNetClientData::DoInputMaintenance] read failed to start with status " << GetLastError() << std::endl;
     Close();
     
     // done
@@ -403,10 +403,10 @@ DWORD ShareNetClientData::Run(const bool& bContinue)
                     break;
                     
                 case WAIT_IO_COMPLETION:
-                    //std::cout << "[ShareNetClientData::Run] I/O Completion!" << std::endl;
+                    //Logger << "[ShareNetClientData::Run] I/O Completion!" << std::endl;
                 case WAIT_TIMEOUT:
                 default:
-                    //std::cout << "[ShareNetClientData::Run] relooping..." << std::endl;
+                    //Logger << "[ShareNetClientData::Run] relooping..." << std::endl;
                     break;
                 } // end switch wait result
             
@@ -416,7 +416,7 @@ DWORD ShareNetClientData::Run(const bool& bContinue)
                 {
                 // we must receive a "ping" (NULL message) every MaxPingAge seconds:
                 // we have not received that, so we close
-                std::cout << "[ShareNetClientData::Run] ping timeout, closing!\n";
+                Logger << "[ShareNetClientData::Run] ping timeout, closing!\n";
                 Close();
                 }
             

@@ -21,10 +21,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #pragma once
 
-// for mutex functions
-#include <windows.h>
-#include "locks.h"
-#include "signals.h"
+// we have to define NOMINMAX so that the stupid windows header files do 
+// not make macros out of min and max :-/
+#define NOMINMAX
+#include <winsock2.h>// for mutex functions
+#include "..\Utils\locks.h"
+#include "..\Utils\signals.h"
 
 namespace buffer_space
 {

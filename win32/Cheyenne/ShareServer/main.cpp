@@ -18,25 +18,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
 #define MAIN_FUNCTION
 
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
-
 #include "global.h"
 #include <commctrl.h>
 
 #include "sharenet.h"
 #include "central.h"
-
-// grab these for console output redirection
-// this makes std::cout (and other stuff) work for GUI applications :)
-#include <io.h>
-#include <fcntl.h>
-#include <conio.h>
-// end console output redirection includes
-
-void AttachConsole(void);
-void DetachConsole(void);
 
 int WINAPI WinMain
     (
@@ -48,12 +34,12 @@ int WINAPI WinMain
 {
     WPARAM result=-1;
 
+    Logger.Init("ShareServer.log");
+    
     // allocate a console for debug output
-    #ifdef CHEYENNE_DEBUG
     AttachConsole();
-    #endif
 
-    std::cout << "[main] Hi!\n";
+    LOG_FUNC << "Hi!\n";
     
     // init common controls
     {
@@ -87,51 +73,11 @@ int WINAPI WinMain
     // exit
     //Exit:
 
-    std::cout << "[main] Bye!\n";
+    LOG_FUNC << "Bye!\n";
 
     // free console
-    #ifdef CHEYENNE_DEBUG
     DetachConsole();
-    #endif
 
     // done
     return(result);
 } // end WinMain
-
-void AttachConsole(void)
-{
-    // code copied from Microsoft Knowledge Base Article - 105305
-    // and the silly article had an error in it (!)
-    int hCrt;
-    FILE *hf;
-
-    AllocConsole();
-    hCrt = _open_osfhandle((long) GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
-    hf = _fdopen( hCrt, "w" );
-    *stdout = *hf;
-    setvbuf( stdout, NULL, _IONBF, 0 );
-
-    // do it again for stdin
-    hCrt = _open_osfhandle((long) GetStdHandle(STD_INPUT_HANDLE),_O_TEXT);
-    hf = _fdopen( hCrt, "r" );
-    *stdin = *hf;
-    setvbuf( stdin, NULL, _IONBF, 0 );
-
-    // and again for stderr
-    hCrt = _open_osfhandle((long) GetStdHandle(STD_ERROR_HANDLE),_O_TEXT);
-    hf = _fdopen( hCrt, "w" );
-    *stderr = *hf;
-    setvbuf( stderr, NULL, _IONBF, 0 );
-
-    // done
-    return;
-} // end AtttachConsole
-
-void DetachConsole(void)
-{
-    // free the console
-    FreeConsole();
-
-    // done
-    return;
-} // end DetatchConsole

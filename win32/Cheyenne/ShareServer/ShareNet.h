@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #pragma once
 
 #include "threads.h"
-#include "locks.h"
+#include "..\Utils\locks.h"
 #include "buffer.h"
 
 const int max_clients=20;
@@ -92,7 +92,7 @@ public:
             // remote address is not allowed
             // close socket and return false
             closesocket(s);
-            std::cout << "[ShareNetClientData::Open] address \""
+            Logger << "[ShareNetClientData::Open] address \""
                    << GetRemoteAddr().sin_addr << "\""
                    << " is not in the allowed hosts list!\n";
             return(false);
@@ -267,7 +267,7 @@ private:
             else
                 {
                 // must have a valid remote address!
-                std::cout << "[ShareNetClientData::Open] unable to find remote address!\n";
+                Logger << "[ShareNetClientData::Open] unable to find remote address!\n";
                 return(false);
                 }
             }
@@ -293,7 +293,7 @@ private:
         if(err == SOCKET_ERROR)
             {
             closesocket(s);
-            std::cout << "[ShareNetClientData::Open] unable to bind to local address!\n";
+            Logger << "[ShareNetClientData::Open] unable to bind to local address!\n";
             return(false);
             }
 
@@ -303,7 +303,7 @@ private:
         if(err==SOCKET_ERROR)
             {
             closesocket(s);
-            std::cout << "[ShareNetClientData::Open] unable to bind to local address!\n";
+            Logger << "[ShareNetClientData::Open] unable to bind to local address!\n";
             return(false);
             }
 

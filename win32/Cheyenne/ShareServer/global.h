@@ -26,22 +26,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     #define EXTERN extern
 #endif
 
-#define DECL_MEMBER(type,name) \
-    public: \
-    inline const type & Get##name(void)const{return(m_##name);}; \
-    inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
-    private: \
-    inline type & Modify##name(void){return(m_##name);}; \
-    type m_##name;
-
-#define MEMBER_ASSIGN(name) \
-    Set##name(s.Get##name());
-
+// we have to define NOMINMAX so that the stupid windows header files do 
+// not make macros out of min and max :-/
+#define NOMINMAX
 #include <winsock2.h>
-#include <windows.h>
 #include <iostream>
 
-#include "times.h" // include for time definitions
+#include "..\Utils\CodeUtils.h"
+#include "..\Utils\Logger.h"
+#include "..\Utils\times.h" // include for time definitions
 #include "config.h" // include for config class
 
 // the clock
@@ -50,6 +43,10 @@ EXTERN CheyenneClock Clock;
 // the config
 EXTERN ShareNetConfig Config;
 
+// the logger
+EXTERN logger_t Logger;
+
+/*
 // helper operators
 inline std::ostream& operator<< (std::ostream& str,const struct in_addr& a)
 {
@@ -65,7 +62,5 @@ inline std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a)
     str << a.sin_addr << ":" << ntohs(a.sin_port);
     return(str);
 } // end operator<< (std::ostream& str,const SOCKADDR_IN& a)
-
-#define TYPED_CONTAINING_RECORD(address,type,field) \
-    (type*)CONTAINING_RECORD(address,type,field)
+*/
 #endif // GLOBAL_H
