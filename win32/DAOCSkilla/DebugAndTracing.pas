@@ -1,5 +1,15 @@
 unit DebugAndTracing;
 
+(****************************************************************************
+**
+** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation.
+**
+****************************************************************************)
+
 interface
 
 uses
@@ -63,7 +73,8 @@ type
     function GetMyCapFileName : string;
   public
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
-    procedure DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+    procedure DAOCAfterPacket(APacket: TDAOCPacket);
+    procedure DAOCPacket(APacket: TDAOCPacket);
     procedure DAOCZoneChange;
     procedure DAOCNewObject(AObj: TDAOCObject);
     procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
@@ -179,15 +190,12 @@ begin
   edtPlayback.Text := Value;
 end;
 
-procedure TfrmDebugging.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+procedure TfrmDebugging.DAOCAfterPacket(APacket: TDAOCPacket);
 var
   sProto:   string;
   sDirec:   string;
 //  kk:       TDAOCCryptKey;
 begin
-  if not FInPlayback and Assigned(FCaptureStream) then
-    APacket.SaveToStream(FCaptureStream);
-
   if chkDumpPackets.Checked then begin
     if APacket.IPProtocol = daocpTCP then
       sProto := 'TCP'
@@ -350,6 +358,12 @@ begin
   if Assigned(FDControl) and Assigned(FDControl.LocalPlayer) then
     for I := 0 to FDControl.LocalPlayer.Inventory.Count - 1 do
       DAOCDelveItem(nil, FDControl.LocalPlayer.Inventory[I]);
+end;
+
+procedure TfrmDebugging.DAOCPacket(APacket: TDAOCPacket);
+begin
+  if not FInPlayback and Assigned(FCaptureStream) then
+    APacket.SaveToStream(FCaptureStream);
 end;
 
 end.
