@@ -855,20 +855,24 @@ var
 begin
   if FRegionID = ARegion then
     exit;
-    
+
   FGroundTarget.Clear;
 
   FRegionID := ARegion;
 
   if FLocalPlayer.Name <> '' then begin
     pAcctChar := FAccountCharacters.FindOrAddChar(FLocalPlayer.Name);
-    if Assigned(pAcctChar) then
-      pAcctChar.FRegionID := FRegionID;
+    pAcctChar.FRegionID := FRegionID;
+      { if we've got a blank acctchar, fill the values from the local player
+        this is probably because we resumed connection }
+    if pAcctChar.Level = 0 then
+      pAcctChar.FLevel := FLocalPlayer.Level;
+    if pAcctChar.Realm = drNeutral then
+      pAcctChar.FRealm := FLocalPlayer.Realm;
   end;
 
   FMasterVendorList.Clear;
   ClearDAOCObjectList;
-  FDAOCObjsStale.Clear;  // we can just clear because we have notified
 
   if Assigned(FOnRegionChanged) then
     FOnRegionChanged(Self);
@@ -1285,7 +1289,7 @@ begin
           Guild := pPacket.getPascalString;
           LastName := pPacket.getPascalString;
 
-          IsInGuild := AnsiSameText(Guild, FLocalPlayer.Guild);
+          IsInGuild := (FLocalPlayer.Guild <> '') and AnsiSameText(Guild, FLocalPlayer.Guild);
         end;  { with TDAOCPlayer }
       end;  { ocPlayer }
 
@@ -1305,6 +1309,7 @@ begin
             Name := pPacket.getPascalString;
           end;  { with TDAOCVehicle }
         end;  { ocVehicle }
+
     else
       tmpObject := nil;
   end;  { case AClass }
@@ -1686,7 +1691,7 @@ begin
   pObj := FDAOCObjs.Head;
     { make sure nobody still has this poor fella as a target }
   while Assigned(pObj) do begin
-    if (pObj is TDAOCMovingObject) and
+    if (pObj is TDAOCMob) and
       (TDAOCMob(pObj).Target = AObject) then begin
       TDAOCMob(pObj).Target := nil;
       DoOnMobTargetChanged(TDAOCMob(pObj));
@@ -1986,6 +1991,8 @@ begin
     DoOnDeleteDAOCObject(pDAOCObject);
     pDAOCObject := FDAOCObjs.Delete(pDAOCObject);
   end;
+
+  FDAOCObjsStale.Clear;  // we can just clear because we have notified
 end;
 
 procedure TDAOCConnection.CheckObjectsOutOfRange;
@@ -2153,6 +2160,8 @@ begin
 
   FTCPFromClient.Clear;
   FTCPFromServer.Clear;
+
+  FAccountCharacters.Clear;
 end;
 
 procedure TDAOCConnection.SaveConnectionState(const AFileName: string);
@@ -2212,7 +2221,8 @@ begin
   pObj := FDAOCObjs.Head;
   while Assigned(pObj) do begin
     if pObj.ObjectClass = ocPlayer then
-      TDAOCPlayer(pObj).IsInGuild := AnsiSameText(TDAOCPlayer(pObj).Guild, FLocalPlayer.Guild);
+      TDAOCPlayer(pObj).IsInGuild := (FLocalPlayer.Guild <> '') and
+        AnsiSameText(TDAOCPlayer(pObj).Guild, FLocalPlayer.Guild);
     pObj := pObj.Next;
   end;
 end;
