@@ -82,6 +82,7 @@ int main( int argc, char ** argv )
     options.insert("--realtime",&realtime);
     options.insert("--capture",&capture);
 
+    options.insert("--mobseen",&prefs.dump_mobseen);
     options.insert("--druppy-leak",&prefs.druppy_leak);
 
     QApplication a( argc, argv );
@@ -109,6 +110,7 @@ int main( int argc, char ** argv )
       printf ("  --realtime      Set the network thread realtime.\n\n");
       printf ("  --druppy-leak   Enable Druppy's message parsing code..\n"); 
       printf ("                  * NOTE: It's a massive memory leak!!!\n\n");
+      printf ("  --mobseen       Dump a mob description to stdout when seen\n");
       qFatal ("Please run '%s' again, without the --help switch.", argv[0]);
     }
 

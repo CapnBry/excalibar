@@ -81,6 +81,7 @@ public:
   bool MobListColors;
   bool sticky_list;
   bool select_target;
+  bool dump_mobseen;
 
   int win_width;
   int win_height;
