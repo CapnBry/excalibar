@@ -69,7 +69,6 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);
     frm->vaderWarn->setOn(vaderWarn);
-printf("vw: %d\n", vaderWarn);
   }
   frm->Map->makeObjects(map_simple);
   frm->Map->dirty();
