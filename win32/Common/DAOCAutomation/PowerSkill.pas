@@ -52,6 +52,7 @@ type
     FAutoStartProgression: boolean;
     FAutoDeselectMerchant: boolean;
     FAutoQuickbarSlot: integer;
+    FMerchantName: string;
 
     function GetItems(Index: integer): TPowerSkillItemDef;
     procedure SetIncludeRecipes(const ARecipeWildcard: string);
@@ -74,6 +75,7 @@ type
     property SkillName: string read FSkillName;
     property ForgeNodeName: string read FForgeNodeName;
     property MerchantNodeName: string read FMerchantNodeName;
+    property MerchantName: string read FMerchantName;
     property RecipeSkillName: string read FRecipeSkillName;
     property RecipeRealm: TCraftRealm read FRecipeRealm;
     property HowOrange: integer read FHowOrange;
@@ -236,6 +238,7 @@ begin
     FAutoStartProgression := ReadBool('Main', 'AutoStartProgression', true);
     FAutoDeselectMerchant := ReadBool('Main', 'AutoDeselectMerchant', true);
     FAutoQuickbarSlot := ReadInteger('Main', 'AutoQuickbarSlot', 2);
+    FMerchantName := ReadString('Main', 'MerchantName', '');
     Free;
   end;  { with INI }
 
