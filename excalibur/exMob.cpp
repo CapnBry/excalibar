@@ -159,7 +159,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
 		{
 		this->isKnown = true;
-		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d\n", name.ascii(), getLevel());
+		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d, Distance: %f\n", name.ascii(), getLevel(), playerDist());
 		c->ex->statusBar()->message( QString( "*** INVADER DETECTED *** Name: %1, Level: %2, Distance: %3").arg( name).arg(level).arg(playerDist()), 10000);
 		qApp->beep();
 		}
