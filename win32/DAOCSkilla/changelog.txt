@@ -1,3 +1,28 @@
+2003 Oct 02 - v1.48
+-------------------
+  + Fix for unknown objects never going away.  Now stale 20s-30s.
+  + Moved hit points to DAOCObject, since doors are objects and they
+    have hitpoints. 
+  + MobUpdate now parses HitPoints for DAOCObjects.
+  + Mobs over level 127 don't exist.  Fix for the 0x80 bit being set.
+  + Mobs now go stale 20s-40s.
+  + No longer will crash on startup if OpenGL 1.3 is not available.
+  + Background map option now grayed if there is no OpenGL 1.3.
+  + Added support for /mbuy in PowerSkill Buy.
+  + Fixed access violation when PowerSkill Buy completed buying.
+    Also almost mythiced out and left same bug in the inventory change
+    handler.  But I didn't, so:
+  + Fixed access violation when the PowerSkill Buy window was open
+    and inventory changed.
+  + Removed saving of MapBaseURL from RenderPrefs dialog.
+  + Fixed RenderPrefs not saving if Excal window was auto-closed.
+  + Stale object list now cleared on region change should prevent
+    problems with stale objects coming back as the wrong thing.
+  + AFK message window now dialog style.
+  + MacroScript window now dialog style.
+  + Macroing button no longer appears unless EnableMacroing is on.
+  + Documentation now included (gasp).
+
 2003 Oct 01 - v1.47
 -------------------
   + Added support for vehicle object class.
