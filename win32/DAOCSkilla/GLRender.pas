@@ -107,6 +107,7 @@ type
     FMaxTXFTextWidth:   integer;
     //FHudConFlag:  TGLHudConFlag;
     FDAOCConnectionList: TDAOCConnectionList;
+    FPrefsLoaded: boolean;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -134,6 +135,8 @@ type
     procedure DrawUnknownStealthers;
     procedure DrawNoConnection;
 
+    procedure LoadSettings;
+    procedure SaveSettings;
     procedure Log(const s: string);
     procedure RefreshFilteredList;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
@@ -435,22 +438,8 @@ end;
 
 procedure TfrmGLRender.FormShow(Sender: TObject);
 begin
-  if FPrefsFile <> '' then begin
-    FRenderPrefs.LoadSettings(FPrefsFile);
-    FRangeCircles.LoadFromFile(FPrefsFile);
-    Left := FRenderPrefs.Left;
-    Top := FRenderPrefs.Top;
-    Width := FRenderPrefs.Width;
-    Height := FRenderPrefs.Height;
-    FRange := FRenderPrefs.Range;
-    slideZoom.Position := FRange;
-    UpdateStayOnTop;
-
-    FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
-    FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
-  end
-  else
-    slideZoomChange(Self);
+  LoadSettings;
+  UpdateStayOnTop;
 end;
 
 procedure TfrmGLRender.Log(const s: string);
@@ -936,9 +925,6 @@ begin
 
   FZoneName := FCurrConn.Zone.Name;
 
-  { BRY:  We really need to select the GL context here, but I don't because
-    glWindow doesn't have a function to activate its context and we'll just
-    see if this works }
   UpdateMapURLs;
   ReloadMapElementsAndTextures;
 
@@ -1402,19 +1388,7 @@ end;
 
 procedure TfrmGLRender.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if FPrefsFile <> '' then begin
-    FRenderPrefs.Left := Left;
-    FRenderPrefs.Top := Top;
-    FRenderPrefs.Width := Width;
-    FRenderPrefs.Height := Height;
-    FRenderPrefs.Range := FRange;
-      { turn off attempt download if continuous failure }
-    FRenderPrefs.AttemptMapDownload := FRenderPrefs.AttemptMapDownload and
-      FMapTexturesListList.AttemptDownload and FMapElementsListList.AttemptDownload;
-
-    FRenderPrefs.SaveSettings(FPrefsFile);
-    FRangeCircles.SaveToFile(FPrefsFile);
-  end;
+  SaveSettings;
 end;
 
 function TfrmGLRender.FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
@@ -2317,8 +2291,14 @@ begin
     RefreshFilteredList;
     tmrMinFPS.Enabled := true;
   end
-  else
+
+    { no connection.  Clean up }
+  else begin
+    FFilteredObjects.Clear;
+    SetObjectListRowCount(0);
+    UpdateObjectCounts;
     tmrMinFPS.Enabled := false;
+  end;
 
   Dirty;
 end;
@@ -2352,6 +2332,8 @@ end;
 
 procedure TfrmGLRender.DAOCDisconnect(Sender: TObject);
 begin
+  SaveSettings;
+  
   if FCurrConn = Sender then
     AutoSelectConnection;
   UpdateCaption;
@@ -2359,6 +2341,8 @@ end;
 
 procedure TfrmGLRender.DAOCConnect(Sender: TObject);
 begin
+  LoadSettings;
+  
   if not Assigned(FCurrConn) then
     AutoSelectConnection;
   UpdateCaption;
@@ -2395,6 +2379,43 @@ begin
     sCaption := sCaption + ', '  + IntToStr(FDAOCConnectionList.ActiveCount) +
       ' active connections (F11 to toggle)';
   Caption := sCaption;
+end;
+
+procedure TfrmGLRender.LoadSettings;
+begin
+  if not FPrefsLoaded and (FPrefsFile <> '') then begin
+    FRenderPrefs.LoadSettings(FPrefsFile);
+    FRangeCircles.LoadFromFile(FPrefsFile);
+    Left := FRenderPrefs.Left;
+    Top := FRenderPrefs.Top;
+    Width := FRenderPrefs.Width;
+    Height := FRenderPrefs.Height;
+    FRange := FRenderPrefs.Range;
+    slideZoom.Position := FRange;
+
+    FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+    FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+    FPrefsLoaded := true;
+  end
+  else
+    slideZoomChange(Self);
+end;
+
+procedure TfrmGLRender.SaveSettings;
+begin
+  if FPrefsFile <> '' then begin
+    FRenderPrefs.Left := Left;
+    FRenderPrefs.Top := Top;
+    FRenderPrefs.Width := Width;
+    FRenderPrefs.Height := Height;
+    FRenderPrefs.Range := FRange;
+      { turn off attempt download if continuous failure }
+    FRenderPrefs.AttemptMapDownload := FRenderPrefs.AttemptMapDownload and
+      FMapTexturesListList.AttemptDownload and FMapElementsListList.AttemptDownload;
+
+    FRenderPrefs.SaveSettings(FPrefsFile);
+    FRangeCircles.SaveToFile(FPrefsFile);
+  end;
 end;
 
 end.

@@ -250,7 +250,7 @@ var
   pConn:  TDAOCControl;
 begin
   atnDumpMobList.Enabled := true;
-  
+
   pConn := TDAOCControl(Sender);
   Log('New connection: ' + pConn.ClientIP + '->' + pConn.ServerIP);
 
@@ -268,7 +268,6 @@ begin
   atnDumpMobList.Enabled := FDControlList.Count > 0;
 
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCConnectionList := FDControlList;
   if atnAutoLaunchRadar.Checked then
     frmGLRender.Close;
   frmGLRender.DAOCDisconnect(Sender);
@@ -343,8 +342,13 @@ begin
 
   FDStreamClients.OpenAll;
 
-  // dmdRemoteAdmin.DAOCControl := FConnection;
+  dmdRemoteAdmin.DAOCControlList := FDControlList;
   dmdRemoteAdmin.Enabled := atnRemoteAdminEnable.Checked;
+
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCConnectionList := FDControlList;
+  frmGLRender.PrefsFile := GetConfigFileName;
+{$ENDIF OPENGL_RENDERER}
 
   if not FileExists(FDAOCPath + 'gamedata.mpk') then
     if MessageDlg('Your DAoC path is not set correctly.'#13 +
@@ -630,8 +634,6 @@ end;
 procedure TfrmMain.ShowGLRenderer;
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCConnectionList := FDControlList;
-  frmGLRender.PrefsFile := GetConfigFileName;
   frmGLRender.Show;
 {$ENDIF OPENGL_RENDERER}
 end;
