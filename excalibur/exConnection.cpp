@@ -191,6 +191,10 @@ void exConnection::replaytimer()
             delay = 1000;
 	timer.start(delay, TRUE);
     }
+    else  {
+        nextpacket = NULL;
+        timer.start(500, TRUE);
+    }
 }
 
 void exConnection::replay()
@@ -333,7 +337,7 @@ void exConnection::processPacket(exPacket * p)
               z = playerz;
 
               ex->xyzstatus->setText(QString("%1, %2, %3").arg(x).arg(y).arg(z));
-              ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
+              ex->Zone->setText((mi) ? mi->getZoneName() : QString("Region %1").arg(playerzone));
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
