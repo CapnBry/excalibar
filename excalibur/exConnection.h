@@ -44,6 +44,7 @@ class exConnection;
 #include "exPrefs.h"
 #include "exLink.h"
 #include "exFilter.h"
+#include "exMessage.h"
 #include "messages.h"
 
 class exConnection : public QObject {

@@ -37,7 +37,7 @@ exMessage::exMessage(QString newMsg, uint8_t opCode, uint8_t typeCode)
 
 exMessage::~exMessage()
 {
-	if( NULL !=- this->Msg)
+	if( NULL != this->Msg)
 		delete this->Msg;
 }
 

@@ -18,8 +18,6 @@
  *
  */
 
-class exMessage;
-
 #ifndef __EX_MSG_H__
 #define __EX_MSG_H_
 

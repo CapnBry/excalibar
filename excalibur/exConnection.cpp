@@ -37,7 +37,6 @@
 #include <math.h>
 #include <qmessagebox.h>
 #include "exConnection.h"
-#include "exMessage.h"
 #include "exItem.h"
 
 exConnection::exConnection(exNet * s, bool dolink, bool docapture)
