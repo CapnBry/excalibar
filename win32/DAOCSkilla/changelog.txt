@@ -1,11 +1,11 @@
+2003 Sep 22 - v1.39
+-------------------
   + Fix for mobs which have a destination when they pop in gray
     then lose it once we get the rest of their information.
   + Mobs with speed and no destination are now properly updated
     on the first tick.
   + Added a rendering "view frustum" which approximates what
   	is visible in the DAOC renderer (first person perspective)
-  + Added an aggro indicator line to show who a mob is aggroing
-    (doesn't always work)
 
 2003 Sep 20 - v1.38
 -------------------
