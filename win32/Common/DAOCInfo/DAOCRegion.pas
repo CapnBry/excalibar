@@ -43,6 +43,7 @@ type
 
     procedure MapNameToName;
     procedure NameToMapName;
+    function GetMapZoneNum: integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -66,6 +67,7 @@ type
     property Rotate: integer read FRotate;
     property Name: string read FName;
     property MapName: string read FMapName;
+    property MapZoneNum: integer read GetMapZoneNum;
     property ProxyZone: integer read FProxyZone;
   end;
 
@@ -209,6 +211,14 @@ begin
     FMapName := Format('zone%3.3d.map', [FProxyZone])
   else
     FMapName := Format('zone%3.3d.map', [FZoneNum]);
+end;
+
+function TDAOCZoneInfo.GetMapZoneNum: integer;
+begin
+  if FProxyZone <> 0 then
+    Result := FProxyZone
+  else
+    Result := FZoneNum;
 end;
 
 { TDAOCZoneInfoList }
