@@ -7,7 +7,7 @@ uses
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
   Recipes, IdTCPServer, IdBaseComponent, IdComponent, IdTCPConnection,
-  IdTCPClient, QuickLaunchChars;
+  IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI;
 
 type
   TfrmMain = class(TForm)
@@ -30,6 +30,9 @@ type
     btnLogin: TBitBtn;
     chkTrackLogins: TCheckBox;
     btnDeleteChar: TBitBtn;
+    lblUpdates: TLabel;
+    tmrUpdateCheck: TTimer;
+    httpUpdateChecker: TIdHTTP;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -51,15 +54,20 @@ type
     procedure btnDeleteCharClick(Sender: TObject);
     procedure btnLoginClick(Sender: TObject);
     procedure cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
+    procedure tcpCollectorServerConnect(AThread: TIdPeerThread);
+    procedure tcpCollectorServerDisconnect(AThread: TIdPeerThread);
+    procedure tmrUpdateCheckTimer(Sender: TObject);
+    procedure lblUpdatesClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
     FChatLog:       TFileStream;
     FClosing:       boolean;
-    FProcessPackets:  boolean;
+    FCheckForUpdates:   boolean;
+    FLastUpdateCheck:   TDateTime;
+    FProcessPackets:    boolean;
     FSegmentFromCollector:    TEthernetSegment;
-    FQuickLaunchChars:        TQuickLaunchCharList;
 
     procedure LoadSettings;
     procedure SaveSettings;
@@ -217,9 +225,6 @@ begin
   FPReader.OnEthernetSegment := EthernetSegment;
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
 
-  FQuickLaunchChars := TQuickLaunchCharList.Create;
-  FQuickLaunchChars.ServerNameFile := ExtractFilePath(ParamStr(0)) + 'servers.ini';
-
   FProcessPackets := true;
 
 {$IFNDEF OPENGL_RENDERER}
@@ -232,7 +237,6 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  FQuickLaunchChars.Free;
   FPReader.Free;
   CloseChatLog;
 end;
@@ -308,7 +312,7 @@ begin
   FConnection.OnPingReply := DAOCPingReply;
   FConnection.OnCharacterLogin := DAOCCharacterLogin;
 
-  Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
+  Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
@@ -318,6 +322,8 @@ begin
   frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
   LoadSettings;
   dmdRemoteAdmin.DAOCControl := FConnection;
+  Log('Remote control telnet server open on port ' +
+    IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
 
   FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
   if frmConnectionConfig.SniffPackets then
@@ -345,7 +351,7 @@ end;
 
 procedure TfrmMain.LoadSettings;
 begin
-  FQuickLaunchChars.LoadFromFile(GetConfigFileName);
+  FConnection.QuickLaunchChars.LoadFromFile(GetConfigFileName);
   
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
@@ -360,6 +366,8 @@ begin
     edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
     btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     chkTrackLogins.Checked := ReadBool('Main', 'TrackLogins', true);
+    FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
+    FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
@@ -414,7 +422,7 @@ end;
 
 procedure TfrmMain.SaveSettings;
 begin
-  FQuickLaunchChars.SaveToFile(GetConfigFileName);
+  FConnection.QuickLaunchChars.SaveToFile(GetConfigFileName);
 
   with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
@@ -423,6 +431,7 @@ begin
     WriteBool('Main', 'RealtimeChatLog', chkChatLog.Checked);
     WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
     WriteBool('Main', 'TrackLogins', chkTrackLogins.Checked);
+    WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
 
@@ -924,16 +933,12 @@ end;
 
 procedure TfrmMain.DAOCCharacterLogin(ASender: TObject);
 begin
-  if chkTrackLogins.Checked then begin
-    FQuickLaunchChars.AddOrUpdateChar(
-      FConnection.AccountCharacterList.AccountName,
-      FConnection.AccountCharacterList.AccountPassword,
-      FConnection.AccountCharacterList.ServerName,
-      FConnection.LocalPlayer.Name,
-      ord(FConnection.LocalPlayer.Realm),
-      FConnection.ServerAddr);
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCCharacterLogin;
+{$ENDIF OPENGL_RENDERER}
+
+  if chkTrackLogins.Checked then 
     UpdateQuickLaunchList;
-  end;
 end;
 
 procedure TfrmMain.UpdateQuickLaunchList;
@@ -941,10 +946,9 @@ var
   I:    integer;
 begin
   cbxAutoLogin.Clear;
-  for I := 0 to FQuickLaunchChars.Count - 1 do
-    cbxAutoLogin.Items.AddObject(Format('%s (%s)', [
-      FQuickLaunchChars[I].Name, FQuickLaunchChars[I].Server]),
-      FQuickLaunchChars[I]);
+  for I := 0 to FConnection.QuickLaunchChars.Count - 1 do
+    with FConnection do
+      cbxAutoLogin.Items.AddObject(QuickLaunchChars[I].DisplayName, QuickLaunchChars[I]);
 
   if cbxAutoLogin.Items.Count > 0 then begin
     cbxAutoLogin.ItemIndex := 0;
@@ -959,53 +963,15 @@ end;
 
 procedure TfrmMain.btnDeleteCharClick(Sender: TObject);
 begin
-  if cbxAutoLogin.ItemIndex < FQuickLaunchChars.Count then begin
-    FQuickLaunchChars.Delete(cbxAutoLogin.ItemIndex);
+  if cbxAutoLogin.ItemIndex < FConnection.QuickLaunchChars.Count then begin
+    FConnection.QuickLaunchChars.Delete(cbxAutoLogin.ItemIndex);
     UpdateQuickLaunchList;
   end;
 end;
 
 procedure TfrmMain.btnLoginClick(Sender: TObject);
-var
-  sDLL:       string;
-  sCmdLine:   string;
-  pi:   TProcessInformation;
-  si:   TStartupInfo;
-  pLogin: TQuickLaunchChar;
-  sLastDir:   string;
 begin
-  if cbxAutoLogin.ItemIndex >= FQuickLaunchChars.Count then
-    exit;
-
-  sLastDir := GetCurrentDir;
-  if not SetCurrentDir(FConnection.DAOCPath) then
-    exit;
-
-  try
-    pLogin := FQuickLaunchChars[cbxAutoLogin.ItemIndex];
-    if (pLogin.ServerAddr = $3210FED0) then  // Pendragon
-      sDLL := 'tgame.dll'
-    else
-      sDLL := 'game.dll';
-
-    sCmdLine := Format('%s %s 10622 %s %s %s %d', [sDLL,
-      pLogin.ServerIP, pLogin.Account, pLogin.Password, pLogin.Name, pLogin.Realm]);
-
-    FillChar(si, sizeof(si), 0);
-    si.cb := sizeof(si);
-    FillChar(pi, sizeof(pi), 0);
-    if not CreateProcess(nil, PChar(sCmdLine),
-      nil, nil, false, CREATE_SUSPENDED, nil, nil, si, pi) then begin
-      MessageBox(0, PChar('Error ' + IntToStr(GetLastError) + ' launching'), 'QuickLaunch', MB_OK);
-      exit;
-    end;
-
-    ResumeThread(pi.hThread);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-  finally
-    SetCurrentDir(sLastDir);
-  end;
+  FConnection.LaunchCharacterIdx(cbxAutoLogin.ItemIndex);
 end;
 
 procedure TfrmMain.cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
@@ -1014,6 +980,47 @@ begin
     Key := #0;
     btnLoginClick(nil);
   end;
+end;
+
+procedure TfrmMain.tcpCollectorServerConnect(AThread: TIdPeerThread);
+begin
+  Log('Remote sniffer connected');
+end;
+
+procedure TfrmMain.tcpCollectorServerDisconnect(AThread: TIdPeerThread);
+begin
+  Log('Remote sniffer disconnected');
+end;
+
+procedure TfrmMain.tmrUpdateCheckTimer(Sender: TObject);
+var
+  sVer:   string;
+begin
+  tmrUpdateCheck.Enabled := false;
+  if not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7) then  
+    exit;
+
+  FLastUpdateCheck := Now;
+  
+  lblUpdates.Caption := 'Checking for updates...';
+  lblUpdates.Visible := true;
+  lblUpdates.Update;
+
+  try
+    sVer := httpUpdateChecker.Get('http://capnbry.net/daoc/daocskilla.ver');
+    if sVer <> GetVersionString then
+      lblUpdates.Caption := 'Latest version is ' + sVer
+    else
+      lblUpdates.Visible := false;
+  except
+    lblUpdates.Visible := false;
+  end;
+end;
+
+procedure TfrmMain.lblUpdatesClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', 'http://capnbry.net/daoc/daocskilla.php', nil, nil, SW_SHOWNORMAL);
+  lblUpdates.Visible := false;
 end;
 
 end.

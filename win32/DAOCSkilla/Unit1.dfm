@@ -19,7 +19,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    304)
+    297)
   PixelsPerInch = 96
   TextHeight = 13
   object lblServerPing: TLabel
@@ -55,6 +55,23 @@ object frmMain: TfrmMain
       'end your data to.  You must select an adapter before starting DA' +
       'oC.'
     WordWrap = True
+  end
+  object lblUpdates: TLabel
+    Left = 344
+    Top = 16
+    Width = 154
+    Height = 13
+    Alignment = taRightJustify
+    AutoSize = False
+    Caption = 'lblUpdates'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlue
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Visible = False
+    OnClick = lblUpdatesClick
   end
   object btnLogin: TBitBtn
     Left = 368
@@ -226,7 +243,6 @@ object frmMain: TfrmMain
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
-    MaxLineAction = maException
     OnDisconnected = tcpCollectorClientDisconnected
     Host = '127.0.0.1'
     Port = 9867
@@ -236,21 +252,32 @@ object frmMain: TfrmMain
   object tcpCollectorServer: TIdTCPServer
     OnStatus = tcpCollectorServerStatus
     Bindings = <>
-    CommandHandlers = <>
     DefaultPort = 9867
-    Greeting.NumericCode = 0
-    MaxConnectionReply.NumericCode = 0
+    OnConnect = tcpCollectorServerConnect
     OnExecute = tcpCollectorServerExecute
-    ReplyExceptionCode = 0
-    ReplyTexts = <>
-    ReplyUnknownCommand.NumericCode = 0
+    OnDisconnect = tcpCollectorServerDisconnect
     Left = 224
     Top = 104
   end
   object tmrReconnect: TTimer
     Enabled = False
     OnTimer = tmrReconnectTimer
-    Left = 288
+    Left = 224
+    Top = 72
+  end
+  object tmrUpdateCheck: TTimer
+    OnTimer = tmrUpdateCheckTimer
+    Left = 256
+    Top = 72
+  end
+  object httpUpdateChecker: TIdHTTP
+    Request.Accept = 'text/html, */*'
+    Request.ContentLength = -1
+    Request.ContentRangeEnd = 0
+    Request.ContentRangeStart = 0
+    Request.ProxyPort = 0
+    Request.UserAgent = 'Mozilla/3.0 (compatible; DaocSkilla)'
+    Left = 284
     Top = 104
   end
 end
