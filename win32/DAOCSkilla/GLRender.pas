@@ -935,8 +935,10 @@ var
 begin
   cl := RealmColor(ADAOCObject.Realm);
 
-  if ADAOCObject.IsInGroup or ADAOCObject.IsInGuild then
-    fSize :=  FMobTriangle.Size * 1.75
+  if ADAOCObject.IsInGroup or ADAOCObject.IsInGuild then begin
+    fSize :=  FMobTriangle.Size * 1.75;
+    glShadeModel(GL_SMOOTH);
+  end
   else
     fSize :=  FMobTriangle.Size * 1.33;
 
@@ -949,8 +951,6 @@ begin
     SetGLColorFromTColor(cl, fAlphaMax * ADAOCObject.LiveDataConfidencePct);
   end;
 
-  glShadeModel(GL_SMOOTH);
-  
   glBegin(GL_TRIANGLES);
     glNormal3f(0, 0, 1);
     glVertex3F(0, 2 * fSize, 0);
