@@ -1,6 +1,10 @@
 Teerex (29/Jul/02)
 ------------------
  + Fixed gcc 2.95 compile error in guild tag printing.
+ + Added some to code to initialized some variables in connection,
+   map, mob, and global timer that weren't initialized.
+ + Fixed mismached malloc / delete [] in isNvidiaModuleLoaded() which
+   was freeing an invalid memory region.
 
 Teerex (25/Jul/02)
 ------------------
