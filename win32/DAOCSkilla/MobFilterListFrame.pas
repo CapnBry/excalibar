@@ -387,8 +387,8 @@ begin
     if FMobFilterList[Index].Alert = '' then
       s := '(none)'
     else begin
-      s := Format('%.16s', [FMobFilterList[Index].Alert]);
-      if length(FMobFilterList[Index].Alert) > 5 then
+      s := copy(FMobFilterList[Index].Alert, 1, 16);
+      if Length(FMobFilterList[Index].Alert) > 16 then
         s := s + '...';
     end;
 
