@@ -4,12 +4,13 @@ interface
 
 uses
   Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, GLUT,
-  DDSImage, Intersections, QuickSinCos;
+  DDSImage, Intersections, QuickSinCos, INIFiles;
 
 type
   TGLRenderObject = class(TObject)
   private
   protected
+    FInitialized:   boolean;
     FColor:   TColor;
     FName:    string;
     FOffsetY: integer;
@@ -44,13 +45,14 @@ type
     FRange:       integer;
     FSmoothness:  integer;
     procedure SetSmoothness(const Value: integer);
+    procedure SetRange(const Value: integer);
   public
     constructor Create; override;
     constructor CreateRange(ARange, ASmoothness: integer);
 
     procedure GLInitialize; override;
 
-    property Range: integer read FRange write FRange;
+    property Range: integer read FRange write SetRange;
     property Smoothness: integer read FSmoothness write SetSmoothness;
   end;
 
@@ -58,6 +60,8 @@ type
   private
     FList:  TObjectList;
     function GetItems(I: integer): TRangeCircle;
+    function GetCount: integer;
+    procedure CreateDefaultRangeCircles;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -66,8 +70,12 @@ type
     procedure GLRender(const ARenderBounds: TRect); override;
     procedure GLCleanup; override;
 
+    procedure SaveToFile(const AFileName: string);
+    procedure LoadFromFile(const AFileName: string);
     procedure Add(ACircle: TRangeCircle);
+    procedure Delete(AIndex: integer);
     property Items[I: integer]: TRangeCircle read GetItems; default;
+    property Count: integer read GetCount;
   end;
 
   TMapElementPoint = class(TGLRenderObject)
@@ -311,10 +319,15 @@ begin
   glEndList;
 end;
 
+procedure TRangeCircle.SetRange(const Value: integer);
+begin
+  FRange := Value;
+end;
+
 procedure TRangeCircle.SetSmoothness(const Value: integer);
 begin
-  if 360 mod Value <> 0 then
-    raise Exception.Create('Range Cicle smoothness must divide 360 evenly'); 
+//  if 360 mod Value <> 0 then
+//    raise Exception.Create('Range Cicle smoothness must divide 360 evenly'); 
   FSmoothness := Value;
 end;
 
@@ -331,10 +344,36 @@ begin
   FList := TObjectList.Create;
 end;
 
+procedure TRangeCircleList.CreateDefaultRangeCircles;
+var
+  rngCircle:  TRangeCircle;
+begin
+  rngCircle := TRangeCircle.CreateRange(500, 24);
+  rngCircle.Color := clRed;
+  Add(rngCircle);
+  rngCircle := TRangeCircle.CreateRange(1500, 24);
+  rngCircle.Color := clLime;
+  Add(rngCircle);
+  rngCircle := TRangeCircle.CreateRange(6000, 40);
+  rngCircle.Color := clGray;
+  Add(rngCircle);
+end;
+
+procedure TRangeCircleList.Delete(AIndex: integer);
+{ Delete from the list and free the circle  }
+begin
+  FList.Delete(AIndex);
+end;
+
 destructor TRangeCircleList.Destroy;
 begin
   FList.Free;
   inherited;
+end;
+
+function TRangeCircleList.GetCount: integer;
+begin
+  Result := FList.Count;
 end;
 
 function TRangeCircleList.GetItems(I: integer): TRangeCircle;
@@ -373,6 +412,53 @@ begin
     Items[I].GLRender(ARenderBounds);
 end;
 
+procedure TRangeCircleList.LoadFromFile(const AFileName: string);
+var
+  I:        integer;
+  iCount:   integer;
+  pCircle:  TRangeCircle;
+begin
+  FList.Clear;
+  with TINIFile.Create(AFileName) do begin
+    iCount := ReadInteger('RangeCircles', 'Count', 0);
+    if iCount = 0 then
+      CreateDefaultRangeCircles
+    else begin
+      for I := 0 to iCount - 1 do begin
+        pCircle := TRangeCircle.CreateRange(
+          ReadInteger('RangeCircles', 'Range' + IntToStr(I), 0),
+          ReadInteger('RangeCircles', 'Smoothness' + IntToStr(I), 2)
+        );
+        pCircle.Color := TColor(ReadInteger('RangeCircles', 'Color' + IntToStr(I), integer(clWhite)));
+        if pCircle.Range > 0 then
+          Add(pCircle)
+        else
+          pCircle.Free;
+      end;  { for I to count }
+    end;  { if count > 0 }
+
+    Free;
+  end;  { with INI }
+end;
+
+procedure TRangeCircleList.SaveToFile(const AFileName: string);
+var
+  I:    integer;
+begin
+  with TINIFile.Create(AFileName) do begin
+    EraseSection('RangeCircles');
+    WriteInteger('RangeCircles', 'Count', Count);
+    for I := 0 to Count - 1 do
+      with Items[I] do begin
+        WriteInteger('RangeCircles', 'Range' + IntToStr(I), Range);
+        WriteInteger('RangeCircles', 'Smoothness' + IntToStr(I), Smoothness);
+        WriteInteger('RangeCircles', 'Color' + IntToStr(I), integer(Color));
+      end;  { for I / with }
+
+    Free;
+  end;  { with INI }
+end;
+
 { TGLRenderObject }
 
 constructor TGLRenderObject.Create;
@@ -383,16 +469,19 @@ end;
 
 procedure TGLRenderObject.GLCleanup;
 begin
-;
+  FInitialized := false;
 end;
 
 procedure TGLRenderObject.GLInitialize;
 begin
-;
+  FInitialized := true;
 end;
 
 procedure TGLRenderObject.GLRender(const ARenderBounds: TRect);
 begin
+  if not FInitialized then
+    GLInitialize;
+    
   if FUseColor then
     SetGLColorFromTColor(FColor, 1);
 end;
