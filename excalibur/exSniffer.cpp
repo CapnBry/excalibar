@@ -190,13 +190,9 @@ exPacket *exTCP::grab(bool serv, exTimeType basetick) {
   return p;
 }
 
-
-exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
-  const char *d;
-  const char *dataptr;
-  struct tcphdr *tcp;
-
-#ifdef __FreeBSD__
+/*
+ old fr
+ BSD
   d = tcppacket->data();
   tcp = (struct tcphdr *) (d+sizeof(struct ip));
   dataptr = (const char *)tcp;
@@ -204,8 +200,7 @@ exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
   from=(ntohl(tcp->th_seq) - baseseq);
   dlen=tcppacket->size() - (dataptr - d);
   data.duplicate(dataptr,dlen);
-#else
-  /*
+ Linux
   d = tcppacket->data();
   tcp = (struct tcphdr *) (d+sizeof(struct iphdr));
   dataptr = (const char *)tcp;
@@ -214,29 +209,49 @@ exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
   dlen=tcppacket->size() - (dataptr - d);
   data.duplicate(dataptr,dlen);
   return;
-  */
+*/
 
-  struct iphdr *ip;
+
+exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
+  const char *d;
+  const char *dataptr;
+  struct tcphdr *tcp;
   int ip_hdr_len;
   int ip_tot_len;
   int tcp_hdr_len;
   int total_hdr_len;
 
+    /* d points to an ip header */
   d = tcppacket->data();
 
-    /* d points to an ip header */
+#ifdef __FreeBSD__
+  struct ip *ip;
+  ip = (struct ip *)d;
+  ip_hdr_len = 4 * ip->ip_hl;
+  ip_tot_len = ntohs(ip->ip_len);
+#else
+  struct iphdr *ip;
   ip = (struct iphdr *)d;
   ip_hdr_len = 4 * ip->ihl;
   ip_tot_len = ntohs(ip->tot_len);
+#endif
 
     /* the tcp header begins right after the ip header */
   tcp = (struct tcphdr *)(d + ip_hdr_len);
+#ifdef __FreeBSD__
+  tcp_hdr_len = 4 * tcp->th_off;
+#else
   tcp_hdr_len = 4 * tcp->doff;
+#endif
 
    /* the payload data is at after the tcp header */
   dataptr = (const char *)(tcp) + tcp_hdr_len;
 
+#ifdef __FreeBSD__
+  from=(ntohl(tcp->th_seq) - baseseq);
+#else
   from=(ntohl(tcp->seq) - baseseq);
+#endif
 
   /* the size of the data is the total len stated in the ip header,
      minus the size of the tcp and ip headers */
@@ -250,7 +265,6 @@ exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
   }
   else
       data.duplicate(dataptr,dlen);
-#endif
 }
 
 
