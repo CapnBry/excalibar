@@ -179,7 +179,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QColorGroup cols(cg);
   QColor clr;
 
-  if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
+  if( !isMobOrObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
 		{
 		this->isKnown = true;
 		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d, Distance: %f\n", name.ascii(), getLevel(), playerDist());
@@ -187,35 +187,19 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
 		qApp->beep();
 		}
 
-  if (! isMob() && ! isObj()) {
-    clr=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
+  if (!isMobOrObj()) {
+    clr=getRealmColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     cols.setColor(QColorGroup::Base, clr);
   }
   else if ( !isObj() && prefs.MobListColors)
-    {
-    int ldif=(c->playerlevel / 10) + 1;
-    int l=this->getLevel();
-    if (l < (c->playerlevel - ldif * 3)) /* gray */
-      clr = QColor( 139, 137, 137);
-    else if (l <= (c->playerlevel - ldif * 2)) /* green */
-      clr = QColor(0,153,0);
-    else if (l <= (c->playerlevel - ldif * 1)) /* blue */
-      clr = QColor(0,0,255);
-    else if (l <= c->playerlevel) /* orange */
-      clr = QColor(255,208,0);
-    else if (l <= (c->playerlevel + ldif * 1)) /* yellow */
-      clr = QColor(255,153,0);
-    else if (l <= (c->playerlevel + ldif * 2)) /* red */
-      clr = QColor(255,0,0);
-    else /* purple */
-      clr = QColor(160,32,240);
-    cols.setColor( QColorGroup::Text, clr);
-    }
+  {
+    cols.setColor( QColorGroup::Text, getConColor(c->playerlevel).dark(175));
+  }
 
   if( isFiltered())
 	{
     cols.setColor( QColorGroup::Base, QColor(255,255,153));
-    cols.setColor( QColorGroup::Text, QColor(0,0,0));
+    cols.setColor( QColorGroup::Text, black);
 	}
   QListViewItem::paintCell(p,cols,column,width,align);
 }
@@ -358,9 +342,10 @@ Realm exMob::getRealm() const {
    return realm;
 }
 
-const QColor exMob::getColor() const {
+const QColor exMob::getRealmColor() const {
   if (! isInvader())
     return cFriendly;
+
   switch (realm) {
     case rMidgaard:
 	return cMidgaard;
@@ -371,7 +356,29 @@ const QColor exMob::getColor() const {
   }
 }
 
-QColor exMob::getColor(Realm r) {
+const QColor exMob::getConColor(unsigned int to_level) const
+{
+  int l_quanta;
+  l_quanta = (to_level / 10) + 1;
+
+  if (level < (to_level - l_quanta * 3))
+    return gray;
+  else if (level <= (to_level - l_quanta * 2))
+    return green;
+  else if (level <= (to_level - l_quanta * 1))
+    return blue;
+  else if (level <= to_level)
+    return yellow;
+  else if (level <= (to_level + l_quanta * 1))
+    return QColor(255, 127, 0);  // orange
+  else if (level <= (to_level + l_quanta * 2))
+    return red;
+  else
+    return magenta;
+
+}
+
+QColor exMob::getColorForRealm(Realm r) {
   switch (r) {
     case rMidgaard:
 	return cMidgaard;

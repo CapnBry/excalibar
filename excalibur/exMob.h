@@ -90,8 +90,9 @@ class exMob : public QListViewItem {
     unsigned int getLevel() const;
     double playerDist();
     Realm getRealm() const;
-    const QColor getColor() const; 
-    static QColor getColor(Realm r);
+    const QColor getRealmColor() const;
+    const QColor getConColor(unsigned int to_level) const;
+    static QColor getColorForRealm(Realm r);
 
     void touch();
     void checkStale();

@@ -32,10 +32,10 @@
 
 void PrefsDialog::SliderAliveColor_valueChanged(int v)
 {
-    FriendAlive->setPaletteBackgroundColor(exMob::getColor(rFriend).light(v));
-    HibAlive->setPaletteBackgroundColor(exMob::getColor(rHibernia).light(v));
-    AlbAlive->setPaletteBackgroundColor(exMob::getColor(rAlbion).light(v));
-    MidAlive->setPaletteBackgroundColor(exMob::getColor(rMidgaard).light(v));
+    FriendAlive->setPaletteBackgroundColor(exMob::getColorForRealm(rFriend).light(v));
+    HibAlive->setPaletteBackgroundColor(exMob::getColorForRealm(rHibernia).light(v));
+    AlbAlive->setPaletteBackgroundColor(exMob::getColorForRealm(rAlbion).light(v));
+    MidAlive->setPaletteBackgroundColor(exMob::getColorForRealm(rMidgaard).light(v));
     FriendAlive->repaint();
     HibAlive->repaint();
     AlbAlive->repaint();
@@ -44,10 +44,10 @@ void PrefsDialog::SliderAliveColor_valueChanged(int v)
 
 void PrefsDialog::SliderDeadColor_valueChanged( int v)
 {
-    FriendDead->setPaletteBackgroundColor(exMob::getColor(rFriend).light(v));
-    HibDead->setPaletteBackgroundColor(exMob::getColor(rHibernia).light(v));
-    AlbDead->setPaletteBackgroundColor(exMob::getColor(rAlbion).light(v));
-    MidDead->setPaletteBackgroundColor(exMob::getColor(rMidgaard).light(v));
+    FriendDead->setPaletteBackgroundColor(exMob::getColorForRealm(rFriend).light(v));
+    HibDead->setPaletteBackgroundColor(exMob::getColorForRealm(rHibernia).light(v));
+    AlbDead->setPaletteBackgroundColor(exMob::getColorForRealm(rAlbion).light(v));
+    MidDead->setPaletteBackgroundColor(exMob::getColorForRealm(rMidgaard).light(v));
     FriendDead->repaint();
     HibDead->repaint();
     AlbDead->repaint();
