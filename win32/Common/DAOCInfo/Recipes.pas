@@ -72,7 +72,7 @@ type
   end;
 
   TCraftRealm = (crNone, crAlbion, crMidgard, crHibernia);
-  TRecipeSortOrder = (rsoNone, rsoSkill, rsoGroupTier);
+  TRecipeSortOrder = (rsoNone, rsoSkill, rsoGroupTierSkill);
 
   TCraftRecipeCollection = class(TObjectList)
   private
@@ -86,7 +86,7 @@ type
     procedure Clear; override;
 
     procedure SortBySkill;
-    procedure SortByGroupAndTier;
+    procedure SortByGroupTierAndSkill;
 
     procedure SaveToWriter(AWriter: TWriter);
     procedure LoadFromReader(AReader: TReader);
@@ -99,6 +99,7 @@ type
 
     function OrdinalOfGroup(AGroup: integer) : integer;
     function OrdinalOfTierInGroup(AGroup, ATier: integer) : integer;
+    function OrdinalOfItemInTier(AGroup, ATier, ASkill: integer) : integer;
     function VisibleRecipesInGroup(AGroup: integer; AAtSkill: integer) : integer;
 
     property Realm: TCraftRealm read FRealm;
@@ -534,7 +535,7 @@ var
   I:    integer;
   iLastGroup:   integer;
 begin
-  SetSortOrder(rsoGroupTier);
+  SetSortOrder(rsoGroupTierSkill);
 
   iLastGroup := -1;
   Result := -1;
@@ -549,15 +550,40 @@ begin
   end;  { for I }
 end;
 
-function TCraftRecipeCollection.OrdinalOfTierInGroup(AGroup,
-  ATier: integer): integer;
-(*** Returns how far down in a group's recipe list this recipe would be. Returns -1 if not found ***)
+function TCraftRecipeCollection.OrdinalOfItemInTier(AGroup, ATier,
+  ASkill: integer): integer;
+(*** For tiers that have more than one item in them (eg Alchemy) return the offset
+  in the tier of this item.  Returns 0 if only thing in tier. ***)
 var
   iIdx:   integer;
 begin
-  SetSortOrder(rsoGroupTier);
+  SetSortOrder(rsoGroupTierSkill);
   Result := 0;
+  iIdx := 0;
 
+    { scroll while we're not in the right group }
+  while (iIdx < Count) and (Items[iIdx].Group <> AGroup) do
+    inc(iIdx);
+
+    { scroll while we're not in the right tier }
+  while (iIdx < Count) and (Items[iIdx].Group = AGroup) and (Items[iIdx].Tier <> ATier) do
+    inc(iIdx);
+
+    { scroll while we're in the right group and tier }
+  while (iIdx < Count) and (Items[iIdx].Group = AGroup) and (Items[iIdx].Tier = ATier) do begin
+    if Items[iIdx].SkillLevel < ASkill then
+      inc(Result);
+    inc(iIdx);
+  end;
+end;
+
+function TCraftRecipeCollection.OrdinalOfTierInGroup(AGroup, ATier: integer): integer;
+(*** Returns how far down in a group's recipe list this recipe would be. Returns 0 if not found ***)
+var
+  iIdx:   integer;
+begin
+  SetSortOrder(rsoGroupTierSkill);
+  Result := 0;
   iIdx := 0;
 
     { scroll while we're not in the right group }
@@ -589,28 +615,31 @@ procedure TCraftRecipeCollection.SetSortOrder(const Value: TRecipeSortOrder);
 begin
   case Value of
     rsoSkill: SortBySkill;
-    rsoGroupTier: SortByGroupAndTier;
+    rsoGroupTierSkill: SortByGroupTierAndSkill;
     else
       FSortOrder := rsoNone;
   end;
 end;
 
-procedure TCraftRecipeCollection.SortByGroupAndTier;
+procedure TCraftRecipeCollection.SortByGroupTierAndSkill;
 var
   I:    integer;
   J:    integer;
   iMinIdx: integer;
 begin
-  if FSortOrder = rsoGroupTier then
+  if FSortOrder = rsoGroupTierSkill then
     exit;
 
   for I := 0 to Count - 2 do begin
     iMinIdx := I;
 
     for J := I + 1 to Count - 1 do
-        { if group is lower, or group is same and tier is lower }
+        { if group is lower, or group is same and tier is lower,
+          or group and tier is same and skill is lower }
       if (Items[J].Group < Items[iMinIdx].Group) or
-        ((Items[J].Group = Items[iMinIdx].Group) and (Items[J].Tier < Items[iMinIdx].Tier))
+        ((Items[J].Group = Items[iMinIdx].Group) and (Items[J].Tier < Items[iMinIdx].Tier)) or
+        ((Items[J].Group = Items[iMinIdx].Group) and (Items[J].Tier = Items[iMinIdx].Tier)
+            and (Items[J].SkillLevel < Items[iMinIdx].SkillLevel))
         then
         iMinIdx := J;
 
@@ -618,7 +647,7 @@ begin
       Exchange(I, iMinIdx);
   end;
 
-  FSortOrder := rsoGroupTier;
+  FSortOrder := rsoGroupTierSkill;
 end;
 
 procedure TCraftRecipeCollection.SortBySkill;
@@ -652,7 +681,7 @@ function TCraftRecipeCollection.VisibleRecipesInGroup(AGroup,
 var
   iIdx:   integer;
 begin
-  SetSortOrder(rsoGroupTier);
+  SetSortOrder(rsoGroupTierSkill);
   Result := 0;
 
   iIdx := 0;
