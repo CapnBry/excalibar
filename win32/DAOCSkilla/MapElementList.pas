@@ -433,25 +433,34 @@ var
   yr, mo, da: WORD;
   hh, nn, ss: WORD;
 begin
+    { no version file?  I'll assume you have the best because I have no way to check }
   if FVersionFile = '' then begin
     Result := true;
     exit;
   end;
 
-  Result := false;
-
+    { get the date of the latest version from the version file }
   with TINIFile.Create(FVersionFile) do begin
     sVersionDate := ReadString(ASection, AKey, '');
     Free;
   end;
 
-  if sVersionDate = '' then
+    { the key wasn't in the file, or our percieved version file is missing,
+      still no way to know if we have the latest version, so err on the safe side
+      and assume we're up to date.  Returning false here might get us in an
+      endless loop if the version file goes missing. }
+  if sVersionDate = '' then begin
+    Result := true;
     exit;
+  end;
 
   if FileExists(ALocalFile) then
     dtFile := FileDateToDateTime(FileAge(ALocalFile))
-  else
+  else begin
+      { if we don't have the file at all, we're definately not up to date }
+    Result := false;
     exit;
+  end;
 
   yr := StrToIntDef(copy(sVersionDate, 1, 4), 1899);
   mo := StrToIntDef(copy(sVersionDate, 5, 2), 12);
