@@ -6,42 +6,55 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
-  Recipes;
+  Recipes, IdTCPServer, IdBaseComponent, IdComponent, IdTCPConnection,
+  IdTCPClient;
 
 type
   TfrmMain = class(TForm)
-    lstAdapters: TListBox;
     Memo1: TMemo;
     lblPlayerPos: TLabel;
     lblPlayerHeadSpeed: TLabel;
-    imgAdapter: TImage;
-    btnGLRender: TButton;
     lblZone: TLabel;
     btnDebugging: TButton;
     chkAutolaunchExcal: TCheckBox;
     chkChatLog: TCheckBox;
     edtChatLogFile: TEdit;
-    btnMacroing: TButton;
     lblServerPing: TLabel;
     btnResume: TButton;
+    tcpCollectorClient: TIdTCPClient;
+    tcpCollectorServer: TIdTCPServer;
+    tmrReconnect: TTimer;
+    btnConnectionOpts: TBitBtn;
+    Label1: TLabel;
+    Label2: TLabel;
+    btnGLRender: TBitBtn;
+    btnMacroing: TBitBtn;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
-      Rect: TRect; State: TOwnerDrawState);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnGLRenderClick(Sender: TObject);
-    procedure lstAdaptersClick(Sender: TObject);
     procedure btnDebuggingClick(Sender: TObject);
     procedure chkChatLogClick(Sender: TObject);
     procedure btnMacroingClick(Sender: TObject);
     procedure btnResumeClick(Sender: TObject);
+    procedure tcpCollectorServerExecute(AThread: TIdPeerThread);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure tcpCollectorServerStatus(ASender: TObject;
+      const AStatus: TIdStatus; const AStatusText: String);
+    procedure tcpCollectorClientStatus(ASender: TObject;
+      const AStatus: TIdStatus; const AStatusText: String);
+    procedure btnConnectionOptsClick(Sender: TObject);
+    procedure tmrReconnectTimer(Sender: TObject);
+    procedure tcpCollectorClientDisconnected(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
     FChatLog:       TFileStream;
+    FClosing:       boolean;
     FProcessPackets:  boolean;
+    FSegmentFromCollector:    TEthernetSegment;
 
     procedure LoadSettings;
     procedure SaveSettings;
@@ -51,6 +64,15 @@ type
     procedure ShowGLRenderer(AConnection: TDAOCConnection);
     procedure CreateChatLog;
     procedure CloseChatLog;
+    procedure SendSegmentToCollector(ASegment: TEthernetSegment);
+    procedure OpenAdapter(const AAdapterName: string);
+    procedure CloseAdapter;
+    procedure CloseCollectionServer;
+    procedure OpenCollectionServer;
+    procedure OpenCollectionClient;
+    procedure CloseCollectionClient;
+    procedure NewSegmentFromCollector;
+    function UseCollectionClient : boolean;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -87,7 +109,8 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing, Macroing
+  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing, Macroing,
+  ConnectionConfig, VCLMemStrms
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -191,8 +214,6 @@ begin
 
   FPReader := TPacketReader2.CreateInst;
   FPReader.OnEthernetSegment := EthernetSegment;
-
-  lstAdapters.Items.Assign(FPReader.AdapterList);
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
 
   FProcessPackets := true;
@@ -218,7 +239,10 @@ begin
   if not FProcessPackets then
     exit;
 
-  FConnection.ProcessEthernetSegment(ASegment);
+  if UseCollectionClient then
+    SendSegmentToCollector(ASegment)
+  else
+    FConnection.ProcessEthernetSegment(ASegment);
 end;
 
 procedure TfrmMain.UpdatePlayer;
@@ -291,11 +315,23 @@ end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
+    { setup the adapterlist first, so the load settings can set the active
+      adapter properly }
+  frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
   LoadSettings;
+  Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
 {$IFDEF REMOTE_ADMIN}
   dmdRemoteAdmin.DAOCControl := FConnection;
 {$ENDIF REMOTE_ADMIN}
-  Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
+
+  FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
+  if frmConnectionConfig.SniffPackets then
+    OpenAdapter(frmConnectionConfig.AdapterName)
+  else
+    CloseAdapter;
+  OpenCollectionServer;
+  if not frmConnectionConfig.ProcessLocally then
+    OpenCollectionClient;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -318,8 +354,6 @@ begin
 end;
 
 procedure TfrmMain.LoadSettings;
-var
-  s:    string;
 begin
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
@@ -340,11 +374,12 @@ begin
     BP_Instns[4].k := StrToHNet(ReadString('Main', 'ServerNet', HNetToStr(BP_Instns[4].k)));
     BP_Instns[7].k := BP_Instns[4].k;
 
-    s := ReadString('Main', 'Adapter', '');
-    if (s <> '') and (lstAdapters.Items.IndexOf(s) <> -1) then begin
-      lstAdapters.ItemIndex := lstAdapters.Items.IndexOf(s);
-      lstAdaptersClick(nil);
-    end;
+    frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
+    frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
+    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', true);
+    frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
+    frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
+    frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -395,8 +430,13 @@ begin
     WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
-    if lstAdapters.ItemIndex <> -1 then
-      WriteString('Main', 'Adapter', lstAdapters.Items[lstAdapters.ItemIndex]);
+
+    WriteString('Main', 'Adapter', frmConnectionConfig.AdapterName);
+    WriteBool('Main', 'ProcessLocally', frmConnectionConfig.ProcessLocally);
+    WriteBool('Main', 'SniffPackets', frmConnectionConfig.SniffPackets);
+    WriteBool('Main', 'PromiscCapture', frmConnectionConfig.PromiscuousCapture);
+    WriteString('Main', 'RemoteCollector', frmConnectionConfig.RemoteCollector);
+    WriteInteger('Main', 'LocalCollectorPort', frmConnectionConfig.LocalCollectorPort);
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -462,25 +502,6 @@ begin
   frmMacroing.DAOCPathChanged;
 end;
 
-procedure TfrmMain.lstAdaptersDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);
-begin
-  with lstAdapters.Canvas do begin
-    if odSelected in State then begin
-      Brush.Color := clHighlight;
-      Font.Color := clHighlightText;
-    end
-    else begin
-      Brush.Color := lstAdapters.Color;
-      Font.Color := clGrayText;
-    end;
-
-    FillRect(Rect);
-    Draw(Rect.Left + 2, Rect.Top + 2, imgAdapter.Picture.Graphic);
-    TextOut(Rect.Left + 20, Rect.Top + 1, lstAdapters.Items[Index]);
-  end;  { with Canvas }
-end;
-
 procedure TfrmMain.DAOCStopAllActions(Sender: TObject);
 begin
   frmMacroing.DAOCStopAllActions;
@@ -488,7 +509,7 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FPReader.Close;
+  CloseAdapter;
   Application.ProcessMessages;  // get any packets pending out of the message q
   
   SaveSettings;
@@ -512,22 +533,6 @@ begin
   else
     ShowGLRenderer(FConnection);
 {$ENDIF}
-end;
-
-procedure TfrmMain.lstAdaptersClick(Sender: TObject);
-begin
-  if FPReader.Active then begin
-    FPReader.Close;
-    FPReader.WaitForClose;
-    Log('Adapter closed: ' + FPReader.DeviceName);
-  end;
-
-  FPReader.DeviceName := FPReader.DeviceList[lstAdapters.ItemIndex];
-  FPReader.BPFilter := @BPProgram;
-  FPReader.Open;
-  Log('Adapter opened:');
-  Log('  ' + lstAdapters.Items[lstAdapters.ItemIndex]);
-  // Log('  ' + FPReader.DeviceName);
 end;
 
 procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
@@ -702,6 +707,199 @@ end;
 procedure TfrmMain.btnResumeClick(Sender: TObject);
 begin
   FConnection.ResumeConnection(GetConfigFileName);
+end;
+
+procedure TfrmMain.tcpCollectorServerExecute(AThread: TIdPeerThread);
+var
+  ms:   TMinSizeVCLMemStream;
+begin
+  ms := TMinSizeVCLMemStream.Create;
+  ms.MinCapacity := 2048;  // should be large enough to hold 1500 MTU
+  try
+    while not FClosing and AThread.Connection.Connected do begin
+      AThread.Connection.ReadStream(ms);
+      ms.Seek(0, soFromBeginning);
+
+      FSegmentFromCollector := TEthernetSegment.Create;
+      FSegmentFromCollector.LoadFromStream(ms, 0);
+      AThread.Synchronize(NewSegmentFromCollector);
+      FSegmentFromCollector.Free;
+      FSegmentFromCollector := nil;
+
+      ms.Size := 0;
+    end;
+  finally
+    ms.Free;
+  end;
+end;
+
+procedure TfrmMain.SendSegmentToCollector(ASegment: TEthernetSegment);
+var
+  ms:   TVCLMemoryStream;
+begin
+  if not tcpCollectorClient.Connected then
+    exit;
+
+  ms := TVCLMemoryStream.Create;
+  try
+    ASegment.SaveToStream(ms);
+    ms.Seek(0, soFromBeginning);
+    
+    tcpCollectorClient.WriteStream(ms, true, true);
+  finally
+    ms.Free;
+  end;
+end;
+
+procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  FClosing := true;
+  tcpCollectorClient.Disconnect;
+  tcpCollectorServer.Active := false;
+end;
+
+procedure TfrmMain.tcpCollectorServerStatus(ASender: TObject;
+  const AStatus: TIdStatus; const AStatusText: String);
+begin
+  Log('Collection Server: ' + AStatusText);
+end;
+
+procedure TfrmMain.tcpCollectorClientStatus(ASender: TObject;
+  const AStatus: TIdStatus; const AStatusText: String);
+begin
+  Log('Collection client: ' + AStatusText);
+end;
+
+procedure TfrmMain.btnConnectionOptsClick(Sender: TObject);
+var
+  bNeedAdapterRestart:    boolean;
+begin
+  frmConnectionConfig.ShowModal;
+
+  bNeedAdapterRestart := frmConnectionConfig.SniffPackets <> FPReader.Active;
+  bNeedAdapterRestart := bNeedAdapterRestart or (
+    FPReader.Promiscuous <> frmConnectionConfig.PromiscuousCapture);
+  bNeedAdapterRestart := bNeedAdapterRestart or (
+    FPReader.DeviceNameForAdapter(frmConnectionConfig.AdapterName) <> FPReader.DeviceName);
+
+  if bNeedAdapterRestart then begin
+    CloseAdapter;
+    FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
+    if frmConnectionConfig.SniffPackets then
+      OpenAdapter(frmConnectionConfig.AdapterName);
+  end;
+
+  if frmConnectionConfig.LocalCollectorPort <> tcpCollectorServer.DefaultPort then begin
+    CloseCollectionServer;
+    OpenCollectionServer;
+  end;
+
+    { if sniff and not process locally, start a connect }
+  if UseCollectionClient then
+    OpenCollectionClient
+  else
+    CloseCollectionClient;
+end;
+
+procedure TfrmMain.OpenAdapter(const AAdapterName: string);
+var
+  iIdx:   integer;
+begin
+  CloseAdapter;
+  
+  if AAdapterName <> '' then begin
+    iIdx := FPReader.AdapterList.IndexOf(AAdapterName);
+    if iIdx <> -1 then begin
+      FPReader.DeviceName := FPReader.DeviceList[iIdx];
+      FPReader.BPFilter := @BPProgram;
+      FPReader.Open;
+      Log('Adapter opened:');
+      Log('  ' + AAdapterName);
+    end;
+  end;  { if adapter name <> '' }
+end;
+
+procedure TfrmMain.CloseAdapter;
+begin
+  if FPReader.Active then begin
+    FPReader.Close;
+    FPReader.WaitForClose;
+    Log('Adapter closed: ' + FPReader.DeviceName);
+  end;
+end;
+
+procedure TfrmMain.CloseCollectionServer;
+begin
+  if tcpCollectorServer.Active then begin
+    tcpCollectorServer.Active := false;
+    Log('Collection server deactivated');
+  end;
+end;
+
+procedure TfrmMain.OpenCollectionServer;
+begin
+  CloseCollectionServer;
+
+  tcpCollectorServer.DefaultPort := frmConnectionConfig.LocalCollectorPort;
+  tcpCollectorServer.Active := true;
+  Log('Collection server activated on port ' + IntToStr(tcpCollectorServer.DefaultPort));
+end;
+
+procedure TfrmMain.CloseCollectionClient;
+begin
+  tcpCollectorClient.Disconnect;
+end;
+
+procedure TfrmMain.OpenCollectionClient;
+var
+  iPos:   integer;
+  s:      string;
+begin
+  try
+    CloseCollectionClient;
+
+    s := frmConnectionConfig.RemoteCollector;
+    iPos := Pos(':', s);
+    if iPos <> 0 then begin
+      tcpCollectorClient.Host := copy(s, 1, iPos - 1);
+      tcpCollectorClient.Port := StrToIntDef(copy(s, iPos + 1, Length(s)), DEFAULT_COLLECTOR_PORT);
+    end
+    else begin
+      tcpCollectorClient.Host := s;
+      tcpCollectorClient.Port := DEFAULT_COLLECTOR_PORT;
+    end;
+
+    tcpCollectorClient.Connect(2000);
+  except
+    on E: Exception do
+      Log(E.Message);
+  end;
+
+  if not tcpCollectorClient.Connected then
+    tmrReconnect.Enabled := true;
+end;
+
+procedure TfrmMain.tmrReconnectTimer(Sender: TObject);
+begin
+  tmrReconnect.Enabled := false;
+  OpenCollectionClient;
+end;
+
+procedure TfrmMain.NewSegmentFromCollector;
+begin
+  EthernetSegment(nil, FSegmentFromCollector);
+end;
+
+procedure TfrmMain.tcpCollectorClientDisconnected(Sender: TObject);
+begin
+  if UseCollectionClient then
+    OpenCollectionClient;
+end;
+
+function TfrmMain.UseCollectionClient: boolean;
+begin
+  Result := not FClosing and frmConnectionConfig.SniffPackets and
+    not frmConnectionConfig.ProcessLocally
 end;
 
 end.
