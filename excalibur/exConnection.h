@@ -51,7 +51,8 @@ class exConnection;
 template <class T>
 class exMobList : public QPtrDict<T> {
 public:
-    ostream& operator << (ostream& os);
+    template<class S> friend ostream
+        &operator<< (ostream& os, const exMobList<S> &p);
 };
 
 class exConnection : public QObject {
@@ -116,12 +117,13 @@ public:
   void replay();
   void shutdown(QString why = NULL);
   void processPacket(exPacket *p);
-  const QPtrDict<exMob> &getMobs() const;
+  const exMobList<exMob> &getMobs() const;
   void selectID(unsigned int id);
   void spawnEditor();
   void setFilter( QString Filter);
   void updateProjectedPlayer(void);
   void updateObjectTypeCounts(void);
+  void mobWentStale(exMob *m);
 };
 
 #endif

@@ -38,9 +38,10 @@
 #include <qmessagebox.h>
 #include "exConnection.h"
 
-template <class T> ostream & exMobList<T>::operator << (ostream & os)
+template <class S>
+    ostream & operator<< (ostream & os, const exMobList<S> &p)
 {
-  QPtrDictIterator<exMob> mobi(this);
+  QPtrDictIterator<exMob> mobi(p);
   for (;mobi.current(); ++mobi)
       os << mobi.current();
   return os;
@@ -505,13 +506,14 @@ END_EXPERIMENTAL_CODE
 	      if (ismob) {
 		  mobs.insert((void *) ((unsigned int) id), mob);
                   mi = ex->Map->getMap();
-//                  cout << "MOBseen," << ((mi) ? mi->getZoneNum() : 0) <<
-//                      "," << ((mi) ? x - mi->getBaseX() : x) <<
-//                      "," << ((mi) ? y - mi->getBaseY() : y) <<
-//                      "," << z <<
-//                      "," << level <<
-//                      "," << name <<
-//                      endl;
+                  if (prefs.dump_mobseen)
+                      cout << "MOBseen," << ((mi) ? mi->getZoneNum() : 0) <<
+                          "," << ((mi) ? x - mi->getBaseX() : x) <<
+                          "," << ((mi) ? y - mi->getBaseY() : y) <<
+                          "," << z <<
+                          "," << level <<
+                          "," << name <<
+                          endl;
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
               } else {
@@ -788,7 +790,7 @@ void exConnection::selectID(unsigned int id)
     ex->Map->dirty();
 }
 
-const QPtrDict < exMob > &exConnection::getMobs() const
+const exMobList <exMob> &exConnection::getMobs() const
 {
     return mobinfo;
 }
@@ -885,21 +887,29 @@ void exConnection::updateObjectTypeCounts(void)
         mob = mob_iter.current();
 
         if (mob)
+            if (!mob->isCurrent())
+                continue;
             if (mob->isMob()) {
                 cnt_mob++;
             }
-            else if (!mob->isPlayer())  {
+            else if (mob->isPlayer())  {
                 cnt_players[mob->getRealm()]++;
             }
     }  /* for each mob */
 
 
-    cnt_players[playerrealm] = cnt_players[rFriend];
+    cnt_players[playerrealm] += cnt_players[rFriend];
 
     ex->lblCounts->setText(QString("Albs: %1  Mids: %2\nHibs: %3  Mobs: %4").
                            arg(cnt_players[rAlbion]).
                            arg(cnt_players[rMidgaard]).
                            arg(cnt_players[rHibernia]).
                            arg(cnt_mob));
+}
+
+void exConnection::mobWentStale(exMob *m)
+{
+    ex->ListViewMobs->takeItem(m);
+    updateObjectTypeCounts();
 }
 
