@@ -503,7 +503,7 @@ begin
     MobTriangleNom := ReadInteger('RenderPrefs', 'MobTriangleNom', 150);
     ScaleMobTriangle := ReadBool('RenderPrefs', 'ScaleMobTriangle', true);
     DrawInfoPoints := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
-    EasyMouseOvers  := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
+    EasyMouseOvers  := ReadBool('RenderPrefs', 'EasyMouseOvers', true);
     MinFPS := ReadInteger('RenderPrefs', 'MinFPS', 2);
     AutoScrollMoblist := ReadBool('RenderPrefs', 'AutoScrollMoblist', true);
     ShowPlayerInventory := ReadBool('RenderPrefs', 'ShowPlayerInventory', true);
@@ -564,7 +564,7 @@ begin
     WriteInteger('RenderPrefs', 'MobTriangleNom', MobTriangleNom);
     WriteBool('RenderPrefs', 'ScaleMobTriangle', ScaleMobTriangle);
     WriteBool('RenderPrefs', 'DrawInfoPoints', DrawInfoPoints);
-    WriteBool('RenderPrefs', 'DrawInfoPoints', EasyMouseOvers);
+    WriteBool('RenderPrefs', 'EasyMouseOvers', EasyMouseOvers);
     WriteInteger('RenderPrefs', 'MinFPS', MinFPS);
     WriteBool('RenderPrefs', 'AutoScrollMoblist', AutoScrollMoblist);
     WriteBool('RenderPrefs', 'ShowPlayerInventory', ShowPlayerInventory);
@@ -771,7 +771,6 @@ begin
   chkShowPurples.Checked := ccPurple in FRenderPrefs.ObjectConFilter;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
-  chkVectorMapsClick(nil);
   chkDrawInfoPoints.Checked := FRenderPrefs.DrawInfoPoints;
   chkPushpins.Checked := FRenderPrefs.DrawPushPins;
   chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
@@ -784,7 +783,7 @@ begin
   chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
   chkDrawGrid.Checked := FRenderPrefs.DrawGrid;
   edtInvaderWarnTicks.Text := IntToStr(FRenderPrefs.InvaderWarnMinTicks div 1000);
-  chkShowPlayerInventory.Checked := FRenderPrefs.ShowPlayerInventory; 
+  chkShowPlayerInventory.Checked := FRenderPrefs.ShowPlayerInventory;
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
@@ -819,16 +818,13 @@ begin
   edtMobTriangleMax.Value := FRenderPrefs.MobTriangleMax;
   edtMobTriangleNom.Value := FRenderPrefs.MobTriangleNom;
   chkScaleMobTriangle.Checked := FRenderPrefs.ScaleMobTriangle;
-  chkScaleMobTriangleClick(nil);
   chkEasyMouseOvers.Checked := FRenderPrefs.EasyMouseOvers;
   chkAttemptMapDownloads.Checked := FRenderPrefs.AttemptMapDownload;
   chkRedrawOnAdd.Checked := FRenderPrefs.RedrawOnAdd;
   chkRedrawOnUpdate.Checked := FRenderPrefs.RedrawOnUpdate;
   chkRedrawOnDelete.Checked := FRenderPrefs.RedrawOnDelete;
   chkRedrawOnTimer.Checked := FRenderPrefs.RedrawOnTimer;
-  chkRedrawOnTimerClick(nil);
   trackMinFPS.Position := FRenderPrefs.MinFPS;
-
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -1109,7 +1105,7 @@ end;
 
 procedure TfrmRenderPrefs.chkEasyMouseOversClick(Sender: TObject);
 begin
-  FRenderPrefs.EasyMouseOvers := chkRenderPlayers.Checked;
+  FRenderPrefs.EasyMouseOvers := chkEasyMouseOvers.Checked;
 end;
 
 procedure TfrmRenderPrefs.chkAttemptMapDownloadsClick(Sender: TObject);
