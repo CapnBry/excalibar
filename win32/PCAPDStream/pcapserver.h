@@ -24,7 +24,11 @@
 #include <windows.h>
 #include <stdio.h>
 #include <Tlhelp32.h>
-#include "PCAP/nids.h"
+//#include "PCAP/nids.h"
+extern "C" // gotta make extern "C" for a C library!
+{
+#include "nids.h"
+}
 
 #include "resource.h"
 #include "Memory.h"
@@ -40,3 +44,4 @@ unsigned short GetWord(unsigned char *data);
 extern cMain *pMain;
 extern cSniffer *pSniffer;
 extern cDStream *pDStream;
+extern bool bContinue;

@@ -125,7 +125,7 @@ void cSniffer::udp_callback(struct tuple4 * addr, char *data, int len, struct ip
 	if(!pSniffer->IsDaocStream(*addr,true))
 		return;	
 
-		 if(addr->saddr == pDStream->addr.saddr)
+    if(addr->saddr == pDStream->addr.saddr)
 	{            
 		//for server
 		pDStream->MsgProc.HandleUDPPacket(data,len,false);
@@ -166,7 +166,35 @@ void cSniffer::SnifferThreadProc()
 	
 	pMain->StatusUpdate("WinPCAP and UDP/TCP hook initialized\r\n");
 
-	nids_run();
+    int time = 0;
+    fd_set rset;
+    struct timeval tv;
+
+    int fd = nids_getfd();
+
+    while(bContinue)
+        {
+        tv.tv_sec = 0;
+        tv.tv_usec = 500000; // 500ms
+        FD_ZERO (&rset);
+        FD_SET (fd, &rset);
+        // add any other fd we need to take care of
+        if (select (fd + 1, &rset, 0, 0, &tv))
+            {
+            if (FD_ISSET(fd,&rset))  // need to test it if there are other
+                {
+                // fd in rset
+                nids_next();
+                /*
+                if (!nids_next ())
+                    {
+                    Logger << "[Sniffer::Run] nids next returned 0\n";
+                    }
+                */
+                }
+            }
+        } // end forever
+
 	return;
 }
 

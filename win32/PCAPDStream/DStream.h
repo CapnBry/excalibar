@@ -28,7 +28,7 @@ public:
 	int x01();
 	void x05();
 	void x06();
-	void x07(unsigned char origin, unsigned char protocol, short data_size, char *data);
+	void x07(unsigned char origin, unsigned char protocol, short data_size,const BYTE *data);
 
 	unsigned char msg[4096];
 private:

@@ -69,9 +69,7 @@ LRESULT CALLBACK cMain::MainDlgProc( HWND hDlg,
 
 bool cMain::Run()
 {
-	bool bGotMsg;
 	MSG  msg;
-	msg.message = NULL;
 
 	//create the dialog box
 	HWND hWnd = CreateDialog(hInst, 
@@ -85,15 +83,10 @@ bool cMain::Run()
 	ShowWindow(hWnd,SW_SHOW);
 
 	//main msg loop
-	while(msg.message != WM_QUIT)
+	while(GetMessage(&msg, NULL, 0U, 0U)==TRUE)
 	{
-		bGotMsg = PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE);
-
-		if(bGotMsg)
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
     }
 
 	return true;

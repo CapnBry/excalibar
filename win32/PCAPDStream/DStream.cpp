@@ -62,7 +62,7 @@ void cDStreamMsg::x06()
 void cDStreamMsg::x07(unsigned char origin, 
 					  unsigned char protocol, 
 					  short data_size, 
-					  char *data)
+					  const BYTE *data)
 {
 	x07_packet *packet = (x07_packet *)&msg;
 	int size = sizeof(x07_packet) + data_size - 1;
@@ -94,8 +94,8 @@ cDStream::cDStream(void)
 
 void cDStream::ServerThread()
 {
-	int status;
-	char szMsg[MAX_MSG_LENGTH];	
+	//int status;
+	//char szMsg[MAX_MSG_LENGTH];	
 
 	if(!Accept())
 	{

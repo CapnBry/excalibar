@@ -1,8 +1,52 @@
 #include "pcapserver.h"
+#include <io.h>
+#include <fcntl.h>
+#include <conio.h>
+#include <stdio.h>
 
 cMain *pMain = NULL;
 cSniffer *pSniffer = NULL;
 cDStream *pDStream = NULL;
+bool bContinue=true;
+
+// bit of code courtesy Cheyenne :)
+void AttachConsole(void)
+{
+    // code copied from Microsoft Knowledge Base Article - 105305
+    // and the silly article had an error in it (!)
+    int hCrt;
+    FILE *hf;
+
+    AllocConsole();
+    hCrt = _open_osfhandle((long) GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
+    hf = _fdopen( hCrt, "w" );
+    *stdout = *hf;
+    setvbuf( stdout, NULL, _IONBF, 0 );
+
+    // do it again for stdin
+    hCrt = _open_osfhandle((long) GetStdHandle(STD_INPUT_HANDLE),_O_TEXT);
+    hf = _fdopen( hCrt, "r" );
+    *stdin = *hf;
+    setvbuf( stdin, NULL, _IONBF, 0 );
+
+    // and again for stderr
+    hCrt = _open_osfhandle((long) GetStdHandle(STD_ERROR_HANDLE),_O_TEXT);
+    hf = _fdopen( hCrt, "w" );
+    *stderr = *hf;
+    setvbuf( stderr, NULL, _IONBF, 0 );
+
+    // done
+    return;
+} // end AtttachConsole
+
+void DetachConsole(void)
+{
+    // free the console
+    FreeConsole();
+
+    // done
+    return;
+} // end DetatchConsole
 
 unsigned short GetWord(unsigned char *data)
 {
@@ -18,6 +62,8 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 					  int nCmdShow )
 {
 
+	//AttachConsole();
+	
 	//test if already run
 	SECURITY_ATTRIBUTES sa;
 	HANDLE	hMutex;
@@ -29,6 +75,7 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	if(dwError == ERROR_ALREADY_EXISTS)
 	{
 		ReleaseMutex(hMutex);
+		//DetachConsole();
 		return 0;
 	}
 
@@ -37,6 +84,10 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	cDStream DStream;
 
 	MainApp.Run();
+	
+	bContinue=false;
+	Sleep(1000);
 
+	//DetachConsole();
 	return 1;
 }

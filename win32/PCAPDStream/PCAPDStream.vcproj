@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="PCAPDStream"
-	ProjectGUID="{B6A0BA41-8897-41AA-8E83-9AC6F3DD9C2F}"
+	Name="pcapdstream"
+	ProjectGUID="{A3043EF9-E818-49E7-88DB-1DE9A73513E6}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,23 +19,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\temp\WpdPack\Include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/PCAPDStream.exe"
+				AdditionalDependencies="ws2_32.lib libnids.lib wpcap.lib"
+				OutputFile="$(OutDir)/pcapdstream.exe"
 				LinkIncremental="2"
+				IgnoreDefaultLibraryNames="libcmt.lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/PCAPDStream.pdb"
+				ProgramDatabaseFile="$(OutDir)/pcapdstream.pdb"
 				SubSystem="2"
 				TargetMachine="1"/>
 			<Tool
@@ -67,18 +68,18 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\temp\WpdPack\Include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/PCAPDStream.exe"
+				AdditionalDependencies="ws2_32.lib libnids.lib wpcap.lib"
+				OutputFile="$(OutDir)/pcapdstream.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
