@@ -271,7 +271,8 @@ public:
            << "LastUpdateTime=" << GetLastUpdateTime().Seconds() << "\n"
            << "TargetId=" << GetTargetId() << "\n"
            << "InRegion=" << (int)GetRegion() << "\n"
-           << "ActorType=" << GetActorType() << std::endl;
+           << "ActorType=" << GetActorType() << "\n"
+           << "Old=" << GetOld() << std::endl;
 
         // done
         return;
@@ -296,6 +297,7 @@ private:
         MEMBER_ASSIGN(ActorType);
         MEMBER_ASSIGN(LastUpdateTime);
         MEMBER_ASSIGN(Region);
+        MEMBER_ASSIGN(Old);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -311,6 +313,7 @@ private:
     DECL_MEMBER(ActorTypes,ActorType);
     DECL_MEMBER(CheyenneTime,LastUpdateTime); // time this actor was last updated with live info
     DECL_MEMBER(unsigned char,Region); // the region this actor is currently in
+    DECL_MEMBER(bool,Old); // true if the actor is "old"
 }; // end class Actor
 
 #endif // ACTOR_H

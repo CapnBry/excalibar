@@ -1996,11 +1996,18 @@ void Central::RenderActor(const Actor& ThisActor)const
         {
         // this is the target, save position
         FollowedTargetPair.SetTarget(ThisActor);
+
+        // if AutoHookTarget is set and no hooked actor exists already
+        // then set the hooked actor equal to the targeted actor
+        if(Config.GetAutoHookTarget() && HookedActor!=0)
+            {
+            HookedActor=ThisActor.GetInfoId();
+            }
         }
 
     if((Config.GetDrawDeadActors() == false) && (ThisActor.GetHealth() == 0))
         {
-        // dead actor and drawig dead actors is disabled
+        // dead actor and drawing dead actors is disabled
         return;
         }
 
@@ -2070,8 +2077,23 @@ void Central::RenderActor(const Actor& ThisActor)const
         glRotatef(180.0f+Position.GetHeading()*57.295779513082320876798154814105f,0.0f,0.0f,1.0f);
         //                                 convert to degrees for glRotatef
 
-        // enable textures
-        glEnable(GL_TEXTURE_2D);
+        if(!ThisActor.GetOld())
+            {
+            // enable textures
+            glEnable(GL_TEXTURE_2D);
+            }
+        else
+            {
+            // draw with color coding instead of texture
+            // for old actors (those that have not been 
+            // updated for a while: the data is stale)
+            // enable textures
+            glDisable(GL_TEXTURE_2D);
+            
+            // set color to a dark reddish purple color cause
+            // its different from everything else ;)
+            glColor4f(0.5f,0.0f,0.25f,1.0f);
+            }
 
         // draw actor symbol
         glBegin(GL_TRIANGLES);

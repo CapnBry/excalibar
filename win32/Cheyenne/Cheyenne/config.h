@@ -117,6 +117,7 @@ private:
         MEMBER_ASSIGN(TexturesInPPI);
         MEMBER_ASSIGN(VectorMapInPPI);
         MEMBER_ASSIGN(VectorMapOnlyInFollowedZone);
+        MEMBER_ASSIGN(AutoHookTarget);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -144,5 +145,6 @@ private:
     DECL_MEMBER(bool,TexturesInPPI);
     DECL_MEMBER(bool,VectorMapInPPI);
     DECL_MEMBER(bool,VectorMapOnlyInFollowedZone);
+    DECL_MEMBER(bool,AutoHookTarget);
 
 }; // end class CheyenneConfig

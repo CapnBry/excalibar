@@ -286,7 +286,10 @@ private:
     unsigned int CircleList;
 
     unsigned int IDToFollow;
-    unsigned int HookedActor;
+    mutable unsigned int HookedActor;     // this can be modified from RenderActor() -- which
+                                          // is "conceptually const", but needs to change this
+                                          // variable
+
     mutable unsigned char IDToFollowZone; // this can be modified from DrawDataWindow() -- which
                                           // is "conceptually const", but needs to change this
                                           // variable

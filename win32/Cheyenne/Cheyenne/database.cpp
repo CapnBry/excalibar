@@ -35,7 +35,8 @@ Database::Database() :
     //SpeedCorrection(0.259162303664921465968586387433f), // this is garnered from experience :(
     //SpeedCorrection(0.021f), // this is garnered from experience :(
     SpeedCorrection(1.0f),
-    ActorEvents(DatabaseEvents::_LastEvent)
+    ActorEvents(DatabaseEvents::_LastEvent),
+    OldActorThreshold(15.0)
 {
 
     // done
@@ -247,6 +248,14 @@ void Database::DoMaintenance(void)
             }
         else
             {
+            // if current age is greater than the threshold,
+            // mark the actor as "old" and set speed to 0
+            if(CurrentAge > OldActorThreshold)
+                {
+                ThisActor.SetOld(true);
+                ThisActor.ModifyMotion().SetSpeed(0);
+                }
+
             // recalc age so it is delta between current time and actor valid time
             CurrentAge=::Clock.Current();
             CurrentAge-=ThisActor.GetMotion().GetValidTime();
@@ -518,6 +527,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             ThisActor.ModifyMotion().SetSpeed(SpeedCorrection * ThisActor.GetMotion().GetSpeed());
             
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             /*
@@ -565,6 +577,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // save other actor info
             ThisActor.SetHealth(p->health);
 
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             //ThisActor.Print(os);
@@ -597,6 +612,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save heading
             ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
@@ -721,6 +739,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 ThisActor.SetHealth(p->health);
                 }
             
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             //ThisActor.Print(os);
@@ -801,6 +822,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // save realm
             ThisActor.SetRealm(p->realm);
 
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             if(bInserted)
@@ -864,6 +888,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save region
             ThisActor.SetRegion(p->detected_region);
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
@@ -932,6 +959,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save region
             ThisActor.SetRegion(p->detected_region);
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
@@ -1025,6 +1055,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             InfoIdMap.insert(infoid_map_value(ThisActor.GetId(),ThisActor.GetInfoId()));
 
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             if(bInserted)
@@ -1078,6 +1111,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 {
                 ThisActor.SetHealth(p->hp);
                 }
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
@@ -1164,6 +1200,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save region
             ThisActor.SetRegion(p->region);
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
 

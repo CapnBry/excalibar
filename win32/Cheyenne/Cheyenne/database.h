@@ -242,6 +242,7 @@ private:
     std::vector<DatabaseFunctorWrapper> ActorEvents;
 
     const float SpeedCorrection;
+    const CheyenneTime OldActorThreshold;
 
 }; // end class Database
 
