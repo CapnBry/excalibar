@@ -13,7 +13,7 @@ unit DStreamServer;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, ScktComp, DStreamDefs;
+  Classes, SysUtils, Contnrs, WinSock, ScktComp, DStreamDefs;
 
 const
     { Pipe command types }
@@ -551,7 +551,8 @@ var
   pClient:  TDStreamClientHandler;
 begin
   pClient := FindSocket(Socket);
-  if Assigned(pClient) and (ErrorEvent = eeDisconnect) then begin
+  if Assigned(pClient) and
+    ((ErrorEvent = eeDisconnect) or (ErrorCode = WSAECONNRESET)) then begin
     Log(Format('Socket error %d on %s.  Closing connection', [
       ErrorCode, SocketDesc(Socket)]));
     Socket.Close;
