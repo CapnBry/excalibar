@@ -41,9 +41,6 @@ bool cSniffer::IsDaocStream(tuple4 addr,bool udp)
 	unsigned net2 = 0x0010fed0;
 	unsigned net3 = 0x001ae1d1;
 
-	if(addr.daddr == ser1 || addr.saddr == ser1)
-		return false;
-
 	if(IsDaocStream(net1,addr,udp))
 		return true;
 
