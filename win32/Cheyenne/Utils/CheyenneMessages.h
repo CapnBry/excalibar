@@ -373,6 +373,10 @@ namespace share_opcodes
     c_opcode_t threshold_update=4;
     c_opcode_t visibility_update=5;
     c_opcode_t hard_delete=6;
+    c_opcode_t heading_update=7;
+    c_opcode_t speed_update=8;
+    c_opcode_t target_update=9;
+    c_opcode_t ground_target_update=10;
 } // end namespace share_opcodes
 
 namespace sharemessages
@@ -583,6 +587,108 @@ struct hard_delete : public sharemessages::ShareMessage
 
     impl_t data;
     }; // end hard_delete
+
+struct heading_update_data
+    {
+    unsigned int infoid;
+    float heading;
+    }; // end struct heading_update_data;
+struct heading_update : public sharemessages::ShareMessage
+    {
+    heading_update(){opcode=share_opcodes::heading_update;};
+    ~heading_update(){};
+    
+    typedef heading_update_data impl_t;
+    
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
+    impl_t data;
+    }; // end heading_update
+
+struct speed_update_data
+    {
+    unsigned int infoid;
+    float speed;
+    }; // end struct speed_update_data;
+struct speed_update : public sharemessages::ShareMessage
+    {
+    speed_update(){opcode=share_opcodes::speed_update;};
+    ~speed_update(){};
+    
+    typedef speed_update_data impl_t;
+    
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
+    impl_t data;
+    }; // end speed_update
+
+struct target_update_data
+    {
+    unsigned int infoid;
+    unsigned int infoid_target;
+    }; // end struct target_update_data;
+struct target_update : public sharemessages::ShareMessage
+    {
+    target_update(){opcode=share_opcodes::target_update;};
+    ~target_update(){};
+    
+    typedef target_update_data impl_t;
+    
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
+    impl_t data;
+    }; // end target_update
+
+struct ground_target_update_data
+    {
+    unsigned int infoid;
+    float x;
+    float y;
+    float z;
+    }; // end struct ground_target_update_data;
+struct ground_target_update : public sharemessages::ShareMessage
+    {
+    ground_target_update(){opcode=share_opcodes::ground_target_update;};
+    ~ground_target_update(){};
+    
+    typedef ground_target_update_data impl_t;
+    
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
+    impl_t data;
+    }; // end ground_target_update
 }; // end namespace sharemessages
 
 #pragma pack(pop,b1)
