@@ -47,6 +47,8 @@ type
     function FindAction(const AKey: string) : TStringActionLink;
     procedure AddAction(const AKey: string; AHandler: TRequestActionHandler;
       const AHelp: string = '');
+    function GetEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
   protected
     function ParseParamWord : string;
     function ParseParamInt : integer;
@@ -99,6 +101,7 @@ type
     procedure HandleQuickLaunch(AConn: TClientConn; const ACmd: string);
   public
     property DAOCControl: TDAOCControl read FDControl write FDControl;
+    property Enabled: boolean read GetEnabled write SetEnabled;
   end;
 
 var
@@ -992,6 +995,16 @@ begin
     AConn.WriteLn('200 QuickLaunching character: ' + FDControl.QuickLaunchChars[iIndex].DisplayName)
   else
     AConn.WriteLn('500 Could not launch index ' + sIndex);
+end;
+
+function TdmdRemoteAdmin.GetEnabled: boolean;
+begin
+  Result := tcpRemoteAdmin.Active;
+end;
+
+procedure TdmdRemoteAdmin.SetEnabled(const Value: boolean);
+begin
+  tcpRemoteAdmin.Active := Value;
 end;
 
 end.
