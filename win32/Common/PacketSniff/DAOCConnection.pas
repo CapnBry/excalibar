@@ -25,7 +25,7 @@ uses
   ComObj,
 {$ENDIF}
   DAOCPackets, DAOCObjs, DAOCRegion, DAOCInventory, DAOCPlayerAttributes, StringParseHlprs,
-  VendorItems, ChatParse, MapNavigator, FrameFns, INIFiles;
+  VendorItems, ChatParse, MapNavigator, FrameFns, INIFiles, NamedPacketHandler;
 
 type
   TStringEvent = procedure (Sender: TObject; const AMsg: string) of Object;
@@ -80,6 +80,7 @@ type
   TDAOCConnection = class(TObject)
 {$ENDIF}
   private
+
     FClientAddr: Cardinal;
     FServerAddr: Cardinal;
     FUDPServerAddr: Cardinal;
@@ -104,6 +105,8 @@ type
     FPingRequestSentTime: Cardinal;
     FLastPingTime:        integer;
     FRealmRanks:          TStringList;
+    FSelectedObjectCached:  TDAOCObject;
+    FPacketHandlerDefFile: string;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -170,6 +173,7 @@ type
     procedure OBJWALKResetGroup(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
     procedure OBJWALKResetGuild(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
     procedure OBJWALKRemoveTarget(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
+    procedure LinkPacketHandlers(AHandlerList: TNamedPacketHandlerList);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -186,6 +190,8 @@ type
     FLastDelveRequestPos: BYTE;
     FLastCurrencyChangeReason: TDAOCCurrencyChangeReason;
     FGroupMembers:  TDAOCObjectList;
+    FServerPacketHandlers: TNamedPacketHandlerList;
+    FClientPacketHandlers: TNamedPacketHandlerList;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -214,7 +220,11 @@ type
     procedure ParseLogUpdate(pPacket: TDAOCPacket);
     procedure ParseLocalHealthUpdate(pPacket: TDAOCPacket);
     procedure ParseCharacterLoginInit(pPacket: TDAOCPacket);
-    procedure ParseNewObject(pPacket: TDAOCPacket; AClass: TDAOCObjectClass);
+    procedure ParseNewObjectCommon(pPacket: TDAOCPacket; AClass: TDAOCObjectClass);
+    procedure ParseNewObject(pPacket: TDAOCPacket);
+    procedure ParseNewMob(pPacket: TDAOCPacket);
+    procedure ParseNewPlayer(pPacket: TDAOCPacket);
+    procedure ParseNewVehicle(pPacket: TDAOCPacket);
     procedure ParseObjectEquipment(pPacket: TDAOCPacket);
     procedure ParseMoneyUpdate(pPacket: TDAOCPacket);
     procedure ParseRequestBuyItem(pPacket: TDAOCPacket);
@@ -229,7 +239,7 @@ type
     procedure ParseSetGroundTarget(pPacket: TDAOCPacket);
     procedure ParseCharacterStealthed(pPacket: TDAOCPacket);
     procedure ParseCharacterActivationRequest(pPacket: TDAOCPacket);
-    procedure ParseServerProcotolInit(pPacket: TDAOCPacket);
+    procedure ParseServerProtocolInit(pPacket: TDAOCPacket);
     procedure ParseRequestPlayerByPlayerID(pPacket: TDAOCPacket);
     procedure ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
     procedure ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
@@ -304,6 +314,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
+    procedure InitPacketHandlers;
     procedure ProcessEthernetSegment(ASegment: TEthernetSegment);
     procedure Clear; virtual;
     procedure CheckForStaleObjects;
@@ -336,10 +347,11 @@ type
     property GroupMembers: TDAOCObjectList read FGroupMembers;
     property LargestDAOCPacketSeen: Cardinal read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
-    property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime; 
+    property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime;
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
+    property PacketHandlerDefFile: string read FPacketHandlerDefFile write FPacketHandlerDefFile;
     property RegionID: integer read FRegionID write FRegionID;
     property SelectedID: WORD read FSelectedID;
     property ServerProtocol: BYTE read FServerProtocol write FServerProtocol;
@@ -469,6 +481,10 @@ begin
   FZoneList := TDAOCZoneInfoList.Create;
   FZoneList.LoadFromFile('mapinfo.txt');
 
+  FPacketHandlerDefFile := 'packethandlers.ini';
+  FServerPacketHandlers := TNamedPacketHandlerList.Create;
+  FClientPacketHandlers := TNamedPacketHandlerList.Create;
+
   FTCPFromClient := TDAOCTCPPacketAssembler.Create(true);
   FTCPFromServer := TDAOCTCPPacketAssembler.Create(false);
 
@@ -509,6 +525,9 @@ begin
   FLocalPlayer.Free;
   FRealmRanks.Free;
   FGroupMembers.Free;
+
+  FServerPacketHandlers.Free;
+  FClientPacketHandlers.Free;
 
   inherited Destroy;
 end;
@@ -800,6 +819,7 @@ procedure TDAOCConnection.ProcessDAOCPacketFromClient(
   pPacket: TDAOCPacket);
 var
   command:  WORD;
+  pHandler: TNamedPacketHandler;
 begin
   // seq := pPacket.getShort;
   // srcid := pPacket.getShort;
@@ -810,65 +830,23 @@ begin
 //  Writeln(Format('seq 0x%4.4x  src 0x%4.4x  cmd 0x%4.4x  dst 0x%4.4x',
 //    [seq, srcid, command, destid]));
 
-  case command of
-    $01:  ParseLocalPosUpdateFromClient(pPacket);
-    $07:  ParseCommandFromClient(pPacket);
-    $0b:  ParseServerPingRequest(pPacket);
-    $0f:  ParseAccountLoginRequest(pPacket);
-    $12:  ParseLocalHeadUpdateFromClient(pPacket);
-    $16:  ParseRequestObjectByInfoID(pPacket);
-    $18:  ParseSelectedIDUpdate(pPacket);
-    $44:  ParseSetGroundTarget(pPacket);
-    $70:  ParseDelveRequest(pPacket);
-    $7d:  ParseRequestPlayerByPlayerID(pPacket);
-    $b8:  ParseCharacterActivationRequest(pPacket);
-    $d2:  ParseVendorWindowRequest(pPacket);
-    $d0:  ParseRequestBuyItem(pPacket);
-  end;
+  pHandler := FClientPacketHandlers.HandlerByID(command);
+  if Assigned(pHandler) then
+    pHandler.Handler(pPacket);
 end;
 
 procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
 var
   command:  BYTE;
+  pHandler: TNamedPacketHandler;
 begin
   if pPacket.IPProtocol = daocpUDP then
     pPacket.seek(2);  // seqno
 
   command := pPacket.getByte;
-
-  case command of
-    $01:  ParsePlayerPosUpdate(pPacket);
-    $05:  ParseLocalHealthUpdate(pPacket);
-    $07:  ParseLogUpdate(pPacket);
-    $09:  ParseMobUpdate(pPacket);
-    $0a:  ParseDeleteObject(pPacket);
-    $12:  ParsePlayerHeadUpdate(pPacket);
-    $14:  ParseAggroIndicator(pPacket);
-    $1f:  ParseSetPlayerRegion(pPacket);
-    $29:  ParsePopupMessage(pPacket);
-    $31:  ParseDoorPositionUpdate(pPacket);
-    $36:  ParseRegionServerInfomation(pPacket);
-    $49:  ParseCharacterStealthed(pPacket);
-    $52:  ParseMoneyUpdate(pPacket);
-    $55:  ParseAccountCharacters(pPacket);
-    $5b:  ParseProgressMeter(pPacket);
-    $6C:  ParseDelveInformation(pPacket);
-    $71:  ParseNewObject(pPacket, ocObject);
-    $72:  ParseNewObject(pPacket, ocMob);
-    $7c:  ParseNewObject(pPacket, ocPlayer);
-    $81:  ParseServerPingResponse(pPacket);
-    $82:  ParseServerProcotolInit(pPacket);
-    $8a:  ParseSetEncryptionKey(pPacket);
-    $88:  ParseCharacterLoginInit(pPacket);
-    $aa:  ParseInventoryList(pPacket);
-    $b3:  ParsePlayerCenteredSpellEffect(pPacket);
-    $ba:  ParseNewObject(pPacket, ocVehicle);
-    $bd:  ParseObjectEquipment(pPacket);
-    $be:  ParsePlayerStatsUpdate(pPacket);
-    $bf:  ParseVendorWindow(pPacket);
-    $d7:  ParseSpellPulse(pPacket);
-    $d8:  ParseGroupWindowUpdate(pPacket);
-  end;
+  pHandler := FServerPacketHandlers.HandlerByID(command);
+  if Assigned(pHandler) then
+    pHandler.Handler(pPacket);
 end;
 
 procedure TDAOCConnection.ProcessEthernetSegment(ASegment: TEthernetSegment);
@@ -1338,7 +1316,7 @@ begin
   CheckZoneChanged;
 end;
 
-procedure TDAOCConnection.ParseNewObject(pPacket: TDAOCPacket;
+procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TDAOCPacket;
   AClass: TDAOCObjectClass);
 var
   tmpObject:  TDAOCObject;
@@ -1788,10 +1766,14 @@ function TDAOCConnection.GetSelectedObject: TDAOCObject;
 begin
   if FSelectedID = 0 then
     Result := nil
+  else if Assigned(FSelectedObjectCached) and (FSelectedObjectCached.InfoID = FSelectedID) then
+    Result := FSelectedObjectCached
   else if FSelectedID = FLocalPlayer.InfoID then
     Result := FLocalPlayer
   else
     Result := FDAOCObjs.FindByInfoID(FSelectedID);
+
+  FSelectedObjectCached := Result;
 end;
 
 procedure TDAOCConnection.ParseRegionServerInfomation(
@@ -1825,6 +1807,9 @@ procedure TDAOCConnection.DoOnDeleteDAOCObject(AObject: TDAOCObject);
 var
   iIdx:   integer;
 begin
+  if FSelectedObjectCached = AObject then
+    FSelectedObjectCached := nil;
+    
   FDAOCObjs.WalkList(OBJWALKRemoveTarget, Integer(AObject));
 
     { make sure we don't have them in our group list }
@@ -2214,7 +2199,7 @@ begin
   DoSetRegionID(Result.RegionID);
 end;
 
-procedure TDAOCConnection.ParseServerProcotolInit(pPacket: TDAOCPacket);
+procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TDAOCPacket);
 begin
   pPacket.HandlerName := 'ServerProcotolInit';
   
@@ -2722,6 +2707,139 @@ procedure TDAOCConnection.DoOnDoorPositionUpdate(AObj: TDAOCObject);
 begin
   if Assigned(FOnDoorPositionUpdate) then
     FOnDoorPositionUpdate(Self, AObj);
+end;
+
+procedure TDAOCConnection.InitPacketHandlers;
+begin
+  FServerPacketHandlers.LoadFromFile(FPacketHandlerDefFile, 'Server');
+  LinkPacketHandlers(FServerPacketHandlers);
+
+  FClientPacketHandlers.LoadFromFile(FPacketHandlerDefFile, 'Client');
+  LinkPacketHandlers(FClientPacketHandlers);
+end;
+
+procedure TDAOCConnection.LinkPacketHandlers(AHandlerList: TNamedPacketHandlerList);
+var
+  I:  integer;
+begin
+  for I := 0 to AHandlerList.Count - 1 do begin
+    with AHandlerList[I] do
+        { server handlers }
+      if AnsiSameText(Name, 'PlayerPosUpdate') then
+        Handler := ParsePlayerPosUpdate
+      else if AnsiSameText(Name, 'LocalHealthUpdate') then
+        Handler := ParseLocalHealthUpdate
+      else if AnsiSameText(Name, 'LogUpdate') then
+        Handler := ParseLogUpdate
+      else if AnsiSameText(Name, 'MobUpdate') then
+        Handler := ParseMobUpdate
+      else if AnsiSameText(Name, 'DeleteObject') then
+        Handler := ParseDeleteObject
+      else if AnsiSameText(Name, 'PlayerHeadUpdate') then
+        Handler := ParsePlayerHeadUpdate
+      else if AnsiSameText(Name, 'AggroIndicator') then
+        Handler := ParseAggroIndicator
+      else if AnsiSameText(Name, 'SetPlayerRegion') then
+        Handler := ParseSetPlayerRegion
+      else if AnsiSameText(Name, 'PopupMessage') then
+        Handler := ParsePopupMessage
+      else if AnsiSameText(Name, 'DoorPositionUpdate') then
+        Handler := ParseDoorPositionUpdate
+      else if AnsiSameText(Name, 'RegionServerInfomation') then
+        Handler := ParseRegionServerInfomation
+      else if AnsiSameText(Name, 'CharacterStealthed') then
+        Handler := ParseCharacterStealthed
+      else if AnsiSameText(Name, 'MoneyUpdate') then
+        Handler := ParseMoneyUpdate
+      else if AnsiSameText(Name, 'AccountCharacters') then
+        Handler := ParseAccountCharacters
+      else if AnsiSameText(Name, 'ProgressMeter') then
+        Handler := ParseProgressMeter
+      else if AnsiSameText(Name, 'DelveInformation') then
+        Handler := ParseDelveInformation
+      else if AnsiSameText(Name, 'NewObject') then
+        Handler := ParseNewObject
+      else if AnsiSameText(Name, 'NewMob') then
+        Handler := ParseNewMob
+      else if AnsiSameText(Name, 'NewPlayer') then
+        Handler := ParseNewPlayer
+      else if AnsiSameText(Name, 'ServerPingResponse') then
+        Handler := ParseServerPingResponse
+      else if AnsiSameText(Name, 'ServerProtocolInit') then
+        Handler := ParseServerProtocolInit
+      else if AnsiSameText(Name, 'SetEncryptionKey') then
+        Handler := ParseSetEncryptionKey
+      else if AnsiSameText(Name, 'CharacterLoginInit') then
+        Handler := ParseCharacterLoginInit
+      else if AnsiSameText(Name, 'InventoryList') then
+        Handler := ParseInventoryList
+      else if AnsiSameText(Name, 'PlayerCenteredSpellEffect') then
+        Handler := ParsePlayerCenteredSpellEffect
+      else if AnsiSameText(Name, 'NewVehicle') then
+        Handler := ParseNewVehicle
+      else if AnsiSameText(Name, 'ObjectEquipment') then
+        Handler := ParseObjectEquipment
+      else if AnsiSameText(Name, 'PlayerStatsUpdate') then
+        Handler := ParsePlayerStatsUpdate
+      else if AnsiSameText(Name, 'VendorWindow') then
+        Handler := ParseVendorWindow
+      else if AnsiSameText(Name, 'SpellPulse') then
+        Handler := ParseSpellPulse
+      else if AnsiSameText(Name, 'GroupWindowUpdate') then
+        Handler := ParseGroupWindowUpdate
+
+        { client handlers }
+      else if AnsiSameText(Name, 'LocalPosUpdateFromClient') then
+        Handler := ParseLocalPosUpdateFromClient
+      else if AnsiSameText(Name, 'CommandFromClient') then
+        Handler := ParseCommandFromClient
+      else if AnsiSameText(Name, 'ServerPingRequest') then
+        Handler := ParseServerPingRequest
+      else if AnsiSameText(Name, 'AccountLoginRequest') then
+        Handler := ParseAccountLoginRequest
+      else if AnsiSameText(Name, 'LocalHeadUpdateFromClient') then
+        Handler := ParseLocalHeadUpdateFromClient
+      else if AnsiSameText(Name, 'RequestObjectByInfoID') then
+        Handler := ParseRequestObjectByInfoID
+      else if AnsiSameText(Name, 'SelectedIDUpdate') then
+        Handler := ParseSelectedIDUpdate
+      else if AnsiSameText(Name, 'SetGroundTarget') then
+        Handler := ParseSetGroundTarget
+      else if AnsiSameText(Name, 'DelveRequest') then
+        Handler := ParseDelveRequest
+      else if AnsiSameText(Name, 'RequestPlayerByPlayerID') then
+        Handler := ParseRequestPlayerByPlayerID
+      else if AnsiSameText(Name, 'CharacterActivationRequest') then
+        Handler := ParseCharacterActivationRequest
+      else if AnsiSameText(Name, 'VendorWindowRequest') then
+        Handler := ParseVendorWindowRequest
+      else if AnsiSameText(Name, 'RequestBuyItem') then
+        Handler := ParseRequestBuyItem
+
+       { unknown }
+      else
+        Log('Unknown packet handler function specified: ' + Name);
+  end;
+end;
+
+procedure TDAOCConnection.ParseNewMob(pPacket: TDAOCPacket);
+begin
+  ParseNewObjectCommon(pPacket, ocMob);
+end;
+
+procedure TDAOCConnection.ParseNewObject(pPacket: TDAOCPacket);
+begin
+  ParseNewObjectCommon(pPacket, ocObject);
+end;
+
+procedure TDAOCConnection.ParseNewPlayer(pPacket: TDAOCPacket);
+begin
+  ParseNewObjectCommon(pPacket, ocPlayer);
+end;
+
+procedure TDAOCConnection.ParseNewVehicle(pPacket: TDAOCPacket);
+begin
+  ParseNewObjectCommon(pPacket, ocVehicle);
 end;
 
 end.
