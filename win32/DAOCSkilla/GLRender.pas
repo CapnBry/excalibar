@@ -144,6 +144,7 @@ type
     procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
     procedure RENDERPrefsMobListOptionChanged(Sender: TObject);
     procedure RENDERPrefsMobTriangleSizeChanged(Sender: TObject);
+    procedure RENDERPrefsMinFPSChanged(Sender: TObject);
     procedure UpdateFrameStats(ATime: integer);
     procedure InvalidateListObject(AObj: TDAOCObject);
     procedure UpdateStayOnTop;
@@ -161,6 +162,7 @@ type
     procedure SetSmoothingOpts;
     procedure CreateGLWindow;
     procedure AdjustMobTriangleSize;
+    procedure AdjustMinFPSTimer;
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
     procedure DisplaySelectedObjectInventory;
     procedure CheckMouseOverUnproject;
@@ -744,14 +746,14 @@ begin
 
   FMapElementsListList := TVectorMapElementListList.Create;
   FMapElementsListList.VersionFile := FBasePath + 'versions.ini';
-  FMapElementsListList.VectorMapDir := FBasePath + 'maps\';
-  FMapElementsListList.VectorMapCustomDir := FBasePath + 'custommaps\';
+  FMapElementsListList.VectorMapDir := FBasePath + 'maps' + PathDelim;
+  FMapElementsListList.VectorMapCustomDir := FBasePath + 'custommaps' + PathDelim;
   FMapElementsListList.HTTPFetch := FHTTPFetch;
 
   FMapTexturesListList := TTextureMapElementListList.Create;
   FMapTexturesListList.VersionFile := FBasePath + 'versions.ini';
-  FMapTexturesListList.TextureMapDir := FBasePath + 'maps\dds\';
-  FMapTexturesListList.TextureMapCustomDir := FBasePath + 'custommaps\dds\';
+  FMapTexturesListList.TextureMapDir := FBasePath + 'maps' + PathDelim + 'dds' + PathDelim;
+  FMapTexturesListList.TextureMapCustomDir := FBasePath + 'custommaps' + PathDelim + 'dds' + PathDelim;
   FMapTexturesListList.HTTPFetch := FHTTPFetch;
 
   FMobTriangle := T3DArrowHead.Create;
@@ -769,7 +771,8 @@ begin
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
-  FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged; 
+  FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged;
+  FRenderPrefs.OnMinFPSChanged := RENDERPrefsMinFPSChanged; 
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
   FRenderPrefs.HasGLUT := Assigned(glutInit);
 
@@ -1622,10 +1625,12 @@ begin
     FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
     FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
     FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged;
+    FRenderPrefs.OnMinFPSChanged := RENDERPrefsMinFPSChanged;
 
     RENDERPrefsObjectFilterChanged(FRenderPrefs);
     RENDERPrefsMobListOptionChanged(FRenderPrefs);
     RENDERPrefsMobTriangleSizeChanged(FRenderPrefs);
+    RENDERPrefsMinFPSChanged(FRenderPrefs);
   end;
 end;
 
@@ -2290,6 +2295,16 @@ begin
 
   glColor3f(1.0, 1.0, 1.0);
   WriteTXFTextH12(5, glMap.ClientHeight, 'No connection assigned.');
+end;
+
+procedure TfrmGLRender.RENDERPrefsMinFPSChanged(Sender: TObject);
+begin
+  AdjustMinFPSTimer;  
+end;
+
+procedure TfrmGLRender.AdjustMinFPSTimer;
+begin
+  tmrMinFPS.Interval := (1000 div FRenderPrefs.MinFPS);
 end;
 
 end.
