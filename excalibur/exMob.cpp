@@ -45,8 +45,8 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   name=newname;
   surname=newsurname;
   guild=newguild;
-  x=nx;
-  y=ny;
+  projectedX=x=nx;
+  projectedY=y=ny;
   z=nz;
   level=newlevel;
   hp=nhp;
@@ -68,9 +68,8 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   inventory.setAutoDelete(true);
   playerclass = exMob::Unknown;
   
-  _lasttick = exTick;
+  _lastprojectedPos = _lasttick = exTick;
   _lastdist = 0;
-  _lastprojectedPos = 0;
   playerDist();
 
   /*
@@ -204,9 +203,10 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
 
 
 void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
-  x=nx;
-  y=ny;
+  projectedX = x = nx;
+  projectedY = y = ny;
   z=nz;
+  _lastprojectedPos = exTick;
   touch();
   repaint();
 }
