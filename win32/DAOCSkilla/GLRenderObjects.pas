@@ -13,6 +13,7 @@ type
     FName:    string;
     FOffsetY: integer;
     FOffsetX: integer;
+    FUseColor: boolean;
   public
     constructor Create; virtual;
 
@@ -118,6 +119,30 @@ type
 
     property Bounds: TRect read FBounds;
   end;
+
+  T3DArrowHead = class(TGLCallListObject)
+  private
+    FSize: integer;
+    procedure SetSize(const Value: integer);
+  public
+    constructor Create; override;
+    procedure GLInitialize; override;
+
+    property Size: integer read FSize write SetSize;
+  end;
+
+  T3DPyramid = class(TGLCallListObject)
+  private
+    FSize: integer;
+    procedure SetSize(const Value: integer);
+  public
+    constructor Create; override;
+    procedure GLInitialize; override;
+
+    property Size: integer read FSize write SetSize;
+  end;
+
+procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 
 implementation
 
@@ -226,6 +251,7 @@ end;
 constructor TGLRenderObject.Create;
 begin
   FColor := clWhite;
+  FUseColor := true;
 end;
 
 procedure TGLRenderObject.GLCleanup;
@@ -240,7 +266,8 @@ end;
 
 procedure TGLRenderObject.GLRender;
 begin
-  SetGLColorFromTColor(FColor, 1);
+  if FUseColor then
+    SetGLColorFromTColor(FColor, 1);
 end;
 
 procedure TGLRenderObject.SetColorFromString(const AColor: string);
@@ -259,6 +286,8 @@ begin
     FColor := clBlue
   else if AnsiSameText(AColor, 'green') then
     FColor := clGreen
+  else if AnsiSameText(AColor, 'red') then
+    FColor := clRed
   else
     FColor := clFuchsia;
 end;
@@ -443,6 +472,88 @@ begin
     FDDSChunk.Width, FDDSChunk.Height, 0, FDDSChunk.PixelsSize, FDDSChunk.Pixels);
 
   FreeAndNil(FDDSChunk);
+end;
+
+{ T3DArrowHead }
+
+constructor T3DArrowHead.Create;
+begin
+  inherited;
+  FSize := 150;
+  FUseColor := false;
+end;
+
+procedure T3DArrowHead.GLInitialize;
+var
+  w:  integer;
+  l:  integer;
+begin
+  inherited;
+  w := FSize;
+  l := w * 2;
+
+  glEdgeFlag(GL_TRUE);
+  glNewList(FGLList, GL_COMPILE);
+
+  glBegin(GL_TRIANGLE_FAN);
+    glVertex3i(0, 0, w);
+
+    glNormal3f(-(l+w), w, l);
+    glVertex3i(-w, -w, 0);
+    glVertex3i(0, l, 0);
+
+    glNormal3f(l+w, w, l);
+    glVertex3i(w, -w, 0);
+
+    glNormal3f(0, -w, w);
+    glVertex3i(-w, -w, 0);
+  glEnd();
+  glEndList();
+end;
+
+procedure T3DArrowHead.SetSize(const Value: integer);
+begin
+  FSize := Value;
+end;
+
+{ T3DPyramid }
+
+constructor T3DPyramid.Create;
+begin
+  inherited;
+  FSize := 150;
+end;
+
+procedure T3DPyramid.GLInitialize;
+
+begin
+  inherited;
+
+  glEdgeFlag(GL_TRUE);
+  glNewList(FGLList, GL_COMPILE);
+
+  glBegin(GL_TRIANGLE_FAN);
+    glVertex3i(0,0,FSize);
+
+    glNormal3f(0,FSize,FSize);
+    glVertex3i(-FSize,FSize,-FSize);
+    glVertex3i(FSize,FSize,-FSize);
+
+    glNormal3f(FSize,0,FSize);
+    glVertex3i(FSize,-FSize,-FSize);
+
+    glNormal3f(0,-FSize,FSize);
+    glVertex3i(-FSize,-FSize,-FSize);
+
+    glNormal3f(-FSize,0,FSize);
+    glVertex3i(-FSize,FSize,-FSize);
+  glEnd();
+  glEndList();
+end;
+
+procedure T3DPyramid.SetSize(const Value: integer);
+begin
+  FSize := Value;
 end;
 
 end.
