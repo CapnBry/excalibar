@@ -885,8 +885,7 @@ begin
       Log(E.Message);
   end;
 
-  if not tcpCollectorClient.Connected then
-    tmrReconnect.Enabled := true;
+  tmrReconnect.Enabled := not frmConnectionConfig.ProcessLocally and not tcpCollectorClient.Connected;
 end;
 
 procedure TfrmMain.tmrReconnectTimer(Sender: TObject);
