@@ -112,6 +112,12 @@ update is QT to 3.0.1 or greater (instructions below).
 If you did not install "everything" send us a list of packages you needed
 to install and we will update this documentation.
 
+Problems under RedHat 9.0
+-------------------------
+Reports on the forums indicate that RedHat 9's glut does not work properly
+with Excalibur.  xsilentdx reports that if you update your glut and 
+glut-devel rpms (RedHat 9 version) from rpmfind.net, everything works fine.
+
 Prerequisite packages for Debian UNSTABLE
 -----------------------------------------
   build-essential
