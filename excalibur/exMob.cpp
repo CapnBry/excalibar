@@ -189,30 +189,29 @@ QString exMob::text(int column) const {
   }
 }
 
-void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align) {
-  if (p == NULL)
-    return;
-
-  QColorGroup cols(cg);
+void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align)
+{
+  QColorGroup new_colors(cg);
   QColor clr;
 
-  if (!isMobOrObj())
+  if (isPlayer())
   {
     clr = getRealmColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
-    cols.setColor(QColorGroup::Base, clr);
+    new_colors.setColor(QColorGroup::Base, clr);
   }
   else if (!isObj() && prefs.MobListColors)
   {
-    cols.setColor(QColorGroup::Text, getConColor(c->playerlevel).dark(175));
+    clr = getConColor(c->playerlevel).dark(175);
+    new_colors.setColor(QColorGroup::Text, clr);
   }
 
   if(isFiltered())
   {
-      cols.setColor(QColorGroup::Base, QColor(255,255,153));
-      cols.setColor(QColorGroup::Text, black);
+    new_colors.setColor(QColorGroup::Base, QColor(255,255,153));
+    new_colors.setColor(QColorGroup::Text, black);
   }
 
-  QListViewItem::paintCell(p,cols,column,width,align);
+  QListViewItem::paintCell(p, new_colors, column, width, align);
 }
 
 
