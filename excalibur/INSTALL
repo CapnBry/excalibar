@@ -178,12 +178,12 @@ Method 1:  Use this if your DAoC machine and Excalibur machine are on a
 3) ./excalibur
 See "Common" below
 
-Method 2a:  Use this or 2b if you are on a router and the Excalibur machine
-            doesn't "see" the DAoC traffic.  (Linux) means type the command 
-            on you Excalibur machine, (Win) means type the command on your
-            DAoC Windows machine.  Replace 192.168.1.1 with the IP address
+Method 2a:  Use this or 2b if you are on a switch/router and the Excalibur 
+            machine doesn't "see" the DAoC traffic.  (Linux) means type the 
+            command on you Excalibur machine, (Win) means type the command on 
+            your DAoC Windows machine.  Replace 192.168.1.1 with the IP address
             of your Excalibur machine.  If the DAoC server you're connecting
-            to is not on the 208.254.16.0 subnet, adjust accoringly.
+            to is not on the 208.254.16.0 subnet, adjust accordingly.
             
 1) (Linux) echo 1 > /proc/sys/net/ipv4/ip_forward
 2) (Linux) iptables -t nat -A POSTROUTING -d 208.254.16.0/24 -j SNAT --to-source 192.168.1.1
@@ -192,9 +192,9 @@ Method 2a:  Use this or 2b if you are on a router and the Excalibur machine
 5) (Win) route add 208.254.16.0 mask 255.255.255.0 192.168.1.1
 See "Common" below
 
-Method 2b:  Use this or 2b if you are on a router and the Excalibur machine
-            doesn't "see" the DAoC traffic.  Set up a SOCKS 5 server on your
-            Linux machine, and use a SOCKS socket intercept on the DAoC 
+Method 2b:  Use this or 2b if you are on a switch/router and the Excalibur 
+            machine doesn't "see" the DAoC traffic.  Set up a SOCKS 5 server 
+            on your Linux machine, and use a SOCKS socket intercept on the DAoC 
             machine.
 
 1) cd ~/excalibur
