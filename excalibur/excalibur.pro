@@ -1,5 +1,5 @@
-SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exItem.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp exMessage.cpp
-HEADERS	+= exItem.h exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h exMessage.h messages.ui.h
+SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp exMessage.cpp
+HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h exMessage.h messages.ui.h
 #
 # Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
 #

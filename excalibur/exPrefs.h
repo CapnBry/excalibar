@@ -87,9 +87,6 @@ public:
   int vsplit_size1, vsplit_size2;
   int map_range;
 
-  bool items_autoupload;
-  QString items_contributor;
-
   bool enable_experimental_code;
 
   bool druppy_leak;

@@ -37,7 +37,6 @@
 #include <math.h>
 #include <qmessagebox.h>
 #include "exConnection.h"
-#include "exItem.h"
 
 template <class T> ostream & exMobList<T>::operator << (ostream & os)
 {
@@ -537,8 +536,6 @@ END_EXPERIMENTAL_CODE
               for (i=0;i<num;i++) {
   	        data=p->getBytes(18);
                 name=p->getPascalString();
-		if (name.length()>0)
-                  exItem::seen(name,data);
               }
               break;         
 	  case 0x6c:
@@ -549,7 +546,6 @@ END_EXPERIMENTAL_CODE
                 if (linenum != 0) 
                   info=info.append(p->getPascalString()).append("\n");
               } while (linenum != 0);              
-              exItem::seen(name,info);
               break;
 	  case 0xbe:
 	      what = p->getByte();

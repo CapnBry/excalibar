@@ -34,7 +34,6 @@
 #include "exConnection.h"
 #include "exMapInfo.h"
 #include "exSniffer.h"
-#include "exItem.h"
 
 exTimeType exTick;
 exPrefs prefs;
@@ -118,7 +117,6 @@ int main( int argc, char ** argv )
     qInitNetworkProtocols();
 
     exMapInfo::setup("maps/mapinfo.txt");
-    exItem::init();
 
     _tick.start();
 

@@ -31,7 +31,6 @@
 #include <qspinbox.h>
 
 #include "exPrefs.h"
-#include "exItem.h"
 #include "exMap.h"
 
 exPrefs::exPrefs() {
@@ -130,9 +129,6 @@ void exPrefs::show() {
   dlg->SliderAliveColor_valueChanged(dlg->SliderAliveColor->value());
   dlg->SliderDeadColor_valueChanged(dlg->SliderDeadColor->value());
 
-  dlg->ItemAutoUpload->setChecked(items_autoupload);
-  dlg->ItemContributor->setText(items_contributor);
-
   dlg->EnableExperimentalCode->setChecked(enable_experimental_code);
   dlg->DebugOpenGL->setChecked(gl_debug);
 
@@ -187,9 +183,6 @@ void exPrefs::accept() {
   brightness_dead=dlg->SliderDeadColor->value();
 
   sort_when = (dlg->SortNever->isChecked() ? sortNever : (dlg->SortPlayer->isChecked() ? sortPlayer : sortAlways));
-
-  items_autoupload=dlg->ItemAutoUpload->isChecked();
-  items_contributor=dlg->ItemContributor->text();
 
   enable_experimental_code=dlg->EnableExperimentalCode->isChecked();
   gl_debug=dlg->DebugOpenGL->isChecked();
@@ -264,9 +257,6 @@ void exPrefs::loadSettings() {
   brightness_alive=s.readNumEntry("/Excalibur/BrightnessAlive", 140);
   brightness_dead=s.readNumEntry("/Excalibur/BrightnessDead", 180);
 
-  items_autoupload=s.readBoolEntry("/Excalibur/ItemsAutoUpload", FALSE);
-  items_contributor=s.readEntry("/Excalibur/ItemsContributor", "");
-
   dump_unknown_packets=s.readBoolEntry("/Excalibur/ShowUnknown", FALSE);
   enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
   gl_debug=s.readBoolEntry("/Excalibur/DebugOpenGL", FALSE);
@@ -308,8 +298,6 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/SortWhen", (int) sort_when);
   s.writeEntry("/Excalibur/BrightnessAlive", brightness_alive);
   s.writeEntry("/Excalibur/BrightnessDead", brightness_dead);
-  s.writeEntry("/Excalibur/ItemsAutoUpload", items_autoupload);
-  s.writeEntry("/Excalibur/ItemsContributor", items_contributor);
 
   s.writeEntry("/Excalibur/PlayerCircle1", player_circle_1);
   s.writeEntry("/Excalibur/PlayerCircle2", player_circle_2);
@@ -327,7 +315,6 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/DebugOpenGL", gl_debug);
   s.writeEntry("/Excalibur/MobListColors", MobListColors);
   s.writeEntry("/Excalibur/StickyList", sticky_list);
-  exItem::save();
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {

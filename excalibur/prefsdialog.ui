@@ -41,7 +41,7 @@
                 <number>6</number>
             </property>
             <spacer>
-                <property name="name" stdset="0">
+                <property name="name">
                     <cstring>Horizontal Spacing2</cstring>
                 </property>
                 <property name="orientation">
@@ -49,12 +49,6 @@
                 </property>
                 <property name="sizeType">
                     <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>20</height>
-                    </size>
                 </property>
             </spacer>
             <widget class="QPushButton">
@@ -1047,59 +1041,6 @@
         </widget>
         <widget class="QWidget">
             <property name="name">
-                <cstring>tab</cstring>
-            </property>
-            <attribute name="title">
-                <string>Items</string>
-            </attribute>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>ItemAutoUpload</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>40</y>
-                        <width>330</width>
-                        <height>24</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Upload Items on Window Close</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit">
-                <property name="name">
-                    <cstring>ItemContributor</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>100</x>
-                        <y>10</y>
-                        <width>500</width>
-                        <height>32</height>
-                    </rect>
-                </property>
-            </widget>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>TextLabel1</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>10</y>
-                        <width>88</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Your Name</string>
-                </property>
-            </widget>
-        </widget>
-        <widget class="QWidget">
-            <property name="name">
                 <cstring>Debug</cstring>
             </property>
             <attribute name="title">
@@ -1255,12 +1196,6 @@
         <slot>SliderDeadColor_valueChanged(int)</slot>
     </connection>
     <connection>
-        <sender>ItemAutoUpload</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>PrefsDialog</receiver>
-        <slot>ItemAutoUpload_toggled(bool)</slot>
-    </connection>
-    <connection>
         <sender>MapSimplifyRange</sender>
         <signal>valueChanged(int)</signal>
         <receiver>PrefsDialog</receiver>
@@ -1325,12 +1260,12 @@
     <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
 </includes>
 <slots>
-    <slot>SliderAliveColor_valueChanged(int v)</slot>
-    <slot>SliderDeadColor_valueChanged(int v)</slot>
-    <slot>ItemAutoUpload_toggled(bool)</slot>
-    <slot>MapSimplifyRange_valueChanged(int val)</slot>
-    <slot>PrefsDialog_destroyed(QObject *)</slot>
-    <slot>TextLabel1_3_destroyed(QObject *)</slot>
+    <slot>SliderAliveColor_valueChanged( int v )</slot>
+    <slot>SliderDeadColor_valueChanged( int v )</slot>
+    <slot>ItemAutoUpload_toggled( bool )</slot>
+    <slot>MapSimplifyRange_valueChanged( int val )</slot>
+    <slot>PrefsDialog_destroyed( QObject * )</slot>
+    <slot>TextLabel1_3_destroyed( QObject * )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

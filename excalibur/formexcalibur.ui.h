@@ -38,7 +38,6 @@
 #include <qcolor.h>
 #include <qframe.h>
 #include "excalibur.h"
-#include "exItem.h"
 #include "exMob.h"
 
 void FormExcalibur::resizeEvent(QResizeEvent *e) {
@@ -105,8 +104,6 @@ void FormExcalibur::destroy()
         delete xyzstatus;
 
     prefs.removeWindow(this);
-    exItem::save();
-    exItem::upload(FALSE);
 }
 
 void FormExcalibur::ReloadMaps_activated()
@@ -154,12 +151,6 @@ void FormExcalibur::GLRulers_toggled( bool ena)
   prefs.map_rulers = ena;
   prefs.activate();
 }
-
-void FormExcalibur::ItemUpload_activated()
-{
-    exItem::upload(TRUE);
-}
-
 
 void FormExcalibur::GLMapFade_toggled( bool ena )
 {

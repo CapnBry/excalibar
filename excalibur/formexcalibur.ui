@@ -290,7 +290,6 @@
         <action name="ShowMsgs"/>
         <separator/>
         <action name="EditorSpawn"/>
-        <action name="ItemUpload"/>
         <separator/>
         <action name="Preferences"/>
     </item>
@@ -451,14 +450,6 @@
         </property>
         <property name="accel">
             <number>82</number>
-        </property>
-    </action>
-    <action>
-        <property name="name">
-            <cstring>ItemUpload</cstring>
-        </property>
-        <property name="text">
-            <string>Upload Items</string>
         </property>
     </action>
     <action>
@@ -682,12 +673,6 @@
         <slot>GLRulers_toggled(bool)</slot>
     </connection>
     <connection>
-        <sender>ItemUpload</sender>
-        <signal>activated()</signal>
-        <receiver>FormExcalibur</receiver>
-        <slot>ItemUpload_activated()</slot>
-    </connection>
-    <connection>
         <sender>GLMapFade</sender>
         <signal>toggled(bool)</signal>
         <receiver>FormExcalibur</receiver>
@@ -775,7 +760,6 @@
     <slot>SortDistance_toggled( bool ena )</slot>
     <slot>Preferences_activated()</slot>
     <slot>GLRulers_toggled( bool ena )</slot>
-    <slot>ItemUpload_activated()</slot>
     <slot>GLMapFade_toggled( bool ena )</slot>
     <slot>ProfileExit_activated()</slot>
     <slot>vaderWarn_toggled( bool ena )</slot>
@@ -787,7 +771,7 @@
     <slot>MobFilter_returnPressed()</slot>
     <slot>showMsgs()</slot>
     <slot>MapCancel_pressed()</slot>
-    <slot>GroupItems_toggled( bool )</slot>
+    <slot>GroupItems_toggled( bool ena )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>
