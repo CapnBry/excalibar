@@ -1171,9 +1171,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         << "ShareNet Status: " << data->sharenet.GetStatusString() << "\n"
         << "ShareNet=" << data->sharenet.GetRemoteAddr() << "\n\n"
         << "DStream Status: " << data->dstream.GetStatusString() << "\n"
-        << "DStream=" << data->dstream.GetRemoteAddr() << "\n"
-        << unsigned int(data->dstream.GetNumConnections()) << " DStream Connections\n\n"
-        << "Sharenet status: " << data->sharenet.GetStatusString() << "\n\n"
+        << "DStream=" << data->dstream.GetRemoteAddr() << "\n\n"
         << "Scriptserver mini-server status: " << data->scriptserver.GetStatusString() << "\n";
         
     // make running scripts string       
