@@ -5,6 +5,12 @@ Teerex (28/Oct/02)
    epic armor at this time).
  + Added display of player class to list window.  Format for friendlies
    is "name (class)".  Format for enemies is "class race".
+ + Added command-line option for "do not process local packets" 
+   (--exclude-local).  This fixes the previous problem where two
+   windows would pop up for each DAoC connection.  Users who run their
+   DAoC traffic through their Linux machine should use this, SOCKS
+   and promiscuous users should not.  NOTE: once you set this once it
+   stays set unless you edit your pref file to turn it off again.
 
 Teerex (20/Aug/02)
 ------------------
