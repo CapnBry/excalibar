@@ -39,12 +39,15 @@ type
     function CheckConflictingWindows(AWindowList: array of const) : boolean;
     procedure CheckNeedMorePSMaterials;
     procedure Log(const s: string);
+    procedure ArrivedAtForge(Sender: TObject; AParm: Cardinal);
+    procedure ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
   public
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
     procedure DAOCPathChanged;
     procedure DAOCStopAllActions;
     procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
+    procedure DAOCArriveAtGotoDest;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -324,6 +327,36 @@ procedure TfrmMacroing.DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
 begin
   if frmPowerskill.Visible then
     frmPowerskill.SkillLevelChanged(AItem);
+end;
+
+procedure TfrmMacroing.DAOCArriveAtGotoDest;
+var
+  pNearestNode:   TMapNode;
+begin
+  if frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
+    pNearestNode := FDControl.NodeClosestToPlayerPos;
+    if not Assigned(pNearestNode) then
+      exit;
+
+    if AnsiSameText(pNearestNode.Name, FPSItemList.ForgeNodeName) then
+        { we wait 5s so we shouldn't get a "You move and cancel..." message }
+      FDControl.ScheduleCallback(5000, ArrivedAtForge, 0);
+
+    if AnsiSameText(pNearestNode.Name, FPSItemList.MerchantNodeName) then
+      FDControl.ScheduleCallback(5000, ArrivedAtMerchant, 0);
+  end;
+end;
+
+procedure TfrmMacroing.ArrivedAtForge(Sender: TObject; AParm: Cardinal);
+begin
+  Log('I am at the forge');
+  if frmPowerskill.Visible and frmMacroTradeSkills.Visible then 
+    frmMacroTradeSkills.StartProgression;
+end;
+
+procedure TfrmMacroing.ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
+begin
+  Log('I am at the merchant');
 end;
 
 end.
