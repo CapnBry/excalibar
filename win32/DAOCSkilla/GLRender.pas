@@ -1587,6 +1587,9 @@ end;
 
 procedure TfrmGLRender.ReloadMapElementsAndTextures;
 begin
+  FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+  FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+  
   FMapElementsListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
   FMapTexturesListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
 end;
@@ -1595,10 +1598,18 @@ procedure TfrmGLRender.DoPrefsDialog;
 var
   tmpPrefs:   TRenderPreferences;
 begin
+      { turn off attempt download if continuous failure }
+  FRenderPrefs.AttemptMapDownload := FRenderPrefs.AttemptMapDownload and
+    FMapTexturesListList.AttemptDownload and FMapElementsListList.AttemptDownload;
+
   tmpPrefs := FRenderPrefs.Clone;
 
   if TfrmRenderPrefs.Execute(Self, FRenderPrefs, FRangeCircles) then begin
-    if tmpPrefs.AdjacentZones <> FRenderPrefs.AdjacentZones then
+    FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+    FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
+
+    if (tmpPrefs.AdjacentZones <> FRenderPrefs.AdjacentZones) or
+      (tmpPrefs.AdjacentZones <> FRenderPrefs.AttemptMapDownload) then
       ReloadMapElementsAndTextures;
     UpdateStayOnTop;
     tmpPrefs.Free;
