@@ -504,6 +504,14 @@ END_EXPERIMENTAL_CODE
 
 	      if (ismob) {
 		  mobs.insert((void *) ((unsigned int) id), mob);
+                  mi = ex->Map->getMap();
+//                  cout << "MOBseen," << ((mi) ? mi->getZoneNum() : 0) <<
+//                      "," << ((mi) ? x - mi->getBaseX() : x) <<
+//                      "," << ((mi) ? y - mi->getBaseY() : y) <<
+//                      "," << z <<
+//                      "," << level <<
+//                      "," << name <<
+//                      endl;
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
               } else {
