@@ -1,0 +1,179 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_A                   ICON                    "icon1.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETSERVERPORT DIALOGEX 0, 0, 131, 46
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Set Server Port"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_SERVERPORT,27,7,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,74,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,74,24,50,14
+    LTEXT           "Port:",IDC_STATIC,7,9,17,8
+END
+
+IDD_ACTIVATESCRIPT DIALOGEX 0, 0, 287, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Activate Script"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,170,129,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,230,129,50,14
+    GROUPBOX        "Available Scripts (you can multi-select)",IDC_STATIC,7,
+                    7,130,118
+    CONTROL         "",IDC_AVAILABLESCRIPTS,"SysListView32",LVS_LIST | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,15,19,111,99
+    GROUPBOX        "Running Scripts",IDC_STATIC,150,7,130,118
+    CONTROL         "",IDC_RUNNINGSCRIPTS,"SysListView32",LVS_LIST | 
+                    LVS_ALIGNLEFT | WS_DISABLED | WS_BORDER | WS_TABSTOP,158,
+                    19,111,99
+END
+
+IDD_STOPSCRIPT DIALOGEX 0, 0, 144, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Stop Script"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,129,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,87,129,50,14
+    GROUPBOX        "Running Scripts",IDC_STATIC,7,7,130,118
+    CONTROL         "",IDC_RUNNINGSCRIPTS,"SysListView32",LVS_LIST | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,15,19,111,99
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_SETSERVERPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 124
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    IDD_ACTIVATESCRIPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 280
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 143
+    END
+
+    IDD_STOPSCRIPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 143
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAIN MENU 
+BEGIN
+    POPUP "&System"
+    BEGIN
+        MENUITEM "E&xit",                       ID_SYSTEM_EXIT
+    END
+    POPUP "&Mini Share Server"
+    BEGIN
+        MENUITEM "Set &Port",                   ID_MINISHARESERVER_SETPORT
+    END
+    POPUP "S&cripts"
+    BEGIN
+        MENUITEM "&Activate Script",            ID_SCRIPTS_ACTIVATESCRIPT
+        MENUITEM "&Stop Script",                ID_SCRIPTS_STOPSCRIPT
+    END
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
