@@ -1123,7 +1123,6 @@ begin
       end;
 
   pOldFilteredList.Free;
-
   Dirty;
 end;
 
@@ -1378,6 +1377,7 @@ begin
     FRenderPrefs.Free;
     FRenderPrefs := tmpPrefs;
     FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
+    FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
   end;
 end;
 
@@ -1610,6 +1610,7 @@ end;
 procedure TfrmGLRender.RENDERPrefsMobListOptionChanged(Sender: TObject);
 begin
   RefreshFilteredList;
+  lstObjects.Invalidate;
 end;
 
 function TfrmGLRender.FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject): integer;

@@ -22,6 +22,7 @@ type
     FOnMobListOptionsChanged: TNotifyEvent;
     FGroupByRealm: boolean;
     FGroupByClass: boolean;
+    FAlternateMobListText: boolean;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
@@ -32,6 +33,7 @@ type
     procedure SetMobListSortOrder(const Value: TMobListSortOrder);
     procedure SetGroupByRealm(const Value: boolean);
     procedure SetGroupByClass(const Value: boolean);
+    procedure SetAlternateMobListText(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -56,7 +58,6 @@ type
     RotateMapWithPlayer:  boolean;
     AdjacentZones:    boolean;
     ViewFrustum:      boolean;
-    AlternateMobListText: boolean;
     AttemptMapDownload: boolean;
     MapBaseURL:       string;
     InvaderWarning:   boolean;
@@ -81,7 +82,8 @@ type
     property ObjectConFilter: TDAOCConColors read FObjectConFilter write SetObjectConFilter;
     property MobListSortOrder: TMobListSortOrder read FMobListSortOrder write SetMobListSortOrder;
     property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
-    property GroupByClass: boolean read FGroupByClass write SetGroupByClass; 
+    property GroupByClass: boolean read FGroupByClass write SetGroupByClass;
+    property AlternateMobListText: boolean read FAlternateMobListText write SetAlternateMobListText;
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
     property OnMobListOptionsChanged: TNotifyEvent read FOnMobListOptionsChanged write FOnMobListOptionsChanged;
   end;
@@ -364,6 +366,12 @@ begin
   end;
 end;
 
+procedure TRenderPreferences.SetAlternateMobListText(const Value: boolean);
+begin
+  FAlternateMobListText := Value;
+  DoOnMobListOptionsChanged;
+end;
+
 procedure TRenderPreferences.SetDrawFriendlyPlayers(const Value: boolean);
 begin
   FDrawFriendlyPlayers := Value;
@@ -559,6 +567,7 @@ end;
 procedure TfrmRenderPrefs.chkTypeTagClick(Sender: TObject);
 begin
   FRenderPrefs.DrawTypeTag := chkTypeTag.Checked;
+  FRenderPrefs.AlternateMobListText := FRenderPrefs.DrawTypeTag;
 end;
 
 procedure TfrmRenderPrefs.chkStayOnTopClick(Sender: TObject);
