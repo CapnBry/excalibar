@@ -291,10 +291,10 @@ void exMap::resizeGL(int w, int h) {
      If you have a better idea, by all means, let me know!!! - Andon */
 
  
-  GLint minx = (c->playerx - range + edit_xofs);
-  GLint maxx = (c->playerx + range + edit_xofs);
-  GLint miny = (c->playery - range + edit_yofs);
-  GLint maxy = (c->playery + range + edit_yofs);
+  GLint minx = (c->playerProjectedX - range + edit_xofs);
+  GLint maxx = (c->playerProjectedX + range + edit_xofs);
+  GLint miny = (c->playerProjectedY - range + edit_yofs);
+  GLint maxy = (c->playerProjectedY + range + edit_yofs);
 
   GLdouble AspectRatio = (GLdouble)((maxx - minx) / (maxy - miny));
 
@@ -356,6 +356,8 @@ void exMap::paintGL() {
 
   glDisable(GL_LIGHTING);
 
+  c->updateProjectedPlayer();
+
   playerhead=(c->playerhead * 360.0) / 4096.0;
   playerrad=playerhead * M_PI / 180.0;
 
@@ -367,10 +369,10 @@ void exMap::paintGL() {
     glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
   glRotatef(180.0,1.0,0.0,0.0);
 
-  minx=c->playerx - range + edit_xofs;
-  maxx=c->playerx + range + edit_xofs;
-  miny=c->playery - range + edit_yofs;
-  maxy=c->playery + range + edit_yofs;
+  minx=c->playerProjectedX - range + edit_xofs;
+  maxx=c->playerProjectedX + range + edit_xofs;
+  miny=c->playerProjectedY - range + edit_yofs;
+  maxy=c->playerProjectedY + range + edit_yofs;
   glOrtho(minx, maxx, miny, maxy,0.0,-25000.0);
 
   glMatrixMode(GL_MODELVIEW);
@@ -401,12 +403,12 @@ void exMap::paintGL() {
   if (prefs.map_rulers) {
     qglColor( darkGray );
     glBegin(GL_LINES);
-    glVertex3i(c->playerx - range * 2, c->playery, 500);
-    glVertex3i(c->playerx + range * 2, c->playery, 500);
-    glVertex3i(c->playerx, c->playery - range * 2, 500);
-    glVertex3i(c->playerx, c->playery + range * 2, 500);
-    glVertex3f(c->playerx * 1.0, c->playery * 1.0, 500.0);
-    glVertex3f(c->playerx + cos(playerrad + M_PI_2) * range * 2, c->playery + sin(playerrad + M_PI_2) * range * 2, 500.0);
+    glVertex3i(c->playerProjectedX - range * 2, c->playerProjectedY, 500);
+    glVertex3i(c->playerProjectedX + range * 2, c->playerProjectedY, 500);
+    glVertex3i(c->playerProjectedX, c->playerProjectedY - range * 2, 500);
+    glVertex3i(c->playerProjectedX, c->playerProjectedY + range * 2, 500);
+    glVertex3f(c->playerProjectedX * 1.0, c->playerProjectedY * 1.0, 500.0);
+    glVertex3f(c->playerProjectedX + cos(playerrad + M_PI_2) * range * 2, c->playerProjectedY + sin(playerrad + M_PI_2) * range * 2, 500.0);
     glEnd();
   }
 
@@ -415,10 +417,10 @@ void exMap::paintGL() {
     glColor3f (0.45f, 0.45f, 0.45f);
 
     if (prefs.player_circle_1 >= 226)
-      drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
+      drawCircle(c->playerProjectedX, c->playerProjectedY, prefs.player_circle_1, 20);
 
     if (prefs.player_circle_2 >= 251)
-      drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
+      drawCircle(c->playerProjectedX, c->playerProjectedY, prefs.player_circle_2, 20);
   }
 
 
@@ -432,7 +434,7 @@ void exMap::paintGL() {
   glPushMatrix();
   glDepthFunc  (GL_LEQUAL);
   glColor3f    (1.0f, 1.0f, 0.0f);
-  glTranslatef (c->playerx, c->playery, c->playerz);
+  glTranslatef (c->playerProjectedX, c->playerProjectedY, c->playerz);
   objRotate    (c->playerhead);
   glCallList   (listTriangle);
   glPopMatrix();
@@ -656,7 +658,7 @@ void exMap::paintGL() {
     glColor3f(1.0, 1.0, 1.0);
     glLineWidth ( 2.0 );
     glBegin(GL_LINES);
-    glVertex3i(c->playerx,c->playery,c->playerz);
+    glVertex3i(c->playerProjectedX,c->playerProjectedY,c->playerz);
     glVertex3i(m->getProjectedX(),m->getProjectedY(),m->getZ());
     glEnd();
   }
@@ -673,7 +675,7 @@ void exMap::paintGL() {
   if ((exTick - _last_fps) >= 1000) {
 
     if (frames > 0) {
-      if (((int)fps / frames) >= 333)
+      if (((int)fps / frames) >= 500)
         c->ex->FPS->setText("??? FPS");
        else
          c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));

@@ -95,7 +95,9 @@ public:
   FormExcalibur *ex;
   exMessagesUi  *msgui;
   QString playername;
-  int playerx, playery, playerz, playerhead, playerspeed,playerzone, playerlevel;
+  int playerx, playery, playerz, playerhead, playerspeed, playerzone, playerlevel;
+  exTimeType player_last_update;
+  int playerProjectedX, playerProjectedY;
   int player_health, player_mana, player_endurance;
   Realm playerrealm;
   int numPaints;
@@ -117,6 +119,7 @@ public:
   void selectID(unsigned int id);
   void spawnEditor();
   void setFilter( QString Filter);
+  void updateProjectedPlayer(void);
 };
 
 #endif

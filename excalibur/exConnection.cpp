@@ -301,12 +301,17 @@ void exConnection::processPacket(exPacket * p)
 	destid = p->getShort();
 	switch (command) {
 	  case 0x01:
-	      p->seek(2);
+              playerspeed = p->getShort() & 0x3ff;
+                /* the bit 9 is the sign, 10 = swimming? */
+              if (playerspeed & 0x200)
+                  playerspeed = -(playerspeed & 0x1ff);
 	      playerz = p->getShort();
-	      p->seek(2);
+              p->seek(2);
 	      playerx = p->getLong();
 	      playery = p->getLong();
-	      playerhead = (p->getShort()) & 0xfff;
+              playerhead = (p->getShort()) & 0xfff;
+              player_last_update = exTick;
+
 	      mi = ex->Map->getMap();
 	      if (mi && !mi->right(playerzone, playerx, playery)) {
 		  ex->Map->setMap(NULL);
@@ -340,6 +345,10 @@ void exConnection::processPacket(exPacket * p)
 		  ex->Map->dirty();
 	      }
 	      break;
+          default:
+	    if (prefs.dump_unknown_packets)
+		dumpPacket(command, p);
+	    break;
 	}
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
@@ -803,3 +812,18 @@ bool exConnection::checkMap (void)
 {
   return m_bMapCancel;
 }
+
+void exConnection::updateProjectedPlayer(void)
+{
+  double projected_hyp;
+  double player_head_rad;
+
+  projected_hyp = (double)playerspeed * ((double)(exTick - player_last_update) / 1000.0);
+  /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
+  player_head_rad = (playerhead / 2048.0) * M_PI;
+
+  playerProjectedX = playerx - (int)(sin(player_head_rad) * projected_hyp);
+  playerProjectedY = playery + (int)(cos(player_head_rad) * projected_hyp);
+
+}
+
