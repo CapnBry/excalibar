@@ -327,11 +327,8 @@ begin
     glVertex3f(0, -r, 0);
     glVertex3f(0, r, 0);
 
-//    c := cos(FDControl.LocalPlayer.Head * (PI / 180));
-//    s := sin(FDControl.LocalPlayer.Head * (PI / 180));
-
     glVertex3f(0, 0, 0);
-    glVertex3f(c * r, s * r, 0);
+    glVertex3f(-s * r, c * r, 0);
   glEnd();
 end;
 
