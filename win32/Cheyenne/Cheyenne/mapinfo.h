@@ -128,7 +128,7 @@ public:
         return(RegionLimit[region]);
     }
 
-    const MapInfo::ZoneInfo& GetZone(const unsigned char& zone)const
+    const MapInfo::ZoneInfo& GetZone(const unsigned char zone)const
     {
         return(Zone[zone]);
     } // end GetZone

@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib libnids.lib wpcap.lib ws2_32.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib libnids.lib wpcap.lib ..\..\Common\MobsightParse\MobsightParse.lib ws2_32.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\Cheyenne_exe\Cheyenne.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -104,7 +104,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib libnids.lib wpcap.lib ws2_32.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib libnids.lib wpcap.lib ..\..\Common\MobsightParse\MobsightParse.lib ws2_32.lib odbc32.lib odbccp32.lib"
 				OutputFile="..\Cheyenne_exe\Cheyenne.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"

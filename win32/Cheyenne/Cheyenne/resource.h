@@ -5,12 +5,15 @@
 #define IDR_MAIN_MENU                   101
 #define IDD_SET_CAMERA_FOLLOW           102
 #define IDD_SETCONFIG                   103
+#define IDD_MOBLIST                     103
 #define IDD_DISPLAYCONFIG               104
 #define IDD_SETRANGERINGS               105
 #define IDI_A                           106
 #define IDD_ABOUT                       107
 #define IDD_SETSOUNDS                   108
 #define IDD_SHARENETCONFIG              109
+#define IDD_MOBFINDER_1                 110
+#define IDD_MOBFINDER_2                 111
 #define IDC_ACTOR_CB                    1000
 #define IDC_TEXTPPI                     1001
 #define IDC_GUILDPPI                    1002
@@ -54,12 +57,19 @@
 #define IDC_RADIUS3                     1024
 #define IDC_BROWSE_MID_SOUND2           1024
 #define IDC_BROWSE_MOB_SOUND            1024
+#define IDC_REALM                       1024
 #define IDC_ENABLED3                    1025
+#define IDC_MINLEVEL                    1025
 #define IDC_RADIUS4                     1026
+#define IDC_MAXLEVEL                    1026
 #define IDC_ENABLED4                    1027
 #define IDC_RADIUS5                     1028
+#define ID_NEXT                         1028
 #define IDC_ENABLED5                    1029
+#define IDC_LIST1                       1029
+#define IDC_MOBLIST                     1029
 #define IDC_RADIUS6                     1030
+#define ID_BACK                         1030
 #define IDC_ENABLED6                    1031
 #define ID_SYSTEM_EXIT                  40001
 #define ID_DISPLAY_CAMERA_FOLLOW        40002
@@ -70,14 +80,15 @@
 #define ID_DISPLAY_CONFIGURESOUNDS      40007
 #define ID_SYSTEM_REINITIALIZEOPENGL    40008
 #define ID_SHARENET_CONNECT             40010
+#define ID_MOBSIGHT_FINDAMOBTOHUNT      40011
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        110
-#define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_COMMAND_VALUE         40012
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

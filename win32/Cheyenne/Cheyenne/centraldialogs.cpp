@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "central.h"
 #include "resource.h"
 
+#include <sstream>
+
 void SET_CHECK_BOOL(HWND hwnd,UINT control,bool bool_value)
 {
     SendDlgItemMessage(hwnd,control,BM_SETCHECK,(LPARAM)(bool_value ? BST_CHECKED:BST_UNCHECKED),0);
@@ -594,3 +596,135 @@ BOOL WINAPI ConfigShareNetDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
     
     return(TRUE); // TRUE for processed message
 } // end ConfigShareNetDlgProc
+
+BOOL WINAPI Mobfinder1DlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
+{
+    // array of 3 ints is our startup param
+    int* mf1_array=(int*)GetWindowLong(hWnd,GWL_USERDATA);
+    
+    switch(uMsg)
+        {
+        case WM_INITDIALOG:
+            {
+            SetWindowLong(hWnd,GWL_USERDATA,(LONG)lParam);
+            mf1_array=(int*)lParam;
+            
+            // populate the combobox
+            LRESULT res;
+            res=SendDlgItemMessage(hWnd,IDC_REALM,CB_ADDSTRING,0,(LPARAM)"Albion");
+            SendDlgItemMessage(hWnd,IDC_REALM,CB_SETITEMDATA,(WPARAM)res,(LPARAM)MobsightContentHandler::Albion);
+
+            // default: albion
+            SendDlgItemMessage(hWnd,IDC_REALM,CB_SETCURSEL,(WPARAM)res,0);
+
+            res=SendDlgItemMessage(hWnd,IDC_REALM,CB_ADDSTRING,0,(LPARAM)"Hibernia");
+            SendDlgItemMessage(hWnd,IDC_REALM,CB_SETITEMDATA,(WPARAM)res,(LPARAM)MobsightContentHandler::Hibernia);
+
+            res=SendDlgItemMessage(hWnd,IDC_REALM,CB_ADDSTRING,0,(LPARAM)"Midgard");
+            SendDlgItemMessage(hWnd,IDC_REALM,CB_SETITEMDATA,(WPARAM)res,(LPARAM)MobsightContentHandler::Midgard);
+            
+            // init min/max level
+            SendDlgItemMessage(hWnd,IDC_MAXLEVEL,WM_SETTEXT,0,(LPARAM)"0");
+            SendDlgItemMessage(hWnd,IDC_MINLEVEL,WM_SETTEXT,0,(LPARAM)"0");
+            
+            }
+            break;
+            
+        case WM_COMMAND:
+            {
+            switch(LOWORD(wParam))
+                {
+                case ID_NEXT:
+                    {
+                    std::string min_level,max_level;
+                    
+                    GET_EDIT_STRING(hWnd,IDC_MINLEVEL,min_level);
+                    GET_EDIT_STRING(hWnd,IDC_MAXLEVEL,max_level);
+                    
+                    LRESULT cur_sel=SendDlgItemMessage(hWnd,IDC_REALM,CB_GETCURSEL,0,0);
+                    int realm=(int)SendDlgItemMessage(hWnd,IDC_REALM,CB_GETITEMDATA,(WPARAM)cur_sel,0);
+                    
+                    mf1_array[0]=realm;
+                    mf1_array[1]=atoi(min_level.c_str());
+                    mf1_array[2]=atoi(max_level.c_str());
+                    
+                    EndDialog(hWnd,ID_NEXT);
+                    }
+                    break;
+
+               case IDCANCEL:
+                    EndDialog(hWnd,IDCANCEL);
+                    break;
+                    
+               default:
+                    return(FALSE);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            return(FALSE); // did not process message
+            break;
+        } // end switch message
+    
+    return(TRUE); // TRUE for processed message
+} // end Mobfinder1DlgProc
+
+BOOL WINAPI Mobfinder2DlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
+{
+    std::pair<std::list<NarrowMobDef>*,NarrowIdDef*>* Dlg2Param=
+        (std::pair<std::list<NarrowMobDef>*,NarrowIdDef*>*)GetWindowLong(hWnd,GWL_USERDATA);
+    switch(uMsg)
+        {
+        case WM_INITDIALOG:
+            {
+            SetWindowLong(hWnd,GWL_USERDATA,(LONG)lParam);
+            Dlg2Param=(std::pair<std::list<NarrowMobDef>*,NarrowIdDef*>*)lParam;
+            
+            std::list<NarrowMobDef>::const_iterator it;
+            
+            // add mobs to list
+            for(it=Dlg2Param->first->begin();it!=Dlg2Param->first->end();++it)
+                {
+                LRESULT res=SendDlgItemMessage(hWnd,IDC_MOBLIST,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)it->name.c_str());
+                SendDlgItemMessage(hWnd,IDC_MOBLIST,LB_SETITEMDATA,(WPARAM)res,(LPARAM)it->id);
+                }
+            
+            // set current selection to the first on
+            SendDlgItemMessage(hWnd,IDC_MOBLIST,LB_SETCURSEL,TRUE,0);
+            }
+            break;
+            
+        case WM_COMMAND:
+            {
+            switch(LOWORD(wParam))
+                {
+                case IDOK:
+                    {
+                    // save mobid for the selected mob
+                    LRESULT res=SendDlgItemMessage(hWnd,IDC_MOBLIST,LB_GETCURSEL,0,0);
+                    
+                    Dlg2Param->second->id=(int)SendDlgItemMessage(hWnd,IDC_MOBLIST,LB_GETITEMDATA,(WPARAM)res,0);
+                    }
+                    EndDialog(hWnd,IDOK);
+                    break;
+
+               case ID_BACK:
+                    EndDialog(hWnd,ID_BACK);
+                    break;
+                
+               default:
+                    return(FALSE);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            return(FALSE); // did not process message
+            break;
+        } // end switch message
+    
+    return(TRUE); // TRUE for processed message
+} // end Mobfinder2DlgProc

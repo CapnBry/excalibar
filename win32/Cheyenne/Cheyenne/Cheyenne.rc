@@ -45,6 +45,10 @@ BEGIN
     BEGIN
         MENUITEM "&Connect to Network",         ID_SHARENET_CONNECT
     END
+    POPUP "MobSight"
+    BEGIN
+        MENUITEM "&Find a MOB to Hunt",         ID_MOBSIGHT_FINDAMOBTOHUNT
+    END
     POPUP "&Help"
     BEGIN
         MENUITEM "A&bout",                      ID_HELP_ABOUT
@@ -96,7 +100,7 @@ BEGIN
     LTEXT           "Available Actors:",IDC_STATIC,7,9,54,8
 END
 
-IDD_SETCONFIG DIALOG  0, 0, 119, 54
+IDD_MOBLIST DIALOG  0, 0, 119, 54
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure Cheyenne"
 FONT 8, "MS Sans Serif"
@@ -249,6 +253,35 @@ BEGIN
     LTEXT           "Port:",IDC_STATIC,7,32,17,8
 END
 
+IDD_MOBFINDER_1 DIALOGEX 0, 0, 107, 87
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Realm and Level"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_REALM,43,7,57,120,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_MAXLEVEL,60,26,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_MINLEVEL,60,46,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "Next",ID_NEXT,57,66,43,14
+    PUSHBUTTON      "Cancel",IDCANCEL,7,66,43,14
+    LTEXT           "Realm:",IDC_STATIC,7,8,23,8
+    LTEXT           "Minimum Level:",IDC_STATIC,7,49,49,8
+    LTEXT           "Maximum Level:",IDC_STATIC,7,28,52,8
+END
+
+IDD_MOBFINDER_2 DIALOGEX 0, 0, 136, 73
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Select Mob to Hunt"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Back",ID_BACK,7,52,50,14
+    DEFPUSHBUTTON   "Ok",IDOK,79,52,50,14
+    LISTBOX         IDC_MOBLIST,7,7,122,40,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -266,7 +299,7 @@ BEGIN
         BOTTOMMARGIN, 53
     END
 
-    IDD_SETCONFIG, DIALOG
+    IDD_MOBLIST, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 112
@@ -313,6 +346,22 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 63
     END
+
+    IDD_MOBFINDER_1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 100
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
+
+    IDD_MOBFINDER_2, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 129
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 66
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -323,8 +372,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,1,10
- PRODUCTVERSION 1,1,1,10
+ FILEVERSION 1,1,1,11
+ PRODUCTVERSION 1,1,1,11
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -342,12 +391,12 @@ BEGIN
             VALUE "Comments", "Real-time sniffer/analyzer for Dark Age of Camelot"
             VALUE "CompanyName", "Cheyenne Developers"
             VALUE "FileDescription", "Cheyenne"
-            VALUE "FileVersion", "1, 1, 1, 10"
+            VALUE "FileVersion", "1, 1, 1, 11"
             VALUE "InternalName", "Cheyenne"
             VALUE "LegalCopyright", "2003, Cheyenne Developers"
             VALUE "OriginalFilename", "Cheyenne.exe"
             VALUE "ProductName", "Cheyenne"
-            VALUE "ProductVersion", "1, 1, 1, 10"
+            VALUE "ProductVersion", "1, 1, 1, 11"
         END
     END
     BLOCK "VarFileInfo"

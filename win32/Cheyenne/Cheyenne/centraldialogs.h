@@ -18,6 +18,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
 #pragma once
 
+/*
+Dialog function prototypes
+*/
 BOOL WINAPI CameraFollowDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI ConfigDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
@@ -25,3 +28,5 @@ BOOL WINAPI ConfigRangeRingsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPa
 BOOL WINAPI AboutDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI ConfigShareNetDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+BOOL WINAPI Mobfinder1DlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+BOOL WINAPI Mobfinder2DlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);

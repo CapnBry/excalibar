@@ -1197,9 +1197,91 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             InitOpenGL();
             break;
             
+        case ID_MOBSIGHT_FINDAMOBTOHUNT:
+            // find us a mob, Jeeves!
+            
+            // mobfinder1 stores its info in an array of 3 integers:
+            // realm id, min level, and max level.
+            // mobfinder2 stores its info in a single int.
+            
+            INT_PTR result;
+            {
+            // objects from the MobsightParse library
+            MobsightContentHandler Content;
+            MobsightIdHandler Id;
+
+            // other locals
+            int mf1_array[3];
+            std::list<NarrowMobDef> CandidateList;
+            std::pair<std::list<NarrowMobDef>*,NarrowIdDef*> Dlg2Param;
+            NarrowIdDef IdDef;
+            Dlg2Param.first=&CandidateList;
+            Dlg2Param.second=&IdDef;
+            
+            // first dialog label
+            do_find_dialog_1:
+            
+            // get realm, min and max level
+            result=DialogBoxParam
+                (
+                hInstance,
+                MAKEINTRESOURCE(IDD_MOBFINDER_1),
+                hWnd,
+                (DLGPROC)Mobfinder1DlgProc,
+                (LPARAM)&mf1_array[0]
+                );
+                
+            if(result==IDCANCEL)
+                {
+                // we're done
+                break;
+                }
+            
+            // ok, now we have realm, min and max level
+            // get the candidate list
+            Content.BuildMobList
+                (
+                MobsightContentHandler::REALM(mf1_array[0]),
+                mf1_array[1],
+                mf1_array[2],
+                CandidateList
+                );
+            
+            // get the user to select one from the list
+            result=DialogBoxParam
+                (
+                hInstance,
+                MAKEINTRESOURCE(IDD_MOBFINDER_2),
+                hWnd,
+                (DLGPROC)Mobfinder2DlgProc,
+                (LPARAM)&Dlg2Param
+                );
+            
+            // free this, we're done with it
+            Content.FreeMobList(CandidateList);
+
+            if(result==ID_BACK)
+                {
+                goto do_find_dialog_1;
+                }
+            
+            // ok, we have the id of the mob that we want,
+            // go get its definition (the dialog filled out IdDef.id)
+            Id.GetMobInfo(IdDef.id,IdDef);
+            
+            // store in Central storage
+            MobfinderResults.loc_list.clear();
+            MobfinderResults=IdDef;
+            
+            // free it, we're done
+            Id.FreeMobInfo(IdDef);
+            }
+                
+            break;
+            
         default:
             break;
-        }
+        } // end switch(LOWORD(wParam))
 
     // done
     return;
@@ -2305,8 +2387,6 @@ void Central::RenderActor(const Actor& ThisActor)const
             // name
             glRasterPos3f(0.0f,2.0f*ActorVertexY,0.0f);
 
-            glListBase(FontListBase);
-
             DrawGLFontString(ThisActor.GetName());
 
             if(Config.GetSurnameInPPI())
@@ -2439,9 +2519,6 @@ void Central::RenderActor(const Actor& ThisActor)const
 
 void Central::RenderWorld(void)const
 {
-    // set the list base for font bitmaps
-    glListBase(FontListBase);
-
     // enable depth test
     glEnable(GL_DEPTH_TEST);
 
@@ -2650,12 +2727,12 @@ void Central::RenderCloseControl(void)const
     oss << "<" << unsigned int(rng_az.first) << ",";
     oss.precision(3);
     oss << RadToDeg(rng_az.second) << "°>";
-    glRasterPos3f
+    glRasterPos3i
         (
-        (ProjectionWidthX*fractional_line_width),
-        (ProjectionWidthY*fractional_line_height*2.0f),
+        int(ProjectionWidthX*fractional_line_width),
+        int(ProjectionWidthY*fractional_line_height*2.0f),
         //ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),
-        0.0f
+        0
         );
     DrawGLFontString(oss.str());
 
@@ -2699,6 +2776,62 @@ void Central::RenderUncorrelatedStealth(void)const
     // done
     return;
 } // end RenderUncorrelatedStealth
+
+void Central::RenderMobfinderResults(void)const
+{
+    // only do the first 25 mob locations
+    int count;
+    NarrowIdDef::loc_list_t::const_iterator it;
+    Motion Position;
+    
+    // disable this
+    glDisable(GL_DEPTH_TEST);
+    
+    for(it=MobfinderResults.loc_list.begin(),count=0;count<25 && it!=MobfinderResults.loc_list.end();++count,++it)
+        {
+        // save positions
+        unsigned int x;
+        unsigned int y;
+        unsigned short z;
+        
+        // turn zone-relative coordinates into region coordinates
+        ::Zones.GetGlobalFromZone
+            (
+            it->zone,
+            unsigned short(it->x),
+            unsigned short(it->y),
+            unsigned short(it->z),
+            x,
+            y,
+            z
+            );
+
+        Position.SetXPos(float(x));
+        Position.SetYPos(float(y));
+        Position.SetZPos(float(z));
+        
+        // turn into renderable coordinates
+        AdjustPositionByRegion(Position,Zones.GetZone((unsigned char)it->zone).Region);
+        
+        // translate there
+        glPushMatrix();
+        glTranslatef(Position.GetXPos(),Position.GetYPos(),0.0f);
+        // set gold color
+        glColor4f(1.0f,1.0f,0.5f,1.0f);
+        // draw disk and name at each location
+        DrawDisc(50.0f);
+        // draw mob name there too
+        glRasterPos3f(55.0f,0.0f,0.0f);
+        DrawGLFontString(MobfinderResults.name);
+        glPopMatrix();
+        } // end for the first 25 entries in the loc list
+    
+    // reenablethis
+    glEnable(GL_DEPTH_TEST);
+
+    // done
+    return;
+} // end RenderMobfinderResults
 
 void Central::DrawPPI(void)
 {
@@ -2830,6 +2963,9 @@ void Central::DrawPPI(void)
     
     // render uncorrelated stealth disc
     RenderUncorrelatedStealth();
+    
+    // render mobfinder results
+    RenderMobfinderResults();
     
     glPopMatrix();
 

@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "VectorMapLoader.h"
 #include "soundspool.h"
 #include "sharenet.h"
+#include "..\..\Common\MobsightParse\MobsightParseAPI.h" // for mobfinder stuff
 
 class Central
 {
@@ -205,7 +206,7 @@ private:
     static LRESULT CALLBACK DataWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
     void DrawDataWindow(HDC hFront)const;
 
-    void DrawCircle(float radius)const
+    void DrawCircle(const float radius)const
     {
         // draw it
         glPushMatrix();
@@ -218,7 +219,7 @@ private:
         glPopMatrix();
     }
 
-    void DrawDisc(float radius)const
+    void DrawDisc(const float radius)const
     {
         // draw it
         glPushMatrix();
@@ -247,6 +248,7 @@ private:
     void RenderWorld(void)const;
     void RenderCloseControl(void)const;
     void RenderUncorrelatedStealth(void)const;
+    void RenderMobfinderResults(void)const;
     void HandleKeyDown(HWND hWnd,WPARAM wParam,LPARAM lParam);
     
     void RecenterDisplay(void);
@@ -374,6 +376,9 @@ private:
     
     // sharenet client
     ShareNetClientData ShareNet;
+    
+    // mobfinder results
+    NarrowIdDef MobfinderResults;
 
 }; // end Central
 
