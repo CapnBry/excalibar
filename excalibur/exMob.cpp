@@ -266,28 +266,28 @@ unsigned int exMob::getY() const {
 }
 
 unsigned int exMob::getProjectedX() {
+    if (!mob || !speed)
+        return x;
+
     if (exTick == _lastprojectedX)
 	return projectedX;
     
-    if (speed)
-	projectedX = x - (int)(sin(headrad) * 
-          ((double)speed * (double)(exTick - _lasttick) / 1000.0));
-    else
-	projectedX = x;
+    projectedX = x - (int)(sin(headrad) *
+      ((double)speed * (double)(exTick - _lasttick) / 1000.0));
     
     _lastprojectedX = exTick;
     return projectedX;
 }
 
 unsigned int exMob::getProjectedY() {
+    if (!mob || !speed)
+        return y;
+
     if (exTick == _lastprojectedY)
 	return projectedY;
     
-    if (speed)
-	projectedY = y + (int)(cos(headrad) * 
-          ((double)speed * (double)(exTick - _lasttick) / 1000.0));
-    else
-	projectedY = y;
+    projectedY = y + (int)(cos(headrad) *
+      ((double)speed * (double)(exTick - _lasttick) / 1000.0));
     
     _lastprojectedY = exTick;
     return projectedY;
@@ -374,10 +374,10 @@ void exMob::stale() {
   if (! current)
     return;
 
-  if ((speed & 0xFF) == 0)
+//  if ((speed & 0xFF) == 0)
     maxtime=60000;
-  else
-    maxtime=10000;
+//  else
+//    maxtime=10000;
 
   if (((exTick - _lasttick) > maxtime) || (playerDist()>15000.0)) {
     current = false;
