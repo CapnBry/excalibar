@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <qstring.h>
 #include <qregexp.h>
+#include <qstatusbar.h>
 #include "exMob.h"
 #include "exPrefs.h"
 
@@ -160,6 +161,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
 		{
 		this->isKnown = true;
 		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d\n", name.ascii(), getLevel());
+		c->ex->statusBar()->message( QString( "*** INVADER DETECTED *** Name: %1, Level: %2").arg( name).arg(level), 10000);
 		qApp->beep();
 		}
 
