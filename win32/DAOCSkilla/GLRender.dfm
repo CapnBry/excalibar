@@ -319,5 +319,10 @@ object frmGLRender: TfrmGLRender
       ShortCut = 113
       OnExecute = atnShowHideMobListExecute
     end
+    object atnScreenShot: TAction
+      Caption = 'Screenshot'
+      ShortCut = 123
+      OnExecute = atnScreenShotExecute
+    end
   end
 end

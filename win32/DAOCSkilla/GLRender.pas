@@ -21,7 +21,7 @@ uses
 {$ENDIF !LINUX}
   SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCConnectionList,
   DAOCObjs, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
-  QuickSinCos, BackgroundHTTP, Menus, ActnList, GlutFonts;
+  QuickSinCos, BackgroundHTTP, Menus, ActnList, GlutFonts, jpeg;
 
 type
   { A simple list box that you can prevent drawing }
@@ -85,6 +85,7 @@ type
     atnShowPrefsDialog: TAction;
     atnShowHideMobList: TAction;
     atnDrawVectorToggle: TAction;
+    atnScreenShot: TAction;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -139,6 +140,7 @@ type
     procedure atnScrollDownExecute(Sender: TObject);
     procedure atnShowPrefsDialogExecute(Sender: TObject);
     procedure atnShowHideMobListExecute(Sender: TObject);
+    procedure atnScreenShotExecute(Sender: TObject);
   private
     glMap:     TglWindow;
     FCurrConn: TDAOCConnection;
@@ -290,7 +292,7 @@ resourcestring
 function RealmColor(ARealm: TDAOCRealm) : TColor;
 begin
   case ARealm of
-    drNeutral:  Result := clWhite;
+    drNeutral:  Result := clSilver;
     drAlbion:   Result := clRed;
     drMidgard:  Result := $efae00;
     drHibernia: Result := $33cc33;
@@ -784,6 +786,8 @@ begin
       pMovingObj := TDAOCMovingObject(pObj);
       if pObj.Stealthed then
         clMob := clBlack
+      else if FRenderPrefs.SwapTringleRingShade then
+        clMob := RealmColor(pObj.Realm)
       else
         clMob := pObj.GetConColor(FCurrConn.LocalPlayer.Level);
 
@@ -970,7 +974,8 @@ begin
   if FRenderPrefs.DrawMapTexture then
     FMapTexturesListList.GLRender(FRenderBounds);
   if FRenderPrefs.DrawMapVector then begin
-    FMapElementsListList.DrawInfoPoints := FRenderPrefs.DrawInfoPoints;
+    if FMapElementsListList.DrawInfoPoints <> FRenderPrefs.DrawInfoPoints then
+      FMapElementsListList.DrawInfoPoints := FRenderPrefs.DrawInfoPoints;
     FMapElementsListList.GLRender(FRenderBounds);
   end;
   if FRenderPrefs.DrawPushPins then
@@ -1049,7 +1054,13 @@ var
   fSize:  GLfloat;
   fAlphaMax:  GLfloat;
 begin
-  cl := RealmColor(ADAOCObject.Realm);
+  if not FRenderPrefs.DrawPlayerHighlightRing then
+    exit;
+    
+  if FRenderPrefs.SwapTringleRingShade then
+    cl := ADAOCObject.GetConColor(FCurrConn.LocalPlayer.Level)
+  else
+    cl := RealmColor(ADAOCObject.Realm);
 
   if ADAOCObject.IsInGroup or ADAOCObject.IsInGuild then begin
     fSize :=  FMobTriangle.Size * 1.75;
@@ -1481,7 +1492,6 @@ begin
     glDisable(GL_LIGHTING);
     glColor3f(1, 1, 0);
     WriteGLUTTextH10(3, 15, FFrameStats);
-    glDisable(GL_TEXTURE_2D);
   end;
 end;
 
@@ -1993,7 +2003,8 @@ begin
 
   if not Assigned(FCurrConn.UnknownStealthers.Head) then
     exit;
-    
+
+  //glDisable(GL_LIGHTING);  // should already be off?
   glColor3f(0, 0, 0);
   WriteGLUTTextH12(glMap.ClientWidth - 117, 15, 'Stealther in proximity');
   glColor3f(1, 0, 0);
@@ -2503,6 +2514,29 @@ end;
 procedure TfrmGLRender.atnShowHideMobListExecute(Sender: TObject);
 begin
   pnlLeft.Visible := not pnlLeft.Visible;
+end;
+
+procedure TfrmGLRender.atnScreenShotExecute(Sender: TObject);
+var
+  bmp:    TBitmap;
+  jpg:    TJPEGImage;
+begin
+  bmp := TBitmap.Create;
+  bmp.Width := glMap.ClientWidth;
+  bmp.Height := glMap.ClientHeight;
+  bmp.PixelFormat := pf24Bit;
+
+  glReadPixels(0, 0, bmp.Width, bmp.Height, GL_BGR, GL_UNSIGNED_BYTE, bmp.ScanLine[bmp.Height - 1]);
+
+  jpg := TJPEGImage.Create;
+  jpg.Performance := jpBestQuality;
+  jpg.CompressionQuality := 80;
+  jpg.Smoothing := false;
+  jpg.Assign(bmp);
+  bmp.Free;
+  jpg.JPEGNeeded;
+  jpg.SaveToFile('screenshot.jpg');
+  jpg.Free;
 end;
 
 end.
