@@ -91,7 +91,9 @@ type
     procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
     procedure UpdateFrameStats(ATime: integer);
     procedure InvalidateListObject(AObj: TDAOCObject);
+    procedure UpdateStayOnTop;
   protected
+    procedure CreateParams(var Params: TCreateParams); override;
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
     procedure DAOCDeleteObject(AObj: TDAOCObject);
@@ -119,6 +121,10 @@ const
   COL_LEVEL = 1;
   COL_HEALTH = 2;
 
+resourcestring
+  S_NO_OGL13 = 'OpenGL 1.3 support required for terrain textures';
+  S_CAPTION_SUFFIX = ' -- Press F1 for options';
+  
 {$R *.dfm}
 
 function RealmColor(ARealm: TDAOCRealm) : TColor;
@@ -134,6 +140,15 @@ begin
 end;
 
 { TfrmGLRender }
+
+procedure TfrmGLRender.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+  with Params do begin
+//    ExStyle := ExStyle or WS_EX_TOPMOST;
+    WndParent := GetDesktopWindow;
+  end;
+end;
 
 procedure TfrmGLRender.SetDControl(const Value: TDAOCConnection);
 begin
@@ -201,7 +216,7 @@ const
 begin
   { BRY: Handle this gracefully at some point }
   if not Load_GL_version_1_3 then
-    raise Exception.Create('OpenGL 1.3 support required for terrain textures');
+    raise Exception.Create(S_NO_OGL13);
 
   glClearColor(0, 0, 0, 0);
   glPointSize(3);
@@ -472,6 +487,8 @@ begin
 
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
+    if not pObj.IsInUpdateRange then
+      continue;
 
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
@@ -629,6 +646,7 @@ end;
 
 procedure TfrmGLRender.DAOCRegionChanged;
 begin
+  Caption := FDControl.LocalPlayer.Name + S_CAPTION_SUFFIX;
   DAOCSetGroundTarget;
 end;
 
@@ -838,7 +856,9 @@ begin
     VK_F1:
       begin
         tmpPrefs := FRenderPrefs.Clone;
-        if not TfrmRenderPrefs.Execute(FRenderPrefs) then begin
+        if TfrmRenderPrefs.Execute(Self, FRenderPrefs) then
+          UpdateStayOnTop
+        else begin
           FRenderPrefs.Free;
           FRenderPrefs := tmpPrefs;
           FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
@@ -914,6 +934,12 @@ begin
       begin
         FRenderPrefs.DrawRulers := not FRenderPrefs.DrawRulers;
         Dirty;
+        Key := #0;
+      end;
+    't', 'T':
+      begin
+        FRenderPrefs.StayOnTop := not FRenderPrefs.StayOnTop;
+        UpdateStayOnTop;
         Key := #0;
       end;
     'u', 'U':
@@ -1158,6 +1184,23 @@ begin
   if I <> -1 then begin
     R := lstObjects.ItemRect(I);
     InvalidateRect(lstObjects.Handle, @R, false);
+  end;
+end;
+
+procedure TfrmGLRender.UpdateStayOnTop;
+var
+  dwStyle:  DWORD;
+begin
+  dwStyle := GetWindowLong(Handle, GWL_EXSTYLE);
+  if FRenderPrefs.StayOnTop then begin
+    dwStyle := dwStyle or WS_EX_TOPMOST;
+    SetWindowLong(Handle, GWL_EXSTYLE, dwStyle);
+    SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
+  end
+  else begin
+    dwStyle := dwStyle and not WS_EX_TOPMOST;
+    SetWindowLong(Handle, GWL_EXSTYLE, dwStyle);
+    SetWindowPos(Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
   end;
 end;
 

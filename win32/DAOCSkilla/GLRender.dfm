@@ -3,7 +3,7 @@ object frmGLRender: TfrmGLRender
   Top = 125
   Width = 843
   Height = 643
-  Caption = 'Excalibur -- Press F1 for options'
+  Caption = 'Excalibur'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
