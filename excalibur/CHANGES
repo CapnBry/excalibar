@@ -1,5 +1,9 @@
 Andon (10/Feb/02)
 ------------------
+Additions (SnowBlind):
+ + Added a command line option to turn on packet captures
+   not defaults to not making one if you dont add the
+   --capture option
 
 Additions:
  + Added support for object spawns..  These include things

@@ -62,7 +62,8 @@ protected:
   QTimer timer;
   exPacket *nextpacket;
   exLink *link;
-  
+  bool writecapture;
+
   void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
@@ -82,7 +83,7 @@ public:
   bool alive;
   unsigned int selectedid;
 
-  exConnection(exNet *s, bool do_link);
+  exConnection(exNet *s, bool do_link, bool docapture);
   exConnection(QString *f);
   virtual ~exConnection();
   void customEvent(QCustomEvent *e);

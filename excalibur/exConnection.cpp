@@ -3,7 +3,7 @@
  *
  * Portions of this software are based on the work of Slicer/Hackersquest.
  * Those portions, Copyright 2001 Slicer/Hackersquest <slicer@hackersquest.org)
- * 
+ *
  * This file is part of Excalibur.
  *
  * Excalibur is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@
 #include "exConnection.h"
 #include "exItem.h"
 
-exConnection::exConnection(exNet * s, bool dolink)
+exConnection::exConnection(exNet * s, bool dolink, bool docapture)
 {
     QString fname;
     QString from;
@@ -47,17 +47,19 @@ exConnection::exConnection(exNet * s, bool dolink)
 
     setup();
     sniff = s;
-
+    writecapture=docapture;
+    
     addr.s_addr = sniff->n_client_addr;
     from = inet_ntoa(addr);
     addr.s_addr = sniff->n_server_addr;
     to = inet_ntoa(addr);
+  if(writecapture){
     fname = "Capture-" + from + "-" + to + "-" + QDateTime::currentDateTime().toString("yyyy.MM.dd-hh:mm:ss");
 
     file->setName(fname);
     file->open(IO_WriteOnly);
     ds = new QDataStream(file);
-
+  }
     if (dolink)
       link = new exLink();
 }
@@ -136,7 +138,7 @@ void exConnection::customEvent(QCustomEvent * e)
     if (!p)
 	return;
 
-    if (sniff) {
+    if (sniff && writecapture) {
 	*ds << *p;
 	ds->device()->flush();
     }

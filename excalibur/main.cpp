@@ -45,6 +45,7 @@ QTime _tick;
 
 bool is_replay;
 
+
 void updateTick() {
   exTick=_tick.elapsed();
   if (is_replay)
@@ -93,6 +94,7 @@ int main( int argc, char ** argv )
 
     bool link     = false;
     bool realtime = false;
+    bool capture  = false;
 
     QDict<bool> options;
 
@@ -101,6 +103,7 @@ int main( int argc, char ** argv )
     options.insert("--dumpunknown", &prefs.dump_unknown_packets);
     options.insert("--link",&link);
     options.insert("--realtime",&realtime);
+    options.insert("--capture",&capture);
 
     QApplication a( argc, argv );
 
@@ -123,6 +126,7 @@ int main( int argc, char ** argv )
       printf ("  --dumpunknown   Display unknown packet data in stdout.\n");
       printf ("  --link          Run Excalibur in a special mode, so that\n");
       printf ("                  the Java tools can link with it.\n");
+      printf ("  --capture       Turn packet capture files on\n");
       printf ("  --realtime      Set the network thread realtime.\n\n");
       qFatal ("Please run '%s' again, without the --help switch.", argv[0]);
     }
@@ -147,7 +151,7 @@ int main( int argc, char ** argv )
       c->replay();
     } else {
       is_replay = FALSE;
-      xs = new exSniffer(realtime, link);
+      xs = new exSniffer(realtime, link, capture);
       xs->start();
     }
 

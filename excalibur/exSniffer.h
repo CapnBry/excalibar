@@ -91,8 +91,10 @@ class exSniffer : public QObject, public QThread {
     QMutex m;
     bool realtime;
     bool link;
+    bool capture;
+
   public:
-    exSniffer(bool doreal, bool dolink);
+    exSniffer(bool doreal, bool dolink, bool docapture);
     virtual void run();
     virtual void customEvent(QCustomEvent *e);
     

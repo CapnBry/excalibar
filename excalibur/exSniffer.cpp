@@ -216,9 +216,11 @@ exNet::~exNet() {
     delete server;
 }
 
-exSniffer::exSniffer(bool doreal, bool dolink) {
+exSniffer::exSniffer(bool doreal, bool dolink, bool docapture) {
   realtime=doreal;
   link=dolink;
+  capture=docapture;
+
 }
 
 void exSniffer::add(QByteArray *p) {
@@ -480,7 +482,7 @@ void exSniffer::processPacket(QByteArray *ba) {
       n->server=new exTCP(ntohl(tcp->seq)+1);
       n->client=new exTCP(ntohl(tcp->ack_seq));
 #endif
-      n->c=new exConnection(n, link);
+      n->c=new exConnection(n, link, capture);
 
 #ifdef __FreeBSD__
       nets.insert((void *)iph->ip_dst.s_addr, n);
