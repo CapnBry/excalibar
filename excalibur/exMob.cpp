@@ -72,8 +72,10 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
 
   mob=(exMob *)i;
 
-  if (prefs.sort_group_players && ((isMob() && !mob->isMob()) || (!isMob() && mob->isMob()) || ((isObj() && !mob->isObj()) || (!isObj() && mob->isObj())))) {
-    if (!isMob() && !isObj())
+  if (prefs.sort_group_players &&
+      ((isMobOrObj() && !mob->isMobOrObj()) || (!isMobOrObj() && mob->isMobOrObj()))
+     ) {
+    if (!isMobOrObj())
       updown=false;
     else
       updown=true;
@@ -261,6 +263,10 @@ bool exMob::isObj() const {
   return obj;
 }
 
+bool exMob::isMobOrObj() const {
+  return mob || obj;
+}
+
 bool exMob::isDead() const {
   return (hp == 0) ? true : false;
 }
@@ -418,3 +424,12 @@ bool exMob::isFiltered()
 
   return false;
 }
+
+void exMob::dumpToStdOut()
+{
+    cout << "exMob ID: " << id << " InfoID: " << infoid << " = "
+        << (isMob() ? "mob" : (isObj() ? "object" : "player")) << "\n"
+        << "  Name: [" << name << "] Surname: [" << surname << "] Guild: <" << guild << ">\n"
+        << flush;
+}
+

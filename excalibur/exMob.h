@@ -70,6 +70,7 @@ class exMob : public QListViewItem {
     QString getGuild() const;
     bool isMob() const;
     bool isObj() const;
+    bool isMobOrObj() const;
     bool isInvader() const;
     bool isDead() const;
     bool isCurrent() const;
@@ -94,7 +95,9 @@ class exMob : public QListViewItem {
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
 	bool isFiltered(); 
-	static void setFilter( QString );
+        static void setFilter( QString );
+
+    void dumpToStdOut();
 };
 
 #endif
