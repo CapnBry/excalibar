@@ -1,3 +1,8 @@
+Teerex (29/Oct/02)
+------------------
+ + Preferences are now saved when you turn them on and off via the menus
+   and hotkeys, without using the preferences dialog.
+
 Teerex (28/Oct/02)
 ------------------
  + Added limited support for mainaining the inventory of mobs / players.
@@ -11,6 +16,10 @@ Teerex (28/Oct/02)
    DAoC traffic through their Linux machine should use this, SOCKS
    and promiscuous users should not.  NOTE: once you set this once it
    stays set unless you edit your pref file to turn it off again.
+ + Changed mob / player count indicator to show only the count of living
+   players, with the total living + dead in parentheses.  For example,
+   if it says Albs: 24 (60), that means there are 60 Albions being tracked
+   and 24 of them are alive.
 
 Teerex (20/Aug/02)
 ------------------
