@@ -241,52 +241,57 @@ begin
   if not Assigned(FDControl) then
     exit;
 
-  if not FGLInitsCalled then
-    GLInits;
+  try
+    if not FGLInitsCalled then
+      GLInits;
 
-  dwStartTickCount := GetTickCount;
-  if FInvaderHighlightLastSwap + 1000 < dwStartTickCount then begin
-    UpdateFrameStats(dwStartTickCount - FInvaderHighlightLastSwap);
-    FDControl.CheckForStaleObjects;
-    FInvaderHighlightLastSwap := dwStartTickCount;
-    FInvaderHighlight := not FInvaderHighlight;
+    dwStartTickCount := GetTickCount;
+    if FInvaderHighlightLastSwap + 1000 < dwStartTickCount then begin
+      UpdateFrameStats(dwStartTickCount - FInvaderHighlightLastSwap);
+      FDControl.CheckForStaleObjects;
+      FInvaderHighlightLastSwap := dwStartTickCount;
+      FInvaderHighlight := not FInvaderHighlight;
+    end;
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    SetupRadarProjectionMatrix;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+      { at origin }
+    if GetAsyncKeyState(VK_CONTROL) <> 0 then
+      MapUnproject(FMouseLocX, FMouseLocY, false);
+    DrawMapElements;
+    DrawGrid;
+    DrawMobsAndPlayers;
+    DrawLineToSelected;
+    DrawGroundTarget;
+
+    glTranslatef(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
+
+      { at player pos }
+    DrawMapRulers;
+    DrawRangeCircles;
+    DrawPlayerTriangle;
+
+      { in a screen-size ortho }
+    SetupScreenProjectionMatrix;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity;
+    DrawTargetHUD;
+    DrawLocalPlayerHUD;
+    DrawFrameStats;
+    DrawMouseTooltip;
+
+    CheckGLError();
+
+    inc(FFrameCount);
+    FDirty := false;
+  except
+    on Exception: e do
+      Log('RenderError: ' + e.Message);
   end;
-
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  SetupRadarProjectionMatrix;
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-    { at origin }
-  if GetAsyncKeyState(VK_CONTROL) <> 0 then
-    MapUnproject(FMouseLocX, FMouseLocY, false);
-  DrawMapElements;
-  DrawGrid;
-  DrawMobsAndPlayers;
-  DrawLineToSelected;
-  DrawGroundTarget;
-
-  glTranslatef(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
-
-    { at player pos }
-  DrawMapRulers;
-  DrawRangeCircles;
-  DrawPlayerTriangle;
-
-    { in a screen-size ortho }
-  SetupScreenProjectionMatrix;
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity;
-  DrawTargetHUD;
-  DrawLocalPlayerHUD;
-  DrawFrameStats;
-  DrawMouseTooltip;
-
-  CheckGLError();
-
-  inc(FFrameCount);
-  FDirty := false;
 end;
 
 procedure TfrmGLRender.glMapInit(Sender: TObject);
