@@ -211,13 +211,6 @@ void FormExcalibur::MobFilter_returnPressed()
   Map->c->setFilter( MobFilter->text());
 }
 
-
-void FormExcalibur::showMsgs( )
-{
-    Map->c->msgui->show( );
-}
-
-
 void FormExcalibur::MapCancel_pressed()
 {
   if( Map->c == NULL)
@@ -231,7 +224,6 @@ void FormExcalibur::GroupItems_toggled( bool ena )
   prefs.sort_group_items=ena;
   prefs.activate();
 }
-
 
 void FormExcalibur::MaxFPS_toggled( bool ena )
 {

@@ -332,6 +332,9 @@ Hibs: 0  Mobs: 0</string>
                             <property name="name">
                                 <cstring>Map</cstring>
                             </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
                             <property name="sizePolicy">
                                 <sizepolicy>
                                     <hsizetype>7</hsizetype>
@@ -389,7 +392,6 @@ Hibs: 0  Mobs: 0</string>
         <separator/>
         <action name="MaxFPS"/>
         <action name="vaderWarn"/>
-        <action name="ShowMsgs"/>
         <action name="EditorSpawn"/>
         <separator/>
         <action name="Preferences"/>
@@ -592,17 +594,6 @@ Hibs: 0  Mobs: 0</string>
         </property>
         <property name="accel">
             <number>4194373</number>
-        </property>
-    </action>
-    <action>
-        <property name="name">
-            <cstring>ShowMsgs</cstring>
-        </property>
-        <property name="text">
-            <string>Show Msg Window</string>
-        </property>
-        <property name="accel">
-            <number>4194381</number>
         </property>
     </action>
     <action>
@@ -870,12 +861,6 @@ Hibs: 0  Mobs: 0</string>
         <slot>MobFilter_returnPressed()</slot>
     </connection>
     <connection>
-        <sender>ShowMsgs</sender>
-        <signal>activated()</signal>
-        <receiver>FormExcalibur</receiver>
-        <slot>showMsgs()</slot>
-    </connection>
-    <connection>
         <sender>vaderWarn</sender>
         <signal>toggled(bool)</signal>
         <receiver>FormExcalibur</receiver>
@@ -984,7 +969,6 @@ Hibs: 0  Mobs: 0</string>
     <slot>MapMerchatTypes_toggled( bool ena )</slot>
     <slot>MapRecache_activated( void )</slot>
     <slot>MobFilter_returnPressed()</slot>
-    <slot>showMsgs()</slot>
     <slot>MapCancel_pressed()</slot>
     <slot>GroupItems_toggled( bool ena )</slot>
     <slot>MaxFPS_toggled( bool ena )</slot>

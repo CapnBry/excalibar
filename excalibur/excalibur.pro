@@ -1,5 +1,9 @@
-SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp exMessage.cpp
-HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h exMessage.h messages.ui.h
+SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp
+HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h exMessage.h 
+
+# SOURCES += exMessage.cpp
+# HEADERS += messages.ui.h
+# FORMS   += messages.ui
 #
 # Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
 #
@@ -27,7 +31,7 @@ unix {
 }
 QMAKE_CXXFLAGS += -include excalibur.h
 #QMAKE_LFLAGS   += -pg -a
-FORMS	= formexcalibur.ui prefsdialog.ui messages.ui
+FORMS	= formexcalibur.ui prefsdialog.ui
 TEMPLATE	=app
 CONFIG	+= qt warn_on release thread opengl network
 INCLUDEPATH	+= /usr/include/pcap/

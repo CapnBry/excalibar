@@ -86,7 +86,7 @@ int main( int argc, char ** argv )
     options.insert("--capture",&capture);
 
     options.insert("--mobseen",&prefs.dump_mobseen);
-    options.insert("--druppy-leak",&prefs.druppy_leak);
+//    options.insert("--druppy-leak",&prefs.druppy_leak);
     options.insert("--exclude-local",&prefs.exclude_local);
 
     QApplication a( argc, argv );
@@ -112,8 +112,8 @@ int main( int argc, char ** argv )
       printf ("                  can link with it.\n");
       printf ("  --capture       Turn packet capture files on\n");
       printf ("  --realtime      Set the network thread realtime.\n");
-      printf ("  --druppy-leak   Enable Druppy's message parsing code..\n"); 
-      printf ("                  * NOTE: It's a massive memory leak!!!\n");
+//      printf ("  --druppy-leak   Enable Druppy's message parsing code..\n");
+//      printf ("                  * NOTE: It's a massive memory leak!!!\n");
       printf ("  --mobseen       Dump a mob description to stdout when seen\n");
       printf ("  --exclude-local Do not process packets to/from the local machine.  Use this\n");
       printf ("                  if you pass your DAoC traffic through the local maching and\n");
