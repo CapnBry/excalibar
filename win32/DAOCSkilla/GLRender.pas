@@ -2060,17 +2060,20 @@ var
   iZDelta:    integer;
 begin
   iZDelta := AObj.Z - FDControl.LocalPlayer.Z;
-  if iZDelta > 0 then begin
-    if AVerbose then
-      Result := IntToStr(iZDelta) + ' above you'
-    else
-      Result := '+' + IntToStr(iZDelta);
-  end
-  else begin
+  if iZDelta < 0 then begin
     if AVerbose then
       Result := IntToStr(-iZDelta) + ' below you'
     else
       Result := IntToStr(iZDelta);
+  end
+  else begin
+    if AVerbose then
+      if iZDelta = 0 then
+        Result := 'Even Z'
+      else
+        Result := IntToStr(iZDelta) + ' above you'
+    else
+      Result := '+' + IntToStr(iZDelta);
   end;
 end;
 
@@ -2079,8 +2082,8 @@ var
   pSelected:  TDAOCObject;
   s:    string;
 begin
-  if FDControl.SelectedID <> 0 then begin
-    pSelected := FDControl.SelectedObject;
+  pSelected := FDControl.SelectedObject;
+  if Assigned(pSelected) then begin
     if pSelected.ObjectClass in [ocMob, ocPlayer, ocLocalPlayer] then begin
       s := TDAOCMovingObject(pSelected).Inventory.AsString(false);
       ShowMessage(s);
