@@ -63,7 +63,7 @@ type
     FDestGotoNode:  TMapNode;
     FDestGotoNodeFreeable: boolean;
     FGotoDistTolerance: integer;
-    FOnArriveAtGotoDest: TNotifyEvent;
+    FOnArriveAtGotoDest: TMapNodeNotify;
     FDAOCPath: string;
     FWindowManager:   TDAOCWindowManager;
     FForceStationaryTurnDegrees: integer;
@@ -294,7 +294,7 @@ type
     property KeyStrafeLeft: string read FKeyStrafeLeft write FKeyStrafeLeft;
     property KeyStrafeRight: string read FKeyStrafeRight write FKeyStrafeRight;
       { Events }
-    property OnArriveAtGotoDest: TNotifyEvent read FOnArriveAtGotoDest write FOnArriveAtGotoDest;
+    property OnArriveAtGotoDest: TMapNodeNotify read FOnArriveAtGotoDest write FOnArriveAtGotoDest;
     property OnPathChanged: TNotifyEvent read FOnPathChanged write FOnPathChanged;
     property OnStopAllActions: TNotifyEvent read FOnStopAllActions write FOnStopAllActions;
     property OnSelectNPCFailed: TNotifyEvent read FOnSelectNPCFailed write FOnSelectNPCFailed;
@@ -676,7 +676,16 @@ begin
 end;
 
 procedure TDAOCControl.DoOnArriveAtGotoDest;
+var
+  pDestNode:  TMapNode;
 begin
+    { save this before we call stop because that will clear it. If it is freeable
+      we can't use it, but it was probably just a temp node anyway }
+  if not FDestGotoNodeFreeable then
+    pDestNode := FDestGotoNode
+  else
+    pDestNode := nil;
+    
   StopGotoDest;
 
     { see if this node was just one in a path }
@@ -691,7 +700,7 @@ begin
   end;  { if AutomationMode commission }
 
   if Assigned(FOnArriveAtGotoDest) then
-    FOnArriveAtGotoDest(Self);
+    FOnArriveAtGotoDest(Self, pDestNode);
 
 {$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
