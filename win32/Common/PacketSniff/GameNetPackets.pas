@@ -182,9 +182,9 @@ end;
 function TGameNetPacket.GetIsFromClientStr: string;
 begin
   if FIsFromClient then
-    Result := ' TO  client'
+    Result := 'FROM client'
   else
-    Result := 'FROM client';
+    Result := ' TO  client';
 end;
 
 function TGameNetPacket.GetIsFromServer: boolean;
