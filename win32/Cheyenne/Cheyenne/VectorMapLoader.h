@@ -1,9 +1,28 @@
+/******************************************************************************
+Cheyenne: a real-time packet analyzer/sniffer for Dark Age of Camelot
+Copyright (C) 2003, the Cheyenne Developers
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+******************************************************************************/
 #pragma once
 
 #include "global.h"
+#include <map>
+#include <list>
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include <map>
 
 class VectorMapTriplet
 {
@@ -80,89 +99,32 @@ public:
     void SetName(const std::string& s){Name=s;};
     void SetColor(const std::string& s){Color=s;};
 
-    void Draw(void)const
+    void Draw(void)const;
+
+    void Print(void)const
     {
-        // draw
-
-        switch(GetType())
-            {
-            case 'P':
-                glBegin(GL_POINTS);
-                break;
-
-            default:
-                glBegin(GL_LINE_STRIP);
-                break;
-            }
+        Logger << Name << "\n"
+               << Type << "\n"
+               << Color << "\n";
         
-        // get color
-        std::map<std::string,VectorMapColor>::const_iterator cit;
-        cit=ColorMap.find(Color);
-
-        if(cit==ColorMap.end())
-            {
-            // not defined, make black
-            glColor4f(0.0f,0.0f,0.0f,1.0f);
-            }
-        else
-            {
-            // use predefined color
-            glColor4f(cit->second.r,cit->second.g,cit->second.b,cit->second.a);
-            }
-
         std::list<VectorMapTriplet>::const_iterator it;
+        
         for(it=Triplets.begin();it!=Triplets.end();++it)
             {
-            glVertex3f(it->x,it->y,1.0f);//it->z); render it flat for now
-
-            /*
-            if(GetType() == 'P')
-                {
-                // draw name too
-                glRasterPos3f(it->x+10.0f,it->y,1.0f);
-                glColor4f(1.0f,1.0f,1.0f,1.0f);
-                DrawGLFontString(Name);
-
-                }
-            */
+            Logger << "<" << it->x << "," << it->y << "," << it->z << ">\n";
             }
-
-        if(GetType() == 'P')
-            {
-            // end current drawing operation
-            glEnd();
-
-            // draw name too
-            it=Triplets.begin();
-            glRasterPos3f(it->x+10.0f,it->y,1.0f);
-            glColor4f(1.0f,1.0f,1.0f,1.0f);
-            DrawGLFontString(Name);
-            }
-        else
-            {
-            // end here
-            glEnd();
-            }
+        
     }
-
+    void MakeEmpty(void)
+    {
+        Name="none";
+        Color="black";
+        Type='M';
+        Triplets.erase(Triplets.begin(),Triplets.end());
+    }
 protected:
 private:
-    void BuildColorMap(void)
-    {
-        // add color map values
-        ColorMap.insert(std::make_pair(std::string("black"),VectorMapColor(0.0f,0.0f,0.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("white"),VectorMapColor(1.0f,1.0f,1.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("gray"),VectorMapColor(0.5f,0.5f,0.5f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("green"),VectorMapColor(0.0f,1.0f,0.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("red"),VectorMapColor(1.0f,0.0f,0.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("blue"),VectorMapColor(0.0f,0.0f,1.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("orange"),VectorMapColor(250.0f/255.0f,226.0f/255.0f,133.0f/255.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("pink"),VectorMapColor(255.0f/255.0f,226.0f/255.0f,219.0f/255.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("magenta"),VectorMapColor(230.0f/255.0f,113.0f/255.0f,242.0f/255.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("brown"),VectorMapColor(193.0f/255.0f,183.0f/255.0f,162.0f/255.0f,1.0f)));
-        ColorMap.insert(std::make_pair(std::string("yellow"),VectorMapColor(248.0f/255.0f,240.0f/255.0f,105.0f/255.0f,1.0f)));
-    }
-
+    void BuildColorMap(void);
     void set(const VectorMapItem& s)
     {
         Type=s.Type;
@@ -293,7 +255,8 @@ private:
 
     virtual DWORD Run(const bool& bContinue);
 
-
+    bool LoadMap(const std::string& filename,const unsigned char map_cnt);
+    
     VectorMap Maps[256];
     bool bIsDone;
     unsigned int ListBase;
