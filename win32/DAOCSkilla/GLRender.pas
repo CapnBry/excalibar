@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, glWindow, OpenGL12, DAOCControl, ComCtrls, DAOCObjs,
-  StdCtrls;
+  Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCControl, ComCtrls, DAOCObjs,
+  StdCtrls, GLRenderObjects, MapElementList;
 
 type
   TfrmGLRender = class(TForm)
@@ -18,13 +18,19 @@ type
     procedure slideZoomChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure glMapClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure lstMobsDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
   private
     FDControl: TDAOCControl;
     FRange:     DWORD;
-    FCallListsCreated:  boolean;
-    listTriangle: TGLuint;
+    FGLInitsCalled:     boolean;
+    listTriangle:       GLuint;
     FDirty:   boolean;
-    FImage:   TGLuint;
+    FMapElements:   TVectorMapElementList;
+    FMapTextures:   TTextureMapElementList;
+    FRangeCircles:  TRangeCircleList;
 
     procedure SetDControl(const Value: TDAOCControl);
     procedure CreateCallLists;
@@ -34,15 +40,21 @@ type
     procedure DrawRangeCircles;
     procedure DrawPlayerTriangle;
     procedure DrawLineToSelected;
+    procedure DrawMobsAndPlayers;
+    procedure DrawMapElements;
+    procedure GLInits;
+    procedure GLCleanups;
   protected
-    procedure LoadRAWImage(const AFName: string);
   public
     procedure AddDAOCObject(AObj: TDAOCObject);
     procedure DeleteDAOCObject(AObj: TDAOCObject);
     procedure UpdateDAOCObject(AObj: TDAOCObject);
+    procedure DAOCRegionChanged;
+    procedure DAOCZoneChanged;
 
     procedure Dirty;
     property DAOCControl: TDAOCControl read FDControl write SetDControl;
+    property RangeCircles: TRangeCircleList read FRangeCircles;
   end;
 
 var
@@ -67,16 +79,12 @@ var
   miny:   integer;
   maxx:   integer;
   maxy:   integer;
-
-  clMob:  TColor;
-  I:    integer;
-  pMob: TDAOCObject;
 begin
   if not Assigned(FDControl) then
     exit;
 
-  if not FCallListsCreated then
-    CreateCallLists;
+  if not FGLInitsCalled then
+    GLInits;
 
   // Clear the color and depth buffers
 //  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -95,53 +103,23 @@ begin
   maxx := FDControl.LocalPlayer.X + FRange;
   miny := FDControl.LocalPlayer.Y - FRange;
   maxy := FDControl.LocalPlayer.Y + FRange;
-  glOrtho(minx, maxx, miny, maxy, 500, -500);
+  glOrtho(minx, maxx, miny, maxy, 1, -200);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   glEnable(GL_LIGHTING);
 
-  for I := 0 to FDControl.DAOCObjects.Count - 1 do begin
-    pMob := FDControl.DAOCObjects[I];
+    { at origin }
+  DrawMapElements;
+  DrawMobsAndPlayers;
+  DrawLineToSelected;
 
-    if pMob.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
-      glPushMatrix();
-      glTranslatef(pMob.X, pMob.Y, 0);
-      glRotatef(pMob.Head - 180, 0, 0, 1);
-
-      clMob := pMob.GetConColor(FDControl.LocalPlayer.Level);
-      if pMob.Stealthed then
-        clMob := clGreen;
-      glColor3ubv(PGLubyte(@clMob));
-      glCallList(listTriangle);
-      glPopMatrix();
-    end;
-  end;  { for each object }
-
-  DrawLineToSelected();
-
-  glPushMatrix();
   glTranslatef(FDControl.LocalPlayer.X, FDControl.LocalPlayer.Y, 0);
+
+    { at player pos }
   DrawMapRulers;
   DrawRangeCircles;
   DrawPlayerTriangle;
-  if FImage <> 0 then begin
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, FImage);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glBegin(GL_QUADS);
-      glTexCoord2f(1.0, 0.0);
-      glVertex3f(75, -75, 0.0);
-      glTexCoord2f(0.0, 0.0);
-      glVertex3f(-75, -75, 0.0);
-      glTexCoord2f(0.0, 1.0);
-      glVertex3f(-75, 75, 0.0);
-      glTexCoord2f(1.0, 1.0);
-      glVertex3f(75, 75, 0.0);
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
-  end;
-  glPopMatrix();
 
   CheckGLError();
 
@@ -150,12 +128,14 @@ end;
 
 procedure TfrmGLRender.glMapInit(Sender: TObject);
 const
-  lightpos: array[0..3] of TGLfloat = (0.5, -1.0, 1.0, 0.0);
-  diffuse: array[0..3] of TGLfloat = (0.5, 0.5, 0.5, 1.0);
-  ambient: array[0..3] of TGLfloat = (0.0, 0.0, 0.0, 1.0);
-  material: array[0..3] of TGLfloat = (0.5, 0.5, 0.5, 1.0);
+  lightpos: array[0..3] of GLfloat = (0.5, -1.0, 1.0, 0.0);
+  diffuse: array[0..3] of GLfloat = (0.5, 0.5, 0.5, 1.0);
+  ambient: array[0..3] of GLfloat = (0.0, 0.0, 0.0, 1.0);
+  material: array[0..3] of GLfloat = (0.5, 0.5, 0.5, 1.0);
 begin
-  InitOpenGL;
+  { BRY: Handle this gracefully at some point }
+  if not Load_GL_version_1_3 then
+    raise Exception.Create('OpenGL 1.3 support required for terrain textures');
 
   glClearColor(0, 0, 0, 0);
   glPointSize(3);
@@ -184,9 +164,8 @@ begin
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   listTriangle := glGenLists(1);
-  FCallListsCreated := false;
+  FGLInitsCalled := false;
 
-  // LoadRAWImage('\temp\sword.raw');
   CheckGLError;
 end;
 
@@ -212,10 +191,10 @@ var
   w:  integer;
   l:  integer;
 begin
-  w := 75;
+  w := 150;
   l := w * 2;
 
-  glEdgeFlag(ByteBool(GL_TRUE));
+  glEdgeFlag(GL_TRUE);
   glNewList(listTriangle, GL_COMPILE);
 
   glBegin(GL_TRIANGLE_FAN);
@@ -233,6 +212,8 @@ begin
   glEnd();
   glEndList();
 
+  FRangeCircles.GLInitialize;
+  
   CheckGLError;
 end;
 
@@ -243,7 +224,7 @@ end;
 
 procedure TfrmGLRender.CheckGLError;
 var
-  err:  TGLenum;
+  err:  GLenum;
 begin
   err := glGetError();
   if err <> GL_NO_ERROR then
@@ -252,7 +233,7 @@ end;
 
 procedure TfrmGLRender.DrawMapRulers;
 var
-  headrad:  TGLfloat;
+  headrad:  GLfloat;
 begin
     { Draw map rulers }
   glColor3f(0.45, 0.45, 0.45);
@@ -281,7 +262,7 @@ end;
 
 procedure TfrmGLRender.DrawRangeCircles;
 begin
-;
+  FRangeCircles.GLRender;
 end;
 
 procedure TfrmGLRender.Dirty;
@@ -315,42 +296,24 @@ begin
   Dirty;
 end;
 
-procedure TfrmGLRender.LoadRAWImage(const AFName: string);
-var
-  FS:   TFileStream;
-  MS:   TMemoryStream;
-begin
-  FS := TFileStream.Create(AFName, fmOpenRead or fmShareDenyNone);
-  MS := TMemoryStream.Create;
-  MS.CopyFrom(FS, 0);
-  FS.Free;
-
-  if FImage = 0 then
-    glGenTextures(1, @FImage);
-  glBindTexture(GL_TEXTURE_2D, FImage);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 32, 0, GL_RGBA, GL_UNSIGNED_BYTE, MS.Memory);
-  MS.Free;
-end;
-
 procedure TfrmGLRender.glMapClick(Sender: TObject);
 var
-  projmatrix: TMatrix4d;
-  modmatrix:  TMatrix4d;
-  viewport:   TVector4i;
-  x, y, z:    TGLdouble;
-  pt:   TPoint;
+  projmatrix: T16dArray;
+  modmatrix:  T16dArray;
+  viewport:   TViewPortArray;
+  x, y, z:    GLdouble;
+  pt:         TPoint;         
   pNearest:   TDAOCObject;
 begin
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
   glGetDoublev(GL_PROJECTION_MATRIX, @projmatrix);
   glGetDoublev(GL_MODELVIEW_MATRIX, @modmatrix);
   glGetIntegerv(GL_VIEWPORT, @viewport);
 
   pt := glMap.ScreenToClient(Mouse.CursorPos);
-  gluUnProject(pt.X, glMap.Height - pt.Y, 100, modmatrix, projmatrix, viewport,
+  gluUnProject(pt.X, glMap.Height - pt.Y, 0, modmatrix, projmatrix, viewport,
     @x, @y, @z);
 
   pNearest := FDControl.DAOCObjects.FindNearest(trunc(x), trunc(y), FDControl.LocalPlayer.Z);
@@ -372,6 +335,149 @@ begin
     glVertex3i(FDControl.LocalPlayer.X, FDControl.LocalPlayer.Y, 0);  // c->playerz
     glVertex3i(pSelected.X, pSelected.Y, 0);  // m->getZ()
     glEnd();
+  end;
+end;
+
+procedure TfrmGLRender.DrawMobsAndPlayers;
+var
+  I:    integer;
+  clMob:  TColor;
+  pMob:   TDAOCObject;
+begin
+  for I := 0 to FDControl.DAOCObjects.Count - 1 do begin
+    pMob := FDControl.DAOCObjects[I];
+
+    if pMob.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
+      glPushMatrix();
+      glTranslatef(pMob.X, pMob.Y, 0);
+      glRotatef(pMob.Head - 180, 0, 0, 1);
+
+      clMob := pMob.GetConColor(FDControl.LocalPlayer.Level);
+      if pMob.Stealthed then
+        clMob := clGreen;
+      glColor3ubv(PGLubyte(@clMob));
+      glCallList(listTriangle);
+      glPopMatrix();
+    end;
+  end;  { for each object }
+end;
+
+procedure TfrmGLRender.FormCreate(Sender: TObject);
+var
+  rngCircle:  TRangeCircle;
+begin
+  FRangeCircles := TRangeCircleList.Create;
+  rngCircle := TRangeCircle.CreateRange(500);
+  rngCircle.Color := clRed;
+  FRangeCircles.Add(rngCircle);
+  rngCircle := TRangeCircle.CreateRange(1500);
+  rngCircle.Color := clLime;
+  FRangeCircles.Add(rngCircle);
+  rngCircle := TRangeCircle.CreateRange(7000);
+  rngCircle.Color := clSilver;
+  FRangeCircles.Add(rngCircle);
+
+  FMapElements := TVectorMapElementList.Create;
+  FMapTextures := TTextureMapElementList.Create;
+end;
+
+procedure TfrmGLRender.FormDestroy(Sender: TObject);
+begin
+  GLCleanups;
+  FMapElements.Free;
+  FMapTextures.Free;
+  FRangeCircles.Free;
+end;
+
+procedure TfrmGLRender.GLCleanups;
+begin
+  glDeleteLists(listTriangle, 1);
+  FRangeCircles.GLCleanup;
+  FMapElements.GLCleanup;
+  FMapTextures.GLCleanup;
+end;
+
+procedure TfrmGLRender.GLInits;
+begin
+  FGLInitsCalled := true;
+  CreateCallLists;
+  FRangeCircles.GLInitialize;
+  FMapElements.GLInitialize;
+  FMapTextures.GLInitialize;
+  
+  CheckGLError;
+end;
+
+procedure TfrmGLRender.DrawMapElements;
+begin
+  glPushAttrib(GL_ENABLE_BIT);
+
+  glDisable(GL_LIGHTING);
+  glDisable(GL_CULL_FACE);
+
+  glEnable(GL_TEXTURE_2D);
+  FMapTextures.GLRender;
+  glDisable(GL_TEXTURE_2D);
+  
+  FMapElements.GLRender;
+
+  glPopAttrib();
+end;
+
+procedure TfrmGLRender.DAOCZoneChanged;
+begin
+  if not Assigned(FDControl.Zone) then
+    exit;
+
+  { BRY:  We really need to select the GL context here, but I don't because
+    glWindow doesn't have a function to activate its context and we'll just
+    see if this works }
+     
+    { cleanup any old objects }
+  FMapElements.GLCleanup;
+
+  FMapElements.OffsetX := FDControl.Zone.BaseLoc.X;
+  FMapElements.OffsetY := FDControl.Zone.BaseLoc.Y;
+  FMapElements.LoadFromFile('maps\' + FDControl.Zone.MapName);
+  FMapElements.GLInitialize;
+
+  FMapTextures.GLCleanup;
+  FMapTextures.OffsetX := FDControl.Zone.BaseLoc.X;
+  FMapTextures.OffsetY := FDControl.Zone.BaseLoc.Y;
+  FMapTextures.LoadFromFile(Format('maps\dds\zone%3.3d.dds', [FDControl.Zone.ZoneNum]));
+  FMapTextures.GLInitialize;
+end;
+
+procedure TfrmGLRender.DAOCRegionChanged;
+begin
+  ;
+end;
+
+procedure TfrmGLRender.lstMobsDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  pMob: TDAOCObject;
+  cl:     TColor;
+  R,G,B:  BYTE;
+begin
+  with lstMobs.Canvas do begin
+    if odSelected in State then
+      Brush.Color := clSkyBlue
+    else
+      Brush.Color := clBtnFace;
+    lstMobs.Canvas.FillRect(Rect);
+
+    pMob := FDControl.DAOCObjects[Index];
+    if not Assigned(pMob) then
+      exit;
+
+    cl := pMob.GetConColor(FDControl.LocalPlayer.Level);
+    R := GetRValue(cl) shr 1;
+    G := GetGValue(cl) shr 1;
+    B := GetBValue(cl) shr 1;
+
+    lstMobs.Canvas.Font.Color := RGB(R, G, B);
+    lstMobs.Canvas.TextOut(Rect.Left + 2, Rect.Top + 1, lstMobs.Items[Index]);
   end;
 end;
 

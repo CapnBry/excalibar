@@ -3,7 +3,7 @@ object frmGLRender: TfrmGLRender
   Top = 125
   Width = 843
   Height = 643
-  Caption = 'Ojects in the vicinity'
+  Caption = 'Excalibur -- Win32'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,13 +12,15 @@ object frmGLRender: TfrmGLRender
   Font.Style = []
   OldCreateOrder = False
   Scaled = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object glMap: TglWindow
-    Left = 137
+    Left = 149
     Top = 0
-    Width = 698
+    Width = 686
     Height = 592
     Align = alClient
     OnClick = glMapClick
@@ -29,7 +31,7 @@ object frmGLRender: TfrmGLRender
     StencBufferEnabled = False
     AccumBits = c16bits
     AccumBufferEnabled = False
-    WindowFlags = [wfDrawToWindow, wfSupportOpenGL, wfDoubleBuffer]
+    WindowFlags = [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer]
     OnResize = glMapResize
     OnDraw = glMapDraw
     OnInit = glMapInit
@@ -44,7 +46,7 @@ object frmGLRender: TfrmGLRender
     Min = 200
     Orientation = trHorizontal
     Frequency = 1000
-    Position = 3000
+    Position = 6000
     SelEnd = 0
     SelStart = 0
     TabOrder = 1
@@ -55,12 +57,15 @@ object frmGLRender: TfrmGLRender
   object lstMobs: TListBox
     Left = 0
     Top = 0
-    Width = 137
+    Width = 149
     Height = 592
+    Style = lbOwnerDrawFixed
     Align = alLeft
+    Color = clBtnFace
     Ctl3D = False
-    ItemHeight = 13
+    ItemHeight = 14
     ParentCtl3D = False
     TabOrder = 2
+    OnDrawItem = lstMobsDrawItem
   end
 end
