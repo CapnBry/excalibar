@@ -29,7 +29,7 @@ class exMessage;
 class exMessage{
 	
 	public:
-		exMessage::exMessage( QString*, unsigned int);
+		exMessage::exMessage( QString*, uint8_t, uint8_t);
 		void exMessage::parseMsg();
 		QString getFormattedText() { return FormattedText; }
 		QString getMsgType()       { return MsgType; }
@@ -41,7 +41,7 @@ class exMessage{
 		Sender,
 		Recvr,
 		FormattedText;
-		unsigned int MsgIdNum;
+		uint8_t opCode, typeCode;
 		
 };
 		

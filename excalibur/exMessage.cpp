@@ -26,12 +26,13 @@
 #include "exMessage.h"
 #include "exPrefs.h"
 
-exMessage::exMessage( QString* newMsg, unsigned int Id)
+exMessage::exMessage( QString* newMsg, uint8_t opCode, uint8_t typeCode)
 { 
 	this->Msg = *newMsg;
 	this->MsgType = "Unknown";
 	this->FormattedText = *newMsg;
-	this->MsgIdNum = Id;
+	this->opCode = opCode;
+	this->typeCode = typeCode;
 }
 
 void exMessage::parseMsg()
@@ -44,86 +45,94 @@ void exMessage::parseMsg()
 	QRegExp rxSay( ".*say[s]?\\,\\ \\\".*");
 	QRegExp rxPML( "^The\\ .*\\ drops[\\ ]+(a\\ )?[A-Z]+.*");
 	int p;
+	
+	switch( this->opCode)
+		{
+		case 0x00: /* Mostly Random Msgs */
+			break;
+		case 0x01: /* Say */
+        	this->MsgType = "Say";
+        	this->Recvr   = "Say";
+        	p = this->Msg.find( " ");
+        	this->Sender  = this->Msg.mid( 2, (p-2));
+        	this->MsgText = this->Msg.mid( 
+            	        this->Msg.find( "\""), 
+                	    this->Msg.findRev( "\"") - 
+                    	      this->Msg.find( "\"") + 1);
 
-	if( -1 != rxGuild.search( Msg))
-		{
-		this->MsgType = "Guild";
-		this->Recvr   = "Guild";
-		p = this->Msg.find( ":");
-		this->Sender  = this->Msg.mid( 10, (p - 10));
-		this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
-		this->FormattedText = this->Sender + ": " + this->MsgText;
-		}
-	else if( -1 != rxGroup.search( Msg))
-		{
-        this->MsgType = "Party";
-        this->Recvr   = "Party";
-        p = this->Msg.find( ":");
-        this->Sender  = this->Msg.mid( 10, (p - 10));
-        this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
-		this->FormattedText = this->Sender + ": " + this->MsgText;
-		}
-    else if( -1 != rxChat.search( Msg))
-        {
-        this->MsgType = "Chat";
-        this->Recvr   = "Chat";
-        p = this->Msg.find( ":");
-        this->Sender  = this->Msg.mid( 9, (p - 9));
-        this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
-        this->FormattedText = this->Sender + ": " + this->MsgText;
-        }
-	else if( -1 != rxTell.search( Msg))
-		{
-		this->MsgType = "Tell";
-        p = this->Msg.find( " ");
-        this->Sender  = this->Msg.mid( 2, (p-2));
-		this->Recvr   = this->Msg.mid( 
-					this->Msg.findRev( " ")+1, this->Msg.length());
-        this->MsgText = this->Msg.mid( 
-					this->Msg.find( "\""), 
-					this->Msg.findRev( "\"") - 
-					      this->Msg.find( "\"") + 1);
-		
-		if( "You" != this->Sender) this->Recvr = "You";
-		this->FormattedText = this->Sender;
-		this->FormattedText += 
-			this->Sender == "You" ? " tell " : " tells ";
-		this->FormattedText += this->Recvr + " " + this->MsgText;
-		}
-    else if( -1 != rxBCast.search( Msg))
-        {
-        this->MsgType = "Broadcast";
-        this->Recvr   = "Zone";
-        p = this->Msg.find( ":");
-        this->Sender  = this->Msg.mid( 2, (p-2));
-        this->MsgText = this->Msg.mid( 
-					this->Msg.find( "**"), this->Msg.length());
+        	this->FormattedText = this->Sender;
+        	this->FormattedText += 
+				this->Sender == "You" ? " say " : " says ";
+        	this->FormattedText += this->MsgText;
+			break;
+		case 0x02: /* Tell */
+        	this->MsgType = "Tell";
+        	p = this->Msg.find( " ");
+        	this->Sender  = this->Msg.mid( 2, (p-2));
+        	this->Recvr   = this->Msg.mid( 
+            	        this->Msg.findRev( " ")+1, this->Msg.length());
+        	this->MsgText = this->Msg.mid( 
+           	         this->Msg.find( "\""), 
+           	         this->Msg.findRev( "\"") - 
+            	              this->Msg.find( "\"") + 1);
         
-        this->FormattedText = this->Sender + " broadcasts: ";
-        this->FormattedText += this->MsgText;
-        }
-    else if( -1 != rxSay.search( Msg))
-        {
-        this->MsgType = "Say";
-        this->Recvr   = "Say";
-        p = this->Msg.find( " ");
-        this->Sender  = this->Msg.mid( 2, (p-2));
-        this->MsgText = this->Msg.mid( 
-					this->Msg.find( "\""), 
-					this->Msg.findRev( "\"") - 
-					      this->Msg.find( "\"") + 1);
+        	if( "You" != this->Sender) this->Recvr = "You";
+        	this->FormattedText = this->Sender;
+        	this->FormattedText += 
+					this->Sender == "You" ? " tell " : " tells ";
+	        this->FormattedText += this->Recvr + " " + this->MsgText;
+			break;
+		case 0x03: /* Party */
+			this->MsgType = "Party";
+			this->Recvr   = "Party";
+			p = this->Msg.find( ":");
+			this->Sender  = this->Msg.mid( 10, (p - 10));
+			this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
+			this->FormattedText = this->Sender + ": " + this->MsgText;
+			break;
+		case 0x04: /* Guild */
+			this->MsgType = "Guild";
+			this->Recvr   = "Guild";
+			p = this->Msg.find( ":");
+			this->Sender  = this->Msg.mid( 10, (p - 10));
+			this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
+			this->FormattedText = this->Sender + ": " + this->MsgText;
+			break;
+		case 0x05: /* Broadcast */
+        	this->MsgType = "Broadcast";
+			this->Recvr   = "Zone";
+        	p = this->Msg.find( ":");
+        	this->Sender  = this->Msg.mid( 2, (p-2));
+        	this->MsgText = this->Msg.mid( 
+            	        this->Msg.find( "**"), this->Msg.length());
 
-        this->FormattedText = this->Sender;
-        this->FormattedText += 
-            this->Sender == "You" ? " say " : " says ";
-        this->FormattedText += this->MsgText;
-        }
-    else if( -1 != rxPML.search( Msg))
-		{
-		this->MsgType = "PML";
-		this->Sender = "None";
-		this->MsgText = this->Msg;
-		this->FormattedText = this->MsgText;
+			this->FormattedText = this->Sender + " broadcasts: ";
+	        this->FormattedText += this->MsgText;
+			break;
+		case 0x06: /* Dunno yet */
+			break;
+		case 0x07: /* dunno */
+			break;	
+		case 0x08: /* Chat Group */
+        	this->MsgType = "Chat";
+        	this->Recvr   = "Chat";
+        	p = this->Msg.find( ":");
+        	this->Sender  = this->Msg.mid( 9, (p - 9));
+        	this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
+        	this->FormattedText = this->Sender + ": " + this->MsgText;
+			break;
+		case 0x1a:
+		    if( -1 != rxPML.search( Msg))
+				{
+				this->MsgType = "PML";
+				this->Sender = "None";
+				this->MsgText = this->Msg;
+				this->FormattedText = this->MsgText;
+				}
+			break;
+		default:
+			break;
+	
 		}
 
 	if( this->MsgText)
@@ -131,6 +140,6 @@ void exMessage::parseMsg()
 				this->MsgType.ascii(), 
 				this->FormattedText.ascii());
 	else
-		printf("[%s : 0x%02x] %s\n", "Unknown", this->MsgIdNum, this->Msg.ascii());
+		printf("[%s : 0x%02x : 0x%02x] %s\n", "Unknown", this->opCode, this->typeCode, this->Msg.ascii());
 
 }

@@ -629,22 +629,22 @@ void exConnection::parseSystemMessage (exPacket *p)
     exMessage *msg;
     QWidget *tab;
     QTextEdit *textbox;
-//    p->seek(7);
+
 	p->seek(4);
-    uint8_t 	MsgType	 = p->getByte();
-	p->seek(3);
+    uint8_t 		opCode	 = p->getByte();
+	p->seek(1);
+    uint8_t 		typeCode = p->getByte();
+	p->seek(1);
 
     char*        Message     = strdup(p->getZeroString().ascii());
 
-//    qWarning("Type: %x - Message: %s", MessageType, Message);
-
-    msg = new exMessage( new QString( Message), MsgType);
+    msg = new exMessage( new QString( Message), opCode, typeCode);
     msg->parseMsg();
 
     // Insert it into the ALL tab
     tab = msgui->tabWidget->page( 0);
     textbox = (QTextEdit*)tab->childAt( 10, 10);
-    textbox->append( "[" + msg->getMsgType() + "] " + msg->getFormattedText());
+    textbox->append( QString( "[%1 : %2 : %3] %4").arg( msg->getMsgType()).arg( opCode).arg( typeCode).arg(msg->getFormattedText()));
 
 	for( int x = 1; x < msgui->tabWidget->count(); x++)
 		{
