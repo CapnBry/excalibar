@@ -57,7 +57,7 @@ private:
     unsigned int mana;
     unsigned int x,y,z;
     unsigned int head;
-    double headrad;
+    float headrad;
     unsigned int speed;
     bool mob;
     bool obj;
@@ -65,9 +65,8 @@ private:
     bool stealth;
     exTimeType _lasttick;
     exTimeType _lastdist;
-    double lastdist;
-    exTimeType _lastprojectedX;
-    exTimeType _lastprojectedY;
+    float lastdist;
+    exTimeType _lastprojectedPos;
     unsigned int projectedX, projectedY;
     exConnection *c;
     Realm realm;
@@ -102,10 +101,11 @@ public:
     unsigned int getZ() const;
     unsigned int getProjectedX();
     unsigned int getProjectedY();
+    void updateProjectedPosition();
     unsigned int getHead() const;
     int getSpeed() const;
     unsigned int getLevel() const;
-    double playerDist();
+    float playerDist();
     Realm getRealm() const;
     const QColor getRealmColor() const;
     const QColor getConColor(unsigned int to_level) const;

@@ -25,6 +25,7 @@
 #include <qregexp.h>
 #include "exMob.h"
 #include "exPrefs.h"
+#include "quickmath.h"
 
 static const QColor cMidgaard(0,0,255);
 static const QColor cHibernia(0,255,0);
@@ -63,8 +64,7 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   
   _lasttick = exTick;
   _lastdist = 0;
-  _lastprojectedX = 0;
-  _lastprojectedY = 0;
+  _lastprojectedPos = 0;
   playerDist();
 
   /*
@@ -208,7 +208,7 @@ void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
 void exMob::setHead(unsigned int nhead) {
   head=nhead & 0xfff;
   /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
-  headrad = ((head / 2048.0) * M_PI);
+  headrad = head * (float)M_PI * (1.0f / 2048.0f);
   touch();
 }
 
@@ -281,37 +281,37 @@ unsigned int exMob::getY() const {
 }
 
 unsigned int exMob::getProjectedX() {
-    int real_speed;
-    real_speed = getSpeed();
-
-    if (!real_speed)
-        return x;
-
-    if (exTick == _lastprojectedX)
-	return projectedX;
-    
-    projectedX = x - (int)(sin(headrad) *
-      ((double)real_speed * (double)(exTick - _lasttick) / 1000.0));
-    
-    _lastprojectedX = exTick;
+    updateProjectedPosition();
     return projectedX;
 }
 
 unsigned int exMob::getProjectedY() {
-    int real_speed;
-    real_speed = getSpeed();
-
-    if (!real_speed)
-        return y;
-
-    if (exTick == _lastprojectedY)
-	return projectedY;
-    
-    projectedY = y + (int)(cos(headrad) *
-      ((double)real_speed * (double)(exTick - _lasttick) / 1000.0));
-    
-    _lastprojectedY = exTick;
+    updateProjectedPosition();
     return projectedY;
+}
+
+void exMob::updateProjectedPosition() {
+    int real_speed;
+    int mag;
+    float speed_mag;
+
+    if (exTick == _lastprojectedPos)
+	return;
+    
+    _lastprojectedPos = exTick;
+
+    real_speed = getSpeed();
+    if (!real_speed)
+        return;
+
+    speed_mag = (float)real_speed * (float)(exTick - _lasttick) *
+        (1.0f / 1000.0f);
+
+    FLOAT_TO_INT(sin(headrad) * speed_mag, mag);
+    projectedX = x - mag;
+
+    FLOAT_TO_INT(cos(headrad) * speed_mag, mag);
+    projectedY = y + mag;
 }
 
 unsigned int exMob::getZ() const {
@@ -420,7 +420,7 @@ QColor exMob::getColorForRealm(Realm r) {
   }
 }
 
-double exMob::playerDist() {
+float exMob::playerDist() {
   int xdist;
   int ydist;
   int zdist;
