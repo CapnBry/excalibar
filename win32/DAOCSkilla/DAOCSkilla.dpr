@@ -45,7 +45,7 @@ uses
   RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
   zlib2 in '..\Components\ZLib\zlib2.pas',
   QuickLaunchChars in 'QuickLaunchChars.pas',
-  glWindow in '\\benny\c\utils\Excalibar\win32\Common\glWindow.pas';
+  glWindow in '..\Common\glWindow.pas';
 
 {$R *.TLB}
 

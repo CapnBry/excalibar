@@ -1,3 +1,5 @@
+2003 Dec 12 - v1.65
+-------------------
   + Internal changes to ChatParse unit.
   + Internal changes to fix no DAOC_AUTO_SERVER build.
   + Added WINPCAP define to enable / disable packet sniffing.
