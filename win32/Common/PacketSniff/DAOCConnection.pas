@@ -184,6 +184,8 @@ type
     procedure ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
     procedure ParseServerPingResponse(pPacket: TDAOCPacket);
     procedure ParseServerPingRequest(pPacket: TDAOCPacket);
+    procedure ParseGroupMembersUpdate(pPacket: TDAOCPacket);
+    procedure ParseGroupWindowUpdate(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -231,6 +233,8 @@ type
     procedure HookChatParseCallbacks;
     procedure MergeVendorItemsToMaster;
     procedure ScheduleCallback(ATimeout: DWORD; ACallback: TSheduledCallback; AParm: LPARAM);
+    procedure UpdatePlayersInGuild;
+    procedure ResetPlayersInGroup;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -533,8 +537,34 @@ begin
 
     pAcctChar := SetActiveCharacterByName(sName);
     pAcctChar.FLevel := iLevel;
-    FLocalPlayer.Level := iLevel;
 
+    with FLocalPlayer do begin
+      Level := iLevel;
+      pPacket.Seek(1);
+      PlayerClassStr := pPacket.getPascalString;
+      pPacket.Seek(1);
+      House := pPacket.getPascalString;
+      pPacket.Seek(1);
+      HouseTitle := pPacket.getPascalString;
+      pPacket.Seek(1);
+      RealmTitle := pPacket.getPascalString;
+      pPacket.Seek(1);
+      BaseClass := pPacket.getPascalString;
+      pPacket.Seek(1);
+      Guild := pPacket.getPascalString;
+      pPacket.Seek(1);
+      LastName := pPacket.getPascalString;
+      pPacket.Seek(1);
+      Race := pPacket.getPascalString;
+      // pPacket.Seek(1);
+      // pPacket.getPascalString;  // "Recruits"?
+      // pPacket.Seek(1);
+      // pPacket.getPascalString;  // "None"?
+      // pPacket.Seek(1);
+      // pPacket.getPascalString;  // "None"?
+    end;
+
+    UpdatePlayersInGuild;
     DoOnCharacterLogin;
   end;
 end;
@@ -617,6 +647,8 @@ begin
   case pPacket.getByte of
     $01:  ParsePlayerSpecsSpellsAbils(pPacket);
     $03:  ParsePlayerDetails(pPacket);
+    // $05: Might be stats changed due to buff?
+    $06:  ParseGroupMembersUpdate(pPacket);
     $08:  ParsePlayerSkills(pPacket);
   end;
 end;
@@ -734,6 +766,7 @@ begin
     $be:  ParsePlayerStatsUpdate(pPacket);
     $bf:  ParseVendorWindow(pPacket);
     $d7:  ParseSpellPulse(pPacket);
+    $d8:  ParseGroupWindowUpdate(pPacket);
   end;
 end;
 
@@ -1209,6 +1242,8 @@ begin
           Name := pPacket.getPascalString;
           Guild := pPacket.getPascalString;
           LastName := pPacket.getPascalString;
+
+          IsInGuild := AnsiSameText(Guild, FLocalPlayer.Guild);
         end;  { with TDAOCPlayer }
       end;  { ocPlayer }
 
@@ -1346,6 +1381,7 @@ procedure TDAOCConnection.ParsePopupMessage(pPacket: TDAOCPacket);
 var
   sMessage:   string;
 begin
+  pPacket.HandlerName := 'PopupMessage';
   pPacket.seek(12);
   sMessage := pPacket.getNullTermString(0);
   DoOnPopupMessage(sMessage);
@@ -2040,6 +2076,61 @@ begin
     WriteInteger('ConnectionState', 'Realm', ord(FLocalPlayer.Realm));
     Free;
   end;
+end;
+
+procedure TDAOCConnection.ParseGroupMembersUpdate(pPacket: TDAOCPacket);
+var
+  iCnt:   integer;
+  wID:    WORD;
+  pObj:   TDAOCObject;
+begin
+  pPacket.HandlerName := 'GroupMembersUpdate';
+  ResetPlayersInGroup;
+  iCnt := pPacket.getByte;
+  if iCnt = 0 then
+    exit;
+
+  pPacket.seek(2);
+  while not pPacket.EOF do begin
+    pPacket.getByte; // level
+    pPacket.getByte; // health
+    pPacket.getByte; // mana
+    pPacket.seek(1);
+    wID := pPacket.getShort;
+
+    pObj := FDAOCObjs.FindByInfoID(wID);
+    if Assigned(pObj) and (pObj.ObjectClass = ocPlayer) then
+      TDAOCPlayer(pObj).IsInGroup := true
+    else if wID <> FLocalPlayer.InfoID then
+      Log('GroupMembersUpdate: Can not find player by InfoID 0x' + IntToHex(wID, 2));
+
+    pPacket.getPascalString;  // name
+    pPacket.getPascalString;  // class
+  end;  { while !EOF }
+end;
+
+procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'GroupWindowUpdate? NOTIMPL';
+end;
+
+procedure TDAOCConnection.UpdatePlayersInGuild;
+var
+  I:    integer;
+begin
+  for I := 0 to FDAOCObjs.Count - 1 do
+    if FDAOCObjs[I].ObjectClass = ocPlayer then
+      TDAOCPlayer(FDAOCObjs[I]).IsInGuild :=
+        AnsiSameText(TDAOCPlayer(FDAOCObjs[I]).Guild, FLocalPlayer.Guild);
+end;
+
+procedure TDAOCConnection.ResetPlayersInGroup;
+var
+  I:    integer;
+begin
+  for I := 0 to FDAOCObjs.Count - 1 do
+    if FDAOCObjs[I].ObjectClass = ocPlayer then
+      TDAOCPlayer(FDAOCObjs[I]).IsInGroup := false;
 end;
 
 end.
