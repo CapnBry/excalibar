@@ -1,3 +1,7 @@
+Teerec (03/Feb/02)
+------------------
+ + Fixed bug where mob health update of 100% wasn't being set.
+
 Teerex (03/Dec/02)
 ------------------
  + (duncan3) Changes to support compiling under Mac OS X.
