@@ -32,7 +32,6 @@ type
     Label2: TLabel;
     cbxConnectionList: TComboBox;
     Label3: TLabel;
-    Label4: TLabel;
     procedure btnShowMapModesClick(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);

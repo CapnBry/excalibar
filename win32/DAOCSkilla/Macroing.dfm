@@ -3,7 +3,7 @@ object frmMacroing: TfrmMacroing
   Top = 238
   BorderStyle = bsDialog
   Caption = 'Macroing'
-  ClientHeight = 119
+  ClientHeight = 117
   ClientWidth = 492
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmMacroing: TfrmMacroing
   TextHeight = 13
   object btnPowerskillBuy: TSpeedButton
     Left = 4
-    Top = 92
+    Top = 76
     Width = 117
     Height = 25
     Caption = 'Powerskill Buy'
@@ -26,13 +26,15 @@ object frmMacroing: TfrmMacroing
     OnClick = btnPowerskillBuyClick
   end
   object Label1: TLabel
-    Left = 4
-    Top = 4
-    Width = 266
+    Left = 0
+    Top = 104
+    Width = 492
     Height = 13
+    Align = alBottom
+    Alignment = taCenter
     Caption = 'Macroing is active while the appropriate window is open.'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clMaroon
+    Font.Color = clGray
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
@@ -40,14 +42,14 @@ object frmMacroing: TfrmMacroing
   end
   object Label2: TLabel
     Left = 4
-    Top = 40
+    Top = 24
     Width = 89
     Height = 13
     Caption = 'Macro connection:'
   end
   object Label3: TLabel
     Left = 4
-    Top = 20
+    Top = 4
     Width = 477
     Height = 13
     Caption = 
@@ -60,22 +62,9 @@ object frmMacroing: TfrmMacroing
     Font.Style = []
     ParentFont = False
   end
-  object Label4: TLabel
-    Left = 264
-    Top = 40
-    Width = 212
-    Height = 13
-    Caption = '<-- Whatever you set here is ignored!'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clMaroon
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
   object chkAutosell: TCheckBox
     Left = 128
-    Top = 68
+    Top = 52
     Width = 213
     Height = 17
     Caption = 'Autosell all powerskill items and trinkets'
@@ -85,7 +74,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnMacroTradeskill: TButton
     Left = 128
-    Top = 92
+    Top = 76
     Width = 101
     Height = 25
     Caption = 'Macro Tradeskill'
@@ -95,7 +84,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnAFK: TButton
     Left = 236
-    Top = 92
+    Top = 76
     Width = 89
     Height = 25
     Caption = 'AFK Message'
@@ -105,7 +94,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnTellMacro: TButton
     Left = 332
-    Top = 92
+    Top = 76
     Width = 75
     Height = 25
     Caption = 'MacroScript'
@@ -115,7 +104,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnSpellcraftHlp: TButton
     Left = 412
-    Top = 92
+    Top = 76
     Width = 75
     Height = 25
     Caption = 'Spellcrft Help'
@@ -125,7 +114,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnShowMapModes: TButton
     Left = 4
-    Top = 62
+    Top = 46
     Width = 117
     Height = 27
     Caption = 'Show nav map nodes'
@@ -135,7 +124,7 @@ object frmMacroing: TfrmMacroing
   end
   object btnLowOnStat: TButton
     Left = 412
-    Top = 64
+    Top = 48
     Width = 75
     Height = 25
     Caption = 'Low On Stat'
@@ -145,7 +134,7 @@ object frmMacroing: TfrmMacroing
   end
   object cbxConnectionList: TComboBox
     Left = 100
-    Top = 36
+    Top = 20
     Width = 153
     Height = 21
     Style = csDropDownList
@@ -157,6 +146,6 @@ object frmMacroing: TfrmMacroing
     Enabled = False
     OnTimer = tmrTimeoutDelayTimer
     Left = 344
-    Top = 60
+    Top = 44
   end
 end
