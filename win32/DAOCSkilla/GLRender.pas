@@ -102,6 +102,7 @@ type
     procedure UpdateStayOnTop;
     procedure ReloadMapElementsAndTextures;
     procedure DoPrefsDialog;
+    function PlayerMobListText(AMob: TDAOCPlayer) : string;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -1138,6 +1139,21 @@ begin
   lstObjects.Count := FFilteredObjects.Count;
 end;
 
+function TfrmGLRender.PlayerMobListText(AMob: TDAOCPlayer) : string;
+begin
+  Result := AMob.Name + ' ';
+  if AMob.Realm <> FDControl.LocalPlayer.Realm then begin
+    if AMob.RealmRank <> rrUnknown then
+      Result := Result + AMob.RealmRankStr + ' ';
+    if AMob.CharacterClass <> ccUnknown then
+      Result := Result + DAOCCharacterClassToStr(AMob.CharacterClass);
+  end
+
+    { same realm }
+  else if AMob.CharacterClass <> ccUnknown then
+    Result := Result + '(' + DAOCCharacterClassToStr(AMob.CharacterClass) + ')';
+end;
+
 procedure TfrmGLRender.lstObjectsDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
@@ -1180,11 +1196,8 @@ begin
       FillRect(Rect);
 
         { NAME }
-      if (pMob is TDAOCPlayer) and (TDAOCPlayer(pMob).CharacterClass <> ccUnknown) then
-        if pMob.Realm <> FDControl.LocalPlayer.Realm then
-          sText := pMob.Name + ' ' + DAOCCharacterClassToStr(TDAOCPlayer(pMob).CharacterClass)
-        else
-          sText := pMob.Name + ' (' + DAOCCharacterClassToStr(TDAOCPlayer(pMob).CharacterClass) + ')'
+      if pMob is TDAOCPlayer then
+        sText := PlayerMobListText(TDAOCPlayer(pMob))
       else if FRenderPrefs.AlternateMobListText and (pMob is TDAOCMob) then
         sText := TDAOCMob(pMob).TypeTag
       else
