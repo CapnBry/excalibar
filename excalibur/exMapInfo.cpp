@@ -225,3 +225,14 @@ exMapInfo *exMapInfo::get(int region, int x, int y) {
   }
   return NULL;
 }
+
+exMapInfo *exMapInfo::getZone(int region, int zoneNo) {
+  exMapInfoList *mil = maps.find((void *)region);
+  exMapInfo *mi;
+
+  for (mi = mil->first(); mi; mi = mil->next()) 
+    if (mi->zone == zoneNo)
+      return mi;
+
+  return NULL;
+}

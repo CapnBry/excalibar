@@ -57,6 +57,7 @@ public:
     exMapInfo *getAdjacentZones (int iZoneCheck = -1);
     static void setup(QString infofile);
     static exMapInfo *get(int region, int x, int y);
+    static exMapInfo *getZone(int region, int zoneNo);
 };
 
 #else

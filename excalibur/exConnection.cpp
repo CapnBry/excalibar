@@ -800,6 +800,7 @@ void exConnection::parseMobPosUpdate(exPacket *p)
 {
     unsigned int speed = p->getShort();
     unsigned int head = p->getShort();
+    /* pre 1.62
     unsigned int x = p->getLong();
     unsigned int y = p->getLong();
     p->seek(8);
@@ -807,18 +808,43 @@ void exConnection::parseMobPosUpdate(exPacket *p)
     unsigned int id = p->getShort();
     p->seek(2);
     unsigned int hp = p->getByte();
+    */
+
+    unsigned int x = p->getShort();
+    p->seek(2);  // destinationX
+    unsigned int y = p->getShort();
+    p->seek(2);  // destinationY
+    unsigned int z = p->getShort();
+    p->seek(2);  // destinationZ
+    unsigned int id = p->getShort();
+    p->seek(2);  // ??
+    unsigned int hp = p->getByte();
+    p->seek(1);  // ??
+    int zone = p->getByte();
+    // p->seek(2);  // destinationZone
+
     exMob *mob = mobs.find((void *)id);
     if (mob) {
-	mob->setPosition(x, y, z);
-	mob->setHead(head);
-	mob->setSpeed(speed);
-        mob->setHP(hp);
+        exMapInfo *mi;
+          /* I'm guessing that most the time, the mob we'll be
+             updating is in our zone, so skip the exhaustive search */
+        mi = ex->Map->getMap();
+        if (mi && (mi->getZoneNum() != zone))
+            /* if not, then do the search */
+          mi = exMapInfo::getZone(playerregion, zone);
 
-        ex->Map->dirty();
+        if (mi)  {
+            mob->setPosition(x + mi->getBaseX(), y + mi->getBaseY(), z);
+            mob->setHead(head);
+            mob->setSpeed(speed);
+            mob->setHP(hp);
 
-	if (prefs.sort_when == exPrefs::sortAlways)
-	    ex->ListViewMobs->sort();
-    }
+            ex->Map->dirty();
+
+            if (prefs.sort_when == exPrefs::sortAlways)
+                ex->ListViewMobs->sort();
+        }  /* if zone found */
+    }  /* if mob */
 }
 
 void exConnection::parsePlayerPosUpdate(exPacket *p)
