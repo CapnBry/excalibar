@@ -717,6 +717,7 @@ var
   I:    integer;
 begin
   for I := 0 to FPoints.Count - 1 do
+//WriteLn(Format('Delete Point in line %8.8p = %8.8p', [Pointer(Self), Pointer(FPoints[I])]));
     Dispose(PMapElementLinePoint(FPoints[I]));
   FPoints.Clear;
 end;
