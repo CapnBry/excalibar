@@ -3,7 +3,7 @@ unit QuickLaunchChars;
 interface
 
 uses
-  Windows, SysUtils, Contnrs, FrameFns, INIFiles;
+  Windows, SysUtils, Classes, Contnrs, FrameFns, INIFiles;
 
 type
   TQuickLaunchCharList = class;
@@ -50,6 +50,30 @@ type
 
     property Items[I: integer]: TQuickLaunchChar read GetItems; default;
     property ServerNameFile: string read FServerNameFile write FServerNameFile;
+  end;
+
+  TQuickLaunchProfile = class(TObject)
+  private
+    FCharINIFilename: string;       // local charini with overwrites
+    FProfileName: string;
+    FDAoCCharINIFilename: string;   // real charini in daoc dir
+    FUserDATFilename: string;       // local user.dat with overwrites
+  public
+    procedure Activate(const ADAOCPath: string);
+
+    property ProfileName: string read FProfileName write FProfileName;
+    property CharINIFilename: string read FCharINIFilename write FCharINIFilename;
+    property DAoCCharINIFilename: string read FDAoCCharINIFilename write FDAoCCharINIFilename;
+    property UserDATFilename: string read FUserDATFilename write FUserDATFilename;
+  end;
+
+  TQuickLaunchProfileList = class(TObjectList)
+  private
+    function GetItems(I: integer): TQuickLaunchProfile;
+  public
+    procedure LoadFromFile(AFileName: string);
+
+    property Items[I: integer]: TQuickLaunchProfile read GetItems; default;
   end;
 
 implementation
@@ -198,6 +222,86 @@ begin
     Result := FParent.ServerNameForAddr(FServerAddr)
   else
     Result := '';
+end;
+
+{ TQuickLaunchProfile }
+
+procedure TQuickLaunchProfile.Activate(const ADAOCPath: string);
+var
+  UserDAT: TINIFile;
+  CharINI: TINIFile;
+  DAoCINI: TINIFile;
+  DAoCDAT: TINIFile;
+  Sections: TStringList;
+  Values: TStringList;
+  I: integer;
+  J: integer;
+begin
+  Sections := TStringList.Create;
+  Values := TStringList.Create;
+
+    { copy the user.dat settings over }
+  if FUserDATFilename <> '' then begin
+    UserDAT := TINIFile.Create(ExtractFilePath(ParamStr(0)) + FUserDATFilename);
+    DAoCDAT := TINIFile.Create(ADAOCPath + 'user.dat');
+    UserDAT.ReadSections(Sections);
+    for I := 0 to Sections.Count - 1 do begin
+      UserDAT.ReadSectionValues(Sections[I], Values);
+      for J := 0 to Values.Count - 1 do
+        DAoCDAT.WriteString(Sections[I], Values.Names[J], Values.Values[Values.Names[J]]);
+    end;
+    DAoCDAT.Free;
+    UserDAT.Free;
+  end;  { if we have a userdatini }
+
+    { copy the char INI settings over }
+  if (FCharINIFilename <> '') and (FDAoCCharINIFilename <> '') then begin
+    CharINI := TINIFile.Create(ExtractFilePath(ParamStr(0)) + FCharINIFilename);
+    DAoCINI := TINIFile.Create(ADAOCPath + FDAoCCharINIFilename);
+    CharINI.ReadSections(Sections);
+    for I := 0 to Sections.Count - 1 do begin
+      CharINI.ReadSectionValues(Sections[I], Values);
+      for J := 0 to Values.Count - 1 do
+        DAoCINI.WriteString(Sections[I], Values.Names[J], Values.Values[Values.Names[J]]);
+    end;
+    DAoCINI.Free;
+    CharINI.Free;
+  end;  { if we have a charini and daoccharini }
+
+  Sections.Free;
+  Values.Free;
+end;
+
+{ TQuickLaunchProfileList }
+
+function TQuickLaunchProfileList.GetItems(I: integer): TQuickLaunchProfile;
+begin
+  Result := TQuickLaunchProfile(inherited Items[I]);
+end;
+
+procedure TQuickLaunchProfileList.LoadFromFile(AFileName: string);
+var
+  I:        integer;
+  iCnt:     integer;
+  sName:    string;
+  pTmpItem: TQuickLaunchProfile;
+begin
+  with TINIFile.Create(AFileName) do begin
+    iCnt := ReadInteger('QuickLaunch', 'ProfileCount', 0);
+    for I := 0 to iCnt - 1 do begin
+      sName := ReadString('QuickLaunch', 'ProfileName' + IntToStr(I), '');
+      if sName <> '' then begin
+        pTmpItem := TQuickLaunchProfile.Create;
+        pTmpItem.ProfileName := sName;
+        Add(pTmpItem);
+        pTmpItem.CharINIFilename := ReadString('QuickLaunch', 'CharINI' + IntToStr(I), '');
+        pTmpItem.DAoCCharINIFilename := ReadString('QuickLaunch', 'DAoCCharINI' + IntToStr(I), '');
+        pTmpItem.UserDATFilename := ReadString('QuickLaunch', 'UserDAT' + IntToStr(I), '');
+      end;  { if name }
+    end;  { for I }
+
+    Free;
+  end;  { with INI }
 end;
 
 end.
