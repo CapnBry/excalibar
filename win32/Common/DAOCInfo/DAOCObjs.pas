@@ -58,6 +58,10 @@ type
     function Distance2D(X, Y: DWORD) : double; overload;
     function Distance3D(AObject: TDAOCObject) : double; overload;
     function Distance3D(X, Y, Z: DWORD) : double; overload;
+    function DistanceSqr2D(AObject: TDAOCObject) : double; overload;
+    function DistanceSqr2D(X, Y: DWORD) : double; overload;
+    function DistanceSqr3D(AObject: TDAOCObject) : double; overload;
+    function DistanceSqr3D(X, Y, Z: DWORD) : double; overload;
 
     property InfoID: WORD read FInfoID write FInfoID;
     property PlayerID: WORD read FPlayerID write FPlayerID;
@@ -381,16 +385,12 @@ end;
 
 function TDAOCObject.Distance3D(AObject: TDAOCObject): double;
 begin
-  Result := Distance3d(AObject.X, AObject.Y, AObject.Z);
+  Result := sqrt(DistanceSqr3D(AObject.X, AObject.Y, AObject.Z));
 end;
 
 function TDAOCObject.Distance3D(X, Y, Z: DWORD): double;
 begin
-  X := DWORDDelta(X, Self.FX);
-  Y := DWORDDelta(Y, Self.FY);
-  Z := DWORDDelta(Z, Self.FZ);
-  
-  Result := sqrt(X * X + Y * Y + Z * Z);
+  Result := sqrt(DistanceSqr3D(X, Y, Z));
 end;
 
 function TDAOCObject.GetConColor(AToLevel: integer): TColor;
@@ -533,10 +533,7 @@ end;
 
 function TDAOCObject.Distance2D(X, Y: DWORD): double;
 begin
-  X := DWORDDelta(X, Self.FX);
-  Y := DWORDDelta(Y, Self.FY);
-  
-  Result := sqrt(X * X + Y * Y);
+  Result := Sqrt(DistanceSqr2D(X, Y));
 end;
 
 procedure TDAOCObject.SetDestinationX(const Value: DWORD);
@@ -566,6 +563,33 @@ procedure TDAOCObject.SetDestinationZ(const Value: WORD);
 begin
   FDestinationZ := Value;
   Touch;
+end;
+
+function TDAOCObject.DistanceSqr2D(AObject: TDAOCObject): double;
+begin
+  Result := DistanceSqr2D(AObject.X, AObject.Y);
+end;
+
+function TDAOCObject.DistanceSqr2D(X, Y: DWORD): double;
+begin
+  X := DWORDDelta(X, Self.FX);
+  Y := DWORDDelta(Y, Self.FY);
+
+  Result := X * X + Y * Y;
+end;
+
+function TDAOCObject.DistanceSqr3D(AObject: TDAOCObject): double;
+begin
+  Result := DistanceSqr3D(AObject.X, AObject.Y, AObject.Z);
+end;
+
+function TDAOCObject.DistanceSqr3D(X, Y, Z: DWORD): double;
+begin
+  X := DWORDDelta(X, Self.FX);
+  Y := DWORDDelta(Y, Self.FY);
+  Z := DWORDDelta(Z, Self.FZ);
+
+  Result := X * X + Y * Y + Z * Z;
 end;
 
 { TDAOCLocalPlayer }
