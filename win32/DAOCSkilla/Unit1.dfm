@@ -250,7 +250,7 @@ object frmMain: TfrmMain
     Top = 160
     Width = 75
     Height = 25
-    Caption = 'GL Render'
+    Caption = 'Excalibur'
     TabOrder = 14
     OnClick = btnGLRenderClick
   end
