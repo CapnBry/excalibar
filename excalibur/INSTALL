@@ -44,7 +44,7 @@ Checking your UNIX distribution
 
 You absolutely, 100% sure, without a doubt need:
 - A recent version of X11
-- A copy of gcc 3.0+
+- A copy of gcc 2.95, 2.96, or 3.0.3+
 - An OpenGL impementation. Mesa will do fine.
 - Libpcap. A version recent enough that it handles the cooked-mode "any" device.
 - QT X11 Free version 3.0.1
@@ -131,7 +131,7 @@ Getting the Excalibur Crypt library
 
 1) cd ~/excalibur
 2) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co exCrypt 
-3) mv -f exCrypt/* . && rm -rf exCrypt
+3) mv -f exCrypt/*.so .
 
 =================
 Running Excalibur
@@ -139,8 +139,7 @@ Running Excalibur
 
 1) cd ~/excalibur
 2) ifconfig eth0 promisc     # Replace eth0 with whatever card you normally use
-3) ulimit -c unlimited
-4) ./excalibur
+3) ./excalibur
 
 The program will display a few lines, but nothing else will happen.
 ==> This is as it should be. <==
