@@ -132,7 +132,7 @@ END
 // Dialog
 //
 
-IDD_CONFIG DIALOGEX 0, 0, 264, 288
+IDD_CONFIG DIALOGEX 0, 0, 264, 308
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
@@ -144,70 +144,70 @@ BEGIN
     CONTROL         "Load Vector Maps",IDC_LOADVECTORMAPS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,32,73,10
     CONTROL         "Load Zone Textures",IDC_LOADZONETEXTURES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,148,19,80,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,46,80,10
     CONTROL         "Show Name",IDC_SHOWFRIENDLYNAME,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,60,53,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,80,53,10
     CONTROL         "Show Surname",IDC_SHOWFRIENDLYSURNAME,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,74,63,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,94,63,10
     CONTROL         "Show Guild",IDC_SHOWFRIENDLYGUILD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,88,51,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,108,51,10
     CONTROL         "Show Health",IDC_SHOWFRIENDLYHEALTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,102,56,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,122,56,10
     CONTROL         "Show Level",IDC_SHOWFRIENDLYLEVEL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,116,52,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,136,52,10
     CONTROL         "Show Name",IDC_SHOWENEMYNAME,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,104,60,53,10
+                    WS_TABSTOP,104,80,53,10
     CONTROL         "Show Surname",IDC_SHOWENEMYSURNAME,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,104,74,63,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,94,63,10
     CONTROL         "Show Guild",IDC_SHOWENEMYGUILD,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,104,88,51,10
+                    WS_TABSTOP,104,108,51,10
     CONTROL         "Show Health",IDC_SHOWENEMYHEALTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,104,102,56,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,122,56,10
     CONTROL         "Show Level",IDC_SHOWENEMYLEVEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,104,116,52,10
+                    WS_TABSTOP,104,136,52,10
     CONTROL         "Show Name",IDC_SHOWMOBNAME,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,187,60,53,10
+                    WS_TABSTOP,187,80,53,10
     CONTROL         "Show Surname",IDC_SHOWMOBSURNAME,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,187,74,63,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,187,94,63,10
     CONTROL         "Show Guild",IDC_SHOWMOBGUILD,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,187,88,51,10
+                    WS_TABSTOP,187,108,51,10
     CONTROL         "Show Health",IDC_SHOWMOBHEALTH,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,187,102,56,10
+                    WS_TABSTOP,187,122,56,10
     CONTROL         "Show Level",IDC_SHOWMOBLEVEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,187,116,52,10
-    DEFPUSHBUTTON   "Close",IDCLOSE,207,267,50,14
-    GROUPBOX        "System (change requires restart)",IDC_STATIC,7,7,250,40
-    GROUPBOX        "Same Realm",IDC_STATIC,7,47,80,85
-    GROUPBOX        "Enemy Realm",IDC_STATIC,92,47,80,85
-    GROUPBOX        "MOB",IDC_STATIC,177,47,80,85
+                    WS_TABSTOP,187,136,52,10
+    DEFPUSHBUTTON   "Close",IDCLOSE,207,287,50,14
+    GROUPBOX        "System (change requires restart)",IDC_STATIC,7,7,250,54
+    GROUPBOX        "Same Realm",IDC_STATIC,7,67,80,85
+    GROUPBOX        "Enemy Realm",IDC_STATIC,92,67,80,85
+    GROUPBOX        "MOB",IDC_STATIC,177,67,80,85
     CONTROL         "Smooth Animation",IDC_UPDATEONRENDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,142,71,10
-    GROUPBOX        "Performance/Feedback",IDC_STATIC,7,132,250,64
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,162,71,10
+    GROUPBOX        "Performance/Feedback",IDC_STATIC,7,152,250,64
     CONTROL         "Show Albion",IDC_SHOWALBS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,155,71,10
+                    WS_TABSTOP,17,175,71,10
     CONTROL         "Show Hibernia",IDC_SHOWHIBS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,168,71,10
+                    WS_TABSTOP,17,188,71,10
     CONTROL         "Show Midgard",IDC_SHOWMIDS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,181,71,10
+                    WS_TABSTOP,17,201,71,10
     CONTROL         "Show MOBs",IDC_SHOWMOBS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,103,142,71,10
-    GROUPBOX        "Range Rings",IDC_STATIC,7,197,250,64
+                    WS_TABSTOP,103,162,71,10
+    GROUPBOX        "Range Rings",IDC_STATIC,7,217,250,64
     CONTROL         "Show Range Ring #1",IDC_SHOWRANGERING1,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,209,112,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,229,112,10
     CONTROL         "Show Range Ring #2",IDC_SHOWRANGERING2,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,222,109,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,242,109,10
     CONTROL         "Show Range Ring #3",IDC_SHOWRANGERING3,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,235,107,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,255,107,10
     CONTROL         "Show Range Ring #4",IDC_SHOWRANGERING4,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,208,107,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,228,107,10
     CONTROL         "Show Range Ring #5",IDC_SHOWRANGERING5,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,221,108,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,241,108,10
     CONTROL         "Show Range Ring #6",IDC_SHOWRANGERING6,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,235,107,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,255,107,10
     CONTROL         "Simplify Vector Maps",IDC_SIMPLIFYLINES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,148,31,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,121,19,102,10
     CONTROL         "Save DAoC Messages",IDC_SAVE_DAOC_MESSAGES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,103,156,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,121,33,82,10
 END
 
 IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60
@@ -274,7 +274,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 257
         TOPMARGIN, 7
-        BOTTOMMARGIN, 281
+        BOTTOMMARGIN, 301
     END
 
     IDD_CONNECTSERVER, DIALOG

@@ -158,6 +158,8 @@ bool Config::Load(const std::string& filename)
     file >> ModifySimplifyLines() >> std::ws;
     file >> ModifySimplifyLinesTolerance() >> std::ws;
     
+    file >> ModifySaveDAoCMessages() >> std::ws;
+    
     // done
     return(true);
 } // end Load
@@ -210,7 +212,8 @@ bool Config::Save(const std::string& filename)const
          << GetShowRangeRing6() << std::endl
          << GetRangeRingRange6() << std::endl
          << GetSimplifyLines() << std::endl
-         << GetSimplifyLinesTolerance() << std::endl;
+         << GetSimplifyLinesTolerance() << std::endl
+         << GetSaveDAoCMessages() << std::endl;
 
     // done
     return(true);
@@ -257,5 +260,6 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(RangeRingRange6);
     MEMBER_ASSIGN(SimplifyLines);
     MEMBER_ASSIGN(SimplifyLinesTolerance);
+    MEMBER_ASSIGN(SaveDAoCMessages);
 
 } // end set
