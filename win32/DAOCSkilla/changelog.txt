@@ -33,6 +33,8 @@ IN DEVELOPMENT
   + Fixes "Easy Mouse Overs" and "Draw Info Points" settings getting
     confused.
   + Added "Shade by realm" and ability to turn off player halos.
+  + Now will guess player realm based on other players.  Default level
+    based on last known level at disconnect.
 
 2004 Feb 18 - v1.86
 -------------------
