@@ -47,8 +47,18 @@ type
     FRecipeRealm: TCraftRealm;
     FHowOrange: integer;
     FUseMBuy: boolean;
+    FIncludeRecipes: TStringList;
+    FExcludeRecipes: TStringList;
+
     function GetItems(Index: integer): TPowerSkillItemDef;
+    procedure SetIncludeRecipes(const ARecipeWildcard: string);
+    procedure SetExcludeRecipes(const ARecipeWildcard: string);
+    function IsIncludeMatch(ARecipe: TTradeSkillRecipe) : boolean;
+    function IsExcludeMatch(ARecipe: TTradeSkillRecipe) : boolean;
   public
+    constructor Create; 
+    destructor Destroy; override;
+
     procedure LoadFromFile(const AFileName: string; ARecipes: TUniversalRecipeCollection);
 
     function ItemBefore(AItem: TPowerSkillItemDef) : TPowerSkillItemDef;
@@ -69,6 +79,9 @@ type
 
 implementation
 
+uses
+  StringParseHlprs;
+  
 { TPowerSkillItemDef }
 
 function TPowerSkillItemDef.CraftCon(AAtSkill: integer): TRecipeCraftCon;
@@ -91,6 +104,20 @@ end;
 
 { TPowerSkillItemList }
 
+constructor TPowerSkillItemList.Create;
+begin
+  inherited Create(true);
+  FIncludeRecipes := TStringList.Create;
+  FExcludeRecipes := TStringList.Create;
+end;
+
+destructor TPowerSkillItemList.Destroy;
+begin
+  FIncludeRecipes.Free;
+  FExcludeRecipes.Free;
+  inherited;
+end;
+
 function TPowerSkillItemList.Find(const AName: string): TPowerSkillItemDef;
 var
   I:    integer;
@@ -107,6 +134,44 @@ end;
 function TPowerSkillItemList.GetItems(Index: integer): TPowerSkillItemDef;
 begin
   Result := TPowerSkillItemDef(inherited Items[Index]);
+end;
+
+function TPowerSkillItemList.IsExcludeMatch(ARecipe: TTradeSkillRecipe): boolean;
+var
+  I:  integer;
+  sRecipeName:  string;
+begin
+  Result := FExcludeRecipes.Count > 0;
+
+  if Result then begin
+    sRecipeName := LowerCase(ARecipe.DisplayName);
+
+    for I := 0 to FExcludeRecipes.Count - 1 do begin
+      Result := WildMatch(FExcludeRecipes[I], sRecipeName);
+
+      if Result then
+        exit;
+    end;
+  end;  { if we have an exclude list }
+end;
+
+function TPowerSkillItemList.IsIncludeMatch(ARecipe: TTradeSkillRecipe): boolean;
+var
+  I:  integer;
+  sRecipeName:  string;
+begin
+  Result := FIncludeRecipes.Count = 0;
+
+  if not Result then begin
+    sRecipeName := LowerCase(ARecipe.DisplayName);
+
+    for I := 0 to FIncludeRecipes.Count - 1 do begin
+      Result := WildMatch(FIncludeRecipes[I], sRecipeName);
+
+      if Result then
+        exit;
+    end;
+  end;  { if we have an include list }
 end;
 
 function TPowerSkillItemList.ItemBefore(AItem: TPowerSkillItemDef): TPowerSkillItemDef;
@@ -160,6 +225,8 @@ begin
     FRecipeRealm := TCraftRealm(ReadInteger('Main', 'RecipeRealm', 1));
     FHowOrange := ReadInteger('Main', 'HowOrange', 0);
     FUseMBuy := ReadBool('Main', 'UseMBuy', true);
+    SetIncludeRecipes(ReadString('Main', 'IncludeRecipes', ''));
+    SetExcludeRecipes(ReadString('Main', 'ExcludeRecipes', ''));
     Free;
   end;  { with INI }
 
@@ -176,6 +243,9 @@ begin
   if Assigned(pRecipes) then begin
     pRecipes.SortBySkill;
     for I := 0 to pRecipes.Count - 1 do begin
+      if not IsIncludeMatch(pRecipes[I]) or IsExcludeMatch(pRecipes[I]) then
+        continue;
+
       pTmpItem := TPowerSkillItemDef.Create;
       Add(pTmpItem);
       pTmpItem.FName := pRecipes[I].DisplayName;
@@ -231,6 +301,16 @@ begin
           raise Exception.CreateFmt('Creating Item_%d:'#13'%s', [I, E.Message]);
       end;  { for I .. iCount }
 *****)
+end;
+
+procedure TPowerSkillItemList.SetExcludeRecipes(const ARecipeWildcard: string);
+begin
+  FExcludeRecipes.CommaText := LowerCase(ARecipeWildcard);
+end;
+
+procedure TPowerSkillItemList.SetIncludeRecipes(const ARecipeWildcard: string);
+begin
+  FIncludeRecipes.CommaText := LowerCase(ARecipeWildcard);
 end;
 
 end.
