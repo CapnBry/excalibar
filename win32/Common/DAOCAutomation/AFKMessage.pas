@@ -22,6 +22,7 @@ type
     lblAFKMessage: TLabel;
     procedure edtAFKMessageKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
   private
     FDControl: TDAOCControl;
     function GetAFKMessage: string;
@@ -43,10 +44,7 @@ implementation
 
 function TfrmAFK.GetAFKMessage: string;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.AFKMessage
-  else
-    Result := edtAFKMessage.Text;
+  Result := edtAFKMessage.Text;
 end;
 
 procedure TfrmAFK.SetAFKMessage(const Value: string);
@@ -60,12 +58,13 @@ end;
 
 procedure TfrmAFK.SetDControl(const Value: TDAOCControl);
 begin
-  if Assigned(Value) then
-    Value.AFKMessage := AFKMessage
-  else if Assigned(FDControl) then
+  if Assigned(FDControl) then
     FDControl.AFKMessage := '';
-    
+
   FDControl := Value;
+
+  if Visible and Assigned(FDControl) then
+    FDControl.AFKMessage := AFKMessage;
 end;
 
 procedure TfrmAFK.edtAFKMessageKeyPress(Sender: TObject; var Key: Char);
@@ -80,7 +79,14 @@ end;
 
 procedure TfrmAFK.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  SetDControl(nil);
+  if Assigned(FDControl) then
+    FDControl.AFKMessage := '';
+end;
+
+procedure TfrmAFK.FormShow(Sender: TObject);
+begin
+  if Assigned(FDControl) then
+    FDControl.AFKMessage := ''; 
 end;
 
 end.
