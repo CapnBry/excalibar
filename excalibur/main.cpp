@@ -21,7 +21,6 @@
 #include "excalibur.h"
 #include <qapplication.h>
 #include <qtextbrowser.h>
-#include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
 #include <qfile.h>
@@ -29,6 +28,10 @@
 #include <qtextstream.h>
 #include <qnetwork.h>
 #include <sys/mman.h>
+
+#ifndef __APPLE__
+#include <dlfcn.h>
+#endif
 
 #include "excalibur.h"
 #include "exConnection.h"
