@@ -1636,14 +1636,14 @@ begin
 end;
 
 procedure TDAOCChatParser.ParseEffectDamage(const sLine: string);
-var
-  iPos:     integer;
-  iDamage:  integer;
+//var
+//  iPos:     integer;
+//  iDamage:  integer;
 begin
       { [15:24:02] You hit for 225 (+45) damage! }
-  iPos := 24;
-  iDamage := ParseInt(sLine, iPos);
-  
+//  iPos := 24;
+//  iDamage := ParseInt(sLine, iPos);
+
     { TODO: Update the spell / proc / proc / bleed damage with effect damage }
 
     { Reset the effect damage type }
