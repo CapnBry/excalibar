@@ -67,9 +67,9 @@ type
     function Distance3D(AObject: TDAOCObject) : double; overload;
     function Distance3D(X, Y, Z: DWORD) : double; overload;
     function DistanceSqr2D(AObject: TDAOCObject) : double; overload;
-    function DistanceSqr2D(X, Y: DWORD) : double; overload;
+    function DistanceSqr2D(X, Y: DWORD) : double; overload; virtual;
     function DistanceSqr3D(AObject: TDAOCObject) : double; overload;
-    function DistanceSqr3D(X, Y, Z: DWORD) : double; overload;
+    function DistanceSqr3D(X, Y, Z: DWORD) : double; overload; virtual;
     function GetConColor(AToLevel: integer) : TColor;
     procedure LoadFromReader(AReader: TReader); virtual;
     procedure AssumeAtDestination; virtual;
@@ -165,6 +165,9 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+
+    function DistanceSqr2D(X, Y: DWORD) : double; override; 
+    function DistanceSqr3D(X, Y, Z: DWORD) : double; override; 
 
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
@@ -561,6 +564,27 @@ begin
   end;
 end;
 
+function TDAOCMovingObject.DistanceSqr2D(X, Y: DWORD): double;
+var
+  fx, fy:   double;
+begin
+  fx := DWORDDelta(X, Self.FProjectedX);
+  fy := DWORDDelta(Y, Self.FProjectedY);
+
+  Result := fx * fx + fy * fy;
+end;
+
+function TDAOCMovingObject.DistanceSqr3D(X, Y, Z: DWORD): double;
+var
+  fx, fy, fz:   double;
+begin
+  fx := DWORDDelta(X, Self.FProjectedX);
+  fy := DWORDDelta(Y, Self.FProjectedY);
+  fz := DWORDDelta(Y, Self.FZ);
+
+  Result := fx * fx + fy * fy + fz * fz;
+end;
+
 { TDAOCObject }
 
 procedure TDAOCObject.Assign(ASrc: TDAOCObject);
@@ -785,11 +809,13 @@ begin
 end;
 
 function TDAOCObject.DistanceSqr2D(X, Y: DWORD): double;
+var
+  fx, fy:   double;
 begin
-  X := DWORDDelta(X, Self.FX);
-  Y := DWORDDelta(Y, Self.FY);
+  fx := DWORDDelta(X, Self.FX);
+  fy := DWORDDelta(Y, Self.FY);
 
-  Result := X * X + Y * Y;
+  Result := fx * fx + fy * fy;
 end;
 
 function TDAOCObject.DistanceSqr3D(AObject: TDAOCObject): double;
@@ -798,12 +824,14 @@ begin
 end;
 
 function TDAOCObject.DistanceSqr3D(X, Y, Z: DWORD): double;
+var
+  fx, fy, fz:   double;
 begin
-  X := DWORDDelta(X, Self.FX);
-  Y := DWORDDelta(Y, Self.FY);
-  Z := DWORDDelta(Z, Self.FZ);
+  fx := DWORDDelta(X, Self.FX);
+  fy := DWORDDelta(Y, Self.FY);
+  fz := DWORDDelta(Z, Self.FZ);
 
-  Result := X * X + Y * Y + Z * Z;
+  Result := fx * fx + fy * fy + fz * fz;
 end;
 
 procedure TDAOCObject.AssumeAtDestination;
