@@ -20,7 +20,7 @@
 
 
 #include "exMapInfo.h"
-
+#include <qregexp.h>
 #include <qfile.h>
 
 QPtrDict<exMapInfoList> exMapInfo::maps;
@@ -57,23 +57,14 @@ int exMapInfo::getRotate() const {
 }
 
 int exMapInfo::getZoneNum() const {
+
   return zonenum;
 }
 
-char* exMapInfo::getZoneName(int iZoneNum) const {
-  switch (iZoneNum)
-  {
-    case 1:
-      return "Albion";
-    case 10:
-      return "Camelot";
-    case 100:
-      return "Midgard";
-    case 200:
-      return "Hibernia";
-    default:
-      return "Unknown";
-  }
+QString exMapInfo::getZoneName() const {
+  QString temp(fileName);
+  temp.replace(QRegExp("_"), " ");
+  return temp.replace(QRegExp(".map"), "");
 }
   
 
