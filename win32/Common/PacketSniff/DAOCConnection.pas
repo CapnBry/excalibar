@@ -874,6 +874,7 @@ procedure TDAOCConnection.ParsePlayerPosUpdate(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
+  ZXY: array[0..2] of WORD;
 begin
   pPacket.HandlerName := 'PlayerPosUpdate';
   wID := pPacket.getShort;
@@ -898,28 +899,17 @@ begin
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then
     with TDAOCMovingObject(pDAOCObject) do begin
-{$IFDEF PRE_168}
       SpeedWord := pPacket.getShort;  //+2
-      Z := pPacket.getShort;  //+4
-      pPacket.seek(2);  //+6
-      X := pPacket.getLong;  //+8
-      Y := pPacket.getLong;  //+c
-      HeadWord := pPacket.getShort;  //+10
-      pPacket.seek(2);  //+12 word and 0xfff
-      pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
-      HitPoints := pPacket.getByte; //+15
-{$ELSE}
-      SpeedWord := pPacket.getShort;  //+2
-      Z := pPacket.getShort;  //+4
-      X := pPacket.getShort;
-      Y := pPacket.getShort;
+      ZXY[0] := pPacket.getShort;  //+4
+      ZXY[1] := pPacket.getShort;
+      ZXY[2] := pPacket.getShort;
+      pDAOCObject.SetXYZ(ZXY[1], ZXY[2], ZXY[0]);
       AdjustObjLocForZone(pDAOCObject, pPacket.getByte);
       pPacket.seek(1);
       HeadWord := pPacket.getShort;
       pPacket.seek(2);
       pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
       HitPoints := pPacket.getByte;
-{$ENDIF}
 
       DoOnDAOCObjectMoved(pDAOCObject);
     end  { if obj found / With }
@@ -939,6 +929,7 @@ var
   iIDOffset:  integer;
   V162OrGreater:  boolean;
   bAddedObject:   boolean;
+  XYZs: array[0..5] of WORD;  // interleaved array of X, DX, Y, DY, Z, DZ
 begin
   pPacket.HandlerName := 'MobUpdate';
 
@@ -969,24 +960,26 @@ begin
   else
     bAddedObject := false;
 
-  if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then begin
+  if Assigned(pDAOCObject) and (pDAOCObject.ObjectClass in [ocMob, ocPlayer, ocVehicle]) then begin
     pPacket.seek(-(iIDOffset+2));
 
     with TDAOCMovingObject(pDAOCObject) do begin
       SpeedWord := pPacket.getShort;
       HeadWord := pPacket.getShort;
       if V162OrGreater then begin
-        X := pPacket.getShort;
-        DestinationX := pPacket.getShort;
-        Y := pPacket.getShort;
-        DestinationY := pPacket.getShort;
-        Z := pPacket.getShort;
-        DestinationZ := pPacket.getShort;
+        XYZs[0] := pPacket.getShort;  // X
+        XYZs[1] := pPacket.getShort;  // DX
+        XYZs[2] := pPacket.getShort;  // Y
+        XYZs[3] := pPacket.getShort;  // DY
+        XYZs[4] := pPacket.getShort;  // Z
+        XYZs[5] := pPacket.getShort;  // DZ
         pPacket.seek(2);  // ID again
         SetAggressorTarget(pDAOCObject, pPacket.getShort);
         HitPoints := pPacket.getByte;
         pPacket.seek(1);
 
+        SetXYZ(XYZs[0], XYZs[2], XYZs[4]);
+        SetDestinationXYZ(XYZs[1], XYZs[3], XYZs[5]);
         AdjustObjLocForZone(pDAOCObject, pPacket.getByte);
         AdjustObjDestForZone(TDAOCMovingObject(pDAOCObject), pPacket.getByte);
       end  { protocol }
