@@ -266,7 +266,7 @@ void exSniffer::run() {
   }
 #endif
 
-  pcap=pcap_open_live((char*)INTERFACE, 2000, 0x0100, 250, buff);
+  pcap=pcap_open_live((char*)INTERFACE, 2000, 0x0100, 200, buff);
 
   if (!pcap) {
     qFatal(QString("pcap failed open: %1").arg(buff));
@@ -274,7 +274,7 @@ void exSniffer::run() {
   }
 
   f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp)";
-  qWarning(QString("Applying filter: %1").arg(f));
+  qWarning(QString("Filter: %1").arg(f));
   if (pcap_compile(pcap, &bpp, (char *)((const char *)f), 1, 0) == -1) {
      qFatal("Failed to compile pcap filter");
      return;
@@ -287,7 +287,6 @@ void exSniffer::run() {
 
   doalert = false;
 
-  qWarning("Starting Listen Loops");
   while (1) {
 
 #ifdef MUST_DO_SELECT
@@ -297,7 +296,7 @@ void exSniffer::run() {
     if (doalert)
        timeout.tv_sec = 0;
     else
-       timeout.tv_sec=5;
+       timeout.tv_sec = 2;
     if (select(pcap_fileno(pcap)+1, &fdset, NULL, NULL, &timeout) != 0) {
 #endif
       pcap_dispatch(pcap, 0, exCallback, (u_char *) this);
