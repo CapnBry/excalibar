@@ -24,7 +24,7 @@ uses
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer,
-    ocVehicle);
+    ocVehicle, ocDoor);
   TDAOCObjectClasses = set of TDAOCObjectClass;
 
   TDAOCObject = class(TObject)
@@ -64,6 +64,8 @@ type
     FPrev:        TDAOCObject;
     FHitPoints:   BYTE;
     FHitPointsLast: BYTE;
+    FDoorID:      Cardinal;
+    FDoorIsOpen:  boolean;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
@@ -71,7 +73,6 @@ type
     function GetName : string; virtual;
     procedure SetHitPoints(const Value: BYTE);
   public
-    DoorID:      Cardinal;
     LongestUpdateTime:    Cardinal;
     constructor Create; virtual;
 
@@ -120,6 +121,8 @@ type
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
     property Next: TDAOCObject read FNext;
+    property DoorID: Cardinal read FDoorID write FDoorID;
+    property DoorIsOpen: boolean read FDoorIsOpen write FDoorIsOpen;
   end;
 
   TDAOCObjectNotify = procedure (ASender: TObject; ADAOCObject: TDAOCObject) of Object;
@@ -380,6 +383,7 @@ begin
   for I := low(TDAOCObjectClass) to high(TDAOCObjectClass) do
     if (AVal and (1 shl ord(I))) <> 0 then
       Include(Result, I);
+  Include(Result, ocDoor);
 end;
 
 function ObjectClassesToInt(AVal: TDAOCObjectClasses) : integer;
@@ -734,7 +738,10 @@ end;
 
 function TDAOCObject.GetObjectClass: TDAOCObjectClass;
 begin
-  Result := ocObject;
+  if FDoorID <> 0 then
+    Result := ocDoor
+  else
+    Result := ocObject;
 end;
 
 function TDAOCObject.HeadRad: double;
