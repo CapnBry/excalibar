@@ -37,6 +37,7 @@ void exMessage::parseMsg()
 {
 	QRegExp rxGuild( "\\[Guild\\] [A-Za-z]+\\:\\ ");
 	QRegExp rxGroup( ".*\\[Party\\].*");
+	QRegExp rxChat( ".*\\[Chat\\].*");
 	QRegExp rxTell( ".*send[s]?\\,\\ \\\".*");
 	QRegExp rxBCast( ".*\\*\\*.*\\*\\*$");
 	QRegExp rxSay( ".*say[s]?\\,\\ \\\".*");
@@ -60,6 +61,15 @@ void exMessage::parseMsg()
         this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
 		this->FormattedText = this->Sender + ": " + this->MsgText;
 		}
+    else if( -1 != rxChat.search( Msg))
+        {
+        this->MsgType = "Chat";
+        this->Recvr   = "Chat";
+        p = this->Msg.find( ":");
+        this->Sender  = this->Msg.mid( 9, (p - 9));
+        this->MsgText = this->Msg.mid( p + 2, this->Msg.length());
+        this->FormattedText = this->Sender + ": " + this->MsgText;
+        }
 	else if( -1 != rxTell.search( Msg))
 		{
 		this->MsgType = "Tell";
@@ -118,13 +128,13 @@ void exMessage::parseMsg()
 
 int exMessage::getType()
 {
-	if( "Unknown" == MsgType) return 6;
-
 	if( "Say" == MsgType) return 1;
 	if( "Tell" == MsgType) return 2;
 	if( "Party" == MsgType) return 3;
 	if( "Guild" == MsgType) return 4;
 	if( "Broadcast" == MsgType) return 5;
+	if( "Chat" == MsgType) return 6;
+	if( "PML" == MsgType) return 7;
 
-	return 0;
+	return 8;
 }		

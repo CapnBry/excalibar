@@ -8,9 +8,23 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>528</width>
-            <height>368</height>
+            <width>600</width>
+            <height>428</height>
         </rect>
+    </property>
+    <property name="sizePolicy">
+        <sizepolicy>
+            <hsizetype>5</hsizetype>
+            <vsizetype>5</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+    </property>
+    <property name="minimumSize">
+        <size>
+            <width>600</width>
+            <height>428</height>
+        </size>
     </property>
     <property name="caption">
         <string>Excalibur Messages</string>
@@ -32,6 +46,12 @@
             <property name="name">
                 <cstring>tabWidget</cstring>
             </property>
+            <property name="minimumSize">
+                <size>
+                    <width>500</width>
+                    <height>328</height>
+                </size>
+            </property>
             <widget class="QWidget">
                 <property name="name">
                     <cstring>Widget8</cstring>
@@ -50,6 +70,9 @@
                             <width>481</width>
                             <height>251</height>
                         </rect>
+                    </property>
+                    <property name="resizePolicy">
+                        <enum>AutoOneFit</enum>
                     </property>
                     <property name="readOnly">
                         <bool>true</bool>
@@ -181,6 +204,54 @@
                     <cstring>tab</cstring>
                 </property>
                 <attribute name="title">
+                    <string>Chat</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>ChatText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>PML</string>
+                </attribute>
+                <widget class="QTextEdit">
+                    <property name="name">
+                        <cstring>PMLText</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>10</y>
+                            <width>481</width>
+                            <height>251</height>
+                        </rect>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
                     <string>Unknown</string>
                 </attribute>
                 <widget class="QTextEdit">
@@ -258,5 +329,11 @@
         <slot>reject()</slot>
     </connection>
 </connections>
+<includes>
+    <include location="local" impldecl="in implementation">messages.ui.h</include>
+</includes>
+<slots>
+    <slot>resizeEvent(QResizeEvent * e)</slot>
+</slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

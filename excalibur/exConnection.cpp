@@ -89,6 +89,7 @@ void exConnection::setup()
     ex->Map->setConnection(this);
     connect(ex->ListViewMobs, SIGNAL(selectionChanged(QListViewItem *)), this, SLOT(listSelectionChanged(QListViewItem *)));
 
+
 	msgui = new exMessagesUi;
 
     alive = true;
