@@ -141,6 +141,7 @@ type
     FOnDelveItem: TDAOCInventoryItemNotify;
     FOnBountyPointsChanged: TIntegerEvent;
     FOnRealmPointsChanged: TIntegerEvent;
+    FOnLocalHealthUpdate: TNotifyEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -278,7 +279,8 @@ type
     procedure DoOnMobTargetChanged(AMob: TDAOCMob); virtual;
     procedure DoOnUnknownStealther(AUnk: TDAOCUnknownStealther); virtual;
     procedure DoOnDelveItem(AItem: TDAOCInventoryItem); virtual;
-    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); virtual; 
+    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); virtual;
+    procedure DoOnLocalHealthUpdate; virtual; 
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -304,6 +306,7 @@ type
     function PlayerZoneY : Cardinal;
     function PlayerZoneZ : Cardinal;
 
+      { network properties }
     property Active: boolean read FActive;
     property ClientAddr: Cardinal read FClientAddr;
     property ClientIP: string read GetClientIP write SetClientIP;
@@ -312,6 +315,7 @@ type
     property UDPServerAddr: Cardinal read FUDPServerAddr;
     property UDPServerIP: string read GetUDPServerIP;
 
+      { properties }
     property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
     property CryptKey: string read GetCryptKey write SetCryptKey;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
@@ -333,28 +337,10 @@ type
     property Zone: TDAOCZoneInfo read FZone;
     property ZoneList: TDAOCZoneInfoList read FZoneList;
 
-    property OnPacket: TPacketEvent read FOnPacket write FOnPacket;
+      { events }
     property OnAfterPacket: TPacketEvent read FOnAfterPacket write FOnAfterPacket;
-    property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
-    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
-    property OnPlayerPosUpdate: TNotifyEvent read FOnPlayerPosUpdate write FOnPlayerPosUpdate;
-    property OnLog: TStringEvent read FOnLog write FOnLog;
-    property OnZoneChange: TNotifyEvent read FOnZoneChange write FOnZoneChange;
+    property OnBountyPointsChanged: TIntegerEvent read FOnBountyPointsChanged write FOnBountyPointsChanged;
     property OnCharacterLogin: TNotifyEvent read FOnCharacterLogin write FOnCharacterLogin;
-    property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
-    property OnSkillLevelChanged: TNameValueModifiedNotify read FOnSkillLevelChanged write FOnSkillLevelChanged;
-    property OnCurrencyChanged: TCurrencyChangeEvent read FOnCurrencyChanged write FOnCurrencyChanged;
-    property OnVendorWindow: TNotifyEvent read FOnVendorWindow write FOnVendorWindow;
-    property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
-    property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
-    property OnDAOCObjectMoved: TDAOCObjectNotify read FOnDAOCObjectMoved write FOnDAOCObjectMoved;
-    property OnRegionChanged: TNotifyEvent read FOnRegionChanged write FOnRegionChanged;
-    property OnSelectedObjectChange: TDAOCObjectNotify read FOnSelectedObjectChange write FOnSelectedObjectChange;
-    property OnSetGroundTarget: TNotifyEvent read FOnSetGroundTarget write FOnSetGroundTarget;
-    property OnTradeSkillSuccess: TIntegerEvent read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
-    property OnTradeSkillFailure: TNotifyEvent read FOnTradeSkillFailure write FOnTradeSkillFailure;
-    property OnTradeSkillFailureWithLoss: TNotifyEvent read FOnTradeSkillFailureWithLoss write FOnTradeSkillFailureWithLoss;
-    property OnTradeSkillCapped: TNotifyEvent read FOnTradeSkillCapped write FOnTradeSkillCapped;
     property OnChatLog: TStringEvent read FOnChatLog write FOnChatLog;
     property OnChatSendIncoming: TChatMessageEvent read FOnChatSendIncoming write FOnChatSendIncoming;
     property OnChatSendOutgoing: TStringEvent read FOnChatSendOutgoing write FOnChatSendOutgoing;
@@ -363,13 +349,33 @@ type
     property OnChatBroadcast: TStringEvent read FOnChatBroadcast write FOnChatBroadcast;
     property OnCombatStyleSuccess: TStringEvent read FOnCombatStyleSuccess write FOnCombatStyleSuccess;
     property OnCombatStyleFailure: TNotifyEvent read FOnCombatStyleFailure write FOnCombatStyleFailure;
-    property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
-    property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
-    property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
-    property OnUnknownStealther: TDAOCObjectNotify read FOnUnknownStealther write FOnUnknownStealther;
+    property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
+    property OnCurrencyChanged: TCurrencyChangeEvent read FOnCurrencyChanged write FOnCurrencyChanged;
+    property OnDAOCObjectMoved: TDAOCObjectNotify read FOnDAOCObjectMoved write FOnDAOCObjectMoved;
+    property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
     property OnDelveItem: TDAOCInventoryItemNotify read FOnDelveItem write FOnDelveItem;
-    property OnBountyPointsChanged: TIntegerEvent read FOnBountyPointsChanged write FOnBountyPointsChanged;
+    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
+    property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
+    property OnLocalHealthUpdate: TNotifyEvent read FOnLocalHealthUpdate write FOnLocalHealthUpdate;
+    property OnLog: TStringEvent read FOnLog write FOnLog;
+    property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
+    property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
+    property OnPacket: TPacketEvent read FOnPacket write FOnPacket;
+    property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
+    property OnPlayerPosUpdate: TNotifyEvent read FOnPlayerPosUpdate write FOnPlayerPosUpdate;
     property OnRealmPointsChanged: TIntegerEvent read FOnRealmPointsChanged write FOnRealmPointsChanged;
+    property OnRegionChanged: TNotifyEvent read FOnRegionChanged write FOnRegionChanged;
+    property OnSelectedObjectChange: TDAOCObjectNotify read FOnSelectedObjectChange write FOnSelectedObjectChange;
+    property OnSetGroundTarget: TNotifyEvent read FOnSetGroundTarget write FOnSetGroundTarget;
+    property OnSkillLevelChanged: TNameValueModifiedNotify read FOnSkillLevelChanged write FOnSkillLevelChanged;
+    property OnTradeSkillSuccess: TIntegerEvent read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
+    property OnTradeSkillFailure: TNotifyEvent read FOnTradeSkillFailure write FOnTradeSkillFailure;
+    property OnTradeSkillFailureWithLoss: TNotifyEvent read FOnTradeSkillFailureWithLoss write FOnTradeSkillFailureWithLoss;
+    property OnTradeSkillCapped: TNotifyEvent read FOnTradeSkillCapped write FOnTradeSkillCapped;
+    property OnUnknownStealther: TDAOCObjectNotify read FOnUnknownStealther write FOnUnknownStealther;
+    property OnVendorWindow: TNotifyEvent read FOnVendorWindow write FOnVendorWindow;
+    property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
+    property OnZoneChange: TNotifyEvent read FOnZoneChange write FOnZoneChange;
   end;
 
 
@@ -1287,7 +1293,14 @@ end;
 
 procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TDAOCPacket);
 begin
-  pPacket.HandlerName := 'LocalHealthUpdate NOTIMPL';
+  pPacket.HandlerName := 'LocalHealthUpdate';
+
+  FLocalPlayer.HitPoints := pPacket.getByte;
+  FLocalPlayer.ManaPct := pPacket.getByte;
+  pPacket.seek(3);
+  FLocalPlayer.EndurancePct := pPacket.getByte;
+
+  DoOnLocalHealthUpdate;
 end;
 
 procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TDAOCPacket);
@@ -2606,6 +2619,12 @@ end;
 
 procedure TDAOCConnection.DoOnVendorWindowRequest(AMob: TDAOCMob);
 begin
+end;
+
+procedure TDAOCConnection.DoOnLocalHealthUpdate;
+begin
+  if Assigned(FOnLocalHealthUpdate) then
+    FOnLocalHealthUpdate(Self);
 end;
 
 end.
