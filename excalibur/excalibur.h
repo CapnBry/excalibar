@@ -40,7 +40,7 @@
 #include "exPrefs.h"
 #include <stdint.h>
 
-#define EX_VERSION "1.0.9"
+#define EX_VERSION "1.1.0"
 
 extern   exPrefs     prefs;
 typedef  long int    exTimeType;
