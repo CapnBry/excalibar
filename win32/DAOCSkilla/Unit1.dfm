@@ -105,6 +105,9 @@ object frmMain: TfrmMain
         Action = atnProcessPackets
         AutoCheck = True
       end
+      object Forceversioncheck1: TMenuItem
+        Action = atnForceVersionsUpdate
+      end
     end
     object Logging1: TMenuItem
       Caption = 'Logging'
@@ -216,6 +219,11 @@ object frmMain: TfrmMain
       Category = 'Windows'
       Caption = 'View DaocSkilla internal log'
       OnExecute = atnSkillaLogExecute
+    end
+    object atnForceVersionsUpdate: TAction
+      Category = 'Network'
+      Caption = 'Force version check'
+      OnExecute = atnForceVersionsUpdateExecute
     end
   end
 end

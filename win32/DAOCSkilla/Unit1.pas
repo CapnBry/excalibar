@@ -55,6 +55,8 @@ type
     SetDAoCpath1: TMenuItem;
     atnSkillaLog: TAction;
     ViewDaocSkillainternallog1: TMenuItem;
+    atnForceVersionsUpdate: TAction;
+    Forceversioncheck1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -78,6 +80,7 @@ type
     procedure atnProcessPacketsExecute(Sender: TObject);
     procedure atnRemoteAdminEnableExecute(Sender: TObject);
     procedure atnSkillaLogExecute(Sender: TObject);
+    procedure atnForceVersionsUpdateExecute(Sender: TObject);
   private
 {$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
@@ -101,6 +104,7 @@ type
     procedure ShowGLRenderer;
     procedure UpdateQuickLaunchList;
     procedure UpdateQuickLaunchProfileList;
+    procedure CheckForUpdates(AForce: boolean);
   protected
     procedure CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
     procedure CONNLISTDeleteConnection(Sender: TObject; AConn: TDAOCConnection);
@@ -683,38 +687,8 @@ begin
 end;
 
 procedure TfrmMain.tmrUpdateCheckTimer(Sender: TObject);
-var
-  sVer:     string;
-  FS:       TFileStream;
-  sVerFile: string;
 begin
-  tmrUpdateCheck.Enabled := false;
-  if not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7) then
-    exit;
-
-  FLastUpdateCheck := Now;
-
-  lblUpdates.Caption := 'Checking for updates...';
-  lblUpdates.Visible := true;
-  lblUpdates.Update;
-
-  sVerFile := ExtractFilePath(ParamStr(0)) + 'versions.ini';
-  FS := TFileStream.Create(sVerFile, fmCreate);
-  try
-    httpUpdateChecker.Get('http://capnbry.net/daoc/versions.php', FS);
-  except
-  end;
-  FS.Free;
-
-  with TINIFile.Create(sVerFile) do begin
-    sVer := ReadString('main', 'daocskilla.ver', '');
-    Free;
-  end;
-
-  if sVer <> GetVersionString then
-    lblUpdates.Caption := 'Latest version is ' + sVer
-  else
-    lblUpdates.Visible := false;
+  CheckForUpdates(false);
 end;
 
 procedure TfrmMain.lblUpdatesClick(Sender: TObject);
@@ -976,6 +950,46 @@ end;
 procedure TfrmMain.atnSkillaLogExecute(Sender: TObject);
 begin
   frmSkillaLog.Show;
+end;
+
+procedure TfrmMain.CheckForUpdates(AForce: boolean);
+var
+  sVer:     string;
+  FS:       TFileStream;
+  sVerFile: string;
+begin
+  tmrUpdateCheck.Enabled := false;
+  if not AForce and (not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7)) then
+    exit;
+
+  FLastUpdateCheck := Now;
+
+  lblUpdates.Caption := 'Checking for updates...';
+  lblUpdates.Visible := true;
+  lblUpdates.Update;
+
+  sVerFile := ExtractFilePath(ParamStr(0)) + 'versions.ini';
+  FS := TFileStream.Create(sVerFile, fmCreate);
+  try
+    httpUpdateChecker.Get('http://capnbry.net/daoc/versions.php', FS);
+  except
+  end;
+  FS.Free;
+
+  with TINIFile.Create(sVerFile) do begin
+    sVer := ReadString('main', 'daocskilla.ver', '');
+    Free;
+  end;
+
+  if sVer <> GetVersionString then
+    lblUpdates.Caption := 'Latest version is ' + sVer
+  else
+    lblUpdates.Visible := false;
+end;
+
+procedure TfrmMain.atnForceVersionsUpdateExecute(Sender: TObject);
+begin
+  CheckForUpdates(true);
 end;
 
 end.
