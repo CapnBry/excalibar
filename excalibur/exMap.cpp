@@ -323,7 +323,7 @@ void exMap::paintGL() {
       mapRead();
     }
   }
-  
+
   if (prefs.map_simple) {
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_BLEND);
@@ -358,7 +358,10 @@ void exMap::paintGL() {
   glLoadIdentity();
   if (prefs.map_rotate)
       glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
-  glRotatef(180.0,1.0,0.0,0.0);
+  else if (mi)
+      if (mi->getRotate() != 0)
+          glRotatef((GLfloat)mi->getRotate(), 0.0, 0.0, 1.0);
+  glRotatef(180.0, 1.0, 0.0, 0.0);
 
   minx=c->playerProjectedX - range + edit_xofs;
   maxx=c->playerProjectedX + range + edit_xofs;
@@ -573,7 +576,6 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
         glDisable    (GL_LIGHTING);
         glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc  (GL_LEQUAL);
-
 
         if (prefs.alpha_borders) {
             glColor3f  (R, G, B);
