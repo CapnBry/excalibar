@@ -392,7 +392,7 @@ begin
     Top := ReadInteger('Main', 'Top', Top);
     atnRemoteAdminEnable.Checked := ReadBool('Main', 'RemoteAdminEnabled', false);
     atnAutoLaunchRadar.Checked := ReadBool('Main', 'AutoLaunchExcal', true);
-    atnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
+    // atnMacroing.Visible := ReadBool('Main', 'EnableMacroing', true);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
 
