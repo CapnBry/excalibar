@@ -107,9 +107,9 @@ int main( int argc, char ** argv )
 
     QApplication a( argc, argv );
 
-    for(int i=1;i<a.argc();i++) {
+    for(uint8_t ui=1;ui<a.argc();ui++) {
       bool *optptr;
-      opt=a.argv()[i];
+      opt=a.argv()[ui];
       optptr=options.find(opt);
       if (optptr) {
          *optptr=true;

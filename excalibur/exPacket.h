@@ -31,29 +31,33 @@
 
 class exPacket {
   public:
-    unsigned char *data;
-    unsigned int offset;
-    QByteArray d;
-    bool from_server;
-    bool is_udp;
-    exTimeType tick;
-    exPacket();
-    exPacket(char *dt, ssize_t l, bool serv, bool udp, int basetick);
-    ssize_t getlen();
-    unsigned char getByte();
-    char getChar();
-    unsigned short getShort();
-    unsigned int getLong();
-    QString getPascalString();
-    QString getZeroString(unsigned int minlen=0);
-    QByteArray getBytes(int l);
-    void skip(int l);
-    void decrypt(QString key);
-    QString getDataAsString();
+    uint8_t    *data;
+    uint16_t    offset;
+    QByteArray  d;
+    bool        from_server;
+    bool        is_udp;
+    exTimeType  tick;
+    
+    exPacket (void);
+    exPacket (char *dt, ssize_t l, bool serv, bool udp, int basetick);
+    
+    ssize_t        getlen          (void);
+    uint8_t        getByte         (void);
+    char           getChar         (void);
+    uint16_t       getShort        (void);
+    uint32_t       getLong         (void);
+    QString        getPascalString (void);
+    QString        getZeroString   (uint16_t minlen = 0);
+    QByteArray     getBytes        (int16_t  l);
+    QString        getDataAsString (void);
+    
+    void           skip            (int16_t l);
+    
+    void           decrypt         (QString key);
 };
 
-QDataStream &operator<<( QDataStream &s, const exPacket &p);
-QDataStream &operator>>( QDataStream &s, exPacket &p);
+QDataStream &operator<<( QDataStream &s, const exPacket &p );
+QDataStream &operator>>( QDataStream &s, exPacket &p );
 
 #else
 class exPacket;

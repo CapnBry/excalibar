@@ -64,54 +64,54 @@ QDataStream &operator>>(QDataStream &s, exPacket &p) {
   return s;
 }
 
-unsigned char exPacket::getByte() {
-  unsigned char v;  
+uint8_t exPacket::getByte(void) {
+  uint8_t v;  
   Q_ASSERT(d.size() >= (offset+1));
-  v=(unsigned char) (data[offset]);
+  v=(uint8_t) (data[offset]);
   offset++;
   return v;
 }
 
-char exPacket::getChar() {
-  char v;  
+char exPacket::getChar(void) {
+  char v;
   Q_ASSERT(d.size() >= (offset));
   v=(char) (data[offset]);
   offset++;
   return v;
 }
 
-unsigned short exPacket::getShort() {
-  unsigned short v;  
+uint16_t exPacket::getShort(void) {
+  uint16_t v;  
   Q_ASSERT(d.size() >= (offset+2));
-  v=(unsigned short) ((data[offset]<<8)+(data[offset+1]));
+  v=(uint16_t) ((data[offset]<<8)+(data[offset+1]));
   offset+=2;
   return v;
 }
 
-unsigned int exPacket::getLong() {
-  unsigned int v;  
+uint32_t exPacket::getLong(void) {
+  uint32_t v;
   Q_ASSERT(d.size() >= (offset+4));
-  v=(unsigned int) ((data[offset]<<24)+(data[offset+1]<<16)+(data[offset+2]<<8)+(data[offset+3]));
+  v=(uint32_t) ((data[offset]<<24)+(data[offset+1]<<16)+(data[offset+2]<<8)+(data[offset+3]));
   offset+=4;
   return v;
 }
 
-QString exPacket::getPascalString() {
+QString exPacket::getPascalString(void) {
   QString v;
-  int l;
+  uint8_t l;
   l=getByte();
   Q_ASSERT(d.size() >= (offset+l));
-  for (int i=0;i<l;i++) {
-     v.append((char)(data[offset+i]));
+  for (uint8_t ui=0;ui<l;ui++) {
+     v.append((char)(data[offset+ui]));
   }
   offset+=l;
   return v;
 }
 
-QString exPacket::getZeroString(unsigned int minlen) {
+QString exPacket::getZeroString(uint16_t minlen) {
   QString v;
   char c;
-  unsigned int start;
+  uint16_t start;
 
   start=offset;
   do {
@@ -127,22 +127,22 @@ QString exPacket::getZeroString(unsigned int minlen) {
   return v;
 }
 
-QByteArray exPacket::getBytes(int l) {
+QByteArray exPacket::getBytes(int16_t l) {
   QByteArray v(l);
   Q_ASSERT(d.size() >= (offset + l));
-  for (int i=0;i<l;i++) {
+  for (int8_t i=0;i<l;i++) {
      v[i]=data[offset+i];
   }
   offset+=l;
   return v;
 }  
 
-void exPacket::skip(int l) {
+void exPacket::skip(int16_t l) {
   Q_ASSERT(d.size() >= (offset + l));
   offset+=l;
 }
 
-QString exPacket::getDataAsString()
+QString exPacket::getDataAsString(void)
 {
     QString result;
     QString hex;

@@ -38,13 +38,14 @@
 #endif
 
 #include "exPrefs.h"
+#include <stdint.h>
 
 #define EX_VERSION "1.0.9"
 
-typedef long int exTimeType;
-extern exTimeType exTick;
-extern void updateTick();
-extern exPrefs prefs;
+extern   exPrefs     prefs;
+typedef  long int    exTimeType;
+extern   exTimeType  exTick;
+extern   void        updateTick();
 
 enum Realm {
     rFriend,
