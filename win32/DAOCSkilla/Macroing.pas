@@ -89,9 +89,10 @@ implementation
 
 uses
   ShowMapNodes, PowerSkillSetup, SpellcraftHelp, MacroTradeSkill,
-  AFKMessage, DAOCWindows, DAOCInventory, Unit1, StringParseHlprs
+  AFKMessage, DAOCWindows, DAOCInventory, Unit1, StringParseHlprs,
+  LowOnStat
 {$IFDEF DAOC_AUTO_SERVER}
-  ,TellMacro, LowOnStat
+  ,TellMacro
 {$ENDIF DAOC_AUTO_SERVER}
   ;
 
