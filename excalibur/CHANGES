@@ -7,6 +7,9 @@ Additions (Snowblind):
 Additions (CapnBry):
  + Added range circles to the map
  + Added --dumpunknown to the command line switches
+ + Added projection of mob / player positions to aproximate current location
+   based on heading and speed.
+ + Added support for "Stop mob movement" stream.
 
 Additions (Me):
  + Added a '--help' command line switch.
