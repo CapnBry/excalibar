@@ -1052,35 +1052,38 @@ exMapPNGLoader::~exMapPNGLoader (void) {m_bGhettoMutex = false;}
 void exMapPNGLoader::setParent ( exMap *parent )
 {
   this->parent = parent;
-/*  connect ( &empldProgress, SIGNAL(cancelled (void)),
-            this,           SLOT  (abort     (void)) ); */
   empldProgress.start();
 }
 
 void exMapPNGLoader::run (void)
 {
-  int x,y;
-  int w,h;
+  if (parent == NULL)
+    m_bGhettoMutex = false;
+
+  m_bGhettoMutex = true;
+
+  if (empldProgress.pdProgress != NULL)
+    empldProgress.pdProgress->reset();
 
   parent->map.clear();
 
   exMapInfo *mi;
 
-  empldProgress.pdProgress->reset();
-  m_bGhettoMutex = true;
-
   for  (mi = parent->mi->getAdjacentZones(); mi && m_bGhettoMutex; mi = parent->mi->getAdjacentZones(mi->getZoneNum())) {
 
     while (! prefs.map_loadadjacentpngs && mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum()) {
+
       mi = parent->mi->getAdjacentZones(mi->getZoneNum());
+
 BEGIN_EXPERIMENTAL_CODE
       if (mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum())
         printf("Ignoring Adjacent Zone:\t(ID - %3d)\t- Disabled...\n", mi->getZoneNum());
 END_EXPERIMENTAL_CODE
-      }
 
-      if (mi == NULL)
-        break;
+    }
+
+    if (mi == NULL)
+      break;
 
 BEGIN_EXPERIMENTAL_CODE
     printf("Loading Adjacent Zone:\t(ID - %3d)\n", mi->getZoneNum());
@@ -1089,39 +1092,62 @@ END_EXPERIMENTAL_CODE
     if (empldProgress.pdProgress->wasCancelled())
       m_bGhettoMutex = false;
 
-    const int xadd = mi->getBaseX();
-    const int yadd = mi->getBaseY();
+    QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
 
+    if (fimg.exists()) {
 
-  QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
-  if (fimg.exists()) {
-    QImage img;
-    if (img.load(fimg.name())) {
-      w=img.width();
-      h=img.height();
-      parent->ignore_fill = true;
-      if (! empldProgress.running())
-         empldProgress.start();
-      for(y=0;y<8&&m_bGhettoMutex;y++) {
-        for(x=0;x<8&&m_bGhettoMutex;x++) {
-          qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
-          struct PNGCallback *pc;
-          pc = new struct PNGCallback;
-          pc->a   = x * 8192 + xadd;
-	  pc->b   = y * 8192 + yadd;
-	  pc->c   = 8192;
-	  pc->d   = 8192;
-          pc->x   = x;
-          pc->y   = y;
-	  pc->img = QGLWidget::convertToGLFormat(img.copy( w * x / 8, h * y / 8,
-                                                           w / 8, h / 8 ));
-          qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
+      QImage img;
+
+      if (img.load(fimg.name())) {
+
+        int w = img.width();
+        int h = img.height();
+
+        const int xadd = mi->getBaseX();
+        const int yadd = mi->getBaseY();
+
+        parent->ignore_fill = true;
+
+        if (! empldProgress.running())
+           empldProgress.start();
+
+        
+        qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi));
+ 
+        for(   int y = 0; y < 8 && m_bGhettoMutex; y++ ) {
+          for( int x = 0; x < 8 && m_bGhettoMutex; x++ ) {
+
+            qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
+
+            struct PNGCallback *pc;
+            pc = new struct PNGCallback;
+
+            pc->a   = x * 8192 + xadd;
+            pc->b   = y * 8192 + yadd;
+            pc->c   = 8192;
+            pc->d   = 8192;
+            pc->x   = x;
+            pc->y   = y;
+            pc->img = QGLWidget::convertToGLFormat(img.copy( w * x / 8, h * y /
+                                                             8, w / 8, h / 8 ));
+
+            qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
+
+            if ( empldProgress.pdProgress != NULL && 
+                 empldProgress.pdProgress->wasCancelled() )
+              m_bGhettoMutex = false;
+
+          }
         }
       }
     }
+
+    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+
   }
-  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
-}
+
+  if (empldProgress.pdProgress->wasCancelled())
+    printf("NOTE:\tThe PNG Loader has been cancelled at the request of the user.\n");
 }
 
 
@@ -1167,20 +1193,12 @@ exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
 exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 {
   pdProgress->reset();
+  cleanup();
 }
 
 void exMapPNGLoaderDialog::run (void)
 {
   pdProgress->reset();
-
-  while (1) {
-    if (pdProgress->isVisible()) {
-      pdProgress->repaint();
-      sleep(1);
-    } else {
-      sleep(360);
-    }
-  }
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
@@ -1192,5 +1210,9 @@ bool exMapPNGLoaderDialog::event (QEvent *e)
   }
   else if (e->type() == CALLBACK_PNG_FNSH)
     pdProgress->reset();
+  else if (e->type() == CALLBACK_PNG_INFO) {
+    QCustomEvent *PNGEvent = (QCustomEvent*) e;
+    pdProgress->setLabelText(QString().sprintf("Loading PNG for:     %s",((exMapInfo*)PNGEvent->data())->getZoneName().ascii()));
+  }
   return false;
 }

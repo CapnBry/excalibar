@@ -201,6 +201,7 @@ public:
 #define CALLBACK_PNG_STAT (QEvent::Type)(QEvent::User + 0x02)
 #define CALLBACK_PNG_ABRT (QEvent::Type)(QEvent::User + 0x03)
 #define CALLBACK_PNG_FNSH (QEvent::Type)(QEvent::User + 0x04)
+#define CALLBACK_PNG_INFO (QEvent::Type)(QEvent::User + 0x05)
 
  struct PNGCallback {
 	int a;

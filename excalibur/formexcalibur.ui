@@ -539,6 +539,5 @@
     <slot>showEvent(QShowEvent * e)</slot>
     <slot>showMsgs()</slot>
 </slots>
-<pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

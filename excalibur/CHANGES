@@ -1,3 +1,19 @@
+Andon (21/Feb/02)
+-----------------
+Changes:
+ + Added some more verbosity to the PNG Loader's status
+   dialog.
+ + Eliminated the need to call sleep continuously in
+   the PNG Loader progress dalog.
+ + Optimized the PNG Loader's primary PNG --> BMP algor-
+   ithms.
+ + Added stricter pointer verification for inter-thread
+   communication between the various threads in the PNG
+   Loader.
+ + Pressing the cancel button while the PNG Loader is
+   running will now IMMEDIATELY halt the thread.
+
+
 Andon (20/Feb/02)
 -----------------
 Major Changes:
