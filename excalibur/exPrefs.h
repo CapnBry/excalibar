@@ -58,6 +58,7 @@ public:
   bool map_fill;
   bool range_circles;
   bool agro_circles;
+  bool agro_fading;
   bool dump_unknown_packets;
 
   bool select_target;

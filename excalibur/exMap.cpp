@@ -374,11 +374,21 @@ void exMap::paintGL() {
       glPopMatrix();
 
       /* if the mob is within range, draw an agro circle around it */
-      if (prefs.agro_circles)
-          if ((m->isMob()) && (m->playerDist() < 1000))  {
-              glLineWidth(1.0);
-              qglColor( darkRed );
-              drawCircle(m->getX(), m->getY(), 500, 18);
+      if (prefs.agro_circles) {
+        if ((m->isMob()) && (m->playerDist() < 1000))  {
+          glLineWidth(1.0);
+
+          if (prefs.agro_fading) {
+            QColor qcMyColor ( ((0xff << 24) |
+                     (((0xff - ((char)(m->playerDist() / 6))) & 0xff) << 16) |
+                        0x00 << 8 | 0x00));
+            qglColor( qcMyColor );
+          } else {
+            qglColor( darkRed );
+          }
+
+          drawCircle(m->getX(), m->getY(), 500, 18);
+        }
       }
     }
     m->stale();
@@ -394,11 +404,13 @@ void exMap::paintGL() {
     glEnd();
   }
 
-  /* draw a couple range cirlces around the player */	
-  glLineWidth (1.0);
-  qglColor(darkGray);
-  drawCircle(c->playerx, c->playery, 1000, 20); 
-  drawCircle(c->playerx, c->playery, 1500, 20); 
+  /* draw a couple range cirlces around the player */
+  if (prefs.range_circles) {
+    glLineWidth (1.0);
+    qglColor(darkGray);
+    drawCircle(c->playerx, c->playery, 1000, 20); 
+    drawCircle(c->playerx, c->playery, 1500, 20);
+  }
 	     
   is_dirty = false;
 

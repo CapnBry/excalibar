@@ -1,9 +1,35 @@
+Andon (08/Feb/02)
+------------------
+
+Additions (Snowblind):
+ + Enhanced the status bar.. It's MUCH nicer now than it was.
+
+Additions (CapnBry):
+ + Added range circles to the map
+ + Added --dumpunknown to the command line switches
+
+Additions (Me):
+ + Added a '--help' command line switch.
+ + Added a GUI element in the preferences to toggle range
+   circles on and off at run-time.
+ + Added distance fading agro circles.. The intensity of the
+   R channel in the RGB color now changes depending upon your
+   distance from the mob.
+ + Added a GUI element in the preferences to toggle agro
+   distance fading.
+
+Bug fixes (CapnBry):
+ + Changed the range circles to be dark grey, so that they
+   actually show up now.
+
+
 Andon (07/Feb/02)
 ------------------
 
 Documentation:
  + Fixed a lingering issue with the CVS commandline listed in
    INSTALL
+
 
 Andon (07/Feb/02)
 ------------------

@@ -18,6 +18,7 @@
  *
  */
 
+#include "excalibur.h"
 #include <qapplication.h>
 #include <qtextbrowser.h>
 #include <dlfcn.h>
@@ -85,30 +86,24 @@ int main( int argc, char ** argv )
     printf ("Please see http://excalibar.sourceforge.net for further");
     printf (" information.\n\n");
 
-    QApplication a( argc, argv );
-    exSniffer *xs;
-
     QString opt;
     QStringList opts;
+
+    bool help     = false;
+
+    bool link     = false;
     bool realtime = false;
-    bool link = false;
 
     QDict<bool> options;
 
-    qInitNetworkProtocols();
+    options.insert("--help", &help);
 
-    options.insert("--realtime",&realtime);
-    options.insert("--link",&link);
     options.insert("--dumpunknown", &prefs.dump_unknown_packets);
+    options.insert("--link",&link);
+    options.insert("--realtime",&realtime);
 
-    if (! prepareCrypt()) {
-      qFatal("\nFATAL ERROR:\tFailed to load the decryption library "
-             "(daoccrypt.so)!");
-    }
+    QApplication a( argc, argv );
 
-    exMapInfo::setup("maps/mapinfo.txt");
-    exItem::init();
-  
     for(int i=1;i<a.argc();i++) {
       bool *optptr;
       opt=a.argv()[i];
@@ -118,7 +113,31 @@ int main( int argc, char ** argv )
       } else {
          opts+=opt;
       }
-    }      
+    }
+
+    if (help)
+    {
+      printf ("\n");
+      printf ("Usage:\n  %s [<options>] [<capture file>]\n\n", argv[0]);
+      printf ("  --help          Shows this help.\n");
+      printf ("  --dumpunknown   Display unknown packet data in stdout.\n");
+      printf ("  --link          Run Excalibur in a special mode, so that\n");
+      printf ("                  the Java tools can link with it.\n");
+      printf ("  --realtime      Set the network thread realtime.\n\n");
+      qFatal ("Please run '%s' again, without the --help switch.", argv[0]);
+    }
+
+    exSniffer *xs;
+   
+    qInitNetworkProtocols();
+
+    if (! prepareCrypt()) {
+      qFatal("\nFATAL ERROR:\tFailed to load the decryption library "
+             "(daoccrypt.so)!");
+    }
+
+    exMapInfo::setup("maps/mapinfo.txt");
+    exItem::init();
 
     _tick.start();
 

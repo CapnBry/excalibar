@@ -86,6 +86,8 @@ void exPrefs::show() {
   dlg->GLSimpleObjects->setChecked(map_simple);
   dlg->GLMapFill->setChecked(map_fill);
   dlg->AgroCircles->setChecked(agro_circles);
+  dlg->AgroFading->setChecked(agro_fading);
+  dlg->RangeCircles->setChecked(range_circles);
   dlg->MapSimplifyRange->setValue(map_autosimplifyrange);
 
   dlg->SliderAliveColor->setValue(brightness_alive);
@@ -132,6 +134,8 @@ void exPrefs::accept() {
   map_fill=dlg->GLMapFill->isOn();
 
   agro_circles=dlg->AgroCircles->isOn();
+  agro_fading=dlg->AgroFading->isOn();
+  range_circles=dlg->RangeCircles->isOn();
 
   brightness_alive=dlg->SliderAliveColor->value();
   brightness_dead=dlg->SliderDeadColor->value();
@@ -182,6 +186,7 @@ void exPrefs::loadSettings() {
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
   range_circles=s.readBoolEntry("/Excalibur/RangeCircles", TRUE);
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
+  agro_fading=s.readBoolEntry("Excalibur/AgroFading", TRUE);
 
   select_target=s.readBoolEntry("/Excalibur/AutoSelectTarget",TRUE);
 
@@ -224,6 +229,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/ItemsContributor", items_contributor);
   s.writeEntry("/Excalibur/RangeCircles", range_circles);
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
+  s.writeEntry("/Excalibur/AgroFading", agro_fading);
   exItem::save();
 }
 
