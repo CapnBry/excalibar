@@ -258,10 +258,10 @@ void exConnection::processPacket(exPacket * p)
     if (p->is_udp && p->from_server)
         seq = p->getShort();
 	
-    if (!(p->from_server && !p->from_server))
+    if (!(p->is_udp && !p->from_server))
 	    p->decrypt(cryptkey);
 
-    if (!p->from_server && !p->from_server) {
+    if (!p->is_udp && !p->from_server) {
 	    seq = p->getShort();
 	    srcid = p->getShort();
 	    p->seek(2);
