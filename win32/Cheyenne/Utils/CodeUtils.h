@@ -44,6 +44,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
     type m_##name;
 
+#define DECL_MEMBER_ACCESSOR(type,name) \
+    public: \
+    inline const type & Get##name(void)const{return(m_##name);}; \
+    inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
+    private: \
+    inline type & Modify##name(void){return(m_##name);}; \
+    type m_##name;
+
+#define DECL_MEMBER_ACCESSOR_NOSET(type,name) \
+    public: \
+    inline const type & Get##name(void)const{return(m_##name);}; \
+    private: \
+    inline type & Modify##name(void){return(m_##name);}; \
+    type m_##name;
+
 #define DECL_MEMBER_PROTECTED(type,name) \
     protected: \
     inline const type & Get##name(void)const{return(m_##name);}; \
