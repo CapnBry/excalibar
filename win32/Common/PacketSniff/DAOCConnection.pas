@@ -2430,7 +2430,7 @@ var
   sItemName:    string;
   s:            string;
   iLineNo:      integer;
-  slDelveInfo:  TStringList;
+  slDelveInfo:  TStrings;
   pItem:        TDAOCInventoryItem;
 begin
   pPacket.HandlerName := 'DelveInformation';
@@ -2439,17 +2439,23 @@ begin
     exit;
 
   sItemName := pPacket.getPascalString;
-  slDelveInfo := TStringList.Create;
+  slDelveInfo := pItem.DelveInfo;
+  if Assigned(slDelveInfo) then
+    slDelveInfo.Clear
+  else begin
+    slDelveInfo := TStringList.Create;
+    pItem.DelveInfo := slDelveInfo;
+  end;
+
   while not pPacket.EOF do begin
     iLineNo := pPacket.getByte;
     if iLineNo <> 0 then begin
       s := pPacket.getPascalString;
-      if s <> ' ' then
+      if Trim(s) <> '' then
         slDelveInfo.Add(s);
     end;
   end;  { while !EOF }
 
-  pItem.DelveInfo := slDelveInfo;
   DoOnDelveItem(pItem);
 end;
 
