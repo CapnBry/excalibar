@@ -33,11 +33,9 @@
 #include "excalibur.h"
 #include "exConnection.h"
 #include "exMapInfo.h"
-#include "exCrypt.h"
 #include "exSniffer.h"
 #include "exItem.h"
 
-exCryptFunc exCrypt;
 exTimeType exTick;
 exPrefs prefs;
 
@@ -50,28 +48,6 @@ void updateTick() {
   exTick=_tick.elapsed();
   if (is_replay)
     exTick *=4;
-}
-
-bool prepareCrypt() {
-  char name[4096];
-  void *handle;
-
-  getcwd(name, 4096);
-  strcat(name, "/exCrypt.so");
-
-  handle=dlopen(name,RTLD_LAZY);
-  if (handle == NULL) {
-    fputs(dlerror(), stderr);
-    return false;
-  }
-
-  exCrypt=(exCryptFunc) dlsym(handle, "exCrypt");
-  if (exCrypt == NULL) {
-    fputs(dlerror(), stderr);
-    return false;
-  }
-
-  return true;
 }
 
 int main( int argc, char ** argv )
@@ -140,11 +116,6 @@ int main( int argc, char ** argv )
     exSniffer *xs;
    
     qInitNetworkProtocols();
-
-    if (! prepareCrypt()) {
-      qFatal("\nFATAL ERROR:\tFailed to load the decryption library "
-             "(exCrypt.so)!");
-    }
 
     exMapInfo::setup("maps/mapinfo.txt");
     exItem::init();

@@ -26,11 +26,12 @@
 #include <qdatastream.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "exCrypt.h"
 #include "excalibur.h"
 
 class exPacket {
-  public:
+private:
+    void exCrypt_c(char *data, int data_size, const char *key, int key_size);
+public:
     uint8_t      *data;
     unsigned int  offset;
     QByteArray    d;

@@ -43,8 +43,54 @@ ssize_t exPacket::getlen() {
 
 void exPacket::decrypt(QString key) {
   if (key.length() == 12) { 
-    exCrypt((char *)data,d.size(),key,key.length());
+    exCrypt_c((char *)data,d.size(),key,key.length());
   }
+}
+
+void exPacket::exCrypt_c(char *data, int data_size, const char *key, int key_size)
+{
+    int data_pos;
+    int key_pos;
+    int status_vect;
+    int seed_1;
+    int seed_2;
+
+    int work_val;
+
+    if (!data)
+        return;
+
+    if (!data_size)
+        return;
+
+    if (!key)
+        return;
+
+    data_pos = 0;
+    key_pos = 0;
+    status_vect = 0;
+    seed_1 = 1;  // esi
+    seed_2 = 2;  // edi
+
+    do {
+        if (key_pos == key_size)
+            key_pos = 0;
+
+        work_val = key[key_pos];
+        work_val = work_val + data_pos;
+        work_val = work_val + key_pos;
+        seed_2 = seed_2 + work_val;
+        work_val = work_val * seed_1;
+        seed_1 = work_val + 1;
+        work_val = seed_1;
+        work_val = work_val * seed_2;
+
+        status_vect = status_vect + work_val;
+        data[data_pos] = data[data_pos] ^ status_vect;
+
+        data_pos++;
+        key_pos++;
+    } while (data_pos < data_size);
 }
 
 QDataStream &operator<<(QDataStream &s, const exPacket &p) {
