@@ -326,6 +326,7 @@ begin
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
     FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8000);
+    FConnection.MaxObjectStaleTime := ReadInteger('Main', 'MaxObjectStaleTime', 300) * 1000;
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
     chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
     chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
@@ -535,6 +536,7 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCDeleteObject(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
+//  Log('Deleteing: ' + ADaocObject.Name + ' longest update delta ' + IntToStr(ADAOCObject.LongestUpdateTime));
 end;
 
 procedure TfrmMain.DAOCNewObject(ASender: TObject;
@@ -571,6 +573,8 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCSelectedObjectChanged(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
+//  if Assigned(ADAOCObject) then
+//    Log('Largest update delta: ' + IntToStr(ADAOCObject.LongestUpdateTime));
 end;
 
 procedure TfrmMain.DAOCRegionChanged(Sender: TObject);
