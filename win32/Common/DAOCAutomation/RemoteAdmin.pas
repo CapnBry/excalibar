@@ -375,6 +375,9 @@ begin
 
   AConn.WriteLn('200 Setting heading to ' + sHead + '.');
 
+    { adjust to daoc coords }
+  iHead := (iHead + 180) mod 360;
+
     { adjust for rotated zones }
   if Assigned(FDControl.Zone) then
     iHead := iHead + FDControl.Zone.Rotate mod 360;
