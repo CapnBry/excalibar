@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <windows.h>
 #include <assert.h>
 #include <crtdbg.h>
+#include <stdexcept>
 
 class Thread
 {
@@ -132,7 +133,19 @@ private:
 
         _ASSERTE(pMe != NULL);
 
-        return(pMe->RunInternal(pMe->bContinue));
+        try
+            {
+            return(pMe->RunInternal(pMe->bContinue));
+            }
+        catch(std::exception& e)
+            {
+            // exception caught, terminate program
+            std::cerr << "caught exception " << e.what() << " in thread id " << pMe->dwThreadID << std::endl;
+            std::cerr << "type: " << typeid(e).name() << std::endl;
+            
+            // rethrow
+            throw;
+            }
     };
 
     DWORD RunInternal(const bool& bContinue)

@@ -73,6 +73,8 @@ CheyenneConfig::CheyenneConfig() : m_ConfigFileName("cheyenne.cfg")
     SetNamedMobCreateSoundFile(std::string(""));
     SetPlaySoundOnNamedMobCreate(false);
     SetNamedMob(std::string(""));
+    
+    SetMobsightURL(std::string("http://capnbry.net/daoc/mobs.php"));
 
 } // end CheyenneConfig
 
@@ -146,6 +148,8 @@ bool CheyenneConfig::Load(void)
     //file >> ModifyNamedMobCreateSoundFile();
     ::GetLine(file,ModifyNamedMob());
     //file >> ModifyNamedMob();
+    
+    ::GetLine(file,ModifyMobsightURL());
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
     
@@ -256,6 +260,8 @@ bool CheyenneConfig::Save(void)const
         {
         file << "no_mob" << std::endl;
         }
+    
+    file << GetMobsightURL() << std::endl;
     
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
     

@@ -184,7 +184,21 @@ DWORD WINAPI Sniffer::ThreadFunc(PVOID context)
 
     _ASSERTE(pMe != NULL);
 
-    return(pMe->Run());
+    try
+        {
+        return(pMe->Run());
+        }
+    catch(std::exception& e)
+        {
+        // exception caught, terminate program
+        ::Logger << "[Sniffer::ThreadFunc] caught exception " << e.what() << "\n";
+
+        std::cerr << "[Sniffer::ThreadFunc] caught exception " << e.what() << std::endl;
+        std::cerr << "type: " << typeid(e).name() << std::endl;
+        
+        // rethrow
+        throw;
+        }
 } // end ThreadFunc
 
 void Sniffer::HandleTCP(struct tcp_stream *a_tcp, void **this_time_not_needed)

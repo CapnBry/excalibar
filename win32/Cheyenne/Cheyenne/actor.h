@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef ACTOR_H
-#define ACTOR_H
 #pragma once
 
 //#include "times.h"
@@ -41,6 +39,40 @@ public:
         return(*this);
     }
 
+    void IntegrateMotion(const CheyenneTime& CurrentAge)
+    {
+    // get <x,y>
+    float x=float(GetXPos());
+    float y=float(GetYPos());
+
+    // adjust for the strangeness due to +y being the "south" direction
+    float xvel=(GetSpeed() * sin(GetHeading()));
+    float yvel=(GetSpeed() * -cos(GetHeading()));
+
+    // update with velocity & heading & delta time
+    x = x + ((float)CurrentAge.Seconds()*xvel);
+    y = y + ((float)CurrentAge.Seconds()*yvel);
+
+    // store back
+    SetXPos(x);
+    SetYPos(y);
+    
+    // set time
+    ModifyValidTime() += CurrentAge;
+    } // end IntegrateMotion
+    
+    float RangeTo(const Motion& To)const
+    {
+        float x,y,z;
+        
+        // get coordinates
+        x=To.GetXPos()-GetXPos();
+        y=To.GetYPos()-GetYPos();
+        z=To.GetZPos()-GetZPos();
+        
+        return(sqrt(x*x + y*y + z*z));
+    }
+    
     std::pair<float,float> RangeAzimuthTo(const Motion& To)const
     {
         float x,y,z,az;
@@ -111,6 +143,9 @@ private:
     DECL_MEMBER(float,Speed);
     DECL_MEMBER(CheyenneTime,ValidTime); // time this position was valid
 }; // end class Motion
+
+
+
 
 class Actor
 {
@@ -310,15 +345,17 @@ public:
     {
         os << "[Actor::Print]\n";
         GetMotion().Print(os);
+        GetNet().Print(os);
         os << "Health=" << (int)GetHealth() << "\n"
            << "Level=" << (int)GetLevel() << "\n"
            << "Realm=" << (int)GetRealm() << "\n"
            << "Id=" << GetId() << "\n"
            << "InfoId=" << GetInfoId() << "\n"
            << "Name=" << GetName() << "\n"
-           << "Guild=" << GetGuild() << "\n"
            << "Surname=" << GetSurname() << "\n"
+           << "Guild=" << GetGuild() << "\n"
            << "LastUpdateTime=" << GetLastUpdateTime().Seconds() << "\n"
+           << "NetTime=" << GetNetTime().Seconds() << "\n"
            << "TargetId=" << GetTargetId() << "\n"
            << "InRegion=" << (int)GetRegion() << "\n"
            << "ActorType=" << GetActorType() << "\n"
@@ -352,6 +389,8 @@ private:
         MEMBER_ASSIGN(StealthCycleA);
         MEMBER_ASSIGN(StealthCycleB);
         MEMBER_ASSIGN(StealthCycleC);
+        MEMBER_ASSIGN(Net);
+        MEMBER_ASSIGN(NetTime);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -375,6 +414,6 @@ private:
                                      // goes from 0 to 1 to 0 every 2 seconds
     DECL_MEMBER(float,StealthCycleC); // used for display purposes
                                      // goes from 0 to 1 to 0 every 2 seconds
+    DECL_MEMBER(Motion,Net); // network motion data
+    DECL_MEMBER(CheyenneTime,NetTime); // time this actor was last seen on the shared network
 }; // end class Actor
-
-#endif // ACTOR_H

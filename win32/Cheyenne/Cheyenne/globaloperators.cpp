@@ -117,6 +117,47 @@ std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a)
     return(str);
 } // end operator<< (std::ostream& str,const SOCKADDR_IN& a)
 
+void ToString(const std::wstring& source_wstring,std::string& dest_string)
+{
+    // this code was hoarked from a Boost mailing list. 
+    // check www.boost.org for the Boost library
+    
+    typedef std::ctype<wchar_t> ctype_t;
+    const ctype_t& ct = std::use_facet<ctype_t>(std::locale());
+
+    // assign value
+    std::string result(source_wstring.size(),std::string::value_type(0));
+    
+    ct.narrow(source_wstring.data(),source_wstring.data() +
+    source_wstring.size(),'@',&(*result.begin()));
+
+    // store result
+    dest_string=result;
+    
+    // done
+    return;
+} // end ToString(wstring,string)
+
+void ToWString(const std::string& source_string,std::wstring& dest_wstring)
+{
+    // this code was hoarked from a Boost mailing list. 
+    // check www.boost.org for the Boost library
+    
+    std::wstring result(source_string.size(), char(0));
+    
+    typedef std::ctype<wchar_t> ctype_t;
+    const ctype_t& ct = std::use_facet<ctype_t>(std::locale());
+    
+    ct.widen(source_string.data(), source_string.data() +
+    source_string.size(),&(*result.begin()));
+    
+    // store result
+    dest_wstring=result;
+    
+    // done
+    return;
+} // end ToString(string,wstring)
+
 std::istream& GetLine(std::istream& is,std::string& str)
 {
     std::istream::char_type ch;

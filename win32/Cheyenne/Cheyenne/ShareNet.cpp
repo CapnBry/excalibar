@@ -112,6 +112,7 @@ bool ShareNetClientData::DoOutputMaintenance(void)
 
 bool ShareNetClientData::DoInputMaintenance(void)
 {
+    // build messages from the input buffer
     unsigned short sz;
     if(ModifyInputBuffer().Peek(&sz,sizeof(sz)))
         {
@@ -170,7 +171,9 @@ DWORD ShareNetClientData::Run(const bool& bContinue)
 {
     Logger << "[ShareNetClientData::Run] thread id " << GetCurrentThreadId() << " created\n";
     
-    // recover the go param to get the output message fifo
+    // recover the go param to get the output message fifo --
+    // this fifo is used to queue messages FROM the network
+    // somebody else must pop the off (e.g. the database in Cheyenne)!
     MessageOutputFifo=static_cast<tsfifo<CheyenneMessage*>*>(GoParam);
 
     // do forever

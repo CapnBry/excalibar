@@ -124,6 +124,7 @@ private:
         MEMBER_ASSIGN(NamedMobCreateSoundFile);
         MEMBER_ASSIGN(PlaySoundOnNamedMobCreate);
         MEMBER_ASSIGN(NamedMob);
+        MEMBER_ASSIGN(MobsightURL);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -158,5 +159,6 @@ private:
     DECL_MEMBER(std::string,NamedMobCreateSoundFile);
     DECL_MEMBER(bool,PlaySoundOnNamedMobCreate);
     DECL_MEMBER(std::string,NamedMob);
+    DECL_MEMBER(std::string,MobsightURL);
 
 }; // end class CheyenneConfig

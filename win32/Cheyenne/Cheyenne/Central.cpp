@@ -72,6 +72,8 @@ Central::Central() :
     hTahoma=NULL;
     hTahomaBig=NULL;
     LastActorConTexture=0;
+    Frames=0;
+    FrameMeasureStart=::Clock.Current();
     ZeroMemory(&TahomaTextMetric,sizeof(TahomaTextMetric));
 
 } // end Central
@@ -575,6 +577,7 @@ void Central::DrawDataWindow(HDC hFront)const
     GetClientRect(hDataWnd,&rClient);
     std::ostringstream oss;
     std::string RealmName;
+    CheyenneTime CurrentTime(::Clock.Current());
 
     if(HookedActor != 0)
         {
@@ -704,7 +707,8 @@ void Central::DrawDataWindow(HDC hFront)const
         }
 
     oss << "Global Database Statistics:\n"
-        << "Current Time=" << Clock.Current().Seconds() << "\n"
+        << "Current Time=" << CurrentTime.Seconds() << "\n"
+        << "Frame Rate=" << Frames / (CurrentTime-FrameMeasureStart).Seconds() << "\n"
         << "Albs=" << stats.GetNumAlbs() << "\n"
         << "Hibs=" << stats.GetNumHibs() << "\n"
         << "Mids=" << stats.GetNumMids() << "\n"
@@ -713,6 +717,10 @@ void Central::DrawDataWindow(HDC hFront)const
         << "ShareNet Status=" << ShareNet.GetStatusString() << "\n"
         << "ShareNet=" << ShareNet.GetRemoteAddr();
 
+    // save frame measure start and reset frames to 0
+    FrameMeasureStart=CurrentTime;
+    Frames=0;
+    
     // draw double buffered to prevent flickering
     HDC hBack=CreateCompatibleDC(hFront);
     HBITMAP hBmp=CreateCompatibleBitmap(hBack,rClient.right-rClient.left,rClient.bottom-rClient.top);
@@ -1239,8 +1247,13 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             
             // ok, now we have realm, min and max level
             // get the candidate list
+            
+            // must convert to wide string
+            std::wstring url;
+            ::ToWString(::Config.GetMobsightURL(),url);
             Content.BuildMobList
                 (
+                url,
                 MobsightContentHandler::REALM(mf1_array[0]),
                 mf1_array[1],
                 mf1_array[2],
@@ -1267,7 +1280,16 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             
             // ok, we have the id of the mob that we want,
             // go get its definition (the dialog filled out IdDef.id)
-            Id.GetMobInfo(IdDef.id,IdDef);
+
+            // must convert to wide string
+            ::ToWString(::Config.GetMobsightURL(),url);
+
+            Id.GetMobInfo
+                (
+                url,
+                IdDef.id,
+                IdDef
+                );
             
             // store in Central storage
             MobfinderResults.loc_list.clear();
@@ -2976,6 +2998,9 @@ void Central::DrawPPI(void)
     glFlush();
     glFinish();
     SwapBuffers(hPPIDC);
+    
+    // increment frame count
+    ++Frames;
         
     // done
     return;

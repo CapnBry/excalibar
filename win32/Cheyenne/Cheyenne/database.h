@@ -225,6 +225,7 @@ private:
     void HandleShareMessage(const sharemessages::ShareMessage* msg);
     void DoMaintenance(void);
     void IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor);
+    void SendNetworkUpdate(const Actor& ThisActor,share_opcodes::c_opcode_t opcode)const;
 
     void ResetDatabase(void);
 
@@ -248,6 +249,9 @@ private:
 
     const float SpeedCorrection;
     const CheyenneTime OldActorThreshold;
+    const float DeadReconingThreshold;
+    const CheyenneTime MinNetworkTime;
+    const CheyenneTime NetworkHeartbeat;
     
     // these are in global display-adjusted coordinates
     Motion GroundTarget;

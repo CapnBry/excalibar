@@ -33,7 +33,10 @@ Database::Database() :
     ActorEvents(DatabaseEvents::_LastEvent),
     OldActorThreshold(15.0),
     bGroundTargetSet(false),
-    bFullUpdateRequest(false)
+    bFullUpdateRequest(false),
+    DeadReconingThreshold(300.0f),
+    MinNetworkTime(2.0f),
+    NetworkHeartbeat(10.0f)
 {
 
     // done
@@ -205,26 +208,11 @@ void Database::WaitForData(unsigned int timeout)
 
 void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
 {
-    // get <x,y>
-    float x=float(ThisActor.GetMotion().GetXPos());
-    float y=float(ThisActor.GetMotion().GetYPos());
-
-    // adjust for the strangeness due to +y being the "south" direction
-    float xvel=(ThisActor.GetMotion().GetSpeed() * sin(ThisActor.GetMotion().GetHeading()));
-    float yvel=(ThisActor.GetMotion().GetSpeed() * -cos(ThisActor.GetMotion().GetHeading()));
-
-    // update with velocity & heading & delta time
-    x = x + ((float)CurrentAge.Seconds()*xvel);
-    y = y + ((float)CurrentAge.Seconds()*yvel);
-
-    // store back
-    ThisActor.ModifyMotion().SetXPos(x);
-    ThisActor.ModifyMotion().SetYPos(y);
+    // update motion to current time (this also sets ThisActor::Motion::ValidTime)
+    ThisActor.ModifyMotion().IntegrateMotion(CurrentAge);
     
-    // set time
-    ThisActor.ModifyMotion().ModifyValidTime() += CurrentAge;
-
     // update stealth cycle if actor is stealthed
+    // IMHO, this looks really cool on-screen :)
     if(ThisActor.GetStealth())
         {
         // map 2 to 2PI (6.283185307179586476925286766559 radians)
@@ -303,7 +291,48 @@ void Database::DoMaintenance(void)
 
             // update the actor to current time
             UpdateActorByAge(ThisActor,CurrentAge);
-            }
+            
+            // recalc age so it is delta between current time and network valid time
+            CurrentAge=::Clock.Current();
+            CurrentAge-=ThisActor.GetNet().GetValidTime();
+            
+            // temporarily store network data
+            Motion Net(ThisActor.GetNet());
+            
+            // update to now
+            Net.IntegrateMotion(CurrentAge);
+            
+            // get distance error between where the network sees
+            // this actor and where we see this actor
+            const float DRError=Net.RangeTo(ThisActor.GetMotion());
+
+            // update network: we need to determine whether or not to send this 
+            // actor to the network here
+            if(DRError > DeadReconingThreshold && CurrentAge > MinNetworkTime)
+                {
+                // store temp network back to actor
+                ThisActor.SetNet(Net);
+                
+                // send threshold update to network
+                SendNetworkUpdate(ThisActor,share_opcodes::threshold_update);
+                } // end if DR threshold is violated
+            else if(bFullUpdateRequest)
+                {
+                // store temp network back to actor
+                ThisActor.SetNet(Net);
+
+                // send full update to network
+                SendNetworkUpdate(ThisActor,share_opcodes::full_update);
+                } // end else full update requested
+            else if(CurrentAge > NetworkHeartbeat)
+                {
+                // store temp network back to actor
+                ThisActor.SetNet(Net);
+
+                // send heartbeat update to network
+                SendNetworkUpdate(ThisActor,share_opcodes::heartbeat_update);
+                }
+            } // end else CurrentAge <= MaxAge
 
         } // end for all actors
 
@@ -556,10 +585,23 @@ Database::id_type Database::GetUniqueId
     return(Database::id_type(wb.dword));
 } // end GetUniqueId
 
+void Database::SendNetworkUpdate
+    (
+    const Actor& ThisActor,
+    share_opcodes::c_opcode_t opcode
+    )const
+{
+    // done
+    return;
+} // end SendNetworkUpdate
+
 void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 {
     // lock database
     AutoLock al(DBMutex);
+    
+    // storage for the actor pointer
+    Actor* pa=NULL; // init to NULL in case we don't find it
     
     // handle the message
     switch(msg->GetOpcode())
@@ -580,7 +622,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
             // first, see if we have this actor. The infoid
             // here has already been made unique so we don't have to do that
-            Actor* pa=GetActorById(p->data.infoid);
+            pa=GetActorById(p->data.infoid);
             
             if(!pa)
                 {
@@ -619,7 +661,12 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                     InfoIdMap.insert(infoid_map_value(ThisActor.GetId(),ThisActor.GetInfoId()));
                     }
 
+                // save update time
                 ThisActor.SetLastUpdateTime(::Clock.Current());
+                
+                // save net data to be = to the motion data
+                // we just got
+                ThisActor.SetNet(ThisActor.GetMotion());
 
                 // fire event
                 ActorEvents[DatabaseEvents::ActorCreated](ThisActor);
@@ -647,7 +694,12 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                     pa->SetSurname(std::string(p->data.surname));
                     pa->SetGuild(std::string(p->data.guild));
                     
+                    // save update time
                     pa->SetLastUpdateTime(::Clock.Current());
+
+                    // save net data to be = to the motion data
+                    // we just got
+                    pa->SetNet(pa->GetMotion());
                     } // end if existing actor is old enough to warrant updating
                 } // end else existing actor
             }
@@ -658,11 +710,13 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             const sharemessages::heartbeat_update* p=static_cast<const sharemessages::heartbeat_update*>(msg);
             
             // find the actor
-            Actor* pa=GetActorById(p->data.infoid);
+            pa=GetActorById(p->data.infoid);
             
             if(pa)
                 {
                 // save update time, somebody out there still sees this actor
+                // if the dead reckoning threshold has been violated, we would
+                // have gotten threshold_update instead to update the position.
                 pa->SetLastUpdateTime(::Clock.Current());
                 }
             else
@@ -681,7 +735,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             // the actor has violated the dead reckoning threshold
             // and needs to be updated to the network
             // find the actor
-            Actor* pa=GetActorById(p->data.infoid);
+            pa=GetActorById(p->data.infoid);
             
             if(pa)
                 {
@@ -695,6 +749,9 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 
                 // save update time
                 pa->SetLastUpdateTime(::Clock.Current());
+                
+                // set net to be = to the motion stuff we just got
+                pa->SetNet(pa->GetMotion());
                 }
             else
                 {
@@ -709,7 +766,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             const sharemessages::visibility_update* p=static_cast<const sharemessages::visibility_update*>(msg);
             
             // we get this message when someone needs to update the visibility on this actor
-            Actor* pa=GetActorById(p->data.infoid);
+            pa=GetActorById(p->data.infoid);
             
             if(pa)
                 {
@@ -736,6 +793,14 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             break;
         } // end switch opcode
     
+    // see if we ever found an actor
+    // if so, then set it's network time
+    // to current
+    if(pa)
+        {
+        pa->SetNetTime(::Clock.Current());
+        } // end if pa
+        
     // done
     return;
 } // end HandleShareMessage
@@ -1048,7 +1113,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // delete the actor
             DeleteActor(GetUniqueId(p->detected_region,p->object_id));
 
-            Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
+            //Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
 
             }
             break;

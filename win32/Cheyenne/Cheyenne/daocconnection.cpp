@@ -965,8 +965,8 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case 0x1E:
         case 0x25:
             // these are stealth opcodes according to excalibur
-            Logger << "new stealth opcode " << unsigned int(opcode) << ":\n";
-            PrintPacket(true,true,buffer);
+            //Logger << "new stealth opcode " << unsigned int(opcode) << ":\n";
+            //PrintPacket(true,true,buffer);
             break;
             
         default:
@@ -1440,7 +1440,21 @@ DWORD WINAPI DAOCConnection::ThreadFunc(PVOID context)
 
     _ASSERTE(pMe != NULL);
 
-    return(pMe->Run());
+    try
+        {
+        return(pMe->Run());
+        }
+    catch(std::exception& e)
+        {
+        // exception caught, terminate program
+        ::Logger << "[DAOCConnection::ThreadFunc] caught exception " << e.what() << "\n";
+
+        std::cerr << "[DAOCConnection::ThreadFunc] caught exception " << e.what() << std::endl;
+        std::cerr << "type: " << typeid(e).name() << std::endl;
+        
+        // rethrow
+        throw;
+        }
 } // end ThreadFunc
 
 daocmessages::crypt_and_version* DAOCConnection::ParseCryptAndVersion

@@ -101,8 +101,22 @@ int WINAPI WinMain
     {
     Central* CheyenneCentral=new Central;
 
-    result=CheyenneCentral->Go(hInstance);
-    
+    try
+        {
+        result=CheyenneCentral->Go(hInstance);
+        }
+    catch(std::exception& e)
+        {
+        // exception caught, terminate program
+        ::Logger << "[main] caught exception " << e.what() << "\n";
+
+        std::cerr << "[main] caught exception: " << e.what() << std::endl;
+        std::cerr << "type: " << typeid(e).name() << std::endl;
+        
+        // terminate
+        terminate();
+        }
+
     delete CheyenneCentral;
     }
 

@@ -379,6 +379,10 @@ private:
     
     // mobfinder results
     NarrowIdDef MobfinderResults;
+    
+    // framerate storage, these are conceptually const
+    mutable unsigned long Frames;
+    mutable CheyenneTime FrameMeasureStart;
 
 }; // end Central
 

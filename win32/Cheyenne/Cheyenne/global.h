@@ -101,5 +101,7 @@ template<class container> typename container::value_type::second_type PngBindCon
 }; // end PngBindContainer
 
 std::istream& GetLine(std::istream& is,std::string& str);
+void ToString(const std::wstring& source_wstring,std::string& dest_string);
+void ToWString(const std::string& source_string,std::wstring& dest_wstring);
 
 #endif // GLOBAL_H
