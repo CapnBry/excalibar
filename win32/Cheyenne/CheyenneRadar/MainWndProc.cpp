@@ -212,26 +212,25 @@ void OnRenderActor(const Actor& a)
             break;
         } // end switch on relative CON
     
-    // get preference pointer
-    const ActorRenderPrefs* prefs;
+    // render with preferences
     if(a.GetRealm()==Actor::MOB)
         {
-        prefs=&::RadarConfig.GetPrefsMob();
+        ppi.RenderActor(a,tex,::RadarConfig.GetPrefsMob(),con);        
         }
     else
         {
         if(ReferenceActor.GetRealm()==a.GetRealm())
             {
-            prefs=&::RadarConfig.GetPrefsSameRealm();
+            ppi.RenderActor(a,tex,::RadarConfig.GetPrefsSameRealm(),con);        
             }
         else
             {
-            prefs=&::RadarConfig.GetPrefsEnemyRealm();
+            ppi.RenderActor(a,tex,::RadarConfig.GetPrefsEnemyRealm(),con);        
             }
         }
     
-    // render it
-    ppi.RenderActor(a,tex,*prefs,con);
+    // done
+    return;
 } // end OnRenderActor
 
 void OnMaintenanceUpdate(const Actor& a)
@@ -994,6 +993,8 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
                 std::pair<std::string,unsigned short> server;
                 
                 // populate with existing...
+                server.first=::RadarConfig.GetDStreamServer();
+                server.second=::RadarConfig.GetDStreamServerPort();
                 
                 // open dialog
                 int res=DialogBoxParam
@@ -1028,6 +1029,8 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
                 std::pair<std::string,unsigned short> server;
                 
                 // populate with existing...
+                server.first=::RadarConfig.GetSharenetServer();
+                server.second=::RadarConfig.GetSharenetServerPort();
                 
                 // open dialog
                 int res=DialogBoxParam

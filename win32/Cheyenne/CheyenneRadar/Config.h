@@ -21,8 +21,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // we have to define NOMINMAX so that the stupid windows header files do 
 // not make macros out of min and max :-/
 #define NOMINMAX
-//#include "..\Utils\CodeUtils.h" // for DECL_MEMBER
-//#include "..\GLPPI\GLPPI.h" // for actor render prefs
 class Config
 {
 public:
@@ -50,4 +48,16 @@ private:
     DECL_MEMBER(bool,ShowHibs);
     DECL_MEMBER(bool,ShowMids);
     DECL_MEMBER(bool,ShowMobs);
+    DECL_MEMBER(std::string,DStreamServer);
+    DECL_MEMBER(unsigned short,DStreamServerPort);
+    DECL_MEMBER(std::string,SharenetServer);
+    DECL_MEMBER(unsigned short,SharenetServerPort);
+    DECL_MEMBER(std::string,NewAlbSound);
+    DECL_MEMBER(bool,PlayAlbSound);
+    DECL_MEMBER(std::string,NewHibSound);
+    DECL_MEMBER(bool,PlayHibSound);
+    DECL_MEMBER(std::string,NewMidSound);
+    DECL_MEMBER(bool,PlayMidSound);
+    DECL_MEMBER(std::string,NamedMobSound);
+    DECL_MEMBER(bool,PlayNamedMobSound);
 }; // end Config

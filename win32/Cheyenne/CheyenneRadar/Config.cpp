@@ -44,6 +44,18 @@ Config::Config()
     SetShowHibs(true);
     SetShowMids(true);
     SetShowMobs(true);
+    SetDStreamServer("<no server>");
+    SetDStreamServerPort(9867);
+    SetSharenetServer("<no server>");
+    SetSharenetServerPort(10001);
+    SetNewAlbSound("<no sound>");
+    SetPlayAlbSound(false);
+    SetNewHibSound("<no sound>");
+    SetPlayHibSound(false);
+    SetNewMidSound("<no sound>");
+    SetPlayMidSound(false);
+    SetNamedMobSound("<no sound>");
+    SetPlayNamedMobSound(false);
     
 } // end Config
 
@@ -86,7 +98,19 @@ bool Config::Load(const std::string& filename)
          >> ModifyShowAlbs() >> std::ws
          >> ModifyShowHibs() >> std::ws
          >> ModifyShowMids() >> std::ws
-         >> ModifyShowMobs() >> std::ws;
+         >> ModifyShowMobs() >> std::ws
+         >> ModifyDStreamServer() >> std::ws
+         >> ModifyDStreamServerPort() >> std::ws
+         >> ModifySharenetServer() >> std::ws
+         >> ModifySharenetServerPort() >> std::ws
+         >> ModifyNewAlbSound() >> std::ws
+         >> ModifyPlayAlbSound() >> std::ws
+         >> ModifyNewHibSound() >> std::ws
+         >> ModifyPlayHibSound() >> std::ws
+         >> ModifyNewMidSound() >> std::ws
+         >> ModifyPlayMidSound() >> std::ws
+         >> ModifyNamedMobSound() >> std::ws
+         >> ModifyPlayNamedMobSound() >> std::ws;
     
     // done
     return(true);
@@ -112,7 +136,19 @@ bool Config::Save(const std::string& filename)const
          << GetShowAlbs() << std::endl
          << GetShowHibs() << std::endl
          << GetShowMids() << std::endl
-         << GetShowMobs() << std::endl;
+         << GetShowMobs() << std::endl
+         << (GetDStreamServer().length()? GetDStreamServer():"<no server>") << std::endl
+         << GetDStreamServerPort() << std::endl
+         << (GetSharenetServer().length()? GetSharenetServer():"<no server>") << std::endl
+         << GetSharenetServerPort() << std::endl
+         << (GetNewAlbSound().length()? GetNewAlbSound():"<no sound>") << std::endl
+         << GetPlayAlbSound() << std::endl
+         << (GetNewHibSound().length()? GetNewHibSound():"<no sound>") << std::endl
+         << GetPlayHibSound() << std::endl
+         << (GetNewMidSound().length()? GetNewMidSound():"<no sound>") << std::endl
+         << GetPlayMidSound() << std::endl
+         << (GetNamedMobSound().length()? GetNamedMobSound():"<no sound>") << std::endl
+         << GetPlayNamedMobSound() << std::endl;
     
     // done
     return(true);
@@ -131,5 +167,17 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(ShowHibs);
     MEMBER_ASSIGN(ShowMids);
     MEMBER_ASSIGN(ShowMobs);
+    MEMBER_ASSIGN(DStreamServer);
+    MEMBER_ASSIGN(DStreamServerPort);
+    MEMBER_ASSIGN(SharenetServer);
+    MEMBER_ASSIGN(SharenetServerPort);
+    MEMBER_ASSIGN(NewAlbSound);
+    MEMBER_ASSIGN(PlayAlbSound);
+    MEMBER_ASSIGN(NewHibSound);
+    MEMBER_ASSIGN(PlayHibSound);
+    MEMBER_ASSIGN(NewMidSound);
+    MEMBER_ASSIGN(PlayMidSound);
+    MEMBER_ASSIGN(NamedMobSound);
+    MEMBER_ASSIGN(PlayNamedMobSound);
 
 } // end set
