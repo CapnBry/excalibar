@@ -34,7 +34,7 @@ type
   TChatMessageEvent = procedure (Sender: TObject; const AWho, AMsg: string) of Object;
   TVersionEvent = procedure (Sender: TObject; AMajor, AMinor, ARelease: BYTE) of Object;
   TCurrencyChangeEvent = procedure (Sender: TObject; AReason: TDAOCCurrencyChangeReason;
-    ADeltaAsCopper: integer) of object; 
+    ADeltaAsCopper: integer) of object;
 
   TAccountCharInfo = class(TObject)
   private
@@ -144,6 +144,7 @@ type
     FOnRealmPointsChanged: TIntegerEvent;
     FOnLocalHealthUpdate: TNotifyEvent;
     FOnGroupMembersChanged: TNotifyEvent;
+    FOnDoorPositionUpdate: TDAOCObjectNotify;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -166,6 +167,9 @@ type
     procedure SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
     procedure UpdateRealmRank(AObj: TDAOCPlayer);
     procedure SetAggressorTarget(AAggressor: TDAOCObject; wTargetID: WORD);
+    procedure OBJWALKResetGroup(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
+    procedure OBJWALKResetGuild(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
+    procedure OBJWALKRemoveTarget(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -238,6 +242,7 @@ type
     procedure ParseDelveRequest(pPacket: TDAOCPacket);
     procedure ParseDelveInformation(pPacket: TDAOCPacket);
     procedure ParseVendorWindowRequest(pPacket: TDAOCPacket);
+    procedure ParseDoorPositionUpdate(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -286,7 +291,8 @@ type
     procedure DoOnVendorWindowRequest(AMob: TDAOCMob); virtual;
     procedure DoOnLocalHealthUpdate; virtual;
     procedure DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem); virtual;
-    procedure DoOnGroupMembersChanged; virtual; 
+    procedure DoOnGroupMembersChanged; virtual;
+    procedure DoOnDoorPositionUpdate(AObj: TDAOCObject); virtual; 
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -362,6 +368,7 @@ type
     property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
     property OnDelveItem: TDAOCInventoryItemNotify read FOnDelveItem write FOnDelveItem;
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
+    property OnDoorPositionUpdate: TDAOCObjectNotify read FOnDoorPositionUpdate write FOnDoorPositionUpdate;
     property OnGroupMembersChanged: TNotifyEvent read FOnGroupMembersChanged write FOnGroupMembersChanged;
     property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
     property OnLocalHealthUpdate: TNotifyEvent read FOnLocalHealthUpdate write FOnLocalHealthUpdate;
@@ -839,6 +846,7 @@ begin
     $14:  ParseAggroIndicator(pPacket);
     $1f:  ParseSetPlayerRegion(pPacket);
     $29:  ParsePopupMessage(pPacket);
+    $31:  ParseDoorPositionUpdate(pPacket);
     $36:  ParseRegionServerInfomation(pPacket);
     $49:  ParseCharacterStealthed(pPacket);
     $52:  ParseMoneyUpdate(pPacket);
@@ -1352,6 +1360,8 @@ begin
           Y := pPacket.getLong;
           pPacket.seek(4);
           Name := pPacket.getPascalString;
+          if pPacket.getByte = 4 then
+            DoorID := pPacket.getLong;
         end;  { with TDAOCObject }
       end;  { ocObject }
 
@@ -1797,13 +1807,13 @@ var
 begin
   pPacket.HandlerName := 'DeleteObject';
   wID := pPacket.getShort;
-  
+
   pObj := FDAOCObjs.FindByInfoID(wID);
   if Assigned(pObj) then begin
     DoOnDeleteDAOCObject(pObj);
     FDAOCObjs.Delete(pObj);
   end
-  
+
   else begin
     pObj := FDAOCObjsStale.FindByInfoID(wID);
     if Assigned(pObj) then
@@ -1813,19 +1823,17 @@ end;
 
 procedure TDAOCConnection.DoOnDeleteDAOCObject(AObject: TDAOCObject);
 var
-  pObj: TDAOCObject;
+  iIdx:   integer;
 begin
-  pObj := FDAOCObjs.Head;
-    { make sure nobody still has this poor fella as a target }
-  while Assigned(pObj) do begin
-    if (pObj is TDAOCMob) and
-      (TDAOCMob(pObj).Target = AObject) then begin
-      TDAOCMob(pObj).Target := nil;
-      DoOnMobTargetChanged(TDAOCMob(pObj));
-    end;
+  FDAOCObjs.WalkList(OBJWALKRemoveTarget, Integer(AObject));
 
-    pObj := pObj.Next;
-  end;  { while pObj }
+    { make sure we don't have them in our group list }
+  iIdx := FGroupMembers.IndexOf(AObject);
+  if iIdx <> -1 then begin
+    TDAOCPlayer(AObject).IsInGroup := false;
+    FGroupMembers.Delete(iIdx);
+    DoOnGroupMembersChanged;
+  end;
 
   if Assigned(FOnDeleteDAOCObject) then
     FOnDeleteDAOCObject(Self, AObject);
@@ -2392,26 +2400,13 @@ begin
 end;
 
 procedure TDAOCConnection.UpdatePlayersInGuild;
-var
-  pObj: TDAOCObject;
 begin
-  pObj := FDAOCObjs.Head;
-  while Assigned(pObj) do begin
-    if pObj.ObjectClass = ocPlayer then
-      TDAOCPlayer(pObj).IsInGuild := (FLocalPlayer.Guild <> '') and
-        AnsiSameText(TDAOCPlayer(pObj).Guild, FLocalPlayer.Guild);
-    pObj := pObj.Next;
-  end;
+  FDAOCObjs.WalkList(OBJWALKResetGuild);
 end;
 
 procedure TDAOCConnection.ResetPlayersInGroup;
-var
-  I:  integer;
 begin
-  for I := 0 to FGroupMembers.Count - 1 do begin
-      TDAOCPlayer(FGroupMembers[I]).IsInGroup := false;
-      TDAOCPlayer(FGroupMembers[I]).ManaPct := 0;
-  end;
+  FDAOCObjs.WalkList(OBJWALKResetGroup);
   FGroupMembers.Clear;
 end;
 
@@ -2671,6 +2666,62 @@ procedure TDAOCConnection.DoOnGroupMembersChanged;
 begin
   if Assigned(FOnGroupMembersChanged) then
     FOnGroupMembersChanged(Self);
+end;
+
+procedure TDAOCConnection.ParseDoorPositionUpdate(pPacket: TDAOCPacket);
+var
+  pObj:   TDAOCObject;
+  dwDoor: Cardinal;
+  bState: Boolean;
+begin
+  pPacket.HandlerName := 'DoorPositionUpdate';
+  dwDoor := pPacket.getLong;
+  bState := pPacket.getByte = 1;
+
+  pObj := FDAOCObjs.Head;
+  while Assigned(pObj) do begin
+    if pObj.DoorID = dwDoor then begin
+      pObj.DoorIsOpen := bState;
+      DoOnDoorPositionUpdate(pObj);
+      exit;
+    end;
+    pObj := pObj.Next;
+  end;
+
+  Log('DoorUpdate for unknown door ' + IntToHex(dwDoor, 8));
+end;
+
+procedure TDAOCConnection.OBJWALKResetGroup(AObj: TDAOCObject; AParam: Integer;
+  var AContinue: boolean);
+begin
+  if AObj.ObjectClass = ocPlayer then begin
+    TDAOCPlayer(AObj).IsInGroup := false;
+    TDAOCPlayer(AObj).ManaPct := 0;
+  end;
+end;
+
+procedure TDAOCConnection.OBJWALKResetGuild(AObj: TDAOCObject; AParam: Integer;
+  var AContinue: boolean);
+begin
+  if AObj.ObjectClass = ocPlayer then
+    TDAOCPlayer(AObj).IsInGuild := (FLocalPlayer.Guild <> '') and
+      AnsiSameText(TDAOCPlayer(AObj).Guild, FLocalPlayer.Guild);
+end;
+
+procedure TDAOCConnection.OBJWALKRemoveTarget(AObj: TDAOCObject;
+  AParam: Integer; var AContinue: boolean);
+{ AParam is the target we want to remove from everyone, cast to an int }
+begin
+  if (AObj is TDAOCMob) and (TDAOCMob(AObj).Target = TDAOCObject(AParam)) then begin
+    TDAOCMob(AObj).Target := nil;
+    DoOnMobTargetChanged(TDAOCMob(AObj));
+  end;
+end;
+
+procedure TDAOCConnection.DoOnDoorPositionUpdate(AObj: TDAOCObject);
+begin
+  if Assigned(FOnDoorPositionUpdate) then
+    FOnDoorPositionUpdate(Self, AObj);
 end;
 
 end.
