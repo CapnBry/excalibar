@@ -182,4 +182,4 @@ protected:
 
 private:
     Central& central;
-}; // end class MaintenanceIntervalDoneFunctor
+}; // end class SharenetMessageFunctor
