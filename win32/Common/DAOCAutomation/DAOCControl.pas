@@ -226,6 +226,7 @@ type
     function NodeClosestToPlayerPos : TMapNode;
     function ConnectedNodeClosestToPlayerPos : TMapNode;
     procedure TradeskillContinueProgression;
+    procedure TradeskillStartProgression;
     function LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
     function LaunchCharacterIdx(AIndex: integer) : boolean;
 
@@ -1603,6 +1604,12 @@ end;
 procedure TDAOCControl.NodeSaveW(const bsFileName: WideString);
 begin
   FMapNodes.SaveToFile(bsFileName);
+end;
+
+procedure TDAOCControl.TradeskillStartProgression;
+begin
+  FTradeSkillProgressionIdx := 1;
+  TradeskillContinueProgression;
 end;
 
 initialization
