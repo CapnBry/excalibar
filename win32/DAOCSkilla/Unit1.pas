@@ -419,8 +419,8 @@ begin
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
-    FConnection.DAOCPath := ReadString('Main', 'DAOCPath', '');
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 7000);
+    FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 6000);
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
