@@ -3,6 +3,13 @@
   + Added WINPCAP define to enable / disable packet sniffing.
   + DaocSkilla compiled with no DAOC_AUTO_SERVER or WINPCAP defined
     will now run on Linux under wine.
+  + Added DELVEseen log for item descriptions to debugging dialog.
+  + Added line, polygon, and point smoothing render options.
+  + Fix for restting InGuild designation on a group member update,
+    thanks to neutronx01.
+  + Moved realm rank information to file to allow localization.
+  + Added option to disable the remote control server from the
+    connection settings dialog.
   
 2003 Nov 20 - v1.64
 -------------------
