@@ -644,7 +644,7 @@ void exConnection::parseSystemMessage (exPacket *p)
     // Insert it into the ALL tab
     tab = msgui->tabWidget->page( 0);
     textbox = (QTextEdit*)tab->childAt( 10, 10);
-    textbox->append( QString( "[%1 : %2 : %3] %4").arg( msg->getMsgType()).arg( opCode).arg( typeCode).arg(msg->getFormattedText()));
+    textbox->append( QString( "[%1] %2").arg( msg->getMsgType()).arg(msg->getFormattedText()));
 
 	for( int x = 1; x < msgui->tabWidget->count(); x++)
 		{
