@@ -311,11 +311,16 @@ void OnDeleteActor(const Actor& a)
         {
         HookedSet=false;
         }
+    
+    if(a.GetInfoId()==ReferenceTarget.GetInfoId())
+        {
+        ReferenceTargetSet=false;
+        }
 } // end OnDeleteActor
 void OnReassignActor(const Actor& a){};
 void OnMaintenanceIntervalDone(void){};
 void OnSharenetMessage(const void* p,const unsigned int len){sharenet.QueueOutputMessage(p,len);};
-void OnDatabaseReset(void){ReferenceSet=false;HookedSet=false;};
+void OnDatabaseReset(void){ReferenceSet=false;HookedSet=false;ReferenceTargetSet=false;};
 bool ConfigPreventsRendering(const Actor& a)const
 {
     // things that can prevent rendering:
