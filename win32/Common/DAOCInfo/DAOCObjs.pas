@@ -166,10 +166,13 @@ type
   end;
 
   TDAOCPlayer = class(TDAOCMovingObject)
+  private
   protected
     FGuild: string;
     FLastName:  string;
     FFullName:  string;
+    FIsInGuild: boolean;
+    FIsInGroup: boolean;
     FCharacterClass:  TDAOCCharacterClass;
     procedure UpdateFullName;
     procedure SetName(const Value: string); override;
@@ -182,6 +185,8 @@ type
     procedure CheckStale; override;
     procedure InventoryChanged; override;
 
+    property IsInGuild: boolean read FIsInGuild write FIsInGuild;
+    property IsInGroup: boolean read FIsInGroup write FIsInGroup;
     property Guild: string read FGuild write FGuild;
     property LastName: string read FLastName write SetLastName;
     property FullName: string read FFullName;
@@ -208,6 +213,7 @@ type
 
   TDAOCLocalPlayer = class(TDAOCMovingObject)
   private
+    function GetFullName: string;
   protected
     FSkills:    TDAOCNameValueList;
     FSpecializations: TDAOCNameValueList;
@@ -215,6 +221,14 @@ type
     FSpells:    TDAOCNameValueList;
     FStyles:    TDAOCNameValueList;
     FCurrency:  TDAOCCurrency;
+    FBaseClass: string;
+    FRace:      string;
+    FHouseTitle:  string;
+    FGuild:     string;
+    FLastName:  string;
+    FRealmTitle:  string;
+    FHouse:     string;
+    FPlayerClassStr:  string;
     function GetObjectClass : TDAOCObjectClass; override;
   public
     constructor Create; override;
@@ -223,7 +237,16 @@ type
     procedure Clear; override;
 
     property Abilities: TDAOCNameValueList read FAbilities;
+    property BaseClass: string read FBaseClass write FBaseClass;
     property Currency: TDAOCCurrency read FCurrency;
+    property FullName: string read GetFullName;
+    property Guild: string read FGuild write FGuild;
+    property House: string read FHouse write FHouse;
+    property HouseTitle: string read FHouseTitle write FHouseTitle;
+    property LastName: string read FLastName write FLastName;
+    property PlayerClassStr: string read FPlayerClassStr write FPlayerClassStr;
+    property Race: string read FRace write FRace;
+    property RealmTitle: string read FRealmTitle write FRealmTitle;
     property Skills: TDAOCNameValueList read FSkills;
     property Specializations: TDAOCNameValueList read FSpecializations;
     property Spells: TDAOCNameValueList read FSpells;
@@ -243,7 +266,7 @@ uses
 
 const
   SPEED_1X = 191;
-  
+
 function DWORDDelta(A, B: DWORD) : DWORD;
 begin
   if A > B then
@@ -745,6 +768,14 @@ begin
   FSpells.Clear;
   FStyles.Clear;
   FCurrency.Clear;
+  FPlayerClassStr := '';
+  FBaseClass := '';
+  FRace := '';
+  FHouseTitle := '';
+  FGuild := '';
+  FLastName := '';
+  FRealmTitle := '';
+  FHouse := '';
 end;
 
 constructor TDAOCLocalPlayer.Create;
@@ -771,6 +802,13 @@ begin
   FSpecializations.Free;
 
   inherited Destroy;
+end;
+
+function TDAOCLocalPlayer.GetFullName: string;
+begin
+  Result := FName;
+  if FLastName <> '' then
+    Result := Result + ' ' + FLastName;
 end;
 
 function TDAOCLocalPlayer.GetObjectClass: TDAOCObjectClass;
