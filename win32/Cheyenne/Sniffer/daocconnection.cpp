@@ -1245,7 +1245,7 @@ daocmessages::mob_pos_update* DAOCConnection::ParseMobPosUpdate
         // get id
         GetData(msg->mob_id,ndx,buffer);
 
-        // skip
+        // skip (mob target id is here)
         SkipData(ndx,2);
 
         // get health
@@ -1399,8 +1399,8 @@ daocmessages::mob_identity* DAOCConnection::ParseMobIdentity
     // get id
     GetData(msg->mob_id,ndx,buffer);
 
-    // skip unused
-    SkipData(ndx,2);
+    // get speed
+    GetData(msg->speed,ndx,buffer);
 
     // get heading
     GetData(msg->heading,ndx,buffer);
