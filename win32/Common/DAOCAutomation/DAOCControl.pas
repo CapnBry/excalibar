@@ -81,9 +81,17 @@ type
     FTradeSkillOddsloadKey: string;
     FTradeSkillOddsloadPct: integer;
     FTrackCharacterLogins:  boolean;
+    FSelectNPCInfoID:       WORD;
+    FSelectNPCCount:        integer;
     FQuickLaunchChars:      TQuickLaunchCharList;
     FTradeRecipes:  TUniversalRecipeCollection;
-    
+    FOnSelectNPCSuccess: TNotifyEvent;
+    FOnSelectNPCFailed: TNotifyEvent;
+    FKeyQuickSell: string;
+    FKeySelectFriendly: string;
+    FTurnUsingFaceLoc: boolean;
+    FAttemptingNPCRightClick: boolean;
+
     function BearingToDest: integer;
     procedure SetArrowDown(const Value: boolean);
     procedure SetArrowLeft(const Value: boolean);
@@ -100,6 +108,7 @@ type
     procedure SetTradeSkillProgression(const Value: string);
     function GetTradeRecipes: TUniversalRecipeCollection;
     procedure InternalTradeskillFailure;
+    procedure NPCRightClickCallback(Sender: TObject; ALastY: Cardinal);
   protected
     procedure DoTurntoDest(AMaxTurnTime: integer);
     function PlayerToHeadingDelta(AHead: integer) : integer;
@@ -150,6 +159,9 @@ type
     procedure DoOnSelectedObjectChanged(AObject: TDAOCObject); override;
     procedure DoOnCombatStyleSuccess(AStyle: string); override;
     procedure DoOnCombatStyleFailure; override;
+    procedure DoOnVendorWindowRequest(AMob: TDAOCMob); override; 
+    procedure DoOnSelectNPCFailed; virtual;
+    procedure DoOnSelectNPCSuccess; virtual;
 
 {$IFDEF DAOC_AUTO_SERVER}
     function GetClassTypeInfo: ITypeInfo;
@@ -229,6 +241,8 @@ type
     procedure TradeskillStartProgression;
     function LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
     function LaunchCharacterIdx(AIndex: integer) : boolean;
+    procedure SelectNPC(const ANPCName: string);
+    procedure AttemptNPCRightClick;
 
       { read-only props }
     property TurnRate: integer read FTurnRate;
@@ -246,6 +260,7 @@ type
     property GotoDistTolerance: integer read FGotoDistTolerance write FGotoDistTolerance;
     property ForceStationaryTurnDegrees: integer read FForceStationaryTurnDegrees
       write FForceStationaryTurnDegrees;
+    property TurnUsingFaceLoc: boolean read FTurnUsingFaceLoc write FTurnUsingFaceLoc;
     property TradeSkillProgression: string read FTradeSkillProgression write SetTradeSkillProgression;
     property TradeSkillStopIfFull: boolean read FTradeSkillStopIfFull write FTradeSkillStopIfFull;
     property TradeSkillTargetQuality: integer read FTradeSkillTargetQuality write FTradeSkillTargetQuality;
@@ -260,10 +275,15 @@ type
     property ArrowLeft: boolean read FArrowLeft write SetArrowLeft;
     property ArrowRight: boolean read FArrowRight write SetArrowRight;
     property AutomationMode: TAutomationMode read FAutomationMode write SetAutomationMode;
+      { Keys }
+    property KeyQuickSell: string read FKeyQuickSell write FKeyQuickSell;  
+    property KeySelectFriendly: string read FKeySelectFriendly write FKeySelectFriendly;
       { Events }
     property OnArriveAtGotoDest: TNotifyEvent read FOnArriveAtGotoDest write FOnArriveAtGotoDest;
     property OnPathChanged: TNotifyEvent read FOnPathChanged write FOnPathChanged;
-    property OnStopAllActions: TNotifyEvent read FOnStopAllActions write FOnStopAllActions; 
+    property OnStopAllActions: TNotifyEvent read FOnStopAllActions write FOnStopAllActions;
+    property OnSelectNPCFailed: TNotifyEvent read FOnSelectNPCFailed write FOnSelectNPCFailed;
+    property OnSelectNPCSuccess: TNotifyEvent read FOnSelectNPCSuccess write FOnSelectNPCSuccess;
 
 {$IFDEF DAOC_AUTO_SERVER}
     property ClassTypeInfo: ITypeInfo read GetClassTypeInfo;
@@ -277,6 +297,7 @@ uses
 
 const
   TURNRATE_CAL_COUNT = 5;
+  NPC_RIGHT_CLICK_DIV = 15;
 
 function W2K_SetForegroundWindow(hWndToForce : HWND) : Boolean;
 var
@@ -356,7 +377,7 @@ begin
 
   if hFore = FDAOCHWND then
     SndKey32.SendKeys(PChar(S), false)
-  else
+  else 
     for I := 1 to Length(S) do begin
       SendOneKeyNoFocus(S[I]);
       sleep(10);
@@ -430,8 +451,12 @@ constructor TDAOCControl.Create;
 begin
   inherited Create;
 
+  FKeySelectFriendly := '[f9]';
+  FKeyQuickSell := '[f2]';
+
   FTurnRate := 700;
   FForceStationaryTurnDegrees := 50;
+  FTurnUsingFaceLoc := false;
 
   FLastPlayerPos := TDAOCMovingObject.Create;
   FMapNodes := TMapNodeList.Create;
@@ -711,7 +736,13 @@ end;
 
 procedure TDAOCControl.DoTurntoDest(AMaxTurnTime: integer);
 begin
-  SetPlayerHeading(BearingToDest, AMaxTurnTime);
+  if Assigned(Zone) and FTurnUsingFaceLoc then 
+    DoSendKeys(Format('/faceloc %d %d[cr]', [
+      Zone.WorldToZoneX(FDestGotoNode.X),
+      Zone.WorldToZoneY(FDestGotoNode.Y)
+      ]))
+  else
+    SetPlayerHeading(BearingToDest, AMaxTurnTime);
 end;
 
 function TDAOCControl.BearingToDest: integer;
@@ -1313,6 +1344,24 @@ procedure TDAOCControl.DoOnSelectedObjectChanged(AObject: TDAOCObject);
 begin
   inherited;
 
+    { see if we're in a selectNPC loop }
+  if FSelectNPCInfoID <> 0 then begin
+    if FSelectNPCInfoID = SelectedID then
+      DoOnSelectNPCSuccess
+
+      { only count the selected, not the deselects }
+    else if SelectedID <> 0 then begin
+      inc(FSelectNPCCount);
+
+        { if this is more than the first person selected and it is us again
+          then we've gone around the horn and not found our guy }
+      if (FSelectNPCCount > 1) and (SelectedID = LocalPlayer.InfoID) then
+        DoOnSelectNPCFailed
+      else
+        DoSendKeys(KeySelectFriendly);
+    end;
+  end;  { if selecting NPC }
+
 {$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnSelectedObjectChanged;
@@ -1610,6 +1659,70 @@ procedure TDAOCControl.TradeskillStartProgression;
 begin
   FTradeSkillProgressionIdx := 1;
   TradeskillContinueProgression;
+end;
+
+procedure TDAOCControl.SelectNPC(const ANPCName: string);
+var
+  pObj:   TDAOCObject;
+begin
+  pObj := DAOCObjects.FindByName(ANPCName);
+  if not Assigned(pObj) then begin
+    DoOnSelectNPCFailed;
+    exit;
+  end;
+
+  Log('SelectNPC: Trying to select [' + ANPCName + ']');
+  FSelectNPCInfoID := pObj.InfoID;
+  FSelectNPCCount := 0;
+
+    { start by selecting nothing }
+  DoSendKeys('[esc]');
+  sleep(200);
+
+    { start the process! The LPARAM will hold the first NPC we select }
+  DoSendKeys(FKeySelectFriendly);
+end;
+
+procedure TDAOCControl.DoOnSelectNPCFailed;
+begin
+  Log('SelectNPC: failed');
+  if Assigned(FOnSelectNPCFailed) then
+    FOnSelectNPCFailed(Self);
+  FSelectNPCInfoID := 0;
+end;
+
+procedure TDAOCControl.DoOnSelectNPCSuccess;
+begin
+  Log('SelectNPC: success');
+  if Assigned(FOnSelectNPCSuccess) then
+    FOnSelectNPCSuccess(Self);
+  FSelectNPCInfoID := 0;
+end;
+
+procedure TDAOCControl.AttemptNPCRightClick;
+begin
+  FAttemptingNPCRightClick := true;
+  NPCRightClickCallback(Self, 0);
+end;
+
+procedure TDAOCControl.DoOnVendorWindowRequest(AMob: TDAOCMob);
+begin
+  inherited;
+  FAttemptingNPCRightClick := false;
+end;
+
+procedure TDAOCControl.NPCRightClickCallback(Sender: TObject; ALastY: Cardinal);
+var
+  R:    TRect;
+begin
+  if FAttemptingNPCRightClick then begin
+    UpdateDAOCWindowHnd;
+    if GetWindowRect(FDAOCHWND, R) then begin
+      inc(ALastY, (R.Bottom - R.Top) div NPC_RIGHT_CLICK_DIV);
+      RightClick((R.Right - R.Left) div 2, ALastY);
+      ScheduleCallback(500, NPCRightClickCallback, ALastY);
+    end
+  end;  { if still clicking }
 end;
 
 initialization

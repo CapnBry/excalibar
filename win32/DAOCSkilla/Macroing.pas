@@ -55,6 +55,7 @@ type
     procedure DAOCStopAllActions;
     procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
     procedure DAOCArriveAtGotoDest;
+    procedure DAOCSelectNPCSuccess;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -198,7 +199,7 @@ begin
     pWnd.SelectInventoryItem(pFirstItem.BagItemIndex);
     pWnd.Free;
     sleep(500);
-    FDControl.DoSendKeys('[f2]');
+    FDControl.DoSendKeys(FDControl.KeyQuickSell);
     FInSellOff := iCnt > 0;
     exit;
   end;
@@ -227,6 +228,9 @@ begin
   if frmPowerskill.Visible then begin
     frmPowerskill.ExecutePurchases;
 
+    if FPSItemList.AutoDeselectMerchant then
+      FDControl.DoSendKeys('[esc]');
+      
     if frmPowerskill.KeepBuying and IsAtMerchantNode then
       FDControl.PathToNodeName(FPSItemList.ForgeNodeName);
   end
@@ -360,9 +364,6 @@ begin
   Log('I am at the forge');
 
   if frmPowerskill.Visible then begin
-    if FPSItemList.AutoDeselectMerchant then
-      FDControl.DoSendKeys('[esc]');
-
     if FPSItemList.AutoQuickbarSlot <> 0 then begin
       frmPowerskill.RecipeToQuickbar(FPSItemList.AutoQuickbarSlot);
       frmMacroTradeSkills.Progression := IntToStr(FPSItemList.AutoQuickbarSlot);
@@ -377,7 +378,12 @@ end;
 
 procedure TfrmMacroing.ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
 begin
+  if not Visible then
+    exit;
+    
   Log('I am at the merchant');
+  if frmPowerskill.Visible then
+    frmPowerskill.SelectItemMaterialMerchant;
 end;
 
 procedure TfrmMacroing.OpenMacroTradeSkillWindow;
@@ -434,6 +440,12 @@ begin
   else
       { if autosell isn't going, then kick off the autobuy }
     DoAutoBuy;
+end;
+
+procedure TfrmMacroing.DAOCSelectNPCSuccess;
+begin
+  FDControl.DoSendKeys('/stick');
+  FDControl.AttemptNPCRightClick;
 end;
 
 end.
