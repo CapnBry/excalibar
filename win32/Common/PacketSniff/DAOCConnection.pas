@@ -1110,14 +1110,17 @@ begin
       DoOnDAOCObjectMoved(pDAOCObject);
   end  { if Assigned pDAOCObject }
 
-  else begin
-    if Assigned(pDAOCObject) then
-      Log('MobUpdate: MobByInfoID 0x' + IntToHex(wID, 4) + ' is not a moving object: ' + pDAOCObject.Name)
-    else begin
-      pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
-      if Assigned(pDAOCObject) then
-        Log('MobUpdate: MOB by InfoID 0x' + IntToHex(wID, 4) + ' is in playerid list, not infoid list.  Type: ' + DAOCObjectClassToStr(pDAOCObject.ObjectClass));
-    end;
+  else if Assigned(pDAOCObject) then begin
+    pPacket.seek(2);
+    pDAOCObject.HitPoints := pPacket.getByte;
+      { TODO: Should notify of hitpoint update }
+//    if Assigned(pDAOCObject) then
+//      Log('MobUpdate: MobByInfoID 0x' + IntToHex(wID, 4) + ' is not a moving object: ' + pDAOCObject.Name)
+//    else begin
+//      pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
+//      if Assigned(pDAOCObject) then
+//        Log('MobUpdate: MOB by InfoID 0x' + IntToHex(wID, 4) + ' is in playerid list, not infoid list.  Type: ' + DAOCObjectClassToStr(pDAOCObject.ObjectClass));
+//    end;
   end;
 end;
 
@@ -1246,7 +1249,7 @@ begin
           pPacket.seek(5);  //+10  sign-extended, stored as float
                             //+12  and ah 3
                             //+14  if !0 store 2x value instead of 0x64
-          Level := pPacket.getByte; //+15
+          Level := pPacket.getByte;  //+15
           pPacket.getByte;  //+16  bittest 0, 1, 2, 4, 8, c0
           pPacket.getByte;  //+17  shl 2
           Name := pPacket.getPascalString;//+18
