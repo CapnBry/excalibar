@@ -171,6 +171,7 @@ type
     constructor Create(AWndManager: TDAOCWindowManager); override;
     procedure Buy;
     procedure BuyMultiple(AQuantity: integer);
+    function MBuyQuantity(ACountNeeded, AVendorQuantity: integer) : integer;
   end;
 
   TQuickbarOrientation = (qboVertical, qboHorizontal, qboClosed);
@@ -502,13 +503,26 @@ procedure TVendorWindow.BuyMultiple(AQuantity: integer);
   of 20, and you BuyMultiple 20, you're gonna get 400.
   Also, you need to select the icon using SelectItemIcon, not SelectItem ***)
 begin
-  if not FLastSelectWasIcon then 
+  if not FLastSelectWasIcon then
     SelectItemIcon(FItem);
   DoSendKeys('/mbuy ' + IntToStr(AQuantity) + '[cr]');
 
     { since /mbuy resets the selection (icon) }
   FLastSelectWasIcon := false;
 end;
+
+function TVendorWindow.MBuyQuantity(ACountNeeded, AVendorQuantity: integer) : integer;
+begin
+  if ACountNeeded = 0 then
+    Result := 0
+  else
+    Result := (ACountNeeded + AVendorQuantity - 1) div AVendorQuantity;
+
+    { can only buy 100 at a time }
+  if Result > 100 then
+    Result := 100;
+end;
+
 
 { TTradeRecipeWindow }
 

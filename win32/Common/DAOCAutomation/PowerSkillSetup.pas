@@ -60,7 +60,6 @@ type
     procedure SetAutoAdvance(const Value: boolean);
     procedure SetProfile(const Value: string);
     procedure UpdateCurrentSkillLevel;
-    function MBuyQuantity(ACountNeeded, AVendorQuantity: integer): integer;
   public
     procedure ExecutePurchases;
     procedure SelectItemForSkill;
@@ -182,18 +181,6 @@ begin
     Result := nil;
 end;
 
-function TfrmPowerSkill.MBuyQuantity(ACountNeeded, AVendorQuantity: integer) : integer;
-begin
-  if ACountNeeded = 0 then
-    Result := 0
-  else
-    Result := (ACountNeeded + AVendorQuantity - 1) div AVendorQuantity;
-    
-    { can only buy 100 at a time }
-  if Result > 100 then
-    Result := 100;
-end;
-
 procedure TfrmPowerskill.ExecutePurchases;
 var
   I:      integer;
@@ -224,7 +211,7 @@ begin
         dec(iCountNeeded, iCountHeld);
 
         if iCountNeeded > 0 then begin
-          iMBuyQuantity := MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
+          iMBuyQuantity := pVendorWnd.MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
           bShouldMBuy := FPSItemList.UseMBuy and (iMBuyQuantity > 1);
 
           pVendorWnd.SetPage(pVendorItem.Page, true);
@@ -236,7 +223,7 @@ begin
             if bShouldMBuy then begin
               pVendorWnd.BuyMultiple(iMBuyQuantity);
               dec(iCountNeeded, iMBuyQuantity * pVendorItem.Quantity);
-              iMBuyQuantity := MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
+              iMBuyQuantity := pVendorWnd.MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
               sleep(500);
             end
 
