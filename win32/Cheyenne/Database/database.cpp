@@ -1204,10 +1204,6 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 
 void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 {
-    // the string stream is here for debug/info reasons ;)
-    static std::ostringstream os;
-    os.seekp(0);
-
     // lock database
     AutoLock al(DBMutex);
 
@@ -1603,6 +1599,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
                 }
 
+            std::ostringstream os;
             ThisActor.Print(os);
             Logger << "selfid_pos: " << os.str().c_str() << "\n";
             os.str(""); // put null terminator in its place
@@ -2013,11 +2010,12 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             pa->SetLastLocalTime(pa->GetLastUpdateTime());
 
             // fire event -- we may be renaming a toon here
-            ActorEvents[DatabaseEvents::ActorReassigned](*pa);
+            ActorEvents[DatabaseEvents::ActorCreated](*pa);
 
             // send full update to the network
             SendNetworkUpdate(*pa,share_opcodes::full_update);
 
+            std::ostringstream os;
             pa->Print(os);
             Logger << "player_level_name: " << os.str().c_str() << "\n";
             os.str(""); // put null terminator in its place
