@@ -952,6 +952,10 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
 {
     switch(LOWORD(wParam))
         {
+        case ID_HELP_ABOUT:
+            DialogBox(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_ABOUT),hWnd,(DLGPROC)AboutDialogProc);
+            break;
+            
         case ID_FILE_EXIT:
             DestroyWindow(hWnd);
             break;

@@ -231,6 +231,18 @@ BEGIN
     LTEXT           "Range: ",IDC_STATIC,7,10,26,8
 END
 
+IDD_ABOUT DIALOGEX 0, 0, 186, 113
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About Cheyenne"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,92,50,14
+    LTEXT           "Static",IDC_DESCRIPTION,7,7,172,18
+    LTEXT           "Static",IDC_COPYRIGHT,7,29,172,10
+    LTEXT           "Static",IDC_LICENSE,7,48,172,33
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -263,8 +275,29 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 40
     END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 106
+    END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_LICENSE             "Cheyenne uses the GNU General Public License. Please see the included ""license.txt"" file for the complete license text."
+    IDS_COPYRIGHT           "Copyright (C) 2003, the Cheyenne Developers"
+    IDS_DESCRIPTION         "Cheyenne: a real-time packet analyzer/sniffer for Dark Age of Camelot"
+END
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
