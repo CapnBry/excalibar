@@ -292,7 +292,7 @@ object frmMain: TfrmMain
   end
   object tmrPlayback: TTimer
     Enabled = False
-    Interval = 75
+    Interval = 50
     OnTimer = tmrPlaybackTimer
     Left = 188
     Top = 212

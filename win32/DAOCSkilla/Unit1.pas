@@ -13,6 +13,7 @@ type
     CryptKey:   string;
     ServerIP:   string;
     ClientIP:   string;
+    RegionID:   integer;
   end;
 
   TfrmMain = class(TForm)
@@ -93,7 +94,11 @@ type
     function CheckConflictingWindows(AWindowList: array of const) : boolean;
     procedure CheckWriteMobseen(ADAOCObject: TDAOCObject);
     procedure CheckWriteAllMobseen;
+    procedure SaveConnectionState;
+    procedure LoadConnectionState;
+    procedure RestoreConnectionState;
   protected
+    procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
     procedure DAOCConnect(Sender: TObject);
     procedure DAOCDisconnect(Sender: TObject);
@@ -123,10 +128,13 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  TellMacro, SpellcraftHelp, FrameFns, RemoteAdmin
+  TellMacro, SpellcraftHelp, FrameFns
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
+{$IFDEF REMOTE_ADMIN}
+  ,RemoteAdmin
+{$ENDIF REMOTE_ADMIN}
   ;
 
 {$R *.dfm}
@@ -179,11 +187,36 @@ begin
   Application.CreateForm(TfrmGLRender, frmGLRender);
   frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
+{$IFDEF REMOTE_ADMIN}
+  Application.CreateForm(TfrmRemoteAdmin, frmRemoteAdmin);
+{$ENDIF REMOTE_ADMIN}
 end;
 
-function IPAddrToString(dwIP: DWORD) : string;
+function GetVersionString : string;
+var
+  InfoSize:     DWORD;
+  Wnd:          DWORD;
+  VerBuf:       Pointer;
+  VerSize:      DWORD;
+  FileInfo:     PVSFixedFileInfo;
 begin
-
+    { Get version information to show }
+  InfoSize := GetFileVersionInfoSize(PChar(ParamStr(0)), Wnd);
+  if InfoSize <> 0 then begin
+    GetMem(VerBuf, InfoSize);
+    try
+      if GetFileVersionInfo(PChar(ParamStr(0)), Wnd, InfoSize, VerBuf) then
+        if VerQueryValue(VerBuf, '\', Pointer(FileInfo), VerSize) then begin
+          Result := Format('%d.%d', [
+            FileInfo.dwFileVersionMS shr 16,
+            FileInfo.dwFileVersionMS and $FFFF]);
+            // FileInfo.dwFileVersionLS shr 16,
+            // FileInfo.dwFileVersionLS and $FFFF]);
+        end;
+    finally
+      FreeMem(VerBuf);
+    end;
+  end;
 end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
@@ -345,6 +378,7 @@ begin
   FConnection.OnDAOCObjectMoved := DAOCObjectMoved;
   FConnection.OnSkillLevelChanged := DAOCSkillLevelChanged;
   FConnection.OnSelectedObjectChange := DAOCSelectedObjectChanged;
+  FConnection.OnRegionChanged := DAOCRegionChanged;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -352,8 +386,11 @@ end;
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
   LoadSettings;
+{$IFDEF REMOTE_ADMIN}
   dmdRemoteAdmin.DAOCControl := FConnection;
+{$ENDIF REMOTE_ADMIN}
   Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
+  RestoreConnectionState;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -383,8 +420,8 @@ begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', '');
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 7500);
-    Caption := 'DAOC Skilla - ' + FConnection.DAOCPath;
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 7000);
+    Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
     edtPlayback.Text := ReadString('Main', 'CaptureFile', 'c:\savedcap.cap');
@@ -400,9 +437,7 @@ begin
       lstAdaptersClick(nil);
     end;
 
-    FLastConnection.CryptKey := ReadString('ConnectionState', 'CrytKey', '');
-    FLastConnection.ServerIP := ReadString('ConnectionState', 'ServerIP', '');
-    FLastConnection.ClientIP := ReadString('ConnectionState', 'ClientIP', '');
+    LoadConnectionState;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -438,7 +473,7 @@ end;
 
 procedure TfrmMain.SaveSettings;
 begin
-  with TINIFile.Create('.\DaocSkilla.ini') do begin
+  with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
 
@@ -447,9 +482,7 @@ begin
       WriteString('Main', 'Adapter', lstAdapters.Items[lstAdapters.ItemIndex]);
     WriteString('Main', 'CaptureFile', edtPlayback.Text);
 
-    WriteString('ConnectionState', 'CrytKey', FLastConnection.CryptKey);
-    WriteString('ConnectionState', 'ServerIP', FLastConnection.ServerIP);
-    WriteString('ConnectionState', 'ClientIP', FLastConnection.ClientIP);
+    SaveConnectionState;
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -694,6 +727,10 @@ procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   FreeAndNil(FMobseenFile);
   SaveSettings;
+{$IFDEF OPENGL_RENDERER}
+  if frmGLRender.Visible then
+    frmGLRender.Close;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.btnMacroTradeskillClick(Sender: TObject);
@@ -892,6 +929,50 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCSelectedObjectChanged(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.DAOCRegionChanged(Sender: TObject);
+begin
+  FLastConnection.CryptKey := FConnection.CryptKey;
+  FLastConnection.ServerIP := FConnection.ServerIP;
+  FLastConnection.ClientIP := FConnection.ClientIP;
+  FLastConnection.RegionID := FConnection.RegionID;
+  
+  SaveConnectionState;
+end;
+
+procedure TfrmMain.SaveConnectionState;
+begin
+  with TINIFile.Create(GetConfigFileName) do begin
+    WriteString('ConnectionState', 'CryptKey', FLastConnection.CryptKey);
+    WriteString('ConnectionState', 'ServerIP', FLastConnection.ServerIP);
+    WriteString('ConnectionState', 'ClientIP', FLastConnection.ClientIP);
+    WriteInteger('ConnectionState', 'RegionID', FLastConnection.RegionID);
+    Free;
+  end;
+end;
+
+procedure TfrmMain.LoadConnectionState;
+begin
+  with TINIFile.Create(GetConfigFileName) do begin
+    FLastConnection.CryptKey := ReadString('ConnectionState', 'CryptKey', '');
+    FLastConnection.ServerIP := ReadString('ConnectionState', 'ServerIP', '');
+    FLastConnection.ClientIP := ReadString('ConnectionState', 'ClientIP', '');
+    FLastConnection.RegionID := ReadInteger('ConnectionState', 'RegionID', 0);
+    Free;
+  end;
+end;
+
+procedure TfrmMain.RestoreConnectionState;
+begin
+(*** NOT WORKIMG YET
+  if FLastConnection.CryptKey <> '' then begin
+    FConnection.CryptKey := FLastConnection.CryptKey;
+    FConnection.ServerIP := FLastConnection.ServerIP;
+    FConnection.ClientIP := FLastConnection.ClientIP;
+    FConnection.RegionID := FLastConnection.RegionID;
+  end;
+***)
 end;
 
 end.
