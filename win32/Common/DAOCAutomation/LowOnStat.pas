@@ -190,7 +190,7 @@ procedure TfrmLowOnStat.DAOCLocalHealthUpdate;
 begin
   if LowHealthEnabled and
     (FDControl.LocalPlayer.HitPoints <= LowHealthPct) and not FLowHealthTriggered then begin
-    FDControl.DoSendKeys(LowHealthMessage);
+    FDControl.DoSendKeys(LowHealthMessage + '[cr]');
     FLowHealthTriggered := true;
   end
   else if FDControl.LocalPlayer.HitPoints > LowHealthPct then
@@ -198,7 +198,7 @@ begin
 
   if LowEnduranceEnabled and
     (FDControl.LocalPlayer.HitPoints <= LowEndurancePct) and not FLowEnduranceTriggered then begin
-    FDControl.DoSendKeys(LowEnduranceMessage);
+    FDControl.DoSendKeys(LowEnduranceMessage + '[cr]');
     FLowEnduranceTriggered := true;
   end
   else if FDControl.LocalPlayer.EndurancePct > LowEndurancePct then
@@ -206,7 +206,7 @@ begin
 
   if LowManaEnabled and
     (FDControl.LocalPlayer.ManaPct <= LowManaPct) and not FLowManaTriggered then begin
-    FDControl.DoSendKeys(LowManaMessage);
+    FDControl.DoSendKeys(LowManaMessage + '[cr]');
     FLowManaTriggered := true;
   end
   else if FDControl.LocalPlayer.ManaPct > LowManaPct then
@@ -215,17 +215,17 @@ end;
 
 procedure TfrmLowOnStat.edtLowHealthPctChange(Sender: TObject);
 begin
-  FLowHealthTriggered := false;
+//  FLowHealthTriggered := false;
 end;
 
 procedure TfrmLowOnStat.edtLowEndPctChange(Sender: TObject);
 begin
-  FLowEnduranceTriggered := false;
+//  FLowEnduranceTriggered := false;
 end;
 
 procedure TfrmLowOnStat.edtLowManaPctChange(Sender: TObject);
 begin
-  FLowManaTriggered := false;
+//  FLowManaTriggered := false;
 end;
 
 end.
