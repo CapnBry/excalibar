@@ -87,6 +87,7 @@ const
   SOL_UDP = $11;
 
 function my_inet_ntoa(inaddr : DWORD) : string;
+function my_inet_htoa(inaddr : DWORD) : string;
 function EtherFrameToString(pFrame : PEthernetFrame) : string;
 function IPHeaderToString(pHeader : PIPHeader) : string;
 function TCPHeaderToString(pHeader : PTCPHeader) : string;
@@ -111,11 +112,19 @@ begin
   Result := inet_ntoa(inadd);
 end;
 
+function my_inet_htoa(inaddr : DWORD) : string;
+var
+  inadd:    in_addr;
+begin
+  inadd.S_addr := htonl(inaddr);
+  Result := inet_ntoa(inadd);
+end;
+
 function EtherFrameToString(pFrame : PEthernetFrame) : string;
 begin
   if not Assigned(pFrame) then
     exit;
-    
+
   with pFrame^.Header do begin
     Result := Format('Destination: [%2.2x-%2.2x-%2.2x-%2.2x-%2.2x-%2.2x]'#13#10,
       [DestAddr[0], DestAddr[1], DestAddr[2], DestAddr[3],
