@@ -629,9 +629,10 @@ void exConnection::parseSystemMessage (exPacket *p)
     exMessage *msg;
     QWidget *tab;
     QTextEdit *textbox;
-    p->seek(7);
-
+//    p->seek(7);
+	p->seek(4);
     unsigned int MsgType	 = p->getByte();
+	p->seek(3);
 
     char*        Message     = strdup(p->getZeroString().ascii());
 
