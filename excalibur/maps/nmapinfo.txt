@@ -40,7 +40,7 @@
  44  30  87 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
  45  45  88 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
  46  46  89 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
- 47  47  90 4 180     8192     8192 -    73728    73728 City_of_Aerus.map
+ 47  47  90 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
  50  50   - 1   0     8192     8192 -    73728    73728 Avalon_City.map
  51  51   - 0   0   491520   491520 -   557056   557056 Isle_of_Glass.map
  52  51   - 0   0   425984   442368 -   491520   507904 Avalon_Isle.map
@@ -72,7 +72,7 @@
  87  73   - 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
  88  88   - 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
  89  89   - 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
- 90  90   - 4 180     8192     8192 -    73728    73728 City_of_Aerus.map
+ 90  90   - 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
  91  91   - 2   0     8192     8192 -    73728    73728 Celestius.map
 100 100   - 0   0   753664   671744 -   819200   737280 Vale_of_Mularn.map
 101 100   - 0   0   720896   737280 -   786432   802816 East_Svealand.map
@@ -116,7 +116,7 @@
 144 130  87 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
 145 145  88 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
 146 146  89 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
-147 147  90 4 180     8192     8192 -    73728    73728 City_of_Aerus.map
+147 147  90 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
 150 150   - 2   0     8192     8192 -    73728    73728 Trollheim.map
 151 151   - 0   0   245760   311296 -   311296   376832 Aegirs_Landing.map
 152 151   - 0   0   278528   245760 -   344064   311296 Gripklosa_Mountains.map
