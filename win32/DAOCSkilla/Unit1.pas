@@ -422,6 +422,7 @@ end;
 procedure TfrmMain.SaveSettings;
 begin
   with TINIFile.Create(GetConfigFileName) do begin
+    WriteString('Main', 'DAOCPath', FDAOCPath);
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
     WriteBool('Main', 'AutoLaunchExcal', atnAutoLaunchRadar.Checked);
