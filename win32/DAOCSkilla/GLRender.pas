@@ -13,11 +13,13 @@ type
   TLockableListBox = class(TListBox)
   private
     FLocked: boolean;
+    FAllowEraseBkgnd: boolean;
   protected
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
   public
     property Locked: boolean read FLocked write FLocked;
+    property AllowEraseBkgnd: boolean read FAllowEraseBkgnd write FAllowEraseBkgnd;
   end;
 
   TfrmGLRender = class(TForm)
@@ -88,6 +90,7 @@ type
     FTxfH12:      TTexFont;
     lstObjects:   TLockableListBox;
     FPushPins:    TVectorMapElementList;
+    FUnknownStealther:  TGLUnkownStealther;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -107,10 +110,12 @@ type
     procedure DrawMobTypeTag(AMob: TDAOCMob);
     procedure DrawGroundTarget;
     procedure DrawFrameStats;
+    procedure DrawStealtherAlert;
     procedure DrawLineToMobTarget(AMob: TDAOCMob);
     procedure DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
     procedure DrawGrid;
     procedure DrawMouseTooltip;
+    procedure DrawUnknownStealthers;
 
     procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
@@ -149,6 +154,7 @@ type
     procedure DAOCSetGroundTarget;
     procedure DAOCCharacterLogin;
     procedure DAOCPlayerPosUpdate;
+    procedure DAOCUnknownStealther(AObj: TDAOCObject);
 
     procedure Dirty;
     property DAOCControl: TDAOCConnection read FDControl write SetDControl;
@@ -209,7 +215,12 @@ end;
 
 procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
-  Message.Result := 1;
+  if FAllowEraseBkgnd then begin
+    Message.Result := 0;
+    FAllowEraseBkgnd := false;
+  end
+  else
+    Message.Result := 1;
 end;
 
 procedure TLockableListBox.WMPaint(var Message: TWMPaint);
@@ -264,6 +275,7 @@ begin
       MapUnproject(FMouseLocX, FMouseLocY, false);
     DrawMapElements;
     DrawGrid;
+    DrawUnknownStealthers;
     DrawMobsAndPlayers;
     DrawLineToSelected;
     DrawGroundTarget;
@@ -283,13 +295,14 @@ begin
     DrawLocalPlayerHUD;
     DrawFrameStats;
     DrawMouseTooltip;
+    DrawStealtherAlert;
 
     CheckGLError();
 
     inc(FFrameCount);
     FDirty := false;
   except
-    on Exception: e do
+    on e: Exception do
       Log('RenderError: ' + e.Message);
   end;
 end;
@@ -530,6 +543,7 @@ begin
     else if iOldTop < lstObjects.Items.Count then
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
+    lstObjects.AllowEraseBkgnd := true;
     lstObjects.Locked := false;
 
     if FRenderPrefs.RedrawOnDelete then
@@ -682,6 +696,7 @@ begin
   FBoat := TGLBoat.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FPushPins := TVectorMapElementList.Create;
+  FUnknownStealther := TGLUnkownStealther.Create;
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
@@ -736,6 +751,7 @@ begin
   FTxfH10.CleanupTexture;
   FTxfH12.CleanupTexture;
   FPushPins.GLCleanup;
+  FUnknownStealther.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -752,6 +768,7 @@ begin
   FVisibleRangeRep.GLInitialize;
   FBoat.GLInitialize;
   FPushPins.GLInitialize;
+  FUnknownStealther.GLInitialize;
 
   FTxfH10.EstablishTexture;
   FTxfH12.EstablishTexture;
@@ -1836,6 +1853,48 @@ begin
     FPushPins.Add(pPin);
     FPushPins.Save('Pushpin format: P,<label>,<color>,<world x>,<world y>,<world z>');
   end;
+end;
+
+procedure TfrmGLRender.DAOCUnknownStealther(AObj: TDAOCObject);
+begin
+  Dirty;
+end;
+
+procedure TfrmGLRender.DrawUnknownStealthers;
+var
+  pObj:   TDAOCObject;
+begin
+  if not FRenderPrefs.AnonymousStealthers then
+    exit;
+    
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING);
+
+  pObj := FDControl.UnknownStealthers.Head;
+  while Assigned(pObj) do begin
+    glTranslatef(pObj.X, pObj.Y, 0);
+    FUnknownStealther.Alpha := pObj.LiveDataConfidencePct / 2;
+    FUnknownStealther.GLRender(FRenderBounds);
+    glTranslatef(-pObj.X, -pObj.Y, 0);
+
+    pObj := pObj.Next;
+  end;
+end;
+
+procedure TfrmGLRender.DrawStealtherAlert;
+begin
+  if not FRenderPrefs.AnonymousStealthers then
+    exit;
+
+  if not Assigned(FDControl.UnknownStealthers.Head) then
+    exit;
+    
+  glEnable(GL_TEXTURE_2D);
+  glColor3f(0, 0, 0);
+  WriteTXFTextH12(glMap.ClientWidth - 117, 15, 'Stealther in proximity');
+  glColor3f(1, 0, 0);
+  WriteTXFTextH12(glMap.ClientWidth - 118, 16, 'Stealther in proximity');
+  glDisable(GL_TEXTURE_2D);
 end;
 
 end.
