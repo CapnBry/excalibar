@@ -50,7 +50,9 @@ uses
   Macroing in 'Macroing.pas' {frmMacroing},
   Intersections in '..\Common\Intersections.pas',
   BackgroundHTTP in 'BackgroundHTTP.pas',
-  ConnectionConfig in 'ConnectionConfig.pas' {frmConnectionConfig};
+  ConnectionConfig in 'ConnectionConfig.pas' {frmConnectionConfig},
+  RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
+  zlib2 in '..\Components\ZLib\zlib2.pas';
 
 {$R *.TLB}
 
@@ -69,6 +71,7 @@ begin
   Application.CreateForm(TfrmDebugging, frmDebugging);
   Application.CreateForm(TfrmMacroing, frmMacroing);
   Application.CreateForm(TfrmConnectionConfig, frmConnectionConfig);
+  Application.CreateForm(TdmdRemoteAdmin, dmdRemoteAdmin);
   CreateOptionalForms;
   Application.Run;
 end.

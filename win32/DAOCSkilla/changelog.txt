@@ -1,3 +1,21 @@
+  + Fix mobseen not having CRLF at the end of each line.
+
+2003 Oct 03 - v1.49
+-------------------
+  + Fixed Powerskil Buy /mbuy not selecting the icon each time
+    it tried to buy.
+  + No longer fires invader warning for dead players.
+  + Fixed bug causing crashes while / after zoning.
+  + No longer thinks everyone is in your guild if you're not in a
+    guild.
+  + Enabled the Remote Control interface.
+  + Invader warning will now only fire at most once every 5 seconds.
+  + Made an ugly 11 poly boat which is displayed for vehicles.
+  + Fixed bug writing vehicles to mobseen which was causing exceptions.
+  + Up / Down keys in radar mob list now scrolls through list.
+  + Fixed memory leak of all mobs in the moblist when exiting.
+  + Fixed bug in ObjectDelete code causing access violations.
+
 2003 Oct 02 - v1.48
 -------------------
   + Fix for unknown objects never going away.  Now stale 20s-30s.
