@@ -2342,7 +2342,7 @@ begin
   pObj := FDAOCObjs.Head;
   while Assigned(pObj) do begin
     if pObj.ObjectClass = ocPlayer then
-      TDAOCPlayer(pObj).IsInGuild := false;
+      TDAOCPlayer(pObj).IsInGroup := false;
     pObj := pObj.Next;
   end;
 end;
