@@ -13,7 +13,7 @@ interface
 
 uses
 {$IFDEF LINUX}
-  XLib, QGraphics, QControls, QForms, Qt, GLX,
+  XLib, QGraphics, QControls, QForms, Qt, GLX, QDialogs,
 {$ELSE}
   Windows, Graphics, Messages, Controls,
 {$ENDIF !LINUX}
@@ -424,7 +424,7 @@ begin
   vinfo := glXChooseVisual(display, XDefaultScreen(display), @attr[0]);
   if not Assigned(vinfo) then begin
     Cleanup;
-    MessageBox(0, 'Unable to find a suitable visual', 'Error', MB_OK or MB_ICONERROR);
+    MessageDlg('Error', 'Unable to find a suitable visual', mtError, [mbOk], 0);
     Exit;
   end;
 
@@ -432,13 +432,13 @@ begin
   XFree(vinfo);
   if hRC = 0 then begin
     Cleanup;
-    MessageBox(0, 'Unable to create an OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
+    MessageDlg('Error', 'Unable to create an OpenGL rendering context', mtError, [mbOk], 0);
     Exit;
   end;
 
   if not MakeCurrent then begin
     Cleanup;
-    MessageBox(0, 'Unable to activate OpenGL rendering context', 'Error', MB_OK or MB_ICONERROR);
+    MessageDlg('Error', 'Unable to activate OpenGL rendering context', mtError, [mbOk], 0);
     Exit;
   end;
 end;
