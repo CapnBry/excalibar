@@ -4,10 +4,14 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
-  PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
+  DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
   Recipes, IdTCPServer, IdBaseComponent, IdComponent, IdTCPConnection,
-  IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI;
+  IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns
+{$IFDEF WINPCAP}
+  ,PReader2
+{$ENDIF WINPCAP}
+  ;
 
 type
   TfrmMain = class(TForm)
@@ -60,9 +64,13 @@ type
     procedure lblUpdatesClick(Sender: TObject);
     procedure chkTrackLoginsClick(Sender: TObject);
   private
+{$IFDEF WINPCAP}
     FPReader:   TPacketReader2;
-    FConnection:  TDAOCControl;
+{$ENDIF WINPCAP}
+{$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
+{$ENDIF DAOC_AUTO_SERVER}
+    FConnection:  TDAOCControl;
     FChatLog:       TFileStream;
     FClosing:       boolean;
     FCheckForUpdates:   boolean;
@@ -70,6 +78,10 @@ type
     FProcessPackets:    boolean;
     FSegmentFromCollector:    TEthernetSegment;
 
+{$IFDEF WINPCAP}
+    procedure OpenAdapter(const AAdapterName: string);
+    procedure CloseAdapter;
+{$ENDIF WINPCAP}
     procedure LoadSettings;
     procedure SaveSettings;
     function GetConfigFileName : string;
@@ -78,8 +90,6 @@ type
     procedure CreateChatLog;
     procedure CloseChatLog;
     procedure SendSegmentToCollector(ASegment: TEthernetSegment);
-    procedure OpenAdapter(const AAdapterName: string);
-    procedure CloseAdapter;
     procedure CloseCollectionServer;
     procedure OpenCollectionServer;
     procedure OpenCollectionClient;
@@ -126,11 +136,14 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing, Macroing,
+  SpellcraftHelp, DebugAndTracing, Macroing,
   ConnectionConfig, VCLMemStrms, RemoteAdmin
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
+{$IFDEF DAOC_AUTO_SERVER}
+  ,TellMacro
+{$ENDIF DAOC_AUTO_SERVER}
   ;
 
 {$R *.dfm}
@@ -179,6 +192,10 @@ begin
   Application.CreateForm(TfrmGLRender, frmGLRender);
   frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
+
+{$IFDEF DAOC_AUTO_SERVER}
+  Application.CreateForm(TfrmTellMacro, frmTellMacro);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 function GetVersionString : string;
@@ -223,23 +240,25 @@ begin
   Memo1.Lines.Clear;
   SetupDAOCConnectionObj;
 
+{$IFDEF WINPCAP}
   FPReader := TPacketReader2.CreateInst;
   FPReader.OnEthernetSegment := EthernetSegment;
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
+{$ENDIF WINPCAP}
 
   FProcessPackets := true;
 
 {$IFNDEF OPENGL_RENDERER}
   btnGLRender.Visible := false;
 {$ENDIF}
-{$IFNDEF DAOC_AUTO_SERVER}
-  btnTellMacro.Visible := false;
-{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+{$IFDEF WINPCAP}
   FPReader.Free;
+{$ENDIF WINPCAP}
+
   CloseChatLog;
 end;
 
@@ -290,7 +309,9 @@ end;
 procedure TfrmMain.SetupDAOCConnectionObj;
 begin
   FConnection := TDAOCControl.Create;
+{$IFDEF DAOC_AUTO_SERVER}
   FIConnection := FConnection as IDAOCControl;
+{$ENDIF DAOC_AUTO_SERVER}
   FConnection.MainHWND := Handle;
 
   FConnection.OnPlayerPosUpdate := DAOCPlayerPosUpdate;
@@ -322,17 +343,22 @@ procedure TfrmMain.FormShow(Sender: TObject);
 begin
     { setup the adapterlist first, so the load settings can set the active
       adapter properly }
+{$IFDEF WINPCAP}
   frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
+{$ENDIF WINPCAP}
   LoadSettings;
   dmdRemoteAdmin.DAOCControl := FConnection;
   Log('Remote control telnet server open on port ' +
     IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
 
+{$IFDEF WINPCAP}
   FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
   if frmConnectionConfig.SniffPackets then
     OpenAdapter(frmConnectionConfig.AdapterName)
   else
     CloseAdapter;
+{$ENDIF WINPCAP}
+
   OpenCollectionServer;
   if not frmConnectionConfig.ProcessLocally then
     OpenCollectionClient;
@@ -377,7 +403,7 @@ begin
 
     frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
     frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
-    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', true);
+    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', {$IFDEF WINPCAP} true {$ELSE} false {$ENDIF});
     frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
     frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
     frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
@@ -405,9 +431,11 @@ begin
     frmAFK.Left := ReadInteger('AFKMessage', 'Left', frmAFK.Left);
     frmAFK.Top := ReadInteger('AFKMessage', 'Top', frmAFK.Top);
 
+{$IFDEF DAOC_AUTO_SERVER}
     frmTellMacro.FileName := ReadString('MacroFile', 'Filename', frmTellMacro.FileName);
     frmTellMacro.Left := ReadInteger('MacroFile', 'Left', frmTellMacro.Left);
     frmTellMacro.Top := ReadInteger('MacroFile', 'Top', frmTellMacro.Top);
+{$ENDIF DAOC_AUTO_SERVER}
 
     frmSpellcraftHelp.Left := ReadInteger('SpellcraftHelp', 'Left', frmSpellcraftHelp.Left);
     frmSpellcraftHelp.Top := ReadInteger('SpellcraftHelp', 'Top', frmSpellcraftHelp.Top);
@@ -468,9 +496,11 @@ begin
     WriteInteger('AFKMessage', 'Left', frmAFK.Left);
     WriteInteger('AFKMessage', 'Top', frmAFK.Top);
 
+{$IFDEF DAOC_AUTO_SERVER}
     WriteString('MacroFile', 'Filename', frmTellMacro.FileName);
     WriteInteger('MacroFile', 'Left', frmTellMacro.Left);
     WriteInteger('MacroFile', 'Top', frmTellMacro.Top);
+{$ENDIF DAOC_AUTO_SERVER}
 
     WriteInteger('SpellcraftHelp', 'Left', frmSpellcraftHelp.Left);
     WriteInteger('SpellcraftHelp', 'Top', frmSpellcraftHelp.Top);
@@ -519,9 +549,11 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+{$IFDEF WINPCAP}
   CloseAdapter;
   Application.ProcessMessages;  // get any packets pending out of the message q
-  
+{$ENDIF WINPCAP}
+
   SaveSettings;
 {$IFDEF OPENGL_RENDERER}
   if frmGLRender.Visible then
@@ -532,7 +564,9 @@ begin
       might fire callbacks as it closes.  Firing a callback to a sub-form
       which is already destroyed is a bad thing }
   FConnection := nil;
+{$IFDEF DAOC_AUTO_SERVER}
   FIConnection := nil;  // interface release frees obj
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMain.btnGLRenderClick(Sender: TObject);
@@ -781,11 +815,14 @@ begin
 end;
 
 procedure TfrmMain.btnConnectionOptsClick(Sender: TObject);
+{$IFDEF WINPCAP}
 var
   bNeedAdapterRestart:    boolean;
+{$ENDIF WINPCAP}
 begin
   frmConnectionConfig.ShowModal;
 
+{$IFDEF WINPCAP}
   bNeedAdapterRestart := SetServerNet;
   bNeedAdapterRestart := bNeedAdapterRestart or (
     frmConnectionConfig.SniffPackets <> FPReader.Active);
@@ -800,6 +837,7 @@ begin
     if frmConnectionConfig.SniffPackets then
       OpenAdapter(frmConnectionConfig.AdapterName);
   end;
+{$ENDIF WINPCAP}
 
   if frmConnectionConfig.LocalCollectorPort <> tcpCollectorServer.DefaultPort then begin
     CloseCollectionServer;
@@ -813,12 +851,13 @@ begin
     CloseCollectionClient;
 end;
 
+{$IFDEF WINPCAP}
 procedure TfrmMain.OpenAdapter(const AAdapterName: string);
 var
   iIdx:   integer;
 begin
   CloseAdapter;
-  
+
   if AAdapterName <> '' then begin
     iIdx := FPReader.AdapterList.IndexOf(AAdapterName);
     if iIdx <> -1 then begin
@@ -830,7 +869,9 @@ begin
     end;
   end;  { if adapter name <> '' }
 end;
+{$ENDIF WINPCAP}
 
+{$IFDEF WINPCAP}
 procedure TfrmMain.CloseAdapter;
 begin
   if FPReader.Active then begin
@@ -839,6 +880,7 @@ begin
     Log('Adapter closed: ' + FPReader.DeviceName);
   end;
 end;
+{$ENDIF WINPCAP}
 
 procedure TfrmMain.CloseCollectionServer;
 begin

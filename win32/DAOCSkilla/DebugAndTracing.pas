@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, PReader2, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs,
+  Dialogs, StdCtrls, FrameFns, ExtCtrls, DAOCConnection, DAOCPackets, DAOCObjs,
   ComCtrls;
 
 type

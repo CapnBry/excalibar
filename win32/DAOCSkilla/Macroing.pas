@@ -54,8 +54,13 @@ var
 
 implementation
 
-uses ShowMapNodes, PowerSkillSetup, SpellcraftHelp, MacroTradeSkill,
-  AFKMessage, TellMacro, DAOCWindows, DAOCInventory, Unit1;
+uses
+  ShowMapNodes, PowerSkillSetup, SpellcraftHelp, MacroTradeSkill,
+  AFKMessage, DAOCWindows, DAOCInventory, Unit1
+{$IFDEF DAOC_AUTO_SERVER}
+  ,TellMacro
+{$ENDIF DAOC_AUTO_SERVER}
+  ;
 
 {$R *.dfm}
 
@@ -140,6 +145,9 @@ end;
 procedure TfrmMacroing.FormCreate(Sender: TObject);
 begin
   FPSItemList := TPowerSkillItemList.Create;
+{$IFNDEF DAOC_AUTO_SERVER}
+  btnTellMacro.Visible := false;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMacroing.FormDestroy(Sender: TObject);
@@ -173,7 +181,7 @@ begin
       end;  { If match }
 
   if (FInSellOff or (iCnt >= Random(7) + 1)) and Assigned(pFirstItem) then begin
-    // emo1.Lines.Add('InvChg: Found item - ' + Items[I].Description);
+    // Log('InvChg: Found item - ' + Items[I].Description);
     pWnd := TStatsWindow.Create(FDControl.WindowManager);
     pWnd.SelectInventoryBag(pFirstItem.BagPage);
     sleep(200);
@@ -291,7 +299,7 @@ end;
 procedure TfrmMacroing.DAOCVendorWindow;
 begin
   if frmPowerskill.Visible or frmSpellcraftHelp.Visible then begin
-    Log('Setting timer to TIMEOUT_AUTOBUY');
+    // Log('Setting timer to TIMEOUT_AUTOBUY');
     tmrTimeoutDelay.Tag := TIMEOUT_AUTOBUY;
     tmrTimeoutDelay.Enabled := false;
     tmrTimeoutDelay.Enabled := true;

@@ -17,6 +17,8 @@ type
     procedure WMEraseBkgnd(var Message: TWmEraseBkgnd); message WM_ERASEBKGND;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
   public
+    constructor Create(AOwner: TComponent); override;
+
     property Locked: boolean read FLocked write FLocked;
   end;
 
@@ -218,6 +220,12 @@ begin
 end;
 
 { TLockableListBox }
+
+constructor TLockableListBox.Create(AOwner: TComponent);
+begin
+  inherited;
+  ControlStyle := ControlStyle + [csOpaque];
+end;
 
 procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
 begin
@@ -504,7 +512,7 @@ begin
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
     lstObjects.Locked := false;
-    lstObjects.Update;
+    lstObjects.Invalidate;
 
     if FRenderPrefs.RedrawOnAdd then
       Dirty;
@@ -550,7 +558,7 @@ begin
       SendMessage(lstObjects.Handle, LB_SETTOPINDEX, iOldTop, 0);
 
     lstObjects.Locked := false;
-    lstObjects.Update;
+    lstObjects.Invalidate;
 
     if FRenderPrefs.RedrawOnDelete then
       Dirty;
