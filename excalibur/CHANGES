@@ -1,3 +1,12 @@
+Druppy (10/Feb/02)
+------------------
+Additions:
+	+ Added Distance Field in the Mob List
+	+ Added an option to enable Color-Coding
+	  spawns based on thier con in the mob list.
+	  This feature is toggable via 
+	  Prefs->Misc->EnableMobListColors
+
 Andon (10/Feb/02)
 ------------------
 Additions (SnowBlind):
