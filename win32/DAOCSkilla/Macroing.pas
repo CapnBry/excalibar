@@ -41,6 +41,7 @@ type
     procedure Log(const s: string);
     procedure ArrivedAtForge(Sender: TObject; AParm: Cardinal);
     procedure ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
+    procedure OpenMacroTradeSkillWindow;
   public
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
@@ -214,7 +215,7 @@ begin
 
     pNearestNode := FDControl.NodeClosestToPlayerPos;
     if frmPowerskill.KeepBuying and Assigned(pNearestNode) and
-      AnsiSameText(pNearestNode.Name, FPSItemList.MerchantNodeName) then
+      pNearestNode.IsNamed(FPSItemList.MerchantNodeName) then
       FDControl.PathToNodeName(FPSItemList.ForgeNodeName);
   end
 
@@ -257,7 +258,7 @@ var
 begin
   if frmPowerskill.Visible then begin
     pNearestNode := FDControl.NodeClosestToPlayerPos;
-    if not (Assigned(pNearestNode) and AnsiSameText(pNearestNode.Name, FPSItemList.ForgeNodeName)) then
+    if not (Assigned(pNearestNode) and pNearestNode.IsNamed(FPSItemList.ForgeNodeName)) then
       exit;
 
     if not frmPowerskill.HasMaterialsForItem then
@@ -338,11 +339,11 @@ begin
     if not Assigned(pNearestNode) then
       exit;
 
-    if AnsiSameText(pNearestNode.Name, FPSItemList.ForgeNodeName) then
+    if pNearestNode.IsNamed(FPSItemList.ForgeNodeName) then
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
       FDControl.ScheduleCallback(5000, ArrivedAtForge, 0);
 
-    if AnsiSameText(pNearestNode.Name, FPSItemList.MerchantNodeName) then
+    if pNearestNode.IsNamed(FPSItemList.MerchantNodeName) then
       FDControl.ScheduleCallback(5000, ArrivedAtMerchant, 0);
   end;
 end;
@@ -350,13 +351,34 @@ end;
 procedure TfrmMacroing.ArrivedAtForge(Sender: TObject; AParm: Cardinal);
 begin
   Log('I am at the forge');
-  if frmPowerskill.Visible and frmMacroTradeSkills.Visible then 
-    frmMacroTradeSkills.StartProgression;
+
+  if frmPowerskill.Visible then begin
+    if FPSItemList.AutoDeselectMerchant then
+      FDControl.DoSendKeys('[esc]');
+
+    if FPSItemList.AutoQuickbarSlot <> 0 then begin
+      frmPowerskill.RecipeToQuickbar(FPSItemList.AutoQuickbarSlot);
+      frmMacroTradeSkills.Progression := IntToStr(FPSItemList.AutoQuickbarSlot);
+    end;
+
+    if FPSItemList.AutoStartProgression then begin
+      OpenMacroTradeSkillWindow;
+      frmMacroTradeSkills.StartProgression;
+     end;
+  end;
 end;
 
 procedure TfrmMacroing.ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
 begin
   Log('I am at the merchant');
+end;
+
+procedure TfrmMacroing.OpenMacroTradeSkillWindow;
+begin
+  if not frmMacroTradeSkills.Visible then begin
+    frmMacroTradeSkills.DAOCControl := FDControl;
+    frmMacroTradeSkills.Show;
+  end;
 end;
 
 end.
