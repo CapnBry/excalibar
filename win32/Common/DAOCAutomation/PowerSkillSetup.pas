@@ -67,6 +67,7 @@ type
     function HasMaterialsForItem : boolean;
     procedure SkillLevelChanged(AItem: TDAOCNameValuePair);
     procedure RecipeToQuickbar(ASlot: integer);
+    procedure SelectItemMaterialMerchant;
 
     property PSItemList: TPowerSkillItemList read FPSItemList write SetPSItemList;
     property DAOCControl: TDAOCControl read FDControl write FDControl;
@@ -499,7 +500,30 @@ begin
     end;  { if assigned Item }
   end;  { if assigned Recipes }
 
+  sleep(250);
   FDControl.DoSendKeys('1');
+end;
+
+procedure TfrmPowerskill.SelectItemMaterialMerchant;
+var
+  pItem:        TPowerSkillItemDef;
+  pVendorItems: TDAOCVendorItemList;
+begin
+    { allow override of who to select }
+  if FPSItemList.MerchantName <> '' then
+    FDControl.SelectNPC(FPSItemList.MerchantName)
+
+    { else just use the vendor for the first material in the recipe }
+  else begin
+    pItem := GetSelectedItem;
+
+    if Assigned(pItem) and (pItem.Materials.Count > 0) then begin
+      pVendorItems := FDControl.MasterVendorList.FindNearestItemVendor(
+        pItem.Materials[0].Name, FDControl.LocalPlayer);
+      if Assigned(pVendorItems) then
+        FDControl.SelectNPC(pVendorItems.Vendor.Name);
+    end;  { if we have an item and the item requres materials }
+  end;
 end;
 
 end.
