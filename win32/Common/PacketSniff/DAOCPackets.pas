@@ -506,16 +506,11 @@ begin
     if key_pos = sizeof(TDAOCCryptKey) then
       key_pos := 0;
 
-    work_val := AKey[key_pos];
-    work_val := work_val + data_pos;
-    work_val := work_val + key_pos;
-    seed_2 := seed_2 + work_val;
-    work_val := work_val * seed_1;
-    seed_1 := work_val + 1;
-    work_val := seed_1;
-    work_val := work_val * seed_2;
+    work_val := AKey[key_pos] + data_pos + key_pos;
+    seed_1 := work_val * seed_1 + 1;
+    seed_2 := work_val + seed_2;
 
-    status_vect := status_vect + work_val;
+    status_vect := status_vect + (seed_1 * seed_2);
     pData[data_pos] := Char((BYTE(pData[data_pos]) xor status_vect) and $ff);
 
     inc(data_pos);
