@@ -1518,16 +1518,22 @@ var
   tmpPrefs:   TRenderPreferences;
 begin
   tmpPrefs := FRenderPrefs.Clone;
+
   if TfrmRenderPrefs.Execute(Self, FRenderPrefs, FRangeCircles) then begin
     if tmpPrefs.AdjacentZones <> FRenderPrefs.AdjacentZones then
       ReloadMapElementsAndTextures;
     UpdateStayOnTop;
+    tmpPrefs.Free;
   end
+  
   else begin
     FRenderPrefs.Free;
     FRenderPrefs := tmpPrefs;
     FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
     FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
+
+    RENDERPrefsObjectFilterChanged(FRenderPrefs);
+    RENDERPrefsMobListOptionChanged(FRenderPrefs);
   end;
 end;
 
