@@ -1145,15 +1145,12 @@ daocmessages::player_pos_update* DAOCConnection::ParsePlayerPosUpdate
     GetData(y,ndx,buffer);
 
     // get zone
-    unsigned char zone;
+    MapInfo::ZoneIndexType zone;
     GetData(zone,ndx,buffer);
     
     // have zone-relative <x,y,z>, make regional
     ::Zones.GetGlobalFromZone(zone,x,y,z,msg->x,msg->y,msg->z);
     
-    // skip unused 
-    SkipData(ndx,1);
-
     // get heading
     GetData(msg->heading,ndx,buffer);
     msg->heading &= 0xFFF;
@@ -1217,7 +1214,7 @@ daocmessages::mob_pos_update* DAOCConnection::ParseMobPosUpdate
     unsigned short local_x;
     unsigned short local_y;
     unsigned short local_z;
-    unsigned char zone;
+    MapInfo::ZoneIndexType zone;
 
     // get x
     GetData(local_x,ndx,buffer);
@@ -1451,11 +1448,8 @@ daocmessages::player_identity* DAOCConnection::ParsePlayerIdentity
     GetData(y,ndx,buffer);
 
     // get zone
-    unsigned char zone;
+    MapInfo::ZoneIndexType zone;
     GetData(zone,ndx,buffer);
-    
-    // skip unused
-    SkipData(ndx,1);
     
     // get z
     unsigned short z;
@@ -1753,7 +1747,7 @@ void DAOCConnection::ParseNameRealmZone
 {
     char* name=NULL;
     unsigned char character_realm;
-    unsigned char zone;
+    MapInfo::ZoneIndexType zone;
     int characters_left;
 
     /*
@@ -1783,7 +1777,7 @@ void DAOCConnection::ParseNameRealmZone
         GetData(zone,ndx,buffer);
         
         // skip unused
-        SkipData(ndx,57);
+        SkipData(ndx,56);
 
         // add to list
         if(name)

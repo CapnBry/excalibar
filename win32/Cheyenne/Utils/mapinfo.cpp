@@ -28,13 +28,13 @@ extern logger_t Logger;
 extern std::string InitialDir; // the initial directory
 
 MapInfo::MapInfo() :
-    MaxZone(255),
+    MaxZone(65535),
     MaxRegion(255)
 {
     int i;
 
     // empty arrays
-    for(i=0;i<256;++i)
+    for(i=0;i<65535;++i)
         {
         Zone[i].Region=0;
         Zone[i].BaseX=0;
@@ -198,7 +198,7 @@ bool MapInfo::ReadZoneFile(void)
     // add 'em to the ZonesByRegion table
     // and RegionLimit table
 
-    for(int i=0;i<256;++i)
+    for(int i=0;i<MaxZone;++i)
         {
         if(Zone[i].Region == 0)
             {
@@ -233,7 +233,7 @@ bool MapInfo::ReadZoneFile(void)
 
     
     Logger << "Region,XMin,XMax,YMin,YMax,ZMin,ZMax,Name\n";
-    for(int j=0;j<256;++j)
+    for(int j=0;j<MaxZone;++j)
         {
         // make sure this region has been written to
         if(RegionLimit[j].XMin != -1)
@@ -254,7 +254,7 @@ bool MapInfo::ReadZoneFile(void)
     // debug only
     #ifdef CHEYENNE_DEBUG
     // print the zone array
-    for(int i=0;i<256;++i)
+    for(int i=0;i<MaxZone;++i)
         {
         Logger << "[MapInfo::ReadZoneFile] zone " << i << ":\n"
                << "Region: " << Zone[i].Region << "\n"
@@ -343,7 +343,7 @@ bool MapInfo::SaveRegionOffsets(void)const
     region x_offset y_offset
     */
 
-    for(int region=0;region<256;++region)
+    for(int region=0;region<MaxRegion;++region)
         {
         offsetfile << region
                    << "\t" 

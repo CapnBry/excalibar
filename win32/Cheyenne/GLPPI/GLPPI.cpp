@@ -211,7 +211,7 @@ void GLPPI::InitTextures(const bool LoadZoneTextures)
         std::ostringstream oss;
 
         // go through each zone and load a texture for it
-        for(unsigned int zone=0;zone<256;++zone)
+        for(unsigned int zone=0;zone<65535;++zone)
             {
             // empty it
             oss.str("");

@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class MapInfo
 {
 public:
-    typedef unsigned char ZoneIndexType;
+    typedef unsigned short ZoneIndexType;
     typedef unsigned char RegionIndexType;
     const ZoneIndexType MaxZone;
     const RegionIndexType MaxRegion;
@@ -150,7 +150,7 @@ protected:
 
 private:
 
-    ZoneInfo Zone[256];
+    ZoneInfo Zone[65535];
     typedef std::list<RegionIndexType> ZonesByRegionType;
     typedef ZonesByRegionType::iterator ZonesByRegionIterator;
     typedef ZonesByRegionType::value_type ZonesByRegionValueType;

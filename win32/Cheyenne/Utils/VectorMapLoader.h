@@ -229,7 +229,7 @@ public:
     
     void MakeEmpty(void)
     {
-        for(int i=0;i<256;++i)
+        for(int i=0;i<65535;++i)
             {
             Maps[i].MakeEmpty();
             }
@@ -248,7 +248,7 @@ private:
 
     bool LoadMap(const std::string& filename,const unsigned char map_cnt);
     
-    VectorMap Maps[256];
+    VectorMap Maps[65535];
     bool bIsDone;
     // begin code from DecentCoder
     double DPSimpTolerance;

@@ -193,7 +193,7 @@ float MoveToPoint::GetDistanceFromGoal(const Actor* reference)const
     // see if we are there yet
     unsigned int curr_x,curr_y;
     unsigned short curr_z;
-    unsigned char zone;
+    MapInfo::ZoneIndexType zone;
     
     // get zone relative current coordinates
     ::Zones.GetZoneFromGlobal
@@ -447,7 +447,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToActor::Execute(csl::EXECUTE_PARAMS& par
             // init the proxy
             unsigned int x,y;
             unsigned short z;
-            unsigned char zone;
+            MapInfo::ZoneIndexType zone;
             
             // get zone relative current coordinates
             ::Zones.GetZoneFromGlobal
@@ -604,7 +604,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPointRelative::Execute(csl::EXECUTE_PAR
         // init the proxy
         unsigned int x,y;
         unsigned short z;
-        unsigned char zone;
+        MapInfo::ZoneIndexType zone;
         
         // get zone relative current coordinates
         ::Zones.GetZoneFromGlobal
@@ -721,7 +721,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToActorRelative::Execute(csl::EXECUTE_PAR
             // init the proxy
             unsigned int x,y;
             unsigned short z;
-            unsigned char zone;
+            MapInfo::ZoneIndexType zone;
             float rel_x;
             float rel_y;
             
@@ -1133,7 +1133,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadPoint::Execute(csl::EXECUTE_PARAMS& param
         // calculate the heading
         unsigned int zone_x,zone_y;
         unsigned short zone_z;
-        unsigned char zone;
+        MapInfo::ZoneIndexType zone;
         
         // get zone relative reference actor position
         ::Zones.GetZoneFromGlobal
@@ -1246,7 +1246,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadActor::Execute(csl::EXECUTE_PARAMS& param
         // calculate the heading
         unsigned int zone_x,zone_y;
         unsigned short zone_z;
-        unsigned char zone;
+        MapInfo::ZoneIndexType zone;
         
         // get zone relative reference actor position
         ::Zones.GetZoneFromGlobal
@@ -1522,7 +1522,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadActorRelative::Execute(csl::EXECUTE_PARAM
             // init the proxy
             unsigned int x,y;
             unsigned short z;
-            unsigned char zone;
+            MapInfo::ZoneIndexType zone;
             float rel_x;
             float rel_y;
             
@@ -2147,7 +2147,7 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
             unsigned int move_to_y;
         
             unsigned short curr_z;
-            unsigned char zone;
+            MapInfo::ZoneIndexType zone;
             
             // get zone-relative (local) coordinates
             ::Zones.GetZoneFromGlobal
