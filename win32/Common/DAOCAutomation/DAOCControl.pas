@@ -405,6 +405,11 @@ begin
 
   UpdateDAOCWindowHnd;
 
+  if FDAOCHWND = 0 then begin
+    Log('No DAOC - SendKeys(' + s + ')');
+    exit;
+  end;
+
   hFore := GetForegroundWindow;
   if hFore = MainHWND then
     exit;
@@ -433,6 +438,11 @@ var
   Flags:    DWORD;
   ScanCode: byte;
 begin
+  if FDAOCHWND = 0 then begin
+    Log('No DAOC - SendVKDown(' + IntToStr(vk) + ',' + BoolToStr(bDown, true) + ')');
+    exit;
+  end;
+
   if bDown then
     Flags := 0
   else
@@ -649,15 +659,19 @@ procedure TDAOCControl.LeftClick(X, Y: Integer);
 var
   hFocusWnd:  HWND;
 begin
+  UpdateDAOCWindowHnd;
+  
   hFocusWnd := GetForegroundWindow;
-  if hFocusWnd <> FMainHWND then begin
+  if (hFocusWnd <> FMainHWND) and (FDAOCHWND <> 0) then begin
     AdjustWindowCoords(X, Y);
     SetCursorPos(X, Y);
     sleep(100);
     Windows.SendMessage(hFocusWnd, WM_LBUTTONDOWN, MK_LBUTTON, MakeLParam(X, Y));
     sleep(150);
     Windows.SendMessage(hFocusWnd, WM_LBUTTONUP, 0, MakeLParam(X, Y));
-  end;
+  end
+  else
+    Log(Format('No DAOC - LeftClick(%d,%d)', [X, Y]));
 end;
 
 
@@ -665,15 +679,19 @@ procedure TDAOCControl.RightClick(X, Y: Integer);
 var
   hFocusWnd:  HWND;
 begin
+  UpdateDAOCWindowHnd;
+  
   hFocusWnd := GetForegroundWindow;
-  if hFocusWnd <> FMainHWND then begin
+  if (hFocusWnd <> FMainHWND) and (FDAOCHWND <> 0) then begin
     AdjustWindowCoords(X, Y);
     SetCursorPos(X, Y);
     sleep(100);
     Windows.SendMessage(hFocusWnd, WM_RBUTTONDOWN, MK_RBUTTON, MakeLParam(X, Y));
     sleep(150);
     Windows.SendMessage(hFocusWnd, WM_RBUTTONUP, 0, MakeLParam(X, Y));
-  end;
+  end
+  else
+    Log(Format('No DAOC - RightClick(%d,%d)', [X, Y]));
 end;
 
 procedure TDAOCControl.GotoNode(ANode: TMapNode);
