@@ -204,6 +204,7 @@ type
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
+    FProtocolVersion: integer;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -702,10 +703,9 @@ procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TDAOCPacket);
 begin
   pPacket.FHandlerName := 'SetEncryptionKey';
 
-  pPacket.seek(2);
-  pPacket.getByte;  // bigver
-  pPacket.getByte;  // minver
   pPacket.seek(1);
+  FProtocolVersion := pPacket.getByte;
+  pPacket.seek(3);  // x.yz
   pPacket.getBytes(FCryptKey, 12);
   FCryptKeySet := true;
 end;
@@ -1010,9 +1010,25 @@ procedure TDAOCConnection.ParseMobUpdate(pPacket: TDAOCPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
+  iIDOffset:  integer;
+  iZoneBase:  integer;
+  pZoneBase:  TDAOCZoneInfo;
+  procedure SetZoneBase;
+  begin
+    if Assigned(pZoneBase) and (pZoneBase.ZoneNum = iZoneBase) then
+      exit
+    else if Assigned(FZone) and (FZone.ZoneNum = iZoneBase) then
+      pZoneBase := FZone
+    else
+      pZoneBase := FZoneList.FindZone(iZoneBase);
+  end;
 begin
   pPacket.FHandlerName := 'MobUpdate';
-  pPacket.seek(22);
+  if FProtocolVersion = $31 then
+    iIDOffset := 22
+  else
+    iIDOffset := 16;
+  pPacket.seek(iIDOffset);
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
 
@@ -1024,18 +1040,51 @@ begin
   end;
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then begin
-    pPacket.seek(-24);
+    pPacket.seek(-(iIDOffset + 2));
     with TDAOCMovingObject(pDAOCObject) do begin
       SpeedWord := pPacket.getShort;
       HeadWord := pPacket.getShort;
-      X := pPacket.getLong;
-      Y := pPacket.getLong;
-      DestinationX := pPacket.getLong;
-      DestinationY := pPacket.getLong;
-      z := pPacket.getShort;
-      pPacket.seek(2);  // ID again
-      pPacket.seek(2);
-      HitPoints := pPacket.getByte;
+        { 1.61 and below }
+      if FProtocolVersion = $31 then begin
+        X := pPacket.getLong;
+        Y := pPacket.getLong;
+        DestinationX := pPacket.getLong;
+        DestinationY := pPacket.getLong;
+        z := pPacket.getShort;
+        pPacket.seek(2);  // ID again
+        pPacket.seek(2);
+        HitPoints := pPacket.getByte;
+      end  { protocol 31 }
+      else begin
+        X := pPacket.getShort;
+        DestinationX := pPacket.getShort;
+        Y := pPacket.getShort;
+        DestinationY := pPacket.getShort;
+        Z := pPacket.getShort;
+        DestinationZ := pPacket.getShort;
+        pPacket.seek(2);  // ID again
+        pPacket.seek(2);
+        HitPoints := pPacket.getByte;
+        pPacket.seek(1);
+
+        pZoneBase := nil;
+
+          { adjust X, Y to global coords }
+        iZoneBase := pPacket.getByte;
+        SetZoneBase;
+        if Assigned(pZoneBase) then begin
+          X := pZoneBase.ZoneConvertX(X);
+          Y := pZoneBase.ZoneConvertY(Y);
+        end;
+
+          { adjust DestX, DestY to global coords }
+        iZoneBase := pPacket.getByte;
+        SetZoneBase;
+        if Assigned(pZoneBase) then begin
+          DestinationX := pZoneBase.ZoneConvertX(X);
+          DestinationY := pZoneBase.ZoneConvertY(Y);
+        end;
+      end;
     end;  { with TDAOCMovingObject(pDAOCObject) }
 
     DoOnDAOCObjectMoved(pDAOCObject);
@@ -1811,8 +1860,6 @@ begin
 end;
 
 procedure TDAOCConnection.ClearDAOCObjectList;
-var
-  I:  integer;
 begin
     { delete all the daocobjects, back to front, calling the delete event handler }
   while FDAOCObjs.Count > 0 do begin
