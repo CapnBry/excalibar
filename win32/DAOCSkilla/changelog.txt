@@ -2,6 +2,7 @@
 -------------------
   + Fixed mobseen writing (again!)
   + Added support for downloading dds files over HTTP.
+  + Fixed window handle leak freeing packet reader.
 
 2003 Sep 23 - v1.41
 -------------------
