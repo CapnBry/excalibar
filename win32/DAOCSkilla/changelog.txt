@@ -1,3 +1,9 @@
+2003
+  + Fixed MacroTradeSkill window to be dialog style.
+  + Display of mob list now swaps to typetag when render option is set.
+  + Mobs without updates will now fade out over a period of time until
+    they are removed from the list.
+
 2003 Sep 22 - v1.39
 -------------------
   + Fix for mobs which have a destination when they pop in gray
