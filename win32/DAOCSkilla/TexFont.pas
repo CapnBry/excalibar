@@ -198,7 +198,7 @@ begin
 
   if not Assigned(Result) then
     raise TXFException.CreateFmt(
-      'texfont: tried to access unavailable font character "%c" (%d)', [char(c), ord(c)]);
+      'texfont: tried to access unavailable font character "%s" (%d)', [char(c), c]);
 end;
 
 procedure TTexFont.LoadFont(const AFileName: string);
