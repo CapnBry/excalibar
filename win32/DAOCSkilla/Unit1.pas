@@ -226,6 +226,7 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FDStreamClients);
   FreeAndNil(FDebugLogState);
 end;
 
@@ -508,6 +509,7 @@ begin
     frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}
 
+  FDStreamClients.SaveToINI(GetConfigFileName);
   FDStreamClients.Clear;
 
     { we want to free the connection before our destroy because the connection
@@ -895,6 +897,7 @@ begin
   if InputQuery('Set DAoC Path', 'Enter the path to your DAoC installation', s) then begin
     s := IncludeTrailingPathDelimiter(s);
     FDAOCPath := s;
+    Self.Caption := 'DaocSkilla ' + GetVersionString + ' - ' + FDAOCPath;
     for I := 0 to FDControlList.Count - 1 do begin
       FDControlList[I].DAOCPath := s;
     end;
