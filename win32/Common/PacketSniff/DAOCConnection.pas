@@ -194,6 +194,8 @@ type
     function GetSelectedObject: TDAOCObject;
     function GetUDPServerIP: string;
     procedure SetSelectedObject(const Value: TDAOCObject);
+  private
+    FClientAddr: DWORD;
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -286,6 +288,7 @@ type
     procedure HookChatParseCallbacks;
     procedure MergeVendorItemsToMaster;
     procedure ScheduleCallback(ATimeout: DWORD; ACallback: TSheduledCallback; AParm: LPARAM);
+    procedure ClearDAOCObjectList;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -879,6 +882,7 @@ begin
   end;
 
   FMasterVendorList.Clear;
+  ClearDAOCObjectList;
   Log('Player region changed to ' + IntToStr(FRegionID));
 end;
 
@@ -1806,6 +1810,17 @@ begin
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
   if Assigned(pDAOCObject) then
     pDAOCObject.Stealthed := true;
+end;
+
+procedure TDAOCConnection.ClearDAOCObjectList;
+var
+  I:  integer;
+begin
+    { delete all the daocobjects, back to front, calling the delete event handler }
+  while FDAOCObjs.Count > 0 do begin
+    DoOnDeleteDAOCObject(FDAOCObjs[FDAOCObjs.Count - 1]);
+    FDAOCObjs.Delete(FDAOCObjs.Count - 1);
+  end;
 end;
 
 { TTCPFragment }
