@@ -73,7 +73,7 @@ type
     function GetName : string; virtual;
     procedure SetHitPoints(const Value: BYTE);
   public
-    LongestUpdateTime:    Cardinal;
+    //LongestUpdateTime:    Cardinal;
     constructor Create; virtual;
 
     procedure Assign(ASrc: TDAOCObject);
@@ -96,6 +96,8 @@ type
     procedure SaveToWriter(AWriter: TWriter); virtual;
     procedure Touch;
     function TicksSinceUpdate : Cardinal;
+    procedure SetXYZ(X, Y, Z: Cardinal);
+    procedure SetDestinationXYZ(X, Y, Z: Cardinal);
 
     property InfoID: WORD read FInfoID write FInfoID;
     property PlayerID: WORD read FPlayerID write FPlayerID;
@@ -455,11 +457,6 @@ begin
     PrependStr(IntToStr(ACopper mod 1000) + 'm');
 end;
 
-function LocalTickCount : Cardinal;
-begin
-  Result := GlobalTickCount;
-end;
-
 { TDAOCMovingObject }
 
 procedure TDAOCMovingObject.Assign(ASrc: TDAOCMovingObject);
@@ -608,10 +605,10 @@ var
   dHyp:     double;
   s, c:     single;
 begin
-  if FProjectedLastUpdate = LocalTickCount then
+  if FProjectedLastUpdate = GlobalTickCount then
     exit;
 
-  FProjectedLastUpdate := LocalTickCount;
+  FProjectedLastUpdate := GlobalTickCount;
 
   iSpeed := Speed;
   if iSpeed = 0 then begin
@@ -829,14 +826,14 @@ begin
 end;
 
 procedure TDAOCObject.Touch;
-var
-  dw:   Cardinal;
+//var
+//  dw:   Cardinal;
 begin
-  dw := TicksSinceUpdate;
-  if (FLastUpdate > 0) and (dw > LongestUpdateTime) then
-    LongestUpdateTime := dw;
+//  dw := TicksSinceUpdate;
+//  if (FLastUpdate > 0) and (dw > LongestUpdateTime) then
+//    LongestUpdateTime := dw;
     
-  FLastUpdate := LocalTickCount;
+  FLastUpdate := GlobalTickCount;
   FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX;
 end;
 
@@ -928,7 +925,7 @@ end;
 
 function TDAOCObject.TicksSinceUpdate: Cardinal;
 begin
-  Result := LocalTickCount - FLastUpdate;
+  Result := GlobalTickCount - FLastUpdate;
 end;
 
 function TDAOCObject.GetIsStale: boolean;
@@ -950,6 +947,22 @@ end;
 function TDAOCObject.SameLocAndHead(AObject: TDAOCObject): boolean;
 begin
   Result := SameLoc(AObject) and (AObject.HeadWord = FHeadWord);
+end;
+
+procedure TDAOCObject.SetDestinationXYZ(X, Y, Z: Cardinal);
+begin
+  FDestinationX := X;
+  FDestinationY := Y;
+  FDestinationZ := Z;
+  Touch;
+end;
+
+procedure TDAOCObject.SetXYZ(X, Y, Z: Cardinal);
+begin
+  FX := X;
+  FY := Y;
+  FZ := Z;
+  Touch;
 end;
 
 { TDAOCLocalPlayer }
