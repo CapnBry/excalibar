@@ -143,9 +143,6 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                 case IDC_SHOWMOBS:
                     ::RadarConfig.SetShowMobs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
                     break;
-                case IDC_SAVE_DAOC_MESSAGES:
-                    ::RadarConfig.SetSaveDAoCMessages(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
-                    break;
                 case IDC_SHOWRANGERING1:
                     if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
                         {
@@ -283,9 +280,6 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SIMPLIFYLINES,::RadarConfig.GetSimplifyLines());
     ss << "Simplify Vector Maps (" << ::RadarConfig.GetSimplifyLinesTolerance() << ")";
     SET_EDIT_STRING(hWnd,IDC_SIMPLIFYLINES,ss.str());
-    ss.str("");
-    SET_CHECK_BOOL(hWnd,IDC_SAVE_DAOC_MESSAGES,::RadarConfig.GetSaveDAoCMessages());
-    
     
     // friendly group
     SET_CHECK_BOOL(hWnd,IDC_SHOWFRIENDLYNAME,::RadarConfig.GetPrefsSameRealm().GetRenderName());

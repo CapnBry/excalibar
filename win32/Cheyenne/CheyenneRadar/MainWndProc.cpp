@@ -881,6 +881,14 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                              // first is its input, second is its output. It deletes the pair
                              // when it is done with it, but keeps the fifos (we own those)
     
+    // set database config
+    data->database.SaveChatMessages(::RadarConfig.GetSaveChatMessages());
+    data->database.SaveDAoCMessages(::RadarConfig.GetSaveDAoCMessages());
+    
+    // set menu checkmarks
+    SET_MENU_CHECK_BOOL(GetMenu(hWnd),ID_DATARECORDING_RECORDALLMESSAGES,::RadarConfig.GetSaveDAoCMessages());
+    SET_MENU_CHECK_BOOL(GetMenu(hWnd),ID_DATARECORDING_RECORDCHATMESSAGES,::RadarConfig.GetSaveChatMessages());
+    
     // install functors
     data->database.InstallFunctor
         (
