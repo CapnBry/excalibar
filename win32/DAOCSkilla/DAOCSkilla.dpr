@@ -45,7 +45,8 @@ uses
   DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas',
   DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas',
   DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging},
-  GlobalTickCounter in '..\Common\GlobalTickCounter.pas';
+  GlobalTickCounter in '..\Common\GlobalTickCounter.pas',
+  QuickSinCos in '..\Common\QuickSinCos.pas';
 
 {$R *.TLB}
 
