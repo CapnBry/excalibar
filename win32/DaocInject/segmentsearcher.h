@@ -19,7 +19,7 @@ public:
 	CSegmentSearch(void);
 	~CSegmentSearch(void);
 	PBYTE FindFirst(char *segment, char *needle, int needlelen);
-	PBYTE FindFirst(char *segment, char *needle) { return FindFirst(segment, needle, strlen(needle)); }
+	PBYTE FindFirst(char *segment, char *needle) { return FindFirst(segment, needle, (int)strlen(needle)); }
 };
 
 class CSegmentFileSearch : public CSegmentSearch
