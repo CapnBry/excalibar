@@ -40,6 +40,8 @@ type
     procedure lstObjectsDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure lstObjectsClick(Sender: TObject);
+    procedure glMapMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
   private
     FDControl: TDAOCConnection;
     FRange:         DWORD;
@@ -67,6 +69,8 @@ type
     FLastInvaderWarningTicks:   DWORD;
     FBoat:    TGLBoat;
     FTargetHUDWidth:  integer;
+    FMouseLocX:   DWORD;
+    FMouseLocY:   DWORD;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -88,6 +92,8 @@ type
     procedure DrawFrameStats;
     procedure DrawLineToMobTarget(AMob: TDAOCMob);
     procedure DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
+    procedure DrawGrid;
+    procedure DrawMouseTooltip;
 
     procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
@@ -103,6 +109,7 @@ type
     procedure ReloadMapElementsAndTextures;
     procedure DoPrefsDialog;
     function PlayerMobListText(AMob: TDAOCPlayer) : string;
+    procedure MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -209,10 +216,11 @@ begin
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  glEnable(GL_LIGHTING);
-
     { at origin }
+  if GetAsyncKeyState(VK_CONTROL) <> 0 then
+    MapUnproject(FMouseLocX, FMouseLocY, false);
   DrawMapElements;
+  DrawGrid;
   DrawMobsAndPlayers;
   DrawLineToSelected;
   DrawGroundTarget;
@@ -231,6 +239,7 @@ begin
   DrawTargetHUD;
   DrawLocalPlayerHUD;
   DrawFrameStats;
+  DrawMouseTooltip;
 
   CheckGLError();
 
@@ -352,14 +361,15 @@ begin
   sincos_quick(FDControl.LocalPlayer.Head, s, c);
 
     { Draw map rulers }
-  glColor3f(0.45, 0.45, 0.45);
   glLineWidth(1.0);
   glBegin(GL_LINES);
+    glColor3f(0.45, 0.45, 0.45);
     glVertex3f(-r, 0, 0);
     glVertex3f(r, 0, 0);
     glVertex3f(0, -r, 0);
     glVertex3f(0, r, 0);
 
+    glColor3f(0.6, 0.6, 0.6);
     glVertex3f(0, 0, 0);
     glVertex3f(-s * r, c * r, 0);
   glEnd();
@@ -469,33 +479,19 @@ end;
 
 procedure TfrmGLRender.glMapClick(Sender: TObject);
 var
-  projmatrix: T16dArray;
-  modmatrix:  T16dArray;
-  viewport:   TViewPortArray;
-  x, y, z:    GLdouble;
-  pt:         TPoint;
-  pNearest:   TDAOCObject;
+  pNearest: TDAOCObject;
+  x, y:     DWORD;
 begin
   if not FRenderPrefs.TrackMapClick then
     exit;
 
-  SetupRadarProjectionMatrix;
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glGetDoublev(GL_PROJECTION_MATRIX, @projmatrix);
-  glGetDoublev(GL_MODELVIEW_MATRIX, @modmatrix);
-  glGetIntegerv(GL_VIEWPORT, @viewport);
-
-  pt := glMap.ScreenToClient(Mouse.CursorPos);
-  gluUnProject(pt.X, glMap.Height - pt.Y, 0, modmatrix, projmatrix, viewport,
-    @x, @y, @z);
+  MapUnproject(X, Y, true);
 
     { if this is a dungeon, use 3d distance else use 2d }
   if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = dztDungeon) then
-    pNearest := FFilteredObjects.FindNearest3D(round(x), round(y), FDControl.LocalPlayer.Z)
+    pNearest := FFilteredObjects.FindNearest3D(x, y, FDControl.LocalPlayer.Z)
   else
-    pNearest := FFilteredObjects.FindNearest2D(round(x), round(y));
+    pNearest := FFilteredObjects.FindNearest2D(x, y);
 
   if Assigned(pNearest) then begin
     if FRenderPrefs.TrackInGameSelect then
@@ -535,6 +531,7 @@ var
   pMovingObj:  TDAOCMovingObject;
 begin
   glEnable(GL_BLEND);
+  glEnable(GL_LIGHTING);
 
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
@@ -616,6 +613,7 @@ begin
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
+  FRenderPrefs.HasGLUT := Assigned(glutInit);
 
   UpdateObjectCounts;
 end;
@@ -665,8 +663,6 @@ end;
 
 procedure TfrmGLRender.DrawMapElements;
 begin
-  glPushAttrib(GL_ENABLE_BIT);
-
   glDisable(GL_LIGHTING);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
@@ -676,8 +672,6 @@ begin
     FMapTexturesListList.GLRender(FRenderBounds);
   if FRenderPrefs.DrawMapVector then
     FMapElementsListList.GLRender(FRenderBounds);
-
-  glPopAttrib();
 end;
 
 procedure TfrmGLRender.DAOCZoneChanged;
@@ -698,6 +692,7 @@ end;
 procedure TfrmGLRender.DAOCRegionChanged;
 begin
   Caption := FDControl.LocalPlayer.Name + S_CAPTION_SUFFIX;
+  FRenderPrefs.PlayerRealm := FDControl.LocalPlayer.Realm;
   DAOCSetGroundTarget;
 end;
 
@@ -791,6 +786,8 @@ var
   begin
     with TDAOCMovingObject(pMob) do begin
       s := 'Level ' + IntToStr(Level);
+      if (pMob is TDAOCPlayer) and (TDAOCPlayer(pMob).RealmRank <> rrUnknown) then
+        s := s + ' ' + TDAOCPlayer(pMob).RealmRankStr;
       if HitPoints <> 100 then
         if IsDead then
           s := s + ' (dead)'
@@ -964,6 +961,12 @@ end;
 procedure TfrmGLRender.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   case Key of
+    'a', 'A':
+      begin
+        FRenderPrefs.InvaderWarning := not FRenderPrefs.InvaderWarning;
+        Dirty;
+        Key := #0;
+      end;
     'b', 'B':
       begin
         FRenderPrefs.DrawMapTexture := not FRenderPrefs.DrawMapTexture;
@@ -982,6 +985,17 @@ begin
         Dirty;
         Key := #0;
       end;
+    'f', 'F':
+      begin
+        FRenderPrefs.DrawFriendlyPlayers := not FRenderPrefs.DrawFriendlyPlayers;
+        Key := #0;
+      end;
+    'g', 'G':
+      begin
+        FRenderPrefs.DrawGrid := not FRenderPrefs.DrawGrid;
+        Dirty;
+        Key := #0;
+      end;
     'h', 'H':
       begin
         FRenderPrefs.DrawHUD := not FRenderPrefs.DrawHUD;
@@ -990,17 +1004,17 @@ begin
       end;
     'm', 'M':
       begin
-        FRenderPrefs.XORObjectFilter(ocMob);
+        FRenderPrefs.XORObjectClassFilter(ocMob);
         Key := #0;
       end;
     'o', 'O':
       begin
-        FRenderPrefs.XORObjectFilter(ocObject);
+        FRenderPrefs.XORObjectClassFilter(ocObject);
         Key := #0;
       end;
     'p', 'P':
       begin
-        FRenderPrefs.XORObjectFilter(ocPlayer);
+        FRenderPrefs.XORObjectClassFilter(ocPlayer);
         Key := #0;
       end;
     'r', 'R':
@@ -1017,7 +1031,7 @@ begin
       end;
     'u', 'U':
       begin
-        FRenderPrefs.XORObjectFilter(ocUnknown);
+        FRenderPrefs.XORObjectClassFilter(ocUnknown);
         RefreshFilteredList;
         Key := #0;
       end;
@@ -1088,13 +1102,22 @@ begin
       Result := I;
       exit;
     end
+
     else if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) = 0 then begin
-      if AnsiCompareText(ADAOCObject.Name, FFilteredObjects[I].Name) < 0 then begin
+      if FRenderPrefs.GroupByRealm and (ADAOCObject.Realm < FFilteredObjects[I].Realm) then begin
         FFilteredObjects.Insert(I, ADAOCObject);
         Result := I;
         exit;
       end
-    end;
+
+      else if not FRenderPrefs.GroupByRealm or (ADAOCObject.Realm = FFilteredObjects[I].Realm) then begin
+        if AnsiCompareText(ADAOCObject.Name, FFilteredObjects[I].Name) < 0 then begin
+          FFilteredObjects.Insert(I, ADAOCObject);
+          Result := I;
+          exit;
+        end;
+      end;  { if same realm }
+    end;  { if samce object class }
 
   Result := FFilteredObjects.Add(ADAOCObject);
 end;
@@ -1141,17 +1164,25 @@ end;
 
 function TfrmGLRender.PlayerMobListText(AMob: TDAOCPlayer) : string;
 begin
-  Result := AMob.Name + ' ';
   if AMob.Realm <> FDControl.LocalPlayer.Realm then begin
+    Result := '';
+    
     if AMob.RealmRank <> rrUnknown then
-      Result := Result + AMob.RealmRankStr + ' ';
+      Result := AMob.RealmRankStr + ' - ';
+
+    Result := Result + AMob.Name;
+
     if AMob.CharacterClass <> ccUnknown then
-      Result := Result + DAOCCharacterClassToStr(AMob.CharacterClass);
+      Result := Result + ' ' + DAOCCharacterClassToStr(AMob.CharacterClass);
   end
 
     { same realm }
-  else if AMob.CharacterClass <> ccUnknown then
-    Result := Result + '(' + DAOCCharacterClassToStr(AMob.CharacterClass) + ')';
+  else begin
+    if AMob.CharacterClass <> ccUnknown then
+      Result := AMob.Name + ' (' + DAOCCharacterClassToStr(AMob.CharacterClass) + ')'
+    else
+      Result := AMob.Name;
+  end;
 end;
 
 procedure TfrmGLRender.lstObjectsDrawItem(Control: TWinControl;
@@ -1383,6 +1414,149 @@ begin
       glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
     glEnd();
   end;  { if destinaton set }
+end;
+
+procedure TfrmGLRender.DrawGrid;
+const
+  GRID_STEP = 10000;
+var
+  X:    integer;
+  Y:    integer;
+  XMin: integer;
+  YMin: integer;
+  XMax: integer;
+  YMax: integer;
+begin
+  if not FRenderPrefs.DrawGrid then
+    exit;
+
+    { the grid only draws over the current zone }
+  if not Assigned(FDControl.Zone) then
+    exit;
+
+  glDisable(GL_LIGHTING);
+  glEnable(GL_BLEND);
+  glLineWidth(1.0);
+  glColor4f(0, 0, 1, 0.5);
+
+    { round down to the next 10,000 mark }
+//  XMin := (FRenderBounds.Left div GRID_STEP) * GRID_STEP;
+//  YMin := (FRenderBounds.Top div GRID_STEP) * GRID_STEP;
+    { round up to the next 10,000 mark }
+//  XMax := ((FRenderBounds.Right + GRID_STEP - 1) div GRID_STEP) * GRID_STEP;
+//  YMax := ((FRenderBounds.Bottom + GRID_STEP - 1) div GRID_STEP) * GRID_STEP;
+
+  with FDControl.Zone do begin
+    XMin := BaseLoc.X;
+    YMin := BaseLoc.Y;
+    XMax := MaxLoc.X;
+    YMax := MaxLoc.Y;
+  end;
+
+  Y := YMin + GRID_STEP;
+  while Y <= YMax do begin
+    glBegin(GL_LINES);
+        { horizontal line }
+      glVertex2i(XMin, Y);
+      glVertex2i(XMax, Y);
+    glEnd();
+
+    inc(Y, GRID_STEP);
+  end;  { for Y }
+
+  X := XMin + GRID_STEP;
+  while X <= XMax do begin
+    glBegin(GL_LINES);
+        { vertical line }
+      glVertex2i(X, YMin);
+      glVertex2i(X, YMax);
+    glEnd();
+
+    inc(X, GRID_STEP);
+  end;  { for X }
+end;
+
+procedure TfrmGLRender.MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
+var
+  projmatrix: T16dArray;
+  modmatrix:  T16dArray;
+  viewport:   TViewPortArray;
+  fx, fy, fz: GLdouble;
+  pt:         TPoint;
+begin
+  if ANeedMVPSetup then begin
+    SetupRadarProjectionMatrix;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+  end;
+
+  glGetDoublev(GL_PROJECTION_MATRIX, @projmatrix);
+  glGetDoublev(GL_MODELVIEW_MATRIX, @modmatrix);
+  glGetIntegerv(GL_VIEWPORT, @viewport);
+
+  pt := glMap.ScreenToClient(Mouse.CursorPos);
+  gluUnProject(pt.X, glMap.Height - pt.Y, 0, modmatrix, projmatrix, viewport,
+    @fx, @fy, @fz);
+
+  X := round(fx);
+  Y := round(fy);
+end;
+
+procedure TfrmGLRender.glMapMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+    { for mouse tooltip }
+  if ssCtrl in Shift then
+    Dirty;
+end;
+
+procedure TfrmGLRender.DrawMouseTooltip;
+var
+  ptMouse:  TPoint;
+  iHeight:  integer;
+  iDist:    integer;
+  ZoneX:    DWORD;
+  ZoneY:    DWORD;
+  pNearest: TDAOCObject;
+begin
+  if (GetAsyncKeyState(VK_CONTROL) = 0) or not FRenderPrefs.HasGLUT or
+    not Assigned(FDControl.Zone) then
+    exit;
+
+    { distance from here to the mouse }
+  iDist := round(FDControl.LocalPlayer.Distance2D(FMouseLocX, FMouseLocY));
+
+  if FDControl.Zone.ZoneType = dztDungeon then
+    pNearest := FFilteredObjects.FindNearest3D(FMouseLocX, FMouseLocY, FDControl.LocalPlayer.Z)
+  else
+    pNearest := FFilteredObjects.FindNearest2D(FMouseLocX, FMouseLocY);
+
+  if Assigned(pNearest) and (pNearest.Distance2D(FMouseLocX, FMouseLocY) > FMobTriangle.Size) then
+    pNearest := nil;
+
+  if Assigned(pNearest) then
+    iHeight := 28
+  else
+    iHeight := 14;
+
+  ptMouse := glMap.ScreenToClient(Mouse.CursorPos);
+  ptMouse.X := ptMouse.X + 2;
+  ptMouse.Y := glMap.ClientHeight - ptMouse.Y + iHeight;
+
+  ZoneX := FMouseLocX - DWORD(FDControl.Zone.BaseLoc.X);
+  ZoneY := FMouseLocY - DWORD(FDControl.Zone.BaseLoc.Y);
+
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING);
+
+  ShadedRect(ptMouse.X, ptMouse.Y, ptMouse.X + 120, ptMouse.Y - iHeight);
+  glColor3f(1, 1, 1);
+
+  ptMouse.X := ptMouse.X + 1;
+  ptMouse.Y := ptMouse.Y + 2;
+  if Assigned(pNearest) then
+    ptMouse.Y := WriteGLUTTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
+  WriteGLUTTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
 end;
 
 end.

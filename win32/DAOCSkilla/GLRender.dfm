@@ -39,6 +39,7 @@ object frmGLRender: TfrmGLRender
       Align = alClient
       OnClick = glMapClick
       OnMouseDown = glMapMouseDown
+      OnMouseMove = glMapMouseMove
       ColorDepth = c16bits
       DepthBits = c16bits
       DepthBufferEnabled = False
