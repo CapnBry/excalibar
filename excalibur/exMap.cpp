@@ -387,6 +387,7 @@ void exMap::paintGL() {
 
   lastfade = prefs.map_fade;
   lastfill = prefs.map_fill;
+  lastz = c->playerz;
 
   for (mapel=map.first(); mapel; mapel=map.next()) {
      if (recache)
@@ -574,7 +575,6 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
         glEnable     (GL_BLEND);
         glEnable     (GL_DEPTH_TEST);
         glDisable    (GL_LIGHTING);
-        glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc  (GL_LEQUAL);
 
         if (prefs.alpha_borders) {
