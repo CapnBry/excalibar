@@ -69,6 +69,7 @@ type
     procedure CloseCollectionClient;
     procedure NewSegmentFromCollector;
     function UseCollectionClient : boolean;
+    function SetServerNet : boolean;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -307,7 +308,6 @@ begin
       adapter properly }
   frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
   LoadSettings;
-  Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
 {$IFDEF REMOTE_ADMIN}
   dmdRemoteAdmin.DAOCControl := FConnection;
 {$ENDIF REMOTE_ADMIN}
@@ -351,17 +351,15 @@ begin
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
-      { The ServerNet is stored in host order like 1.2.3.4 = $01020304,
-        also remember it is a NET not an IP so the last number should be 00 }
-    BP_Instns[4].k := StrToHNet(ReadString('Main', 'ServerNet', HNetToStr(BP_Instns[4].k)));
-    BP_Instns[7].k := BP_Instns[4].k;
-
     frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
     frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
     frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', true);
     frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
     frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
     frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
+    frmConnectionConfig.ServerSubnet := TServerSubnet(ReadInteger('Main', 'ServerSubnet', 0));
+    frmConnectionConfig.CustomServerSubnet := ReadString('Main', 'CustomServerSubnet', '208.254.16.0');
+    SetServerNet;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -419,6 +417,8 @@ begin
     WriteBool('Main', 'PromiscCapture', frmConnectionConfig.PromiscuousCapture);
     WriteString('Main', 'RemoteCollector', frmConnectionConfig.RemoteCollector);
     WriteInteger('Main', 'LocalCollectorPort', frmConnectionConfig.LocalCollectorPort);
+    WriteInteger('Main', 'ServerSubnet', Ord(frmConnectionConfig.ServerSubnet));
+    WriteString('Main', 'CustomServerSubnet', frmConnectionConfig.CustomServerSubnet);
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -758,7 +758,9 @@ var
 begin
   frmConnectionConfig.ShowModal;
 
-  bNeedAdapterRestart := frmConnectionConfig.SniffPackets <> FPReader.Active;
+  bNeedAdapterRestart := SetServerNet;
+  bNeedAdapterRestart := bNeedAdapterRestart or (
+    frmConnectionConfig.SniffPackets <> FPReader.Active);
   bNeedAdapterRestart := bNeedAdapterRestart or (
     FPReader.Promiscuous <> frmConnectionConfig.PromiscuousCapture);
   bNeedAdapterRestart := bNeedAdapterRestart or (
@@ -882,6 +884,27 @@ function TfrmMain.UseCollectionClient: boolean;
 begin
   Result := not FClosing and frmConnectionConfig.SniffPackets and
     not frmConnectionConfig.ProcessLocally
+end;
+
+function TfrmMain.SetServerNet : boolean;
+(*** Returns true if subnet changed ***)
+var
+  dwNet:  DWORD;
+begin
+    { The ServerNet is stored in host order like 1.2.3.4 = $01020304,
+      also remember it is a NET not an IP so the last number should be 00 }
+  case frmConnectionConfig.ServerSubnet of
+    ssUS:  dwNet := $D0FE1000;  // 208.254.16.0
+    ssEU:  dwNet := $C1FC7B00;  // 193.252.123.0
+    else
+      dwNet := StrToHNet(frmConnectionConfig.CustomServerSubnet);
+  end;
+
+  Result := dwNet <> BP_Instns[4].k;
+
+  BP_Instns[4].k := dwNet;
+  BP_Instns[7].k := dwNet;
+  Log('ServerNet set to ' + my_inet_htoa(dwNet));
 end;
 
 end.

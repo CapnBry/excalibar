@@ -8,8 +8,10 @@ uses
 
 const
   DEFAULT_COLLECTOR_PORT = 9867;
-  
+
 type
+  TServerSubnet = (ssUS, ssEU, ssCustom);
+  
   TfrmConnectionConfig = class(TForm)
     lstAdapters: TListBox;
     chkPromiscuous: TCheckBox;
@@ -25,10 +27,17 @@ type
     chkSniffPackets: TCheckBox;
     btnOK: TBitBtn;
     Label1: TLabel;
+    GroupBox1: TGroupBox;
+    rbnUSServers: TRadioButton;
+    rbnEUServers: TRadioButton;
+    rbnCustomServers: TRadioButton;
+    edtServerSubnet: TEdit;
     procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure edtLocalPortKeyPress(Sender: TObject; var Key: Char);
     procedure chkSniffPacketsClick(Sender: TObject);
+    procedure rbnCustomServersClick(Sender: TObject);
+    procedure edtServerSubnetKeyPress(Sender: TObject; var Key: Char);
   private
     function GetAdapterName: string;
     function GetLocalCollectorPort: integer;
@@ -42,6 +51,10 @@ type
     procedure SetSniffPackets(const Value: boolean);
     function GetProcessLocally: boolean;
     procedure SetProcessLocally(const Value: boolean);
+    function GetServerSubnet: TServerSubnet;
+    procedure SetServerSubnet(const Value: TServerSubnet);
+    function GetCustomServerSubnet: string;
+    procedure SetCustomServerSubnet(const Value: string);
   public
     procedure AssignAdapterList(ASrc: TStrings);
 
@@ -50,7 +63,9 @@ type
     property PromiscuousCapture: boolean read GetPromiscuousCapture write SetPromiscuousCapture;
     property RemoteCollector: string read GetRemoteCollector write SetRemoteCollector;
     property LocalCollectorPort: integer read GetLocalCollectorPort write SetLocalCollectorPort;
-    property ProcessLocally: boolean read GetProcessLocally write SetProcessLocally; 
+    property ProcessLocally: boolean read GetProcessLocally write SetProcessLocally;
+    property ServerSubnet: TServerSubnet read GetServerSubnet write SetServerSubnet;
+    property CustomServerSubnet: string read GetCustomServerSubnet write SetCustomServerSubnet; 
   end;
 
 var
@@ -177,6 +192,50 @@ begin
     rbnProcessPackets.Checked := true
   else
     rbnProcessRemotely.Checked := true;
+end;
+
+function TfrmConnectionConfig.GetServerSubnet: TServerSubnet;
+begin
+  if rbnUSServers.Checked then
+    Result := ssUS
+  else if rbnEUServers.Checked then
+    Result := ssEU
+  else
+    Result := ssCustom;
+end;
+
+procedure TfrmConnectionConfig.SetServerSubnet(const Value: TServerSubnet);
+begin
+  case Value of
+    ssUS:  rbnUSServers.Checked := true;
+    ssEU:  rbnEUServers.Checked := true;
+    else
+      rbnCustomServers.Checked := true;
+  end;
+  
+  rbnCustomServersClick(nil);
+end;
+
+procedure TfrmConnectionConfig.rbnCustomServersClick(Sender: TObject);
+begin
+  edtServerSubnet.Enabled := rbnCustomServers.Checked;
+end;
+
+procedure TfrmConnectionConfig.edtServerSubnetKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if not (Key in [#8, '.', '0'..'9']) then
+    Key := #0;
+end;
+
+function TfrmConnectionConfig.GetCustomServerSubnet: string;
+begin
+  Result := edtServerSubnet.Text;
+end;
+
+procedure TfrmConnectionConfig.SetCustomServerSubnet(const Value: string);
+begin
+  edtServerSubnet.Text := Value;
 end;
 
 end.

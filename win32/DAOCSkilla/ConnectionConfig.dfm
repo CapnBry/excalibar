@@ -3,7 +3,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   Top = 292
   BorderStyle = bsDialog
   Caption = 'Connection Configuration'
-  ClientHeight = 301
+  ClientHeight = 341
   ClientWidth = 518
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -155,12 +155,60 @@ object frmConnectionConfig: TfrmConnectionConfig
     end
   end
   object btnOK: TBitBtn
-    Left = 436
-    Top = 272
+    Left = 432
+    Top = 312
     Width = 75
     Height = 25
     Caption = '&OK'
     TabOrder = 2
     Kind = bkOK
+  end
+  object GroupBox1: TGroupBox
+    Left = 4
+    Top = 268
+    Width = 509
+    Height = 40
+    Caption = '  Server subnet mask  '
+    TabOrder = 3
+    object rbnUSServers: TRadioButton
+      Left = 8
+      Top = 16
+      Width = 129
+      Height = 17
+      Caption = 'United States servers'
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+      OnClick = rbnCustomServersClick
+    end
+    object rbnEUServers: TRadioButton
+      Tag = 1
+      Left = 164
+      Top = 16
+      Width = 113
+      Height = 17
+      Caption = 'European servers'
+      TabOrder = 1
+      OnClick = rbnCustomServersClick
+    end
+    object rbnCustomServers: TRadioButton
+      Tag = 2
+      Left = 304
+      Top = 16
+      Width = 97
+      Height = 17
+      Caption = 'Custom subnet'
+      TabOrder = 2
+      OnClick = rbnCustomServersClick
+    end
+    object edtServerSubnet: TEdit
+      Left = 404
+      Top = 12
+      Width = 93
+      Height = 21
+      TabOrder = 3
+      Text = '192.168.100.0'
+      OnKeyPress = edtServerSubnetKeyPress
+    end
   end
 end
