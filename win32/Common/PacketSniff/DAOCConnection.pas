@@ -1447,6 +1447,8 @@ procedure TDAOCConnection.DoOnCurrencyChanged(ADeltaAsCopper: integer);
 begin
   if Assigned(FOnCurrencyChanged) then
     FOnCurrencyChanged(Self, FLastCurrencyChangeReason, ADeltaAsCopper);
+    
+  FLastCurrencyChangeReason := ccrUnknown;
 end;
 
 procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TDAOCPacket);
