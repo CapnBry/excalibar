@@ -574,7 +574,7 @@ begin
   else if AnsiSameText(AMaterial, 'fox glove') then
     Result := 'foxglove'
   else if AnsiSameText(AMaterial, 'St. John''s Wort') then
-    Result := 'St John''s wort'
+    Result := 'St. John''s wort'  // used to be St John''s wort 
   else
     Result := AMaterial;
 end;
