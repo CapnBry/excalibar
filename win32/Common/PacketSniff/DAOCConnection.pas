@@ -138,8 +138,8 @@ type
     FZoneList:  TDAOCZoneInfoList;
     FZone:      TDAOCZoneInfo;
     FRegionID:  integer;
-    FDAOCObjs:  TDAOCObjectList;
-    FDAOCObjsStale: TDAOCObjectList;
+    FDAOCObjs:  TDAOCObjectLinkedList;
+    FDAOCObjsStale: TDAOCObjectLinkedList;
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
@@ -267,7 +267,7 @@ type
 
     property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
     property CryptKey: string read GetCryptKey write SetCryptKey;
-    property DAOCObjects: TDAOCObjectList read FDAOCObjs;
+    property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
@@ -398,8 +398,8 @@ begin
   FScheduledCallbacks := TList.Create;
   FVendorItems := TDAOCVendorItemList.Create;
   FMasterVendorList := TDAOCMasterVendorList.Create;
-  FDAOCObjs := TDAOCObjectList.Create;
-  FDAOCObjsStale := TDAOCObjectList.Create;
+  FDAOCObjs := TDAOCObjectLinkedList.Create;
+  FDAOCObjsStale := TDAOCObjectLinkedList.Create;
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
@@ -1049,7 +1049,7 @@ begin
     pDAOCObject := TDAOCUnknownMovingObject.Create;
     pDAOCObject.InfoID := wID;
     pDAOCObject.PlayerID := 0;
-    FDAOCObjs.AddOrReplace(pDAOCObject);
+    FDAOCObjs.Add(pDAOCObject);
     bAddedObject := true;
   end
   else
@@ -1655,27 +1655,40 @@ end;
 
 procedure TDAOCConnection.ParseDeleteObject(pPacket: TDAOCPacket);
 var
-  iPos: integer;
+  pObj:   TDAOCObject;
+  wID:    WORD;
 begin
   pPacket.HandlerName := 'DeleteObject';
-  iPos := FDAOCObjs.IndexOfInfoID(pPacket.getShort);
-  if iPos <> -1 then begin
-    DoOnDeleteDAOCObject(FDAOCObjs[iPos]);
-    FDAOCObjs.Delete(iPos);
+  wID := pPacket.getShort;
+  
+  pObj := FDAOCObjs.FindByInfoID(wID);
+  if Assigned(pObj) then begin
+    DoOnDeleteDAOCObject(pObj);
+    FDAOCObjs.Delete(pObj);
+  end
+  
+  else begin
+    pObj := FDAOCObjsStale.FindByInfoID(wID);
+    if Assigned(pObj) then
+      FDAOCObjsStale.Delete(pObj);
   end;
 end;
 
 procedure TDAOCConnection.DoOnDeleteDAOCObject(AObject: TDAOCObject);
 var
-  I:    integer;
+  pObj: TDAOCObject;
 begin
+  pObj := FDAOCObjs.Head;
     { make sure nobody still has this poor fella as a target }
-  for I := 0 to FDAOCObjs.Count - 1 do
-    if (FDAOCObjs[I] is TDAOCMovingObject) and
-      (TDAOCMob(FDAOCObjs[I]).Target = AObject) then begin
-      TDAOCMob(FDAOCObjs[I]).Target := nil;
-      DoOnMobTargetChanged(TDAOCMob(FDAOCObjs[I]));
+  while Assigned(pObj) do begin
+    if (pObj is TDAOCMovingObject) and
+      (TDAOCMob(pObj).Target = AObject) then begin
+      TDAOCMob(pObj).Target := nil;
+      DoOnMobTargetChanged(TDAOCMob(pObj));
     end;
+
+    pObj := pObj.Next;
+  end;  { while pObj }
 
   if Assigned(FOnDeleteDAOCObject) then
     FOnDeleteDAOCObject(Self, AObject);
@@ -1959,34 +1972,36 @@ begin
 end;
 
 procedure TDAOCConnection.ClearDAOCObjectList;
+var
+  pDAOCObject:  TDAOCObject;
 begin
-    { delete all the daocobjects, back to front, calling the delete event handler }
-  while FDAOCObjs.Count > 0 do begin
-    DoOnDeleteDAOCObject(FDAOCObjs[FDAOCObjs.Count - 1]);
-    FDAOCObjs.Delete(FDAOCObjs.Count - 1);
+  pDAOCObject := FDAOCObjs.Head;
+    { delete all the daocobjects, calling the delete event handler }
+  while Assigned(pDAOCObject) do begin
+    DoOnDeleteDAOCObject(pDAOCObject);
+    pDAOCObject := FDAOCObjs.Delete(pDAOCObject);
   end;
 end;
 
 procedure TDAOCConnection.CheckObjectsOutOfRange;
 var
-  I:      integer;
   fDist:  double;
-  pObj:   TDAOCObject;
+  pDAOCObject:  TDAOCObject;
 begin
-  I := FDAOCObjs.Count - 1;
-  while I >= 0 do begin
-    pObj := FDAOCObjs[I];
-    if pObj.ObjectClass = ocObject then begin
-      fDist := pObj.DistanceSqr3D(FLocalPlayer);
+  pDAOCObject := FDAOCObjs.Head;
+  while Assigned(pDAOCObject) do
+    if pDAOCObject.ObjectClass = ocObject then begin
+      fDist := pDAOCObject.DistanceSqr3D(FLocalPlayer);
         { if object is just a base object }
       if fDist > FMaxObjectDistSqr then begin
-        DoOnDeleteDAOCObject(pObj);
-        FDAOCObjs.Delete(I);
-      end;
-    end;  { if object is a base non-moving DAOC object }
-
-    dec(I);
-  end;  { while I > 0 }
+        DoOnDeleteDAOCObject(pDAOCObject);
+        pDAOCObject := FDAOCObjs.Delete(pDAOCObject);
+      end
+      else
+        pDAOCObject := pDAOCObject.Next;
+    end  { if object is a base non-moving DAOC object }
+    else
+      pDAOCObject := pDAOCObject.Next;
 end;
 
 procedure TDAOCConnection.SetMaxObjectDistance(const Value: double);
@@ -2051,25 +2066,29 @@ end;
 
 procedure TDAOCConnection.CheckForStaleObjects;
 var
-  I:    integer;
-  pObj: TDAOCObject;
+  pObj:   TDAOCObject;
+  pNext:  TDAOCObject;
 begin
     { remove really really old stuff from the stale list }
-  for I := FDAOCObjsStale.Count - 1 downto 0 do
-    if FDAOCObjsStale[I].TicksSinceUpdate > FMaxObjectStaleTime then
-      FDAOCObjsStale.Delete(I);
+  pObj := FDAOCObjsStale.Head;
+  while Assigned(pObj) do
+    if pObj.TicksSinceUpdate > FMaxObjectStaleTime then
+      pObj := FDAOCObjsStale.Delete(pObj)
+    else
+      pObj := pObj.Next;
 
-  I := 0;
-  while I < FDAOCObjs.Count do begin
-    pObj := FDAOCObjs[I];
+  pObj := FDAOCObjs.Head;
+  while Assigned(pObj) do begin
     pObj.CheckStale;
     if pObj.IsStale then begin
       DoOnDeleteDAOCObject(pObj);
-      FDAOCObjsStale.Add(FDAOCObjs.Take(I));
-    end  { if stale }
+      pNext := FDAOCObjs.Remove(pObj);
+      FDAOCObjsStale.Add(pObj);
+      pObj := pNext;
+    end
     else
-      inc(I);
-  end;  { for I to count }
+      pObj := pObj.Next;
+  end;  { while pObj }
 end;
 
 procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
@@ -2183,21 +2202,26 @@ end;
 
 procedure TDAOCConnection.UpdatePlayersInGuild;
 var
-  I:    integer;
+  pObj: TDAOCObject;
 begin
-  for I := 0 to FDAOCObjs.Count - 1 do
-    if FDAOCObjs[I].ObjectClass = ocPlayer then
-      TDAOCPlayer(FDAOCObjs[I]).IsInGuild :=
-        AnsiSameText(TDAOCPlayer(FDAOCObjs[I]).Guild, FLocalPlayer.Guild);
+  pObj := FDAOCObjs.Head;
+  while Assigned(pObj) do begin
+    if pObj.ObjectClass = ocPlayer then
+      TDAOCPlayer(pObj).IsInGuild := AnsiSameText(TDAOCPlayer(pObj).Guild, FLocalPlayer.Guild);
+    pObj := pObj.Next;
+  end;
 end;
 
 procedure TDAOCConnection.ResetPlayersInGroup;
 var
-  I:    integer;
+  pObj: TDAOCObject;
 begin
-  for I := 0 to FDAOCObjs.Count - 1 do
-    if FDAOCObjs[I].ObjectClass = ocPlayer then
-      TDAOCPlayer(FDAOCObjs[I]).IsInGroup := false;
+  pObj := FDAOCObjs.Head;
+  while Assigned(pObj) do begin
+    if pObj.ObjectClass = ocPlayer then
+      TDAOCPlayer(pObj).IsInGuild := false;
+    pObj := pObj.Next;
+  end;
 end;
 
 procedure TDAOCConnection.ParseAggroIndicator(pPacket: TDAOCPacket);
@@ -2237,33 +2261,25 @@ begin
 end;
 
 function TDAOCConnection.CheckAndMoveFromStaleListByInfoID(wID: WORD): TDAOCObject;
-var
-  iIdx:   integer;
 begin
-  iIdx := FDAOCObjsStale.IndexOfInfoID(wID);
-  if iIdx <> -1 then begin
-    Result := FDAOCObjsStale.Take(iIdx);
+  Result := FDAOCObjsStale.FindByInfoID(wID);
+  if Assigned(Result) then begin
+    FDAOCObjsStale.Remove(Result);
       { we shouldn't need to do an AddOrReplace (and notify on delete of old)
         because this function should only be called if the InfoID wasn't in
         the list already }
-    FDAOCObjs.Add(Result);
+    DAOCObjects.Add(Result);
     DoOnNewDAOCObject(Result);
-  end
-  else
-    Result := nil;
+  end;
 end;
 
 function TDAOCConnection.CheckAndMoveFromStaleListByPlayerID(wID: WORD): TDAOCObject;
-var
-  iIdx:   integer;
 begin
-  iIdx := FDAOCObjsStale.IndexOfPlayerID(wID);
-  if iIdx <> -1 then begin
-    Result := FDAOCObjsStale.Take(iIdx);
+  Result := FDAOCObjsStale.FindByPlayerID(wID);
+  if Assigned(Result) then begin
+    FDAOCObjsStale.Remove(Result);
     SafeAddDAOCObjectAndNotify(Result);
-  end
-  else
-    Result := nil;
+  end;
 end;
 
 procedure TDAOCConnection.SafeAddDAOCObjectAndNotify(ADAOCObject: TDAOCObject);
@@ -2273,9 +2289,12 @@ var
   pOldObject: TDAOCObject;
 begin
   pOldObject := FDAOCObjs.FindByInfoID(ADAOCObject.InfoID);
-  if Assigned(pOldObject) then
+  if Assigned(pOldObject) then begin
     DoOnDeleteDAOCObject(pOldObject);
-  FDAOCObjs.AddOrReplace(ADAOCObject);
+    FDAOCObjs.Delete(pOldObject);
+  end;
+  
+  FDAOCObjs.Add(ADAOCObject);
   DoOnNewDAOCObject(ADAOCObject);
 end;
 
