@@ -26,11 +26,12 @@
 #include "exMessage.h"
 #include "exPrefs.h"
 
-exMessage::exMessage( QString* newMsg)
+exMessage::exMessage( QString* newMsg, unsigned int Id)
 { 
 	this->Msg = *newMsg;
 	this->MsgType = "Unknown";
 	this->FormattedText = *newMsg;
+	this->MsgIdNum = Id;
 }
 
 void exMessage::parseMsg()
@@ -130,6 +131,6 @@ void exMessage::parseMsg()
 				this->MsgType.ascii(), 
 				this->FormattedText.ascii());
 	else
-		printf("[%s] %s\n", "Unknown", this->Msg.ascii());
+		printf("[%s : 0x%2x] %s\n", "Unknown", this->MsgIdNum, this->Msg.ascii());
 
 }

@@ -631,13 +631,13 @@ void exConnection::parseSystemMessage (exPacket *p)
     QTextEdit *textbox;
     p->seek(7);
 
-    p->getByte();
+    unsigned int MsgType	 = p->getByte();
 
     char*        Message     = strdup(p->getZeroString().ascii());
 
 //    qWarning("Type: %x - Message: %s", MessageType, Message);
 
-    msg = new exMessage( new QString( Message));
+    msg = new exMessage( new QString( Message), MsgType);
     msg->parseMsg();
 
     // Insert it into the ALL tab
