@@ -126,6 +126,7 @@ type
     procedure DAOCArriveAtGotoDest(ASender: TObject);
     procedure DAOCSelectNPCSuccess(ASender: TObject);
     procedure DAOCSelectNPCFailed(ASender: TObject);
+    procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -346,6 +347,7 @@ begin
   FConnection.OnArriveAtGotoDest := DAOCArriveAtGotoDest;
   FConnection.OnSelectNPCSuccess := DAOCSelectNPCSuccess;
   FConnection.OnSelectNPCFailed := DAOCSelectNPCFailed;
+  FConnection.OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
@@ -415,6 +417,8 @@ begin
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
     FConnection.KeyQuickSell := ReadString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     FConnection.KeySelectFriendly := ReadString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
+    FConnection.KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
+    FConnection.KeyStrafeRight := ReadString('Keys', 'StrafeRight', FConnection.KeyStrafeRight);
 
     frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
     frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
@@ -485,6 +489,8 @@ begin
     WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
     WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
+    WriteString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
+    WriteString('Keys', 'StrafeRight', FConnection.KeyStrafeRight);
 
     WriteString('Main', 'Adapter', frmConnectionConfig.AdapterName);
     WriteBool('Main', 'ProcessLocally', frmConnectionConfig.ProcessLocally);
@@ -1139,6 +1145,11 @@ end;
 procedure TfrmMain.DAOCSelectNPCFailed(ASender: TObject);
 begin
   frmMacroing.DAOCSelectNPCFailed;
+end;
+
+procedure TfrmMain.DAOCAttemptNPCRightClickFailed(ASender: TObject);
+begin
+  frmMacroing.DAOCAttemptNPCRightClickFailed;
 end;
 
 end.
