@@ -100,6 +100,10 @@ public:
         SetNumMids(0);
         SetNumMobs(0);
         SetInfoIdSize(0);
+        SetLiveAlbs(0);
+        SetLiveHibs(0);
+        SetLiveMids(0);
+        SetLiveMobs(0);
     }
     DatabaseStatistics(const DatabaseStatistics& s)
     {
@@ -132,6 +136,10 @@ private:
     DECL_MEMBER(unsigned int,NumHibs);
     DECL_MEMBER(unsigned int,NumMids);
     DECL_MEMBER(unsigned int,NumMobs);
+    DECL_MEMBER(unsigned int,LiveAlbs);
+    DECL_MEMBER(unsigned int,LiveHibs);
+    DECL_MEMBER(unsigned int,LiveMids);
+    DECL_MEMBER(unsigned int,LiveMobs);
     DECL_MEMBER(unsigned int,InfoIdSize);
 
 }; // end class DatabaseStatistics
@@ -207,12 +215,8 @@ public:
     Actor CopyActorById(const Database::id_type& info_id)const;
     bool CopyActorByName(const std::string name,Actor& Result)const;
     void GetDatabaseStatistics(DatabaseStatistics& stats)const;
-    bool IsGroundTargetSet(void)const{return(bGroundTargetSet);};
     bool IsUncorrelatedStealth(void)const;
     Actor GetUncorrelatedStealthCenter(void)const;
-    Motion GetGroundTarget(void)const{return(GroundTarget);};
-    unsigned char GetGroundTargetRegion(void)const{return(GroundTargetRegion);};
-    
     static Database::id_type GetUniqueId(const unsigned short region,const Database::id_type id_or_infoid);
 
     void RequestFullUpdate(void);
@@ -268,9 +272,6 @@ private:
     const CheyenneTime NetworkHeartbeat;
     
     // these are in global display-adjusted coordinates
-    Motion GroundTarget;
-    unsigned char GroundTargetRegion;
-    bool bGroundTargetSet;
     CheyenneTime UncorrelatedStealthTime;
     Actor UncorrelatedStealthCenter;
     

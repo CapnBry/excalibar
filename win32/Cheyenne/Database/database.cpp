@@ -35,7 +35,6 @@ extern logger_t Logger;
 Database::Database() : 
     ActorEvents(DatabaseEvents::_LastEvent),
     OldActorThreshold(15.0),
-    bGroundTargetSet(false),
     bFullUpdateRequest(false),
     DeadReconingThreshold(500.0f),
     MinNetworkTime(2.0f),
@@ -430,21 +429,42 @@ void Database::GetDatabaseStatistics(DatabaseStatistics& stats)const
             {
             case Actor::Albion:
                 stats.SetNumAlbs(stats.GetNumAlbs()+1);
+                
+                if(it->second.GetHealth() > 0)
+                    {
+                    stats.SetLiveAlbs(stats.GetLiveAlbs()+1);
+                    }
                 break;
 
             case Actor::Hibernia:
                 stats.SetNumHibs(stats.GetNumHibs()+1);
+
+                if(it->second.GetHealth() > 0)
+                    {
+                    stats.SetLiveHibs(stats.GetLiveHibs()+1);
+                    }
                 break;
 
             case Actor::Midgard:
                 stats.SetNumMids(stats.GetNumMids()+1);
+                
+                if(it->second.GetHealth() > 0)
+                    {
+                    stats.SetLiveMids(stats.GetLiveMids()+1);
+                    }
                 break;
 
             default:
                 if(it->second.GetActorType() == Actor::Mob)
                     {
                     stats.SetNumMobs(stats.GetNumMobs()+1);
+
+                    if(it->second.GetHealth() > 0)
+                        {
+                        stats.SetLiveMobs(stats.GetLiveMobs()+1);
+                        }
                     }
+
                 break;
             }
         }
@@ -604,9 +624,6 @@ void Database::ResetDatabase(void)
             }
         }
     
-    // clear ground target
-    bGroundTargetSet=false;
-
     // done
     return;
 } // end ResetDatabase
@@ -1145,6 +1162,10 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             if(pa)
                 {
                 // update ground target
+                pa->SetGroundTargetX(float(p->data.x));
+                pa->SetGroundTargetY(float(p->data.y));
+                pa->SetGroundTargetZ(float(p->data.z));
+                
 
                 // save update time
                 pa->SetLastUpdateTime(::Clock.Current());
@@ -1244,22 +1265,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
             ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
-
-            /*
-            if(ThisActor.GetId() == ThisActor.GetInfoId())
-                {
-                // this is probably a locally generated char
-                ThisActor.Print(os);
-                Logger << "player_pos_update: " << os.str().c_str() << "\n";
-                os.str("");
-            
-                Logger << "[Database::HandleSniffedMessage] player pos update (" << p->player_id << "):\n"
-                       << "<" << p->x << "," << p->y << "," << p->z << "> speed="
-                       << float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff))
-                       << " heading=" << p->heading*360.0f/4096.0f << "\n";
-                }
-            */
-            
             }
             break;
 
@@ -1372,15 +1377,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             // save update time
             ThisActor.SetLastUpdateTime(::Clock.Current());
             ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
-
-            //ThisActor.Print(os);
-            //os << '\0'; // put null terminator in its place
-            //Logger << "player_head_update: " << os.str().c_str() << "\n";
-            /*
-            Logger << "[Database::HandleSniffedMessage] player head update (" << p->player_id << "):\n"
-                   << "heading=" << p->heading*360.0f/4096.0f << "\n";
-            */
-
             }
             break;
 
@@ -1680,18 +1676,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // send full update to the network
             SendNetworkUpdate(ThisActor,share_opcodes::full_update);
-
-            /*
-            ThisActor.Print(os);
-            Logger << "object_id: " << os.str().c_str() << "\n";
-            os.str(""); // put null terminator in its place
-            */
-            /*
-            Logger << "[Database::HandleSniffedMessage] object identity (" << p->object_id << "):\n"
-                   << "<" << p->x << "," << p->y << "," << p->z << ">"
-                   << " heading=" << p->heading*360.0f/4096.0f 
-                   << " name=" << p->name << "\n";
-            */
             }
             break;
 
@@ -1895,23 +1879,17 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 break;
                 }
 
-            Actor& ThisActor=*pa;
-
             // set hp
             if(p->hp <= 100)
                 {
-                ThisActor.SetHealth(p->hp);
+                pa->SetHealth(p->hp);
                 }
 
             // make sure the flag is cleared
-            ThisActor.SetOld(false);
+            pa->SetOld(false);
 
-            ThisActor.SetLastUpdateTime(::Clock.Current());
-            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
-
-            //ThisActor.Print(os);
-            //os << '\0'; // put null terminator in its place
-            //Logger << "set_hp: " << os.str().c_str() << "\n";
+            pa->SetLastUpdateTime(::Clock.Current());
+            pa->SetLastLocalTime(pa->GetLastUpdateTime());
             }
             break;
 
@@ -2060,26 +2038,24 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 break;
                 }
 
-            Actor& ThisActor=*pa;
+            pa->SetStealth(true);
             
-            ThisActor.SetStealth(true);
-            
-            ThisActor.SetLastLocalTime(::Clock.Current());
+            pa->SetLastLocalTime(::Clock.Current());
 
             // if this is an old actor, we want to keep it "alive" since we are
             // still seeing packets for it
-            if(ThisActor.GetOld())
+            if(pa->GetOld())
                 {
                 // save update time, but do not clear old flag. This
                 // will cause the PPI to show it as old, but the 
                 // database will never delete it -- unless we stop receiving
                 // packets for it.
-                ThisActor.SetLastUpdateTime(::Clock.Current());
-                ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
+                pa->SetLastUpdateTime(::Clock.Current());
+                pa->SetLastLocalTime(pa->GetLastUpdateTime());
                 }
 
             // send visibility update to the network
-            SendNetworkUpdate(ThisActor,share_opcodes::visibility_update);
+            SendNetworkUpdate(*pa,share_opcodes::visibility_update);
 
             }
             break;
@@ -2102,25 +2078,23 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 break;
                 }
 
-            Actor& ThisActor=*pa;
-
             // make sure its a player
-            if(!ThisActor.IsType(Actor::Player))
+            if(!pa->IsType(Actor::Player))
                 {
-                Logger << "[Database::HandleSniffedMessage] got target for non-player " << ThisActor.GetId() << "\n";
+                Logger << "[Database::HandleSniffedMessage] got target for non-player " << pa->GetId() << "\n";
                 break;
                 }
 
             // set actor's target (this is done by INFOID!!)
             Database::id_type target_id=GetUniqueId(p->detected_region,p->target_id);
             
-            if(ThisActor.GetTargetId() != target_id)
+            if(pa->GetTargetId() != target_id)
                 {
                 // save target
-                ThisActor.SetTargetId(target_id);
+                pa->SetTargetId(target_id);
                 
                 // send network update
-                SendNetworkUpdate(ThisActor,share_opcodes::target_update);
+                SendNetworkUpdate(*pa,share_opcodes::target_update);
                 }
 
             //Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
@@ -2132,14 +2106,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
         case opcodes::ground_target:
             {
             const daocmessages::player_ground_target* p=static_cast<const daocmessages::player_ground_target*>(msg);
-            
-            // the ground-target is region specific, we need to adjust 
-            // for the region this target was detected in
-            GroundTarget.SetXPos(float(p->x));
-            GroundTarget.SetYPos(float(p->y));
-            GroundTarget.SetZPos(float(p->z));
-            GroundTargetRegion=p->detected_region;
-            bGroundTargetSet=true;
             
             // send network update
             // get actor
@@ -2157,12 +2123,6 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 {
                 ::Logger << "[Database::HandleSniffedMessage] got ground target, but can't find local actor!\n";
                 }
-            
-            Logger << "[Database::HandleSniffedMessage] ground target set to: " 
-                   << "<" << GroundTarget.GetXPos() 
-                   << "," << GroundTarget.GetYPos()
-                   << "," << GroundTarget.GetZPos() << ">\n"
-                   << "in region " << unsigned int(GroundTargetRegion) << "\n";
             }
             break;
 
