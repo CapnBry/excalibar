@@ -191,6 +191,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   if( -1 != rx.search( name) && "" != MobFilter.getFilter())
 	{
     cols.setColor(QColorGroup::Base, QColor(255,255,153));
+    cols.setColor( QColorGroup::Text, QColor(0,0,0));
 	}
   QListViewItem::paintCell(p,cols,column,width,align);
 }
@@ -396,6 +397,7 @@ void exMob::checkStale() {
 }
 void exMob::setFilter( QString Filter)
 {
+  if( !conn) return;
   MobFilter.setFilter( Filter);
   printf( "New Filter: %s\n", MobFilter.getFilter().ascii());
 
