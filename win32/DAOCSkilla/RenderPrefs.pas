@@ -32,10 +32,13 @@ type
     FMobTriangleMax: integer;
     FMobTriangleNom: integer;
     FMobTriangleMin: integer;
+    FMinFPS: integer;
+    FOnMinFPSChanged: TNotifyEvent;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
     procedure DoOnMobTriangleSizeChanged;
+    procedure DoOnMinFPSChanged;
     procedure SetHasGLUT(const Value: boolean);
     procedure SetHasOpenGL13(const Value: boolean);
     procedure SetDrawFriendlyPlayers(const Value: boolean);
@@ -48,6 +51,7 @@ type
     procedure SetMobTriangleMin(const Value: integer);
     procedure SetMobTriangleNom(const Value: integer);
     procedure SetScaleMobTriangle(const Value: boolean);
+    procedure SetMinFPS(const Value: integer);
   public
     Left:   integer;
     Top:    integer;
@@ -108,8 +112,11 @@ type
     property MobTriangleMin: integer read FMobTriangleMin write SetMobTriangleMin;
     property MobTriangleMax: integer read FMobTriangleMax write SetMobTriangleMax;
     property MobTriangleNom: integer read FMobTriangleNom write SetMobTriangleNom;
+    property MinFPS: integer read FMinFPS write SetMinFPS;
     property ScaleMobTriangle: boolean read FScaleMobTriangle write SetScaleMobTriangle;
+
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
+    property OnMinFPSChanged: TNotifyEvent read FOnMinFPSChanged write FOnMinFPSChanged;
     property OnMobListOptionsChanged: TNotifyEvent read FOnMobListOptionsChanged write FOnMobListOptionsChanged;
     property OnMobTriangleSizeChanged: TNotifyEvent read FOnMobTriangleSizeChanged write FOnMobTriangleSizeChanged; 
   end;
@@ -205,6 +212,12 @@ type
     chkEasyMouseOvers: TCheckBox;
     chkRenderDoors: TCheckBox;
     chkAttemptMapDownloads: TCheckBox;
+    Label28: TLabel;
+    chkRedrawOnAdd: TCheckBox;
+    chkRedrawOnUpdate: TCheckBox;
+    chkRedrawOnDelete: TCheckBox;
+    chkRedrawOnTimer: TCheckBox;
+    trackMinFPS: TTrackBar;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -248,6 +261,11 @@ type
     procedure chkDrawInfoPointsClick(Sender: TObject);
     procedure chkEasyMouseOversClick(Sender: TObject);
     procedure chkAttemptMapDownloadsClick(Sender: TObject);
+    procedure chkRedrawOnAddClick(Sender: TObject);
+    procedure chkRedrawOnUpdateClick(Sender: TObject);
+    procedure chkRedrawOnDeleteClick(Sender: TObject);
+    procedure chkRedrawOnTimerClick(Sender: TObject);
+    procedure trackMinFPSChange(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -320,12 +338,19 @@ begin
   Result.ScaleMobTriangle := ScaleMobTriangle;
   Result.DrawInfoPoints := DrawInfoPoints;
   Result.EasyMouseOvers := EasyMouseOvers;
+  Result.MinFPS := MinFPS;
 end;
 
 constructor TRenderPreferences.Create;
 begin
   ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
   ObjectConFilter := [ccGray, ccGreen, ccBlue, ccYellow, ccOrange, ccRed, ccPurple];
+end;
+
+procedure TRenderPreferences.DoOnMinFPSChanged;
+begin
+  if Assigned(FOnMinFPSChanged) then
+    FOnMinFPSChanged(Self);
 end;
 
 procedure TRenderPreferences.DoOnMobListOptionsChanged;
@@ -407,6 +432,7 @@ begin
     ScaleMobTriangle := ReadBool('RenderPrefs', 'ScaleMobTriangle', true);
     DrawInfoPoints := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
     EasyMouseOvers  := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
+    MinFPS := ReadInteger('RenderPrefs', 'MinFPS', 2);
   end;
 end;
 
@@ -459,6 +485,7 @@ begin
     WriteBool('RenderPrefs', 'ScaleMobTriangle', ScaleMobTriangle);
     WriteBool('RenderPrefs', 'DrawInfoPoints', DrawInfoPoints);
     WriteBool('RenderPrefs', 'DrawInfoPoints', EasyMouseOvers);
+    WriteInteger('RenderPrefs', 'MinFPS', MinFPS);
   end;
 end;
 
@@ -496,6 +523,12 @@ procedure TRenderPreferences.SetHasOpenGL13(const Value: boolean);
 begin
   FHasOpenGL13 := Value;
   DrawMapTexture := FHasOpenGL13 and DrawMapTexture;
+end;
+
+procedure TRenderPreferences.SetMinFPS(const Value: integer);
+begin
+  FMinFPS := Value;
+  DoOnMinFPSChanged;
 end;
 
 procedure TRenderPreferences.SetMobListSortOrder(const Value: TMobListSortOrder);
@@ -688,6 +721,11 @@ begin
   chkScaleMobTriangleClick(nil);
   chkEasyMouseOvers.Checked := FRenderPrefs.EasyMouseOvers;
   chkAttemptMapDownloads.Checked := FRenderPrefs.AttemptMapDownload;
+  chkRedrawOnAdd.Checked := FRenderPrefs.RedrawOnAdd;
+  chkRedrawOnUpdate.Checked := FRenderPrefs.RedrawOnUpdate;
+  chkRedrawOnDelete.Checked := FRenderPrefs.RedrawOnDelete;
+  chkRedrawOnTimer.Checked := FRenderPrefs.RedrawOnTimer;
+  chkRedrawOnTimerClick(nil);
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -951,6 +989,32 @@ end;
 procedure TfrmRenderPrefs.chkAttemptMapDownloadsClick(Sender: TObject);
 begin
   FRenderPrefs.AttemptMapDownload := chkAttemptMapDownloads.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRedrawOnAddClick(Sender: TObject);
+begin
+  FRenderPrefs.RedrawOnAdd := TCheckBox(Sender).Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRedrawOnUpdateClick(Sender: TObject);
+begin
+  FRenderPrefs.RedrawOnUpdate := TCheckBox(Sender).Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRedrawOnDeleteClick(Sender: TObject);
+begin
+  FRenderPrefs.RedrawOnDelete := TCheckBox(Sender).Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRedrawOnTimerClick(Sender: TObject);
+begin
+  FRenderPrefs.RedrawOnTimer := chkRedrawOnTimer.Checked;
+  trackMinFPS.Enabled := FRenderPrefs.RedrawOnTimer;
+end;
+
+procedure TfrmRenderPrefs.trackMinFPSChange(Sender: TObject);
+begin
+  FRenderPrefs.MinFPS := trackMinFPS.Position;
 end;
 
 end.

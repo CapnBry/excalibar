@@ -708,14 +708,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       ImageIndex = 5
       object Label24: TLabel
         Left = 8
-        Top = 112
+        Top = 76
         Width = 135
         Height = 13
         Caption = 'Mob and Player triangle size:'
       end
       object Label25: TLabel
         Left = 44
-        Top = 128
+        Top = 92
         Width = 61
         Height = 13
         Alignment = taCenter
@@ -724,7 +724,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label26: TLabel
         Left = 112
-        Top = 128
+        Top = 92
         Width = 53
         Height = 13
         Alignment = taCenter
@@ -733,12 +733,19 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label27: TLabel
         Left = 180
-        Top = 128
+        Top = 92
         Width = 57
         Height = 13
         Alignment = taCenter
         AutoSize = False
         Caption = 'Max'
+      end
+      object Label28: TLabel
+        Left = 8
+        Top = 206
+        Width = 78
+        Height = 13
+        Caption = 'Redraw map on:'
       end
       object chkSmoothLines: TCheckBox
         Left = 8
@@ -751,7 +758,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkSmoothPolys: TCheckBox
         Left = 8
-        Top = 44
+        Top = 32
         Width = 241
         Height = 17
         Caption = 'Smooth polygons'
@@ -760,7 +767,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkSmoothPoints: TCheckBox
         Left = 8
-        Top = 80
+        Top = 56
         Width = 237
         Height = 17
         Caption = 'Smooth points'
@@ -769,7 +776,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkScaleMobTriangle: TCheckBox
         Left = 44
-        Top = 168
+        Top = 132
         Width = 181
         Height = 17
         Caption = 'Adjust size with range scale'
@@ -778,7 +785,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object edtMobTriangleMin: TSpinEdit
         Left = 44
-        Top = 144
+        Top = 108
         Width = 61
         Height = 22
         Increment = 5
@@ -790,7 +797,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object edtMobTriangleNom: TSpinEdit
         Left = 112
-        Top = 144
+        Top = 108
         Width = 61
         Height = 22
         Increment = 5
@@ -802,7 +809,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object edtMobTriangleMax: TSpinEdit
         Left = 180
-        Top = 144
+        Top = 108
         Width = 61
         Height = 22
         Increment = 5
@@ -814,7 +821,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkEasyMouseOvers: TCheckBox
         Left = 8
-        Top = 192
+        Top = 156
         Width = 237
         Height = 17
         Caption = 'Easy map mouse-overs'
@@ -823,12 +830,66 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkAttemptMapDownloads: TCheckBox
         Left = 8
-        Top = 216
+        Top = 180
         Width = 313
         Height = 17
         Caption = 'Attempt to download texture and vector maps as needed'
         TabOrder = 8
         OnClick = chkAttemptMapDownloadsClick
+      end
+      object chkRedrawOnAdd: TCheckBox
+        Left = 92
+        Top = 204
+        Width = 49
+        Height = 17
+        Caption = 'Add'
+        TabOrder = 9
+        OnClick = chkRedrawOnAddClick
+      end
+      object chkRedrawOnUpdate: TCheckBox
+        Left = 140
+        Top = 204
+        Width = 61
+        Height = 17
+        Caption = 'Update'
+        TabOrder = 10
+        OnClick = chkRedrawOnUpdateClick
+      end
+      object chkRedrawOnDelete: TCheckBox
+        Left = 200
+        Top = 204
+        Width = 61
+        Height = 17
+        Caption = 'Delete'
+        TabOrder = 11
+        OnClick = chkRedrawOnDeleteClick
+      end
+      object chkRedrawOnTimer: TCheckBox
+        Left = 92
+        Top = 224
+        Width = 89
+        Height = 17
+        Caption = 'Min FPS timer'
+        TabOrder = 12
+        OnClick = chkRedrawOnTimerClick
+      end
+      object trackMinFPS: TTrackBar
+        Left = 188
+        Top = 224
+        Width = 217
+        Height = 17
+        Max = 20
+        Min = 1
+        Orientation = trHorizontal
+        Frequency = 1
+        Position = 2
+        SelEnd = 0
+        SelStart = 0
+        TabOrder = 13
+        ThumbLength = 10
+        TickMarks = tmBottomRight
+        TickStyle = tsAuto
+        OnChange = trackMinFPSChange
       end
     end
   end
