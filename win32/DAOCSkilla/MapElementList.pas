@@ -475,15 +475,22 @@ var
 {$ENDIF MSWINDOWS}
 begin
 {$IFDEF MSWINDOWS}
-    { zone didn't load.  Try to get it from the woooooooorld wide web }
-  if FAttemptDownload and Assigned(FHTTPFetch) then begin
-    pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
-    pHTTPRequest.URL := AURL;
-    pHTTPRequest.Tag := ATag;
-    pHTTPRequest.ResponseStream := TFileStream.Create(ADestFile, fmCreate);
-    pHTTPRequest.OnRequestComplete := HTTPComplete;
-    pHTTPRequest.OnHTTPError := HTTPError;
-    FHTTPFetch.Request(pHTTPRequest);
+  try
+      { zone didn't load.  Try to get it from the woooooooorld wide web }
+    if FAttemptDownload and Assigned(FHTTPFetch) then begin
+      pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
+      pHTTPRequest.URL := AURL;
+      pHTTPRequest.Tag := ATag;
+      pHTTPRequest.ResponseStream := TFileStream.Create(ADestFile, fmCreate);
+      pHTTPRequest.OnRequestComplete := HTTPComplete;
+      pHTTPRequest.OnHTTPError := HTTPError;
+      FHTTPFetch.Request(pHTTPRequest);
+    end;
+  except
+    on E: Exception do begin
+      FAttemptDownload := false;
+      raise;
+    end;
   end;
 {$ENDIF MSWINDOWS}
 end;
