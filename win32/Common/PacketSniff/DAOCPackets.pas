@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, WinSock, Classes, SysUtils, PReader2, bpf, FrameFns;
-  
+
 type
   TDAOCCryptKey = array[0..11] of byte;
 
@@ -32,9 +32,10 @@ type
 
   TDAOCPacket = class(TObject)
   private
-    FPacketData:  Pointer;
-    FSize:        integer;
-    FPosition:    integer;
+    FPacketDataStart: PChar;
+    FPacketDataPos:   PChar;
+    FPacketDataEnd:   PChar;
+    FSize:        DWORD;
     FIsFromClient: boolean;
     FIPProtocol:  TDAOCIPPrococol;
     FHandlerName: string;
@@ -58,8 +59,7 @@ type
     function EOF : boolean;
 
     property HandlerName: string read FHandlerName write FHandlerName;
-    property Size: integer read FSize;
-    property Position: integer read FPosition;
+    property Size: DWORD read FSize;
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;
     property IsFromServer: boolean read GetIsFromServer;
     property IPProtocol: TDAOCIPPrococol read FIPProtocol write FIPProtocol;
@@ -100,6 +100,7 @@ function BytesToStr(AData: Pointer; ADataSize: integer) : string;
 implementation
 
 // {$DEFINE CLEAR_PACKET_BUFFER}
+// {$DEFINE PASCAL_GETS}
 
 const
   MAX_EXPECTED_DAOC_PACKET_SIZE = 2048;
@@ -340,8 +341,8 @@ begin
 
   FIsFromClient := AIsClient;
   FNextExpectedSeq := 0;
-    { use a static buffer size.  If they send us any packet > 512k we'll drop data }
-  FPacketDataSize := 512 * 1024;
+    { use a static buffer size.  If they send us any packet > MAX_EXPECTED_DAOC_PACKET_SIZE we'll drop data }
+  FPacketDataSize := MAX_EXPECTED_DAOC_PACKET_SIZE;
   GetMem(FPacketDataBuff, FPacketDataSize);
   FPacketDataPos := 0;
 {$IFDEF CLEAR_PACKET_BUFFER}
@@ -353,6 +354,10 @@ destructor TDAOCTCPPacketAssembler.Destroy;
 begin
   ClearFragmentList;
   FFragmentList.Free;
+
+  if Assigned(FPacketDataBuff) then
+    FreeMem(FPacketDataBuff);
+    
   inherited Destroy;
 end;
 
@@ -434,9 +439,7 @@ begin
 
   APacket := TDAOCPacket.Create;
     { the first 2 bytes be we added above to account for the ExpectedPacketSize }
-  APacket.FSize := wExpectedPackSize - 2;
-  GetMem(APacket.FPacketData, APacket.FSize);
-  Move((PChar(FPacketDataBuff) + 2)^, APacket.FPacketData^, APacket.FSize);
+  APacket.CopyDataToPacket(PChar(FPacketDataBuff) + 2, wExpectedPackSize - 2);
   Result := true;
 
   if wExpectedPackSize >= FPacketDataPos then
@@ -458,7 +461,7 @@ end;
 
 function TDAOCPacket.AsString: string;
 begin
-  Result := BytesToStr(FPacketData, FSize);
+  Result := BytesToStr(FPacketDataStart, FSize);
 end;
 
 procedure TDAOCPacket.CopyDataToPacket(AData: Pointer; ASize: integer);
@@ -466,8 +469,11 @@ begin
   FreePacketData;
   
   FSize := ASize;
-  GetMem(FPacketData, FSize);
-  Move(AData^, FPacketData^, FSize);
+  GetMem(FPacketDataStart, FSize);
+  Move(AData^, FPacketDataStart^, FSize);
+
+  FPacketDataPos := FPacketDataStart;
+  FPacketDataEnd := FPacketDataStart + FSize;
 end;
 
 constructor TDAOCPacket.Create;
@@ -477,20 +483,20 @@ end;
 
 procedure TDAOCPacket.Decrypt(const AKey: TDAOCCryptKey);
 var
-  data_pos: integer;
-  key_pos:  integer;
-  status_vect:  integer;
-  seed_1:   integer;
-  seed_2:   integer;
-  work_val: integer;
+  data_pos: DWORD;
+  key_pos:  DWORD;
+  status_vect:  DWORD;
+  seed_1:   DWORD;
+  seed_2:   DWORD;
+  work_val: DWORD;
   pData:    PChar;
 begin
-  if not Assigned(FPacketData) then
+  if not Assigned(FPacketDataStart) then
     exit;
   if FSize = 0 then
     exit;
 
-  pData := PChar(FPacketData);
+  pData := FPacketDataStart;
   data_pos := 0;
   key_pos := 0;
   status_vect := 0;
@@ -526,26 +532,26 @@ end;
 
 function TDAOCPacket.EOF: boolean;
 begin
-  Result := FPosition >= FSize;
+  Result := FPacketDataPos > FPacketDataEnd;
 end;
 
 procedure TDAOCPacket.FreePacketData;
 begin
-  if Assigned(FPacketData) then begin
-    FreeMem(FPacketData);
-    FPacketData := nil;
+  if Assigned(FPacketDataStart) then begin
+    FreeMem(FPacketDataStart);
+    FPacketDataStart := nil;
   end;
 end;
 
 function TDAOCPacket.getByte: BYTE;
 begin
-  Result := BYTE(PChar(FPacketData)[FPosition]);
+  Result := BYTE(FPacketDataPos[0]);
   seek(1);
 end;
 
 procedure TDAOCPacket.getBytes(var dest; iBytes: integer);
 begin
-  Move((PChar(FPacketData) + FPosition)^, dest, iBytes);
+  Move(FPacketDataPos^, dest, iBytes);
   seek(iBytes);
 end;
 
@@ -554,30 +560,38 @@ begin
   Result := not FIsFromClient;
 end;
 
+{$IFDEF PASCAL_GETS}
 function TDAOCPacket.getLong: DWORD;
 begin
-  Result := (BYTE(PChar(FPacketData)[FPosition]) shl 24) or
-    (BYTE(PChar(FPacketData)[FPosition + 1]) shl 16) or
-    (BYTE(PChar(FPacketData)[FPosition + 2]) shl 8) or
-    BYTE(PChar(FPacketData)[FPosition + 3]);
+  Result := (BYTE(FPacketDataPos[0]) shl 24) or (BYTE(FPacketDataPos[1]) shl 16) or
+    (BYTE(FPacketDataPos[2]) shl 8) or BYTE(FPacketDataPos[3]);
   seek(4);
 end;
+{$ELSE}
+function TDAOCPacket.getLong: DWORD; assembler;
+asm
+  mov edx, [eax+offset(FPacketDataPos)]
+  add [eax+offset(FPacketDataPos)], 4
+  mov eax, [edx]
+  bswap eax
+end;
+{$ENDIF}
 
 function TDAOCPacket.getNullTermString(AMinLen: integer): string;
 begin
   Result := '';
-  while FPosition < FSize do begin
-    if PChar(FPacketData)[FPosition] = #0 then
+  while FPacketDataPos <= FPacketDataEnd do begin
+    if FPacketDataPos^ = #0 then
       break;
 
-    Result := Result + PChar(FPacketData)[FPosition];
-    inc(FPosition);
+    Result := Result + FPacketDataPos^;
+    inc(FPacketDataPos);
     dec(AMinLen);
   end;    { while }
 
-  if FPosition < FSize then begin
+  if FPacketDataPos <= FPacketDataEnd then begin
       { skip trailing null }
-    inc(FPosition);
+    inc(FPacketDataPos);
     dec(AMinLen);
       { enforce minimum bytes read requirement }
     if AMinLen > 0 then
@@ -593,34 +607,49 @@ begin
   if iLen = 0 then
     Result := ''
   else begin
-    SetString(Result, PChar(FPacketData) + FPosition, iLen);
+    SetString(Result, FPacketDataPos, iLen);
     seek(iLen);
   end;
 end;
 
+{$IFDEF PASCAL_GETS}
 function TDAOCPacket.getShort: WORD;
 begin
-  Result := (BYTE(PChar(FPacketData)[FPosition]) shl 8) or
-    BYTE(PChar(FPacketData)[FPosition + 1]);
+  Result := (BYTE(FPacketDataPos[0]) shl 8) or BYTE(FPacketDataPos[1]);
   seek(2);
 end;
+{$ELSE}
+function TDAOCPacket.getShort: WORD; assembler;
+asm
+  mov edx, [eax+offset(FPacketDataPos)]
+  add [eax+offset(FPacketDataPos)], 2
+  movzx eax, WORD PTR [edx]
+  xchg al, ah
+end;
+{$ENDIF}
 
 procedure TDAOCPacket.SaveToFile(const AFName: string);
 var
   fs:  TFileStream;
 begin
   fs := TFileStream.Create(AFName, fmCreate or fmShareDenyWrite);
-  fs.Write(FPacketData^, FSize);
+  fs.Write(FPacketDataStart^, FSize);
   fs.Free;
 end;
 
 procedure TDAOCPacket.seek(iCount: integer);
+var
+  pNewPos:    PChar;
 begin
-  FPosition := FPosition + iCount;
-  if FPosition < 0 then
+  pNewPos := FPacketDataPos + iCount;
+
+  if pNewPos < FPacketDataStart then
     raise Exception.Create('DAOCPacket: Seek before BOF');
-  if FPosition > FSize then
+
+  if pNewPos > FPacketDataEnd then
     raise Exception.Create('DAOCPacket: Seek after EOF');
+
+  FPacketDataPos := pNewPos;
 end;
 
 end.
