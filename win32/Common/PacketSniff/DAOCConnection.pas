@@ -391,7 +391,7 @@ begin
   FLocalPlayer := TDAOCLocalPlayer.Create;
   FGroundTarget := TMapNode.Create;
   FZoneList := TDAOCZoneInfoList.Create;
-  FZoneList.LoadFromFile('mapinfo.txt');
+  // FZoneList.LoadFromFile('mapinfo.txt');
 
   FPacketHandlerDefFile := 'packethandlers.ini';
   FServerPacketHandlers := TNamedPacketHandlerList.Create;
