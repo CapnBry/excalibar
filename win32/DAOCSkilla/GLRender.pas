@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
   StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, GLUT, RenderPrefs,
-  DAOCClasses;
+  DAOCClasses, QuickSinCos;
 
 type
   TfrmGLRender = class(TForm)
@@ -307,26 +307,31 @@ end;
 
 procedure TfrmGLRender.DrawMapRulers;
 var
-  headrad:  GLfloat;
+  r:      GLfloat;
+  s, c:   single;
 begin
   if not FRenderPrefs.DrawRulers then
     exit;
-    
+
   glDisable(GL_LIGHTING);
+
+  r := FRange * 1.5;
+  sincos_quick(FDControl.LocalPlayer.Head, s, c);
 
     { Draw map rulers }
   glColor3f(0.45, 0.45, 0.45);
   glLineWidth(1.0);
   glBegin(GL_LINES);
-    glVertex3f(-(FRange * 1.5), 0, 0);
-    glVertex3f((FRange * 1.5), 0, 0);
-    glVertex3f(0, -(FRange * 1.5), 0);
-    glVertex3f(0, (FRange * 1.5), 0);
+    glVertex3f(-r, 0, 0);
+    glVertex3f(r, 0, 0);
+    glVertex3f(0, -r, 0);
+    glVertex3f(0, r, 0);
 
-    headrad := (FDControl.LocalPlayer.Head - 180) * (PI / 180);
+//    c := cos(FDControl.LocalPlayer.Head * (PI / 180));
+//    s := sin(FDControl.LocalPlayer.Head * (PI / 180));
+
     glVertex3f(0, 0, 0);
-    glVertex3f(cos(headrad + PI / 2) * (FRange * 1.5),
-      sin(headrad + PI / 2) * (FRange * 1.5), 0);
+    glVertex3f(c * r, s * r, 0);
   glEnd();
 end;
 
@@ -334,7 +339,7 @@ procedure TfrmGLRender.DrawPlayerTriangle;
 begin
   glEnable(GL_LIGHTING);
   glColor3f(1, 1, 0);
-  glRotatef(FDControl.LocalPlayer.Head - 180, 0, 0, 1);
+  glRotatef(FDControl.LocalPlayer.Head, 0, 0, 1);
   FMobTriangle.GLRender(FRenderBounds);
 end;
 
@@ -511,7 +516,7 @@ begin
 
       glPushMatrix();
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
-      glRotatef(pObj.Head - 180, 0, 0, 1);
+      glRotatef(pObj.Head, 0, 0, 1);
 
       if pObj.ObjectClass = ocPlayer then
         DrawPlayerHighlightRing(TDAOCMovingObject(pObj))
@@ -801,6 +806,9 @@ begin
     glRotatef(FDControl.Zone.Rotate, 0, 0, 1);
   glRotatef(180, 1, 0, 0);
 
+  if FRenderPrefs.RotateMapToPlayer then
+    glRotatef(-FDControl.LocalPlayer.Head, 0, 0, 1);
+
   FRenderBounds.Left := FDControl.LocalPlayer.XProjected - FRange;
   inc(FRenderBounds.Left, FMapToPlayerOffset.X);
   FRenderBounds.Right := FRenderBounds.Left + (integer(FRange) * 2);
@@ -879,7 +887,7 @@ procedure TfrmGLRender.FormMouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
   slideZoom.Position := slideZoom.Position + slideZoom.Frequency;
-  Handled := true; 
+  Handled := true;
 end;
 
 procedure TfrmGLRender.FormMouseWheelDown(Sender: TObject;
