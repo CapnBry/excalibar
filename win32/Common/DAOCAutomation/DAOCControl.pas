@@ -63,8 +63,6 @@ type
     FTradeSkillOddsloadPct: integer;
     FTrackCharacterLogins:  boolean;
     FQuickLaunchChars:      TQuickLaunchCharList;
-
-
     FTradeRecipes:  TUniversalRecipeCollection;
     
     function BearingToDest: integer;
@@ -164,6 +162,10 @@ type
     procedure Stick; safecall;
     procedure Face; safecall;
     procedure Follow; safecall;
+    procedure FocusDAOCWindow; safecall;
+    procedure CloseDialog; safecall;
+    procedure SetPlayerHeading(AHead, AMaxTurnTime: integer); safecall;
+    procedure GotoXY(X, Y: DWORD); safecall;
 
     procedure IDAOCControl.ChatSend = ChatSendW;
     procedure ChatSendW(const bsWho: WideString; const bsMessage: WideString); safecall;
@@ -177,6 +179,12 @@ type
     procedure ChatAllianceW(const bsMessage: WideString); safecall;
     procedure IDAOCControl.ChatChat = ChatChatW;
     procedure ChatChatW(const bsMessage: WideString); safecall;
+    procedure IDAOCControl.PathToNode = PathToNodeNameW;
+    procedure PathToNodeNameW(const bsNodeName: WideString); safecall;
+    procedure IDAOCControl.NodeLoad = NodeLoadW;
+    procedure NodeLoadW(const bsFileName: WideString); safecall;
+    procedure IDAOCControl.NodeSave = NodeSaveW;
+    procedure NodeSaveW(const bsFileName: WideString); safecall;
 
     procedure ChatSend(const AWho, AMessage: string);
     procedure ChatSay(const AMessage: string);
@@ -184,9 +192,7 @@ type
     procedure ChatGroup(const AMessage: string);
     procedure ChatAlliance(const AMessage: string);
     procedure ChatChat(const AMessage: string);
-    procedure SetPlayerHeading(AHead, AMaxTurnTime: integer);
     procedure TurnRateRecalibrate;
-    procedure GotoXY(X, Y: DWORD);
     procedure GotoNode(ANode: TMapNode);
     procedure FaceNode(ANode: TMapNode; AMaxTurnTime: integer);
     function PathToNode(ANode: TMapNode) : boolean;
@@ -194,8 +200,6 @@ type
     procedure NodeAddAtPlayerPos(const AName: string);
     function NodeClosestToPlayerPos : TMapNode;
     function ConnectedNodeClosestToPlayerPos : TMapNode;
-    procedure CloseDialog;
-    procedure FocusDAOCWindow;
     procedure TradeskillContinueProgression;
     function LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
     function LaunchCharacterIdx(AIndex: integer) : boolean;
@@ -1517,6 +1521,21 @@ begin
   end;
 
   Result := LaunchCharacter(FQuickLaunchChars[AIndex]);
+end;
+
+procedure TDAOCControl.PathToNodeNameW(const bsNodeName: WideString);
+begin
+  PathToNodeName(bsNodeName);
+end;
+
+procedure TDAOCControl.NodeLoadW(const bsFileName: WideString);
+begin
+  FMapNodes.LoadFromFile(bsFileName);
+end;
+
+procedure TDAOCControl.NodeSaveW(const bsFileName: WideString);
+begin
+  FMapNodes.SaveToFile(bsFileName);
 end;
 
 initialization
