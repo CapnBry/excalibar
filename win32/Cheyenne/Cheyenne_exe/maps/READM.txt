@@ -1,0 +1,7 @@
+The map files are the same vector map files (*.map) you can find
+in the excalibur release at:
+http://www.sourceforge.net/projects/excalibar
+
+Also, you can put png files in this folder and they will be read
+as textures for the zones. Same as excalibur.
+
