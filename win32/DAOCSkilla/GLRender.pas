@@ -139,6 +139,18 @@ begin
   end;
 end;
 
+function ListDeadRealmColor(ARealm: TDAOCRealm) : TColor;
+begin
+  case ARealm of
+    drNeutral:  Result := clWhite;
+    drAlbion:   Result := $9999ff;
+    drMidgard:  Result := $ff9999;
+    drHibernia: Result := $99ff99;
+    else
+      Result := clFuchsia;
+  end;
+end;
+
 { TfrmGLRender }
 
 procedure TfrmGLRender.CreateParams(var Params: TCreateParams);
@@ -683,9 +695,9 @@ begin
     SetGLColorFromTColorDarkened(cl, 1, 0.25)
   else if ADAOCObject.Realm <> FDControl.LocalPlayer.Realm then
     if FInvaderHighlight then
-      SetGLColorFromTColorDarkened(cl, 1, 1.3)
+      SetGLColorFromTColor(cl, 1)
     else
-      SetGLColorFromTColorDarkened(cl, 1, 0.7)
+      SetGLColorFromTColor(cl, 0.6)
   else
     SetGLColorFromTColor(cl, 1);
 
@@ -1098,7 +1110,11 @@ begin
         { else (should be just players) black on realm color }
       else begin
         Font.Color := clBlack;
-        Brush.Color := RealmColor(pMob.Realm)
+        if TDAOCPlayer(pMob).IsAlive then
+          cl := RealmColor(pMob.Realm)
+        else
+          cl := ListDeadRealmColor(pMob.Realm);
+        Brush.Color := cl;
       end;
 
       FillRect(Rect);
