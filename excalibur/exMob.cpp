@@ -198,28 +198,22 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QColorGroup cols(cg);
   QColor clr;
 
-  if( !isMobOrObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
-		{
-		this->isKnown = true;
-		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d, Distance: %f\n", name.ascii(), getLevel(), playerDist());
-		c->ex->statusBar()->message( QString( "*** INVADER DETECTED *** Name: %1, Level: %2, Distance: %3").arg( name).arg(level).arg(playerDist()), 10000);
-		qApp->beep();
-		}
-
-  if (!isMobOrObj()) {
-    clr=getRealmColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
+  if (!isMobOrObj())
+  {
+    clr = getRealmColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     cols.setColor(QColorGroup::Base, clr);
   }
-  else if ( !isObj() && prefs.MobListColors)
+  else if (!isObj() && prefs.MobListColors)
   {
-    cols.setColor( QColorGroup::Text, getConColor(c->playerlevel).dark(175));
+    cols.setColor(QColorGroup::Text, getConColor(c->playerlevel).dark(175));
   }
 
-  if( isFiltered())
-	{
-    cols.setColor( QColorGroup::Base, QColor(255,255,153));
-    cols.setColor( QColorGroup::Text, black);
-	}
+  if(isFiltered())
+  {
+      cols.setColor(QColorGroup::Base, QColor(255,255,153));
+      cols.setColor(QColorGroup::Text, black);
+  }
+
   QListViewItem::paintCell(p,cols,column,width,align);
 }
 
@@ -498,12 +492,15 @@ void exMob::checkStale() {
 
 bool exMob::isFiltered() 
 {
- 
-  QRegExp rx( c->MobFilter.getFilter());
+    if (!c->MobFilter.isFilterSet())
+        return false;
 
-  if (-1 != rx.search( name) && "" != c->MobFilter.getFilter()) return true;
+    QRegExp rx(c->MobFilter.getFilter());
 
-  return false;
+    if (rx.search(name) != -1)
+        return true;
+    else
+        return false;
 }
 
 ostream& operator << (ostream& os, const exMob &p)
