@@ -246,6 +246,12 @@ begin
   Result := string(PChar(glGetString(GL_VERSION)));
 end;
 
+function GetGLVendor : string;
+begin
+    { must have a current GL context active this function is called }
+  Result := string(PChar(glGetString(GL_VENDOR)));
+end;
+
 { TLockableListBox }
 
 constructor TLockableListBox.Create(AOwner: TComponent);
@@ -687,7 +693,7 @@ begin
         glColor3ubv(@clMob);
       FMobTriangle.GLRender(FRenderBounds);
 
-      glRotatef(-pObj.Head, 0, 0, 1);
+      glRotatef(pObj.Head, 0, 0, -1);
       glTranslatef(-pMovingObj.XProjected, -pMovingObj.YProjected, 0);
     end  { if a class to draw }
 
@@ -824,7 +830,9 @@ begin
   FVisibleRangeRep.GLCleanup;
   FBoat.GLCleanup;
   FTxfH10.CleanupTexture;
+  FTxfH10.CleanupCallLists;
   FTxfH12.CleanupTexture;
+  FTxfH12.CleanupCallLists;
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
   FPrescienceNode.GLCleanup;
@@ -850,7 +858,9 @@ begin
   //FHudConFlag.GLInitialize;
 
   FTxfH10.EstablishTexture;
+//  FTxfH10.BuildCallLists;
   FTxfH12.EstablishTexture;
+//  FTxfH12.BuildCallLists;
   CheckGLError;
 end;
 
@@ -2100,7 +2110,7 @@ end;
 procedure TfrmGLRender.CreateGLWindow;
 begin
   glMap := TglWindow.Create(Self);
-  
+
   glMap.OnClick := glMapClick;
   glMap.OnMouseDown := glMapMouseDown;
   glMap.OnMouseMove := glMapMouseMove;
