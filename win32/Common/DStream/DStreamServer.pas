@@ -351,9 +351,11 @@ begin
   if FWriteBuffer.TotalSize = 0 then
     exit;
 
-  iSent := FSocket.SendBuf(FWriteBuffer.DataPtr^, FWriteBuffer.DataSize);
-  if iSent <> -1 then
-    FWriteBuffer.UsedData(iSent);
+  repeat
+    iSent := FSocket.SendBuf(FWriteBuffer.DataPtr^, FWriteBuffer.DataSize);
+    if iSent <> -1 then
+      FWriteBuffer.UsedData(iSent);
+  until (iSent = -1) or (FWriteBuffer.TotalSize = 0);
 end;
 
 { TDStreamServer }
