@@ -838,17 +838,18 @@ begin
   if not Assigned(FDDSChunk) then
     exit;
 
-  glGenTextures(1, @FGLTexture);
-  glBindTexture(GL_TEXTURE_2D, FGLTexture);
+  if Assigned(glCompressedTexImage2D) then begin
+    glGenTextures(1, @FGLTexture);
+    glBindTexture(GL_TEXTURE_2D, FGLTexture);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  if Assigned(glCompressedTexImage2D) then
     glCompressedTexImage2D(GL_TEXTURE_2D, 0, FDDSChunk.internalFormat,
       FDDSChunk.Width, FDDSChunk.Height, 0, FDDSChunk.PixelsSize, FDDSChunk.Pixels);
+  end;
 
   FreeAndNil(FDDSChunk);
 end;
