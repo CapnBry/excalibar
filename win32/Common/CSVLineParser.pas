@@ -25,7 +25,6 @@ type
 
     property Delimiter: char read FDelimiter write SetDelimiter;
     property DataString: string read FDataString write SetDataString;
-    property FieldCount: integer read GetFieldCount;
     property Fields[I: integer]: string read GetFields; default;
     property FieldCount: integer read GetFieldCount;
   end;
