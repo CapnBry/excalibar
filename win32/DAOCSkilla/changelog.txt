@@ -1,3 +1,13 @@
+-------------------
+  + Mobs in the stale list now time out after 5 minutes
+  + Fixed bug in stale checker that wouldn't ever check the last
+    item in the list's timer.
+  + Decreased stale timers on players to 5-10s for moving players,
+    and 10-20s for static players.
+  + ZIP contains latest mapinfo.txt from Excalibur.
+  + No longer throws an exception when starting without a *_SC.ini
+  + Only grabs DDS maps if zone type is overworld or housing.
+
 2003 Sep 24 - v1.42
 -------------------
   + Fixed mobseen writing (again!)

@@ -57,7 +57,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'DAOC Auto-tradeskiller';
+  Application.Title := 'DAOCSkilla for Dark Age of Camelot';
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmPowerskill, frmPowerskill);
   Application.CreateForm(TfrmShowMapNodes, frmShowMapNodes);
