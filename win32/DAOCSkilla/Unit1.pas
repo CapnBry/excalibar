@@ -362,7 +362,8 @@ begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 6000);
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8000);
+    FConnection.MaxObjectUpdtDistance := ReadFloat('Main', 'MaxObjectUpdtDistance', 6000);
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
     chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
     chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
@@ -869,6 +870,8 @@ end;
 
 procedure TfrmMain.btnDebuggingClick(Sender: TObject);
 begin
+  frmDebugging.DAOCControl := FConnection;
+  
   if frmDebugging.Visible then
     frmDebugging.Close
   else
