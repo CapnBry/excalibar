@@ -399,9 +399,14 @@ begin
 end;
 
 procedure TfrmGLRender.glMapDraw(Sender: TObject);
+const
+  lightpos: array[0..3] of GLfloat = (-0.5, 0.0, 1.0, 0.0);
 var
   dwStartTickCount:  Cardinal;
 begin
+    { this is a shortcut, since it will not take effect until the next frame }
+  glMap.AutoMakeCurrent := FRenderPrefs.AutoMakeCurrent;
+  
   if not FGLInitsCalled then
     GLInits;
 
@@ -423,6 +428,8 @@ begin
     glClear(GL_COLOR_BUFFER_BIT);
 
     SetupRadarProjectionMatrix;
+    glLightfv(GL_LIGHT0, GL_POSITION, @lightpos);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -467,7 +474,6 @@ end;
 
 procedure TfrmGLRender.glMapInit(Sender: TObject);
 const
-  lightpos: array[0..3] of GLfloat = (-0.5, 0.0, 1.0, 0.0);
   diffuse: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
   ambient: array[0..3] of GLfloat = (0.0, 0.0, 0.0, 1.0);
   material: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
@@ -490,13 +496,10 @@ begin
   glEnable(GL_BLEND);
 
   glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-  glLightfv(GL_LIGHT0, GL_POSITION, @lightpos);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, @diffuse);
   glLightfv(GL_LIGHT0, GL_AMBIENT, @ambient);
   glMaterialfv(GL_FRONT, GL_AMBIENT, @material);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, @material);
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   FGLInitsCalled := false;
   CheckGLError;
@@ -522,6 +525,7 @@ begin
   LoadSettings;
   UpdateStayOnTop;
   UpdateInventoryPanel(false);
+  AutoSelectConnection;
 end;
 
 procedure TfrmGLRender.Log(const s: string);
@@ -1097,7 +1101,7 @@ end;
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
 begin
   if FRenderPrefs.RedrawOnTimer then begin
-    if FCurrConn.Active then
+    if Assigned(FCurrConn) and FCurrConn.Active then
       UpdateGlobalTickCount;
     Dirty;
   end;
@@ -1308,6 +1312,7 @@ end;
 procedure TfrmGLRender.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   SaveSettings;
+  SetCurrentConnection(nil);
 end;
 
 function TfrmGLRender.FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
@@ -2285,6 +2290,7 @@ begin
     Height := FRenderPrefs.Height;
     FRange := FRenderPrefs.Range;
     slideZoom.Position := FRange;
+    glMap.AutoMakeCurrent := FRenderPrefs.AutoMakeCurrent;
 
     FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
     FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
