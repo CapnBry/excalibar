@@ -221,7 +221,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       Top = 56
       Width = 153
       Height = 17
-      Caption = 'Overlay NPC type tag (G)'
+      Caption = 'Overlay NPC type tag (Y)'
       TabOrder = 2
       OnClick = chkTypeTagClick
     end
