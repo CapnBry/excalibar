@@ -336,6 +336,7 @@ void exSniffer::run() {
     return;
   }
 
+  qWarning("You may now start DAoC, Excalibur is listening for new connections...");
 #ifdef __APPLE__
   pcap_loop( pcap, -1, exCallback, (u_char *) this );
 #else
