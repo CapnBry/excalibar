@@ -71,9 +71,7 @@ begin
         with TMapElementPoint(tmpItem) do begin
           Name := CSV[1];
           SetColorFromString(CSV[2]);
-          X := CSV.FieldAsInt(3, 0);
-          Y := CSV.FieldAsInt(4, 0);
-          Z := CSV.FieldAsInt(5, 0);
+          Assign(CSV.FieldAsInt(3, 0), CSV.FieldAsInt(4, 0), CSV.FieldAsInt(5, 0));
         end;
       end  { point }
 

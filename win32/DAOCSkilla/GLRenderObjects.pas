@@ -3,7 +3,7 @@ unit GLRenderObjects;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, DDSImage;
+  Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLUT, DDSImage;
 
 type
   TGLRenderObject = class(TObject)
@@ -78,6 +78,8 @@ type
     constructor Create; override;
     procedure GLRender; override;
 
+    procedure Assign(AX, AY, AZ: GLuint);
+    
     property X: GLuint read FX write FX;
     property Y: GLuint read FY write FY;
     property Z: GLuint read FZ write FZ;
@@ -147,6 +149,8 @@ type
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
+function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
+function WriteGLUTTextH12(X, Y: integer; const s: string): integer;
 
 implementation
 
@@ -173,6 +177,34 @@ begin
     GetGValue(AColor) * ADark * RGB_SCALE,
     GetBValue(AColor) * ADark * RGB_SCALE,
     AAlpha);
+end;
+
+function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
+var
+  I:    integer;
+begin
+  Result := Y - 13;
+
+  if not Assigned(glutBitmapCharacter) or (s = '') then 
+    exit;
+
+  glRasterPos2i(X, Result);
+  for I := 1 to Length(s) do
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(s[I]));
+end;
+
+function WriteGLUTTextH12(X, Y: integer; const s: string): integer;
+var
+  I:    integer;
+begin
+  Result := Y - 13;
+
+  if not Assigned(glutBitmapCharacter) or (s = '') then
+    exit;
+
+  glRasterPos2i(X, Result);
+  for I := 1 to Length(s) do
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(s[I]));
 end;
 
 { TRangeCircle }
@@ -366,6 +398,13 @@ end;
 
 { TMapElementPoint }
 
+procedure TMapElementPoint.Assign(AX, AY, AZ: GLuint);
+begin
+  FX := AX + FOffsetX;
+  FY := AY + FOffsetY;
+  FZ := AZ;
+end;
+
 constructor TMapElementPoint.Create;
 begin
   inherited;
@@ -376,9 +415,12 @@ procedure TMapElementPoint.GLRender;
 begin
   inherited;
 
+  glPointSize(3.0);
   glBegin(GL_POINTS);
     glVertex3i(X, Y, 0);  // Z
   glEnd();
+
+  WriteGLUTTextH10(X + 50, Y + 20, FName);
 end;
 
 { TMapElementLine }
