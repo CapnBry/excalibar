@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCControl, ComCtrls, DAOCObjs,
+  Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
   StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, GLUT, RenderPrefs,
   DAOCClasses;
 
@@ -41,7 +41,7 @@ type
       Rect: TRect; State: TOwnerDrawState);
     procedure lstObjectsClick(Sender: TObject);
   private
-    FDControl: TDAOCControl;
+    FDControl: TDAOCConnection;
     FRange:         DWORD;
     FRenderBounds:  TRect;
     FGLInitsCalled:       boolean;
@@ -81,7 +81,7 @@ type
     procedure DrawGroundTarget;
     procedure DrawFrameStats;
 
-    procedure SetDControl(const Value: TDAOCControl);
+    procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
     procedure RefreshFilteredList;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
@@ -102,7 +102,7 @@ type
     procedure DAOCSetGroundTarget;
 
     procedure Dirty;
-    property DAOCControl: TDAOCControl read FDControl write SetDControl;
+    property DAOCControl: TDAOCConnection read FDControl write SetDControl;
     property PrefsFile: string read FPrefsFile write FPrefsFile;
     property RangeCircles: TRangeCircleList read FRangeCircles;
   end;
@@ -112,7 +112,7 @@ var
 
 implementation
 
-uses DAOCConnection, Unit1;
+uses Unit1;
 
 const
   COL_NAME = 0;
@@ -135,7 +135,7 @@ end;
 
 { TfrmGLRender }
 
-procedure TfrmGLRender.SetDControl(const Value: TDAOCControl);
+procedure TfrmGLRender.SetDControl(const Value: TDAOCConnection);
 begin
   FDControl := Value;
 end;
