@@ -129,7 +129,6 @@ type
     FItemLeftOffset:  integer;
     FItemHeight:      integer;
     FLastSelectWasIcon: boolean;
-    FCloseLeftOffset:   integer;
     FCloseTopOffset:    integer;
 
     procedure SelectItemCommon(Value, XOff: integer);
@@ -573,7 +572,7 @@ end;
 
 procedure TScrollableListWindow.Close;
 begin
-  DoLeftClick(Left + FCloseLeftOffset, Top + FCloseTopOffset);
+  DoLeftClick(Left + FScrollLeftOffset, Top + FCloseTopOffset);
 end;
 
 constructor TScrollableListWindow.Create(AWndManager: TDAOCWindowManager);
@@ -593,7 +592,6 @@ begin
   FItemTopOffset := 25;
   FItemLeftOffset := 15;
   FItemHeight := 18;
-  FCloseLeftOffset := 345;
   FCloseTopOffset := 5;
 end;
 
