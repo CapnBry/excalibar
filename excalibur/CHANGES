@@ -1,3 +1,9 @@
+Teerex (26/Nov/02)
+------------------
+ + Added support for ground target display.  The current target shows 
+   when the client send the target information (when you relase the ground
+   target key), and is just a lame set of 4 blue trianges right now.
+
 Teerex (21/Nov/02)
 ------------------
  + Fixed bug where some dead players would still be counted as alive in the
