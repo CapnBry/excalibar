@@ -700,11 +700,15 @@ var
   command:  BYTE;
   pHandler: TNamedPacketHandler;
 begin
-  // seq := pPacket.getShort;
-  // srcid := pPacket.getShort;
-  // pPacket.seek(2);
+    // Could also set this from the serverpacket 0x28
+  if FLocalPlayer.InfoID = 0 then begin
+    pPacket.seek(2); // seq := pPacket.getShort;
+    FLocalPlayer.InfoID := pPacket.getShort;
+    // pPacket.seek(3);
+  end
+  else
+    pPacket.seek(7);
 
-  pPacket.seek(7);
   command := pPacket.getByte;
 
 //  Writeln(Format('seq 0x%4.4x  src 0x%4.4x  cmd 0x%4.4x  dst 0x%4.4x',
@@ -1135,6 +1139,7 @@ begin
           Level := pPacket.getByte;  //+15
           pPacket.getByte;  //+16  bittest 0, 1, 2, 4, 8, c0
           pPacket.getByte;  //+17  shl 2
+          pPakcet.seek(4);  // daoc v1.71
           Name := pPacket.getPascalString;//+18
           TypeTag := pPacket.getPascalString;
             { the destination is usually set in the update packet before the client
@@ -2020,6 +2025,7 @@ var
   wID:    WORD;
   pObj:   TDAOCObject;
   bMana:  BYTE;
+  bEndurance: BYTE;
 begin
   pPacket.HandlerName := 'GroupMembersUpdate';
   ResetPlayersInGroup;
@@ -2032,6 +2038,7 @@ begin
     pPacket.getByte; // level
     pPacket.getByte; // health
     bMana := pPacket.getByte;
+    bEndurance := pPacket.getByte;  // maybe?
     pPacket.seek(1);
     wID := pPacket.getShort;
 
