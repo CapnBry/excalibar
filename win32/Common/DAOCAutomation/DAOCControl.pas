@@ -4,8 +4,12 @@ interface
 
 uses
   SysUtils, Windows, Messages, Classes, SndKey32, DAOCConnection, DAOCObjs,
-  MapNavigator, ExtCtrls, DAOCWindows, MMSystem, ComObj, ActiveX, AxCtrls,
-  DAOCSkilla_TLB, Recipes, MPKFile, QuickLaunchChars;
+  MapNavigator, ExtCtrls, DAOCWindows, MMSystem, Recipes,
+  MPKFile, QuickLaunchChars
+{$IFDEF DAOC_AUTO_SERVER}
+  ,ComObj, ActiveX, AxCtrls, DAOCSkilla_TLB
+{$ENDIF DAOC_AUTO_SERVER}
+  ;
 
 {$WARN SYMBOL_PLATFORM OFF}
 
@@ -14,15 +18,20 @@ type
   TCommissionAutomationState = (casUnknown, casNoCommission, casGotCommission,
     casGatherMetal, casGatherWood, casGatherLeather, casReadyToBuild, casHaveItem);
 
-  TDAOCControl = class(TDAOCConnection, IConnectionPointContainer,
-    IDAOCControl)
+  TDAOCControl = class(TDAOCConnection
+{$IFDEF DAOC_AUTO_SERVER}
+    ,IConnectionPointContainer, IDAOCControl
+{$ENDIF DAOC_AUTO_SERVER}
+    )
   private
     { note: FEvents maintains a *single* event sink. For access to more
       than one event sink, use FConnectionPoint.SinkList, and iterate
       through the list of sinks. }
+{$IFDEF DAOC_AUTO_SERVER}
     FAxEvents:  IDAOCControlEvents;
     FConnectionPoints:  TConnectionPoints;
     FConnectionPoint:   TConnectionPoint;
+{$ENDIF DAOC_AUTO_SERVER}
 
     FMainHWND: HWND;
     FDAOCHWND: HWND;
@@ -79,7 +88,6 @@ type
     function CheckNeedMaterials : boolean;
     function StepCurrentPath: boolean;
     procedure SetTradeSkillProgression(const Value: string);
-    function GetClassTypeInfo: ITypeInfo;
     function GetTradeRecipes: TUniversalRecipeCollection;
   protected
     procedure DoTurntoDest(AMaxTurnTime: integer);
@@ -131,6 +139,8 @@ type
     procedure DoOnCombatStyleSuccess(AStyle: string); override;
     procedure DoOnCombatStyleFailure; override;
 
+{$IFDEF DAOC_AUTO_SERVER}
+    function GetClassTypeInfo: ITypeInfo;
       { IDAOCControl overrides }
     procedure IDAOCControl.SendKeys = SendKeysW;
     procedure SendKeysW(const s: WideString); safecall;
@@ -140,11 +150,12 @@ type
     property ConnectionPoints: TConnectionPoints read FConnectionPoints
       implements IConnectionPointContainer;
     procedure EventSinkChanged(const EventSink: IUnknown); override;
+{$ENDIF DAOC_AUTO_SERVER}
   public
     constructor Create; override;
     destructor Destroy; override;
 
-    procedure Initialize; override;
+    procedure Initialize; {$IFDEF DAOC_AUTO_SERVER} override; {$ENDIF}
     procedure Clear; override;
 
     procedure DoVKDown(vk: byte);
@@ -156,7 +167,6 @@ type
     procedure SetQuickbarPage(APage: integer); safecall;
     procedure LeftClick(X, Y: integer); safecall;
     procedure RightClick(X, Y: Integer); safecall;
-    procedure IDAOCControl.Sleep = DAOCCSleep;
     procedure DAOCCSleep(dwTime: integer); safecall;
     procedure SelectGroupMember(AIndex: integer); safecall;
     procedure Stick; safecall;
@@ -167,6 +177,8 @@ type
     procedure SetPlayerHeading(AHead, AMaxTurnTime: integer); safecall;
     procedure GotoXY(X, Y: DWORD); safecall;
 
+{$IFDEF DAOC_AUTO_SERVER}
+    procedure IDAOCControl.Sleep = DAOCCSleep;
     procedure IDAOCControl.ChatSend = ChatSendW;
     procedure ChatSendW(const bsWho: WideString; const bsMessage: WideString); safecall;
     procedure IDAOCControl.ChatSay = ChatSayW;
@@ -185,6 +197,7 @@ type
     procedure NodeLoadW(const bsFileName: WideString); safecall;
     procedure IDAOCControl.NodeSave = NodeSaveW;
     procedure NodeSaveW(const bsFileName: WideString); safecall;
+{$ENDIF DAOC_AUTO_SERVER}
 
     procedure ChatSend(const AWho, AMessage: string);
     procedure ChatSay(const AMessage: string);
@@ -209,7 +222,6 @@ type
     property MapNodes: TMapNodeList read FMapNodes;
     property CurrentPath: TMapNodeList read FCurrentPath;
     property WindowManager: TDAOCWindowManager read FWindowManager;
-    property ClassTypeInfo: ITypeInfo read GetClassTypeInfo;
     property TradeRecipes: TUniversalRecipeCollection read GetTradeRecipes;
     property QuickLaunchChars: TQuickLaunchCharList read FQuickLaunchChars;
       { internal props }
@@ -239,6 +251,10 @@ type
     property OnArriveAtGotoDest: TNotifyEvent read FOnArriveAtGotoDest write FOnArriveAtGotoDest;
     property OnPathChanged: TNotifyEvent read FOnPathChanged write FOnPathChanged;
     property OnStopAllActions: TNotifyEvent read FOnStopAllActions write FOnStopAllActions; 
+
+{$IFDEF DAOC_AUTO_SERVER}
+    property ClassTypeInfo: ITypeInfo read GetClassTypeInfo;
+{$ENDIF DAOC_AUTO_SERVER}
   end;
 
 implementation
@@ -305,13 +321,10 @@ begin
 
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnPlayerPosUpdate;
-end;
-
-procedure TDAOCControl.SendKeysW(const S: WideString);
-begin
-  DoSendKeys(s);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoSendKeys(const S: string);
@@ -418,6 +431,9 @@ begin
 
   FQuickLaunchChars := TQuickLaunchCharList.Create;
   FQuickLaunchChars.ServerNameFile := ExtractFilePath(ParamStr(0)) + 'servers.ini';
+{$IFNDEF DAOC_AUTO_SERVER}
+  Initialize;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.QuitDAOC;
@@ -598,8 +614,10 @@ begin
   if Assigned(FOnArriveAtGotoDest) then
     FOnArriveAtGotoDest(Self);
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnArriveAtGotoDest;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.ClearGotoDest;
@@ -764,8 +782,10 @@ begin
 
   inherited DoOnCharacterLogin;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnCharacterLogin;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnConnect;
@@ -775,8 +795,10 @@ begin
 
   inherited DoOnConnect;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnConnect;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.FaceNode(ANode: TMapNode; AMaxTurnTime: integer);
@@ -860,8 +882,10 @@ begin
 
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillSuccess(AQuality);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 (***
@@ -881,8 +905,10 @@ begin
     PathToNodeName(GetTradeMasterName);
   end;  { if automationmode commission }
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillTaskCompleted;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.SetAutomationMode(const Value: TAutomationMode);
@@ -936,8 +962,10 @@ begin
       Log('ERROR: Cannot path to forge from here!');
   end; { FAutomationMode = amCommission }
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillCommissionAssigned;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnPopupMessage(const AMessage: string);
@@ -947,8 +975,10 @@ begin
   if FAutomationMode <> amNone then
     CloseDialog;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnPopupMessage(AMessage);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.Clear;
@@ -1098,8 +1128,10 @@ begin
   if Assigned(FOnPathChanged) then
     FOnPathChanged(Self);
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnPathChanged;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnTradeskillCapped;
@@ -1113,8 +1145,10 @@ begin
   
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillCapped;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnTradeskillFailure;
@@ -1124,8 +1158,10 @@ begin
 
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillFailure;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 function TDAOCControl.FindDAOCWindow: HWND;
@@ -1173,8 +1209,10 @@ begin
 
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnChatSendIncoming(AWho, AMessage);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnDisconnect;
@@ -1182,8 +1220,10 @@ begin
   SaveMasterVendorListForRegion(FRegionID);
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnDisconnect;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoSetRegionID(ARegion: integer);
@@ -1219,27 +1259,19 @@ begin
   FDAOCHWND := FindDAOCWindow;
 end;
 
-procedure TDAOCControl.EventSinkChanged(const EventSink: IInterface);
-begin
-  FAxEvents := EventSink as IDAOCControlEvents;
-end;
-
 procedure TDAOCControl.Initialize;
 begin
-  inherited Initialize;
-
   FDAOCWindowClass := 'DAoCMWC';
+
+{$IFDEF DAOC_AUTO_SERVER}
+  inherited Initialize;
 
   FConnectionPoints := TConnectionPoints.Create(Self);
   if AutoFactory.EventTypeInfo <> nil then
     FConnectionPoint := FConnectionPoints.CreateConnectionPoint(
       AutoFactory.EventIID, ckSingle, EventConnect)
   else FConnectionPoint := nil;
-end;
-
-function TDAOCControl.GetClassTypeInfo: ITypeInfo;
-begin
-  Result := AutoFactory.ClassInfo;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DAOCCSleep(dwTime: integer);
@@ -1259,13 +1291,10 @@ procedure TDAOCControl.DoOnSelectedObjectChanged(AObject: TDAOCObject);
 begin
   inherited;
 
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnSelectedObjectChanged;
-end;
-
-procedure TDAOCControl.DAOCCLog(const AMessage: WideString);
-begin
-  Log(AMessage);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.Face;
@@ -1311,36 +1340,6 @@ end;
 procedure TDAOCControl.ChatSend(const AWho, AMessage: string);
 begin
   DoSendKeys('/send ' + AWho + ' ' + AMessage + '[cr]');
-end;
-
-procedure TDAOCControl.ChatAllianceW(const bsMessage: WideString);
-begin
-  ChatAlliance(bsMessage);
-end;
-
-procedure TDAOCControl.ChatChatW(const bsMessage: WideString);
-begin
-  ChatChat(bsMessage);
-end;
-
-procedure TDAOCControl.ChatGroupW(const bsMessage: WideString);
-begin
-  ChatGroup(bsMessage);
-end;
-
-procedure TDAOCControl.ChatGuildW(const bsMessage: WideString);
-begin
-  ChatGuild(bsMessage);
-end;
-
-procedure TDAOCControl.ChatSayW(const bsMessage: WideString);
-begin
-  ChatSay(bsMessage);
-end;
-
-procedure TDAOCControl.ChatSendW(const bsWho: WideString; const bsMessage: WideString);
-begin
-  ChatSend(bsWho, bsMessage);
 end;
 
 function TDAOCControl.LastItemOfTradeskillProgressionIsNext: boolean;
@@ -1459,15 +1458,19 @@ end;
 procedure TDAOCControl.DoOnCombatStyleFailure;
 begin
   inherited;
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnCombatStyleFailure;;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TDAOCControl.DoOnCombatStyleSuccess(AStyle: string);
 begin
   inherited;
+{$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnCombatStyleSuccess(AStyle);
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 function TDAOCControl.LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
@@ -1523,6 +1526,57 @@ begin
   Result := LaunchCharacter(FQuickLaunchChars[AIndex]);
 end;
 
+{$IFDEF DAOC_AUTO_SERVER}
+procedure TDAOCControl.SendKeysW(const S: WideString);
+begin
+  DoSendKeys(s);
+end;
+
+procedure TDAOCControl.EventSinkChanged(const EventSink: IInterface);
+begin
+  FAxEvents := EventSink as IDAOCControlEvents;
+end;
+
+function TDAOCControl.GetClassTypeInfo: ITypeInfo;
+begin
+  Result := AutoFactory.ClassInfo;
+end;
+
+procedure TDAOCControl.DAOCCLog(const AMessage: WideString);
+begin
+  Log(AMessage);
+end;
+
+procedure TDAOCControl.ChatAllianceW(const bsMessage: WideString);
+begin
+  ChatAlliance(bsMessage);
+end;
+
+procedure TDAOCControl.ChatChatW(const bsMessage: WideString);
+begin
+  ChatChat(bsMessage);
+end;
+
+procedure TDAOCControl.ChatGroupW(const bsMessage: WideString);
+begin
+  ChatGroup(bsMessage);
+end;
+
+procedure TDAOCControl.ChatGuildW(const bsMessage: WideString);
+begin
+  ChatGuild(bsMessage);
+end;
+
+procedure TDAOCControl.ChatSayW(const bsMessage: WideString);
+begin
+  ChatSay(bsMessage);
+end;
+
+procedure TDAOCControl.ChatSendW(const bsWho: WideString; const bsMessage: WideString);
+begin
+  ChatSend(bsWho, bsMessage);
+end;
+
 procedure TDAOCControl.PathToNodeNameW(const bsNodeName: WideString);
 begin
   PathToNodeName(bsNodeName);
@@ -1541,6 +1595,7 @@ end;
 initialization
   TAutoObjectFactory.Create(ComServer, TDAOCControl, CLASS_CDAOCControl,
     ciInternal, tmFree);
+{$ENDIF DAOC_AUTO_SERVER}
 
 end.
 
