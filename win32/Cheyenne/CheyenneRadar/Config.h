@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // we have to define NOMINMAX so that the stupid windows header files do 
 // not make macros out of min and max :-/
 #define NOMINMAX
-#include "..\Utils\CodeUtils.h" // for DECL_MEMBER
-#include "..\GLPPI\GLPPI.h" // for actor render prefs
+//#include "..\Utils\CodeUtils.h" // for DECL_MEMBER
+//#include "..\GLPPI\GLPPI.h" // for actor render prefs
 class Config
 {
 public:

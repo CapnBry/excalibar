@@ -954,6 +954,29 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             DestroyWindow(hWnd);
             break;
             
+        case ID_CONTROLDISPLAY_OPENCONFIGDIALOG:
+            {
+            HWND h=CreateDialogParam
+                (
+                (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE),
+                MAKEINTRESOURCE(IDD_CONFIG),
+                hWnd,
+                ::ConfigDialogProc,
+                0
+                );
+            
+            if(h && h!=INVALID_HANDLE_VALUE)
+                {
+                // disable this menu item
+                // the dialog will re-enable the menu item when it exits
+                EnableMenuItem(GetMenu(hWnd),ID_CONTROLDISPLAY_OPENCONFIGDIALOG,MF_BYCOMMAND|MF_GRAYED);
+                
+                ShowWindow(h,SW_SHOW);
+                UpdateWindow(h);
+                } // end if dialog was created
+            }
+            break;        
+                
         default:
             break;
         } // end switch
@@ -1145,8 +1168,14 @@ void Render(USERDATA* data)
     data->ppi.RenderAllZones();
     
     // update and iterate all actors -- ppi will only render the ones
-    // taht are on-screen
+    // that are on-screen
     data->database.UpdateAndIterateActors(ActorRenderFunctor(*data));
+    
+    // if uncorrelated stealth is present, draw that too
+    if(data->database.IsUncorrelatedStealth())
+        {
+        data->ppi.RenderUncorrelatedStealth(data->database.GetUncorrelatedStealthCenter());
+        }
     
     // end rendering and clear flag
     data->ppi.RenderEnd();

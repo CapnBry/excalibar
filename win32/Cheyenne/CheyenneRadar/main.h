@@ -30,10 +30,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 // some program-wide globals
+#define RENDER_NOW (WM_USER+1)
 EXTERN std::string InitialDir; // the initial directory
 EXTERN logger_t Logger; // the logger
 EXTERN MapInfo Zones; // zone info
 EXTERN CheyenneClock Clock; // for the clock
 EXTERN Config RadarConfig; // the radar config
+
 // prototypes
 LRESULT CALLBACK MainWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+LRESULT CALLBACK PPIWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+LRESULT CALLBACK DataWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+INT_PTR CALLBACK ConfigDialogProc(HWND hwndDlg,UINT uMsg,WPARAM wParam,LPARAM lParam);

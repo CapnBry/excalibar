@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <fstream>
 #include "..\Utils\Logger.h" // for the logger
+#include "..\Utils\CodeUtils.h" // nice dialog utilities in here
+#include "..\GLPPI\GLPPI.h" // for actor render prefs
 #include "config.h"
 
 extern logger_t Logger; // the logger -- this way prevents a circular #include

@@ -122,6 +122,9 @@
 				RelativePath=".\Config.cpp">
 			</File>
 			<File
+				RelativePath=".\ConfigDialogProc.cpp">
+			</File>
+			<File
 				RelativePath=".\main.cpp">
 			</File>
 			<File

@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "..\Utils\Logger.h" // for the logger
 #include "..\Utils\mapinfo.h" // for the zones class
 #include "..\Utils\times.h" // for the clock
+#include "..\GLPPI\GLPPI.h" // for actor render prefs
 #include "config.h" // for the global configuration
 #include "main.h"
 #include "resource.h"
@@ -49,7 +50,7 @@ int WINAPI WinMain
     LOG_FUNC << "Hi!\n";
     
     // load config
-    ::RadarConfig.Load("cheyenne_radar.cfg");
+    ::RadarConfig.Load("CheyenneRadar.cfg");
     
     // read zones
     Zones.ReadZoneFile();
@@ -134,7 +135,7 @@ int WINAPI WinMain
     Exit:
     
     // save config
-    ::RadarConfig.Save("cheyenne_radar.cfg");
+    ::RadarConfig.Save("CheyenneRadar.cfg");
 
     LOG_FUNC << "Exiting!\n";
     

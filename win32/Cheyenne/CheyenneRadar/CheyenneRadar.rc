@@ -54,9 +54,18 @@ END
 
 IDR_MAIN_MENU MENU 
 BEGIN
-    POPUP "&File"
+    POPUP "&System"
     BEGIN
         MENUITEM "E&xit",                       ID_FILE_EXIT
+    END
+    POPUP "&Control Display"
+    BEGIN
+        MENUITEM "&Open Config Dialog",         ID_CONTROLDISPLAY_OPENCONFIGDIALOG
+
+    END
+    POPUP "H&elp"
+    BEGIN
+        MENUITEM "A&bout",                      ID_HELP_ABOUT
     END
 END
 
@@ -108,6 +117,81 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG DIALOGEX 0, 0, 264, 158
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Configure Cheyenne"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Raise Cheyenne's Priority",IDC_RAISEPRIORITY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,19,97,10
+    CONTROL         "Load Vector Maps",IDC_LOADVECTORMAPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,32,73,10
+    CONTROL         "Load Zone Textures",IDC_LOADZONETEXTURES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,156,19,80,10
+    CONTROL         "Show Name",IDC_SHOWFRIENDLYNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,60,53,10
+    CONTROL         "Show Surname",IDC_SHOWFRIENDLYSURNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,74,63,10
+    CONTROL         "Show Guild",IDC_SHOWFRIENDLYGUILD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,88,51,10
+    CONTROL         "Show Health",IDC_SHOWFRIENDLYHEALTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,102,56,10
+    CONTROL         "Show Level",IDC_SHOWFRIENDLYLEVEL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,116,52,10
+    CONTROL         "Show Name",IDC_SHOWENEMYNAME,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,104,60,53,10
+    CONTROL         "Show Surname",IDC_SHOWENEMYSURNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,74,63,10
+    CONTROL         "Show Guild",IDC_SHOWENEMYGUILD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,104,88,51,10
+    CONTROL         "Show Health",IDC_SHOWENEMYHEALTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,104,102,56,10
+    CONTROL         "Show Level",IDC_SHOWENEMYLEVEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,104,116,52,10
+    CONTROL         "Show Name",IDC_SHOWMOBNAME,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,187,60,53,10
+    CONTROL         "Show Surname",IDC_SHOWMOBSURNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,187,74,63,10
+    CONTROL         "Show Guild",IDC_SHOWMOBGUILD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,187,88,51,10
+    CONTROL         "Show Health",IDC_SHOWMOBHEALTH,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,187,102,56,10
+    CONTROL         "Show Level",IDC_SHOWMOBLEVEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,187,116,52,10
+    DEFPUSHBUTTON   "Close",IDCLOSE,207,137,50,14
+    GROUPBOX        "System (change requires restart)",IDC_STATIC,7,7,250,40
+    GROUPBOX        "Same Realm",IDC_STATIC,7,47,80,85
+    GROUPBOX        "Enemy Realm",IDC_STATIC,92,47,80,85
+    GROUPBOX        "MOB",IDC_STATIC,177,47,80,85
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 257
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 151
+    END
+END
+#endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

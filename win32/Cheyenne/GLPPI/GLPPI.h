@@ -168,6 +168,8 @@ private:
                 ModifyNumSet()--;
                 }
             }
+        
+        b=to;
         }
 
     void set(const ActorRenderPrefs& s)
@@ -296,6 +298,7 @@ public:
             const int MaxY
             );
         void RenderAllZones(void);
+        void RenderUncorrelatedStealth(const Actor& UncorrelatedPosition);
     void RenderEnd(void);
 
     // zoom/pan api

@@ -1094,6 +1094,32 @@ void GLPPI::RenderAllZones(void)
     return;
 } // end RenderAllZones
 
+void GLPPI::RenderUncorrelatedStealth(const Actor& UncorrelatedPosition)
+{
+    glPushMatrix();
+    
+    // get render position
+    Motion DisplayPos;
+    GetRenderPosition(UncorrelatedPosition,DisplayPos);
+    
+    // translate to position
+    glTranslatef(DisplayPos.GetXPos(),DisplayPos.GetYPos(),0.0f);
+    
+    // render with no depth test so it will definately be displayed
+    RenderState.Disable(GL_DEPTH_TEST);
+
+    // draw disc
+    RenderState.Enable(GL_BLEND);
+    glColor4f(1.0f,0.0f,0.0f,0.25f);
+    DrawDisc(3000.0f);
+    
+    // cleanup and done
+    RenderState.Enable(GL_DEPTH_TEST);
+    RenderState.Disable(GL_BLEND);
+
+    glPopMatrix();
+} // end RenderUncorrelatedStealth
+
 void GLPPI::RenderEnd(void)
 {
     #ifdef _DEBUG
