@@ -31,6 +31,9 @@ function StringEndsWith(const sLine, sTarget: string) : boolean;
 function StringContains(const sLine, sTarget: string) : boolean;
 function RemoveThe(const sLine: string) : string;
 function WildMatch(const AWild, AString: string) : boolean;
+function StrToBool(const s: string) : boolean;
+function Dequote(const s: string) : string;
+function Quote(const s: string) : string;
 
 implementation
 
@@ -165,6 +168,28 @@ begin
     inc(w);
 
   Result := w^ = #0;
+end;
+
+function StrToBool(const s : string) : boolean;
+var
+  lowString:    string;
+begin
+  lowString := lowercase(s);
+  Result := (s = '') or (s = 't') or (s = 'true') or
+    (s = '1') or (s = 'y') or (s = 'yes') or (s = 'on');
+end;
+
+function Dequote(const s: string) : string;
+begin
+  if (Length(s) > 1) and (s[1] = '"') and (s[Length(s)] = '"') then
+    Result := copy(s, 2, Length(s) - 2)
+  else
+    Result := s;
+end;
+
+function Quote(const s: string) : string;
+begin
+  Result := '"' + s + '"';
 end;
 
 end.
