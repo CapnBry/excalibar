@@ -6,7 +6,6 @@ TO RUN IT:
 - Some Win32 operating system. I use WinXP Pro, but Cheyenne has been seen to work on O/S's as old as NT4 SP6.
 - A graphics card and driver that supports OpenGL as an ICD (installable client driver, most modern cards fit this bill just fine)
 - WinPCAP 3.0 (later version should work with a recompile)
-- GLUT (the OpenGL Utility Toolkit) for Win32
 
 TO BUILD IT:
 - All of the above plus:
