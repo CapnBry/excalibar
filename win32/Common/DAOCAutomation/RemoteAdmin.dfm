@@ -11,6 +11,7 @@ object dmdRemoteAdmin: TdmdRemoteAdmin
     DefaultPort = 9023
     OnConnect = tcpRemoteAdminConnect
     OnExecute = tcpRemoteAdminExecute
+    OnDisconnect = tcpRemoteAdminDisconnect
     Left = 40
     Top = 12
   end

@@ -38,9 +38,12 @@ type
     procedure tcpRemoteAdminConnect(AThread: TIdPeerThread);
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
+    procedure tcpRemoteAdminDisconnect(AThread: TIdPeerThread);
   private
     FActions:   TObjectList;
+    FPS1:       string;
     FDControl:  TDAOCControl;
+    FChatConnections: TObjectList;
     FCommandParams:   string;
     FCommandParamOffset: integer;  // 1-based
 
@@ -49,6 +52,8 @@ type
       const AHelp: string = '');
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
+    function ExpandPromptString : string;
+    procedure RemoveChatConnection(AConn: TClientConn);
   protected
     function ParseParamWord : string;
     function ParseParamInt : integer;
@@ -103,8 +108,13 @@ type
     procedure HandleSendkeys(AConn: TClientConn; const ACmd: string);
     procedure HandleAttemptNPCRightClick(AConn: TClientConn; const ACmd: string);
     procedure HandleTest(AConn: TClientConn; const ACmd: string);
+    procedure HandlePrompt(AConn: TClientConn; const ACmd: string);
+    procedure HandleDumpChat(AConn: TClientConn; const ACmd: string);
   public
+    procedure DAOCChatLog(const s: string);
+    
     property DAOCControl: TDAOCControl read FDControl write FDControl;
+    property PS1: string read FPS1 write FPS1;
     property Enabled: boolean read GetEnabled write SetEnabled;
   end;
 
@@ -113,7 +123,7 @@ var
 
 implementation
 
-uses IdTCPConnection, DAOCObjs;
+uses IdTCPConnection, DAOCObjs, DAOCConnection;
 
 {$R *.dfm}
 
@@ -130,7 +140,10 @@ var
   iPos:   integer;
   pAction:  TStringActionLink;
 begin
-  AThread.Connection.Write('> ');
+    { send the prompt }
+  if FPS1 <> '' then
+    AThread.Connection.Write(ExpandPromptString);
+    
   sCmd := AThread.Connection.ReadLn;
   if not Assigned(FDControl) then begin
     AThread.Connection.WriteLn('500 Internal error - No DAOC control assigned.');
@@ -199,6 +212,9 @@ end;
 
 procedure TdmdRemoteAdmin.DataModuleCreate(Sender: TObject);
 begin
+  FPS1 := '[\c@\s: \o]$ ';
+  FChatConnections := TObjectList.Create(false);
+
   FActions := TObjectList.Create;
   AddAction('Exit', HandleExit,
     'Close this connection.');
@@ -296,7 +312,12 @@ begin
     '(keys) Do a SendKeys call to the DAOC client.  Extended key syntax is available if the DAOC window has focus.');
   AddAction('AttemptNPCRightClick', HandleAttemptNPCRightClick,
     'Attempt to right click the NPC in the middle of the screen.');
-  AddAction('Test', HandleTest, 'Run test procedure (does nothing useful).');
+  AddAction('Test', HandleTest,
+    'Run test procedure (does nothing useful).');
+  AddAction('Prompt', HandlePrompt,
+    '(propmt) Sets the telnet prompt string (default "[\c@\s: \o]$ ")');
+  AddAction('DumpChat', HandleDumpChat,
+    '(on|off) Turns on and off dumping of chat log text to the current connection.');
 end;
 
 procedure TdmdRemoteAdmin.AddAction(const AKey: string;
@@ -313,6 +334,7 @@ end;
 
 procedure TdmdRemoteAdmin.DataModuleDestroy(Sender: TObject);
 begin
+  FChatConnections.Free;
   FActions.Free;
 end;
 
@@ -1065,6 +1087,105 @@ begin
     on e: Exception do
       AConn.WriteLn('500 ' + e.Message);
   end;
+end;
+
+procedure TdmdRemoteAdmin.HandlePrompt(AConn: TClientConn;
+  const ACmd: string);
+begin
+  FPS1 := copy(ACmd, 8, Length(ACmd));
+  AConn.WriteLn('200 Prompt set to ' + FPS1);
+end;
+
+function TdmdRemoteAdmin.ExpandPromptString: string;
+var
+  P:    PChar;
+begin
+  P := PChar(FPS1);
+  Result := '';
+
+  while P^ <> #0 do begin
+    if P^ = '\' then begin
+      inc(P);
+      case P^ of
+        'c':
+            Result := Result + FDControl.LocalPlayer.Name;
+        'o':
+            if Assigned(FDControl.Zone) then
+              Result := Result + FDControl.Zone.Name;
+        's':
+            Result := Result + FDControl.AccountCharacterList.ServerName;
+        'x':
+            Result := Result + IntToStr(FDControl.PlayerZoneX);
+        'y':
+            Result := Result + IntToStr(FDControl.PlayerZoneY);
+        'z':
+            Result := Result + IntToStr(FDControl.PlayerZoneZ);
+        'X':
+            Result := Result + IntToStr(FDControl.LocalPlayer.X);
+        'Y':
+            Result := Result + IntToStr(FDControl.LocalPlayer.Y);
+        'Z':
+            Result := Result + IntToStr(FDControl.LocalPlayer.Z);
+        else
+          Result := Result + P^;
+      end;  { case P (escaped) }
+    end  { if / }
+
+    else
+      Result := Result + P^;
+    inc(P);
+  end;  { while *P }
+end;
+
+procedure TdmdRemoteAdmin.DAOCChatLog(const s: string);
+var
+  I:    integer;
+begin
+  for I := 0 to FChatConnections.Count - 1 do
+    TClientConn(FChatConnections[I]).Write(s);
+end;
+
+procedure TdmdRemoteAdmin.tcpRemoteAdminDisconnect(AThread: TIdPeerThread);
+begin
+    { remove this guy from the chat listeners if he's active }
+  RemoveChatConnection(AThread.Connection);
+end;
+
+procedure TdmdRemoteAdmin.HandleDumpChat(AConn: TClientConn; const ACmd: string);
+var
+  iIdx:   integer;
+  bOn:    boolean;
+  sOn:    string;
+begin
+  sOn := copy(ACmd, 10, Length(ACmd));
+  bOn := StringParseHlprs.StrToBool(sOn);
+  iIdx := FChatConnections.IndexOf(AConn);
+  if bOn then begin
+    if iIdx = -1 then begin
+      FChatConnections.Add(AConn);
+      AConn.WriteLn('200 Chat log text will now be dumped to this connection.');
+    end
+    else
+      AConn.WriteLn('300 Chat log already being dumped to this connection.');
+  end  { if true }
+
+  else begin
+    if iIdx = -1 then
+      AConn.WriteLn('300 Chat log not being dumped to this connection.')
+    else begin
+      RemoveChatConnection(AConn);
+      AConn.WriteLn('200 Chat log text will no longer be dumped to this connection.');
+    end;
+  end;  { if false }
+end;
+
+procedure TdmdRemoteAdmin.RemoveChatConnection(AConn: TClientConn);
+var
+  iIdx: integer;
+begin
+  iIdx := FChatConnections.IndexOf(AConn);
+  if iIdx <> -1 then
+    FChatConnections.Delete(iIdx);
 end;
 
 end.
