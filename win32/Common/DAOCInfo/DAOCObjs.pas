@@ -470,8 +470,8 @@ begin
   else begin
     dHyp := iSpeed * integer(TicksSinceUpdate) * (1 / 1000);
     sincos_quick(GetHead, s, c);
-    FProjectedX := FX + round(s * dHyp);
-    FProjectedY := FY - round(c * dHyp);
+    FProjectedX := FX - round(s * dHyp);
+    FProjectedY := FY + round(c * dHyp);
   end;
 end;
 
@@ -558,9 +558,9 @@ begin
   Result := FHeadWord and $0fff;
   Result := Result * 360 div 4096;
     { Since the daoc coordinate system is top->bottom, we need to 'adjust' 180 degrees }
-  dec(Result, 180);
-  if Result < 0 then
-    inc(Result, 360);
+//  dec(Result, 180);
+//  if Result < 0 then
+//    inc(Result, 360);
 end;
 
 function TDAOCObject.GetObjectClass: TDAOCObjectClass;
