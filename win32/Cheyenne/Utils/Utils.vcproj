@@ -136,6 +136,9 @@
 				RelativePath=".\CodeUtils.h">
 			</File>
 			<File
+				RelativePath=".\DStreamConnection.h">
+			</File>
+			<File
 				RelativePath=".\lfontrenderer.h">
 			</File>
 			<File
