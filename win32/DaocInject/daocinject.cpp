@@ -239,7 +239,7 @@ void SetupCamp(const char *modulename, char *parentexename)
 	ioctlsocket(hPipe, FIONBIO, &nonblock); 
 	SetupDestAddr();
 		
-	CSegmentSearch segsrch(parentexename);
+	CSegmentFileSearch segsrch(parentexename);
 	PBYTE pFunc;
 
 	pFunc = segsrch.FindFirst(DeROT(TEXTSEG),  // ".text"
