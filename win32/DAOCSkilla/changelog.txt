@@ -28,6 +28,11 @@ IN DEVELOPMENT
   + Added "Auto-scroll on select" to render prefs.
   + Added "Show selected player inventory" to radar.
   + Added context menu for radar, with "show zone info".
+  + No longer requires GLUT.
+  + Runs under WINE on Linux without requiring a special build.
+  + Fixes "Easy Mouse Overs" and "Draw Info Points" settings getting
+    confused.
+  + Added "Shade by realm" and ability to turn off player halos.
 
 2004 Feb 18 - v1.86
 -------------------

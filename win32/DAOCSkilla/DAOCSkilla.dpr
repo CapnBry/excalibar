@@ -2,6 +2,7 @@ program DAOCSkilla;
 
 uses
   Forms,
+  SysUtils,
   Unit1 in 'Unit1.pas' {frmMain},
   DAOCConnection in '..\Common\PacketSniff\DAOCConnection.pas',
   DAOCInventory in '..\Common\DAOCInfo\daocinventory.pas',
@@ -77,7 +78,7 @@ begin
   Application.CreateForm(TfrmSkillaLog, frmSkillaLog);
   CreateOptionalForms;
   if Screen.PixelsPerInch <> 96 then begin
-    frmMain.Log('Font not at normal (96) dpi, attempting to resize for font');
+    frmMain.Log('Font not at normal (96) dpi, attempting to resize for font DPI ' + IntToStr(Screen.PixelsPerInch));
     geAutoScale(frmMain);
     geAutoScale(frmPowerskill);
     geAutoScale(frmShowMapNodes);
