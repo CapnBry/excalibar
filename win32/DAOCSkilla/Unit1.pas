@@ -105,6 +105,7 @@ type
     procedure UpdateQuickLaunchList;
     procedure UpdateQuickLaunchProfileList;
     procedure CheckForUpdates(AForce: boolean);
+    function GetVersion: string;
   protected
     procedure CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
     procedure CONNLISTDeleteConnection(Sender: TObject; AConn: TDAOCConnection);
@@ -150,6 +151,8 @@ type
   public
     procedure Log(const s: string);
     procedure InjectPacket(Source: TObject; APacket: TGameNetPacket);
+
+    property Version: string read GetVersion;
   end;
 
 var
@@ -990,6 +993,11 @@ end;
 procedure TfrmMain.atnForceVersionsUpdateExecute(Sender: TObject);
 begin
   CheckForUpdates(true);
+end;
+
+function TfrmMain.GetVersion: string;
+begin
+  Result := GetVersionString;
 end;
 
 end.
