@@ -65,7 +65,7 @@ protected:
   exMobList<exMob> players;
   exMobList<exMob> mobinfo;
   QPtrList<exMessage> messageList;
-  QDict<int> playerzones;
+  QDict<int> playerregions;
   QDict<Realm> playerrealms;
   QByteArray cryptkey;
   unsigned int selfid;
@@ -103,7 +103,7 @@ public:
   FormExcalibur *ex;
   exMessagesUi  *msgui;
   QString playername;
-  int playerx, playery, playerz, playerhead, playerspeed, playerzone, playerlevel;
+  int playerx, playery, playerz, playerhead, playerspeed, playerregion, playerlevel;
   int groundtarget_x, groundtarget_y, groundtarget_z;
   exTimeType player_last_update;
   int playerProjectedX, playerProjectedY;

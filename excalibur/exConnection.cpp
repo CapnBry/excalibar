@@ -92,7 +92,7 @@ void exConnection::setup()
     sniff = NULL;
     nextpacket = NULL;
 
-    playerzone = 0;
+    playerregion = 0;
     playerspeed = 0;
     playerhead = 0;
     playerx = 0;
@@ -117,7 +117,7 @@ void exConnection::setup()
     objs.setAutoDelete(true);
     players.setAutoDelete(true);
     mobinfo.setAutoDelete(false);
-    playerzones.setAutoDelete(true);
+    playerregions.setAutoDelete(true);
     playerrealms.setAutoDelete(true);
 
     ex->show();
@@ -330,13 +330,13 @@ void exConnection::processPacket(exPacket * p)
               mi = ex->Map->getMap();
                 /* If we have a map, see if it is the right map.  If it is
                    not, get rid of it */
-	      if (mi && !mi->right(playerzone, playerx, playery)) {
+	      if (mi && !mi->right(playerregion, playerx, playery)) {
 		  ex->Map->setMap(NULL);
 		  mi = NULL;
               }
                 /* if we don't have a map, load the map */
 	      if (!mi) {
-		  mi = exMapInfo::get(playerzone, playerx, playery);
+		  mi = exMapInfo::get(playerregion, playerx, playery);
 		  if (mi) {
 		      ex->Map->setMap(mi);
 		      ex->ListViewMobs->triggerUpdate();
@@ -348,7 +348,7 @@ void exConnection::processPacket(exPacket * p)
               z = playerz;
 
               ex->xyzstatus->setText(QString("%1, %2, %3").arg(x).arg(y).arg(z));
-              ex->Zone->setText((mi) ? mi->getZoneName() : QString("Region %1").arg(playerzone));
+              ex->Zone->setText((mi) ? mi->getZoneName() : QString("Region %1").arg(playerregion));
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
@@ -552,10 +552,10 @@ END_EXPERIMENTAL_CODE
 	      }
 	      break;
 	  case 0x1f:
-              playerzone = p->getShort();
-	      intptr = playerzones.find(playername);
+              playerregion = p->getShort();
+	      intptr = playerregions.find(playername);
 	      if (intptr) {
-		*intptr = playerzone;
+		*intptr = playerregion;
               }
                 /* clear the groundtarget when we change regions, since the
                    target is region-specific */
@@ -585,16 +585,16 @@ END_EXPERIMENTAL_CODE
                   if (link)
                     title = title.append("  ").append(link->descr());
                   ex->setCaption(title);
-		  if (playerzone == 0) {
-		      intptr = playerzones.find(playername);
+//		  if (playerregion == 0) {
+		      intptr = playerregions.find(playername);
 		      if (intptr) {
-			  playerzone = *intptr;
+			  playerregion = *intptr;
 		      }
 		      rptr = playerrealms.find(playername);
 		      if (rptr) {
 			  playerrealm = *rptr;
 		      }
-		  }
+//		  }
 	      }
               updateObjectTypeCounts();
               break;
@@ -1100,7 +1100,7 @@ void exConnection::parseCharacterInfoList(exPacket *p)
         if ((name.length() > 0) && (zone != 0)) {
             intptr = new int;
             *intptr = zone;
-            playerzones.replace(name, intptr);
+            playerregions.replace(name, intptr);
             rptr = new Realm;
             *rptr = character_realm;
             playerrealms.replace(name, rptr);
