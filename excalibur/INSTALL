@@ -182,8 +182,8 @@ Downloading and compiling Excalibur
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) 
-   UNIX: make
-   OSX: make -f Makefile.OSX
+   Under OSX: make -f Makefile.OSX
+   Under other UNIXes: make
 
 ===================================
 Generate Background Maps (optional)
@@ -226,6 +226,10 @@ Method 2b:  Use this or 2b if you are on a switch/router and the Excalibur
 1) cd ~/excalibur
 2) ./excalibur
 See "Common" below
+
+Method OSX:
+You run excalibur with `sudo ./excalibur.app/Contents/MacOS/excalibur`, 
+without sudo it cannot access the sniffer. 
 
 Common:
 The program will display a few lines, but nothing else will happen.
