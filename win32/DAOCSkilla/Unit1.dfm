@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 716
   Top = 201
   Width = 510
-  Height = 419
+  Height = 507
   Caption = 'DAOC Skilla'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    392)
+    480)
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
@@ -41,7 +41,7 @@ object frmMain: TfrmMain
   end
   object btnPowerskillBuy: TSpeedButton
     Left = 8
-    Top = 160
+    Top = 188
     Width = 117
     Height = 25
     Caption = 'Powerskill Buy'
@@ -66,7 +66,7 @@ object frmMain: TfrmMain
   end
   object Bevel1: TBevel
     Left = 4
-    Top = 108
+    Top = 136
     Width = 497
     Height = 10
     Shape = bsTopLine
@@ -82,12 +82,12 @@ object frmMain: TfrmMain
   end
   object Label1: TLabel
     Left = 8
-    Top = 116
-    Width = 481
+    Top = 144
+    Width = 477
     Height = 13
     Caption = 
       'Macroing is active while the appropriate window is open.  Do not' +
-      ' use if you do not understand options.'
+      ' use if you have not read the source.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clMaroon
     Font.Height = -11
@@ -116,9 +116,9 @@ object frmMain: TfrmMain
   end
   object Memo1: TMemo
     Left = 4
-    Top = 188
+    Top = 216
     Width = 493
-    Height = 201
+    Height = 261
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -133,7 +133,7 @@ object frmMain: TfrmMain
   end
   object chkAutosell: TCheckBox
     Left = 132
-    Top = 136
+    Top = 164
     Width = 205
     Height = 17
     Caption = 'Autosell hinges and all powerskill items'
@@ -142,7 +142,7 @@ object frmMain: TfrmMain
   end
   object btnMacroTradeskill: TButton
     Left = 132
-    Top = 160
+    Top = 188
     Width = 101
     Height = 25
     Caption = 'Macro Tradeskill'
@@ -151,7 +151,7 @@ object frmMain: TfrmMain
   end
   object btnAFK: TButton
     Left = 240
-    Top = 160
+    Top = 188
     Width = 89
     Height = 25
     Caption = 'AFK Message'
@@ -169,7 +169,7 @@ object frmMain: TfrmMain
   end
   object btnTellMacro: TButton
     Left = 336
-    Top = 160
+    Top = 188
     Width = 75
     Height = 25
     Caption = 'MacroScript'
@@ -178,7 +178,7 @@ object frmMain: TfrmMain
   end
   object btnSpellcraftHlp: TButton
     Left = 416
-    Top = 160
+    Top = 188
     Width = 75
     Height = 25
     Caption = 'Spellcrft Help'
@@ -206,12 +206,35 @@ object frmMain: TfrmMain
   end
   object btnShowMapModes: TButton
     Left = 8
-    Top = 134
+    Top = 162
     Width = 117
     Height = 22
     Caption = 'Show nav map nodes'
     TabOrder = 10
     OnClick = btnShowMapModesClick
+  end
+  object chkChatLog: TCheckBox
+    Left = 8
+    Top = 110
+    Width = 105
+    Height = 17
+    Caption = 'Realtime chat.log'
+    TabOrder = 11
+    OnClick = chkChatLogClick
+  end
+  object edtChatLogFile: TEdit
+    Left = 116
+    Top = 108
+    Width = 381
+    Height = 22
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 12
+    Text = 'c:\mythic\isles\realchat.log'
   end
   object tmrTimeoutDelay: TTimer
     Enabled = False

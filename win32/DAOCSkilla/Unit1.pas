@@ -35,6 +35,8 @@ type
     chkAutolaunchExcal: TCheckBox;
     btnShowMapModes: TButton;
     Label1: TLabel;
+    chkChatLog: TCheckBox;
+    edtChatLogFile: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -52,12 +54,14 @@ type
     procedure btnTellMacroClick(Sender: TObject);
     procedure btnSpellcraftHlpClick(Sender: TObject);
     procedure btnDebuggingClick(Sender: TObject);
+    procedure chkChatLogClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
     FAutoSell:      boolean;
     FInSellOff:     boolean;
+    FChatLog:       TFileStream;
     FPSItemList:    TPowerSkillItemList;
 
     FLastConnection:  TSavedCaptureState;
@@ -76,6 +80,8 @@ type
     procedure LoadConnectionState;
     procedure RestoreConnectionState;
     procedure ShowGLRenderer(AConnection: TDAOCConnection);
+    procedure CreateChatLog;
+    procedure CloseChatLog;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -94,6 +100,7 @@ type
     procedure DAOCSkillLevelChanged(ASender: TObject; AItem: TDAOCNameValuePair);
     procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCSetGroundTarget(ASender: TObject);
+    procedure DAOCChatLog(ASender: TObject; const s: string);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -213,6 +220,7 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  Memo1.Lines.Clear;
   SetupDAOCConnectionObj;
 
   FPReader := TPacketReader2.CreateInst;
@@ -221,7 +229,6 @@ begin
   FPSItemList := TPowerSkillItemList.Create;
 
   lstAdapters.Items.Assign(FPReader.AdapterList);
-  Memo1.Lines.Clear;
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
 
   FProcessPackets := true;
@@ -237,10 +244,8 @@ end;
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(FPSItemList);
-
-  FIConnection := nil;
-  FConnection := nil; // interface release frees obj
   FPReader.Free;
+  CloseChatLog;
 end;
 
 procedure TfrmMain.EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -276,6 +281,7 @@ end;
 procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
   Log('Connection closed.  Largest packet was: ' + IntToStr(FConnection.LargestDAOCPacketSeen));
+  CloseChatLog;
 
 {$IFDEF OPENGL_RENDERER}
   if chkAutolaunchExcal.Checked then
@@ -314,6 +320,7 @@ begin
   FConnection.OnSelectedObjectChange := DAOCSelectedObjectChanged;
   FConnection.OnRegionChanged := DAOCRegionChanged;
   FConnection.OnSetGroundTarget := DAOCSetGroundTarget;
+  FConnection.OnChatLog := DAOCChatLog;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -358,6 +365,9 @@ begin
     FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 6000);
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
     chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
+    chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
+    chkChatLogClick(nil);
+    edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
@@ -416,6 +426,8 @@ begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
     WriteBool('Main', 'AutolaunchExcal', chkAutolaunchExcal.Checked);
+    WriteBool('Main', 'RealtimeChatLog', chkChatLog.Checked);
+    WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
     if lstAdapters.ItemIndex <> -1 then
@@ -650,6 +662,12 @@ begin
   if frmGLRender.Visible then
     frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}
+
+    { we want to free the connection before our destroy because the connection
+      might fire callbacks as it closes.  Firing a callback to a sub-form
+      which is already destroyed is a bad thing }
+  FConnection := nil;
+  FIConnection := nil;  // interface release frees obj
 end;
 
 procedure TfrmMain.btnMacroTradeskillClick(Sender: TObject);
@@ -864,6 +882,65 @@ begin
   frmGLRender.PrefsFile := GetConfigFileName;
   frmGLRender.Show;
 {$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.chkChatLogClick(Sender: TObject);
+begin
+  edtChatLogFile.Enabled := not chkChatLog.Checked;
+
+  if not chkChatLog.Checked then
+    CloseChatLog;
+end;
+
+procedure TfrmMain.CreateChatLog;
+var
+  sOpenLine:    string;
+begin
+  if Assigned(FChatLog) then
+    CloseChatLog;
+
+    { make sure we have a file, Delphi 6 will not respect the share mode on an fmCreate }
+  if not FileExists(edtChatLogFile.Text) then begin
+    FChatLog := TFileStream.Create(edtChatLogFile.Text, fmCreate);
+    FreeAndNil(FChatLog);
+  end;
+
+  FChatLog := TFileStream.Create(edtChatLogFile.Text, fmOpenWrite or fmShareDenyNone);
+  FChatLog.Seek(0, soFromEnd);
+
+  sOpenLine := #13#10'*** Chat Log Opened: ' +
+    FormatDateTime('ddd mmm dd hh:nn:ss yyyy', Now) + // Tue Jan 08 08:09:33 2002
+    #13#10#13#10;
+  FChatLog.Write(sOpenLine[1], Length(sOpenLine));
+end;
+
+procedure TfrmMain.CloseChatLog;
+var
+  sCloseLine: string;
+begin
+  if Assigned(FChatLog) then begin
+    sCloseLine := #13#10'*** Chat Log Closed: ' +
+      FormatDateTime('ddd mmm dd hh:nn:ss yyyy', Now) + // Tue Jan 08 08:09:33 2002
+      #13#10#13#10#13#10;
+    FChatLog.Write(sCloseLine[1], Length(sCloseLine));
+
+    FChatLog.Free;
+    FChatLog := nil;
+  end;
+end;
+
+procedure TfrmMain.DAOCChatLog(ASender: TObject; const s: string);
+var
+  sChatLogLine:   string;
+begin
+  if chkChatLog.Checked then begin
+    if not Assigned(FChatLog) then
+      CreateChatLog;
+    if Assigned(FChatLog) then begin
+      sChatLogLine := FormatDateTime('[hh:nn:ss] ', Now) + s + #13#10;
+      FChatLog.Write(sChatLogLine[1], Length(sChatLogLine))
+    end;
+  end;
 end;
 
 end.
