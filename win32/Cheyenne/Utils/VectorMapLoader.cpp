@@ -283,6 +283,8 @@ void VectorMapItem::Simplify(double sigma)
 
 DWORD VectorMapLoader::Run(const bool& bContinue)
 {
+    LOG_FUNC << "Loading vector maps with a simplification tolerance of " << DPSimpTolerance << std::endl;
+    
     // load maps here
 
     // reduce priority

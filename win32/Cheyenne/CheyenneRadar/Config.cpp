@@ -70,6 +70,8 @@ Config::Config()
     SetRangeRingRange5(0);
     SetShowRangeRing6(false);
     SetRangeRingRange6(0);
+    SetSimplifyLines(false);
+    SetSimplifyLinesTolerance(0);
     
 } // end Config
 
@@ -151,6 +153,9 @@ bool Config::Load(const std::string& filename)
 
     file >> ModifyShowRangeRing6() >> std::ws;
     file >> ModifyRangeRingRange6() >> std::ws;
+    
+    file >> ModifySimplifyLines() >> std::ws;
+    file >> ModifySimplifyLinesTolerance() >> std::ws;
 
     // done
     return(true);
@@ -202,7 +207,9 @@ bool Config::Save(const std::string& filename)const
          << GetShowRangeRing5() << std::endl
          << GetRangeRingRange5() << std::endl
          << GetShowRangeRing6() << std::endl
-         << GetRangeRingRange6() << std::endl;
+         << GetRangeRingRange6() << std::endl
+         << GetSimplifyLines() << std::endl
+         << GetSimplifyLinesTolerance() << std::endl;
 
     // done
     return(true);
@@ -247,5 +254,7 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(RangeRingRange5);
     MEMBER_ASSIGN(ShowRangeRing6);
     MEMBER_ASSIGN(RangeRingRange6);
+    MEMBER_ASSIGN(SimplifyLines);
+    MEMBER_ASSIGN(SimplifyLinesTolerance);
 
 } // end set

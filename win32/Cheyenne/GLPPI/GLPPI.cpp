@@ -452,7 +452,13 @@ void GLPPI::InitDisplayMatrices(void)const
     return;
 } // end InitDisplayMatrices
 
-void GLPPI::Wrap(HWND Window,const bool LoadZoneTextures,const bool LoadVectorMaps)
+void GLPPI::Wrap
+    (
+    HWND Window,
+    const bool LoadZoneTextures,
+    const bool LoadVectorMaps,
+    const double SimplifyLinesTolerance
+    )
 {
     if(Wrapped)
         {
@@ -488,6 +494,8 @@ void GLPPI::Wrap(HWND Window,const bool LoadZoneTextures,const bool LoadVectorMa
     
     if(LoadVectorMaps)
         {
+        // set tolerance
+        VmLoader.SetDPSimpTolerance(SimplifyLinesTolerance);
         // init vector maps
         VmLoader.Go();
         }

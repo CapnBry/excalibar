@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 void SyncDialogToConfig(HWND hWnd);
 void RangeRingDialog(HWND hWnd,UINT control,bool& enable,float& range);
+void SimplifyLinesDialog(HWND hWnd,UINT control,bool& enable,double& tolerance);
 INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
     switch(uMsg)
@@ -63,6 +64,24 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                     break;
                 case IDC_LOADVECTORMAPS:
                     ::RadarConfig.SetUseVectorMaps(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
+                case IDC_SIMPLIFYLINES:
+                    if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
+                        {
+                        SimplifyLinesDialog
+                            (
+                            hWnd,LOWORD(wParam),
+                            ::RadarConfig.ModifySimplifyLines(),
+                            ::RadarConfig.ModifySimplifyLinesTolerance()
+                            );
+                        std::stringstream ss;
+                        ss << "Simplify Vector Maps (" << ::RadarConfig.GetSimplifyLinesTolerance() << ")";
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
+                        } // end if checked
+                    else
+                        {
+                        ::RadarConfig.SetSimplifyLines(false);
+                        }
                     break;
                 case IDC_SHOWFRIENDLYNAME:
                     ::RadarConfig.ModifyPrefsSameRealm().SetRenderName(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
@@ -135,7 +154,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #1 (" << ::RadarConfig.GetRangeRingRange1() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING1,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -153,7 +172,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #2 (" << ::RadarConfig.GetRangeRingRange2() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING2,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -171,7 +190,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #3 (" << ::RadarConfig.GetRangeRingRange3() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING3,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -189,7 +208,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #4 (" << ::RadarConfig.GetRangeRingRange4() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING4,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -207,7 +226,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #5 (" << ::RadarConfig.GetRangeRingRange5() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING5,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -225,7 +244,7 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                             );
                         std::stringstream ss;
                         ss << "Show Range Ring #6 (" << ::RadarConfig.GetRangeRingRange6() << ")";
-                        SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING6,ss.str());
+                        SET_EDIT_STRING(hWnd,LOWORD(wParam),ss.str());
                         } // end if checked
                     else
                         {
@@ -252,10 +271,17 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
 
 void SyncDialogToConfig(HWND hWnd)
 {
+    std::stringstream ss; // temp storage for strings
+
     // system group
     SET_CHECK_BOOL(hWnd,IDC_RAISEPRIORITY,::RadarConfig.GetRaisePriority());
     SET_CHECK_BOOL(hWnd,IDC_LOADZONETEXTURES,::RadarConfig.GetUseZoneTextures());
     SET_CHECK_BOOL(hWnd,IDC_LOADVECTORMAPS,::RadarConfig.GetUseVectorMaps());
+    SET_CHECK_BOOL(hWnd,IDC_SIMPLIFYLINES,::RadarConfig.GetSimplifyLines());
+    ss << "Simplify Vector Maps (" << ::RadarConfig.GetSimplifyLinesTolerance() << ")";
+    SET_EDIT_STRING(hWnd,IDC_SIMPLIFYLINES,ss.str());
+    ss.str("");
+    
     
     // friendly group
     SET_CHECK_BOOL(hWnd,IDC_SHOWFRIENDLYNAME,::RadarConfig.GetPrefsSameRealm().GetRenderName());
@@ -284,10 +310,8 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SHOWHIBS,::RadarConfig.GetShowHibs());
     SET_CHECK_BOOL(hWnd,IDC_SHOWMIDS,::RadarConfig.GetShowMids());
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBS,::RadarConfig.GetShowMobs());
-    
-    // range rings group
-    std::stringstream ss;
 
+    // range rings group
     SET_CHECK_BOOL(hWnd,IDC_SHOWRANGERING1,::RadarConfig.GetShowRangeRing1());
     ss << "Show Range Ring #1 (" << ::RadarConfig.GetRangeRingRange1() << ")";
     SET_EDIT_STRING(hWnd,IDC_SHOWRANGERING1,ss.str());
@@ -351,3 +375,33 @@ void RangeRingDialog(HWND hWnd,UINT control,bool& enable,float& range)
     // done
     return;
 } // end RangeRingDialog
+
+void SimplifyLinesDialog(HWND hWnd,UINT control,bool& enable,double& tolerance)
+{
+    std::pair<bool,double>param(true,tolerance);
+    
+    INT_PTR result=DialogBoxParam
+        (
+        (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE),
+        MAKEINTRESOURCE(IDD_SIMPLIFYLINES),
+        hWnd,
+        (DLGPROC)SimplifyLinesDialogProc,
+        (LPARAM)&param
+        );
+
+    if(result==IDOK)
+        {
+        enable=true;
+        tolerance=param.second;
+        }
+    else
+        {
+        // disable
+        enable=false;
+        
+        // uncheck the control
+        SET_CHECK_BOOL(hWnd,control,false);
+        }
+    // done
+    return;
+} // end SimplifyLinesDialog

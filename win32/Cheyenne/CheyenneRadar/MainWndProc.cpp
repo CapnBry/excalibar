@@ -857,7 +857,13 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     UpdateWindow(h);
     
     // wrap the ppi
-    data->ppi.Wrap(h,::RadarConfig.GetUseZoneTextures(),::RadarConfig.GetUseVectorMaps());
+    data->ppi.Wrap
+        (
+        h,
+        ::RadarConfig.GetUseZoneTextures(),
+        ::RadarConfig.GetUseVectorMaps(),
+        ::RadarConfig.GetSimplifyLines() ? ::RadarConfig.GetSimplifyLinesTolerance():0
+        );
 
     // register data window class
     ZeroMemory(&wc,sizeof(wc));

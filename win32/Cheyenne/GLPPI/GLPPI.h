@@ -289,7 +289,13 @@ public:
     typedef TextureMapType::value_type::second_type GLTextureIdType;
     
     // public api
-    void Wrap(HWND Window,const bool LoadZoneTextures=true,const bool LoadVectorMaps=true); // call one time -- must be first call to this class
+    void Wrap
+        (
+        HWND Window,
+        const bool LoadZoneTextures=true,
+        const bool LoadVectorMaps=true,
+        const double SimplifyLinesTolerance=0
+        ); // call one time -- must be first call to this class
     void Unwrap(void); // call one time -- must be last call to this class
     void Resize(void); // call when the wrapped window size changes
 

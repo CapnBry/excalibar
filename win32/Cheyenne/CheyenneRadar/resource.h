@@ -11,6 +11,8 @@
 #define IDD_ABOUT                       107
 #define IDS_COPYRIGHT                   107
 #define IDS_DESCRIPTION                 108
+#define IDD_SIMPLIFYTOLERANCE           109
+#define IDD_SIMPLIFYLINES               109
 #define IDC_RAISEPRIORITY               1001
 #define IDC_LOADZONETEXTURES            1002
 #define IDC_LOADVECTORMAPS              1003
@@ -47,6 +49,8 @@
 #define IDC_SHOWRANGERING6              1029
 #define IDC_COPYRIGHT2                  1029
 #define IDC_LICENSE                     1029
+#define IDC_SIMPLIFYLINES               1031
+#define IDC_TOLERANCE                   1032
 #define ID_FILE_EXIT                    40001
 #define ID_CONTROLDISPLAY_OPENCONFIGDIALOG 40002
 #define ID_HELP_ABOUT                   40003
@@ -57,9 +61,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        110
 #define _APS_NEXT_COMMAND_VALUE         40006
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

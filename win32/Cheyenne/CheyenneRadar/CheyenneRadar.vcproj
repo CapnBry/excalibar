@@ -132,6 +132,9 @@
 				RelativePath=".\ConfigRangeRingsDialogProc.cpp">
 			</File>
 			<File
+				RelativePath=".\ConfigSimplifyLinesDialogProc.cpp">
+			</File>
+			<File
 				RelativePath=".\ConnectServerDialogProc.cpp">
 			</File>
 			<File

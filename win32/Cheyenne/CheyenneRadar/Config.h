@@ -74,4 +74,6 @@ private:
     DECL_MEMBER(float,RangeRingRange5);
     DECL_MEMBER(bool,ShowRangeRing6);
     DECL_MEMBER(float,RangeRingRange6);
+    DECL_MEMBER(bool,SimplifyLines);
+    DECL_MEMBER(double,SimplifyLinesTolerance);
 }; // end Config
