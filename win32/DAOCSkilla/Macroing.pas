@@ -14,8 +14,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, DAOCControl, PowerSkill, ExtCtrls, DAOCPlayerAttributes,
-  MapNavigator;
+  Dialogs, StdCtrls, Buttons, DAOCConnection, DAOCControl, DAOCControlList,
+  PowerSkill, ExtCtrls, DAOCPlayerAttributes, MapNavigator;
 
 type
   TfrmMacroing = class(TForm)
@@ -29,6 +29,10 @@ type
     btnShowMapModes: TButton;
     tmrTimeoutDelay: TTimer;
     btnLowOnStat: TButton;
+    Label2: TLabel;
+    cbxConnectionList: TComboBox;
+    Label3: TLabel;
+    Label4: TLabel;
     procedure btnShowMapModesClick(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);
@@ -40,8 +44,9 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure tmrTimeoutDelayTimer(Sender: TObject);
     procedure btnLowOnStatClick(Sender: TObject);
+    procedure cbxConnectionListChange(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
-    FDControl: TDAOCControl;
     FAutoSell:      boolean;
     FInSellOff:     boolean;
     FInAutoBuy:     boolean;
@@ -49,6 +54,8 @@ type
     FSellingBeforeBuying:   boolean;
     FSelectingNPC:          boolean;
     FTrinketList:   TStringList;
+    FDAOCControlList: TDAOCControlList;
+    FCurrConn:        TDAOCControl;
 
     procedure DoAutoSell;
     procedure DoAutoBuy;
@@ -65,21 +72,27 @@ type
     function NoMerchantNode : boolean;
     function GetTrinketList: string;
     procedure SetTrinketList(const Value: string);
+    procedure SetDAOCControlList(const Value: TDAOCControlList);
+    procedure AutoSelectConnection;
+    procedure SetCurrentConnection(AConn: TDAOCControl);
+    procedure UpdateConnCbx;
   protected
     function NoForgeNode : boolean;
   public
-    procedure DAOCInventoryChanged;
-    procedure DAOCVendorWindow;
-    procedure DAOCPathChanged;
-    procedure DAOCStopAllActions;
-    procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
-    procedure DAOCArriveAtGotoDest(ANode: TMapNode);
-    procedure DAOCSelectNPCSuccess;
-    procedure DAOCSelectNPCFailed;
-    procedure DAOCAttemptNPCRightClickFailed;
-    procedure DAOCLocalHealthUpdate;
+    procedure DAOCConnect(Sender: TObject);
+    procedure DAOCDisconnect(Sender: TObject);
+    procedure DAOCInventoryChanged(Sender: TObject);
+    procedure DAOCVendorWindow(Sender: TObject);
+    procedure DAOCPathChanged(Sender: TObject);
+    procedure DAOCStopAllActions(Sender: TObject);
+    procedure DAOCSkillLevelChanged(Sender: TObject; AItem: TDAOCNameValuePair);
+    procedure DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
+    procedure DAOCSelectNPCSuccess(Sender: TObject);
+    procedure DAOCSelectNPCFailed(Sender: TObject);
+    procedure DAOCAttemptNPCRightClickFailed(Sender: TObject);
+    procedure DAOCLocalHealthUpdate(Sender: TObject);
 
-    property DAOCControl: TDAOCControl read FDControl write FDControl;
+    property DAOCControlList: TDAOCControlList read FDAOCControlList write SetDAOCControlList;
     property TrinketList: string read GetTrinketList write SetTrinketList;
   end;
 
@@ -105,16 +118,18 @@ const
 
 procedure TfrmMacroing.btnShowMapModesClick(Sender: TObject);
 begin
+  if not Assigned(FCurrConn) then
+    exit;
+    
   if frmShowMapNodes.Visible then
     frmShowMapNodes.Close
   else
     frmShowMapNodes.Show;
-  frmShowMapNodes.ShowMapNodes(FDControl.MapNodes);
+  frmShowMapNodes.ShowMapNodes(FCurrConn.MapNodes);
 end;
 
 procedure TfrmMacroing.btnPowerskillBuyClick(Sender: TObject);
 begin
-  frmPowerSkill.DAOCControl := FDControl;
   frmPowerSkill.PSItemList := FPSItemList;
 
   if not CheckConflictingWindows([frmSpellcraftHelp]) then
@@ -133,8 +148,6 @@ end;
 
 procedure TfrmMacroing.btnMacroTradeskillClick(Sender: TObject);
 begin
-  frmMacroTradeSkills.DAOCControl := FDControl;
-
 //  if not CheckConflictingWindows([frmSpellcraftHelp]) then
 //    exit;
 
@@ -146,7 +159,6 @@ end;
 
 procedure TfrmMacroing.btnAFKClick(Sender: TObject);
 begin
-  frmAFK.DAOCControl := FDControl;
   if frmAFK.Visible then
     frmAFK.Close
   else
@@ -156,7 +168,6 @@ end;
 procedure TfrmMacroing.btnTellMacroClick(Sender: TObject);
 begin
 {$IFDEF DAOC_AUTO_SERVER}
-  frmTellMacro.DAOCControl := FDControl;
   if frmTellMacro.Visible then
     frmTellMacro.Close
   else
@@ -166,8 +177,6 @@ end;
 
 procedure TfrmMacroing.btnSpellcraftHlpClick(Sender: TObject);
 begin
-  frmSpellcraftHelp.DAOCControl := FDControl;
-
   if not CheckConflictingWindows([frmPowerskill]) then
     exit;
 
@@ -207,18 +216,18 @@ var
   begin
     inc(iCnt);
     if not Assigned(pFirstItem) then
-      pFirstItem := FDControl.LocalPlayer.Inventory.Items[I];
+      pFirstItem := FCurrConn.LocalPlayer.Inventory.Items[I];
   end;
 
 begin
-  if not FAutoSell or (FDControl.SelectedID = 0) then begin
+  if not FAutoSell or (FCurrConn.SelectedID = 0) then begin
     FInSellOff := false;
     exit;
   end;
 
   iCnt := 0;
   pFirstItem := nil;
-  with FDControl.LocalPlayer.Inventory do
+  with FCurrConn.LocalPlayer.Inventory do
     for I := 0 to Count - 1 do
       if Items[I].IsInBag and (Items[I].Quality <> 100) then begin
         if Assigned(FPSItemList.Find(Items[I].CountlessDescription)) then begin
@@ -235,13 +244,13 @@ begin
 
   if (FInSellOff or (iCnt >= Random(7) + 1)) and Assigned(pFirstItem) then begin
     // Log('InvChg: Found item - ' + Items[I].Description);
-    pWnd := TStatsWindow.Create(FDControl.WindowManager);
+    pWnd := TStatsWindow.Create(FCurrConn.WindowManager);
     pWnd.SelectInventoryBag(pFirstItem.BagPage);
     sleep(200);
     pWnd.SelectInventoryItem(pFirstItem.BagItemIndex);
     pWnd.Free;
     sleep(500);
-    FDControl.DoSendKeys(FDControl.KeyQuickSell);
+    FCurrConn.DoSendKeys(FCurrConn.KeyQuickSell);
     FInSellOff := iCnt > 0;
     exit;
   end;
@@ -272,11 +281,11 @@ begin
 
     if (NoMerchantNode or IsAtMerchantNode) and
       FPSItemList.AutoDeselectMerchant then
-      FDControl.DoSendKeys('[esc]');
+      FCurrConn.DoSendKeys('[esc]');
 
     if frmPowerskill.KeepBuying then begin
 //      if frmPowerskill.HasMaterialsForItem then
-        FDControl.PathToNodeName(FPSItemList.ForgeNodeName)
+        FCurrConn.PathToNodeName(FPSItemList.ForgeNodeName)
 //      else
 //        Log('Do not have all materials to create the item.');
     end
@@ -330,7 +339,7 @@ begin
       exit;
 
     if IsAtForgeNode then begin
-      FDControl.PathToNodeName(FPSItemList.MerchantNodeName);
+      FCurrConn.PathToNodeName(FPSItemList.MerchantNodeName);
       Result := true;
     end;
   end;  { if frmPowerskill }
@@ -341,9 +350,9 @@ begin
   frmMain.Log(s);
 end;
 
-procedure TfrmMacroing.DAOCInventoryChanged;
+procedure TfrmMacroing.DAOCInventoryChanged(Sender: TObject);
 begin
-  if not Visible then
+  if not Visible or (Sender <> FCurrConn) then
     exit;
 
   // Log('Setting timer to TIMEOUT_INVENTORYCHANGECOMPLETE');
@@ -364,9 +373,9 @@ begin
   end;
 end;
 
-procedure TfrmMacroing.DAOCVendorWindow;
+procedure TfrmMacroing.DAOCVendorWindow(Sender: TObject);
 begin
-  if not Visible then
+  if not Visible or (Sender <> FCurrConn) then
     exit;
 
   // Log('Setting timer to TIMEOUT_VENDORCHANGECOMPLETE');
@@ -375,36 +384,48 @@ begin
   tmrTimeoutDelay.Enabled := true;
 end;
 
-procedure TfrmMacroing.DAOCPathChanged;
+procedure TfrmMacroing.DAOCPathChanged(Sender: TObject);
 begin
+  if Sender <> FCurrConn then
+    exit;
+    
   if frmShowMapNodes.Visible then
-    frmShowMapNodes.PathChanged(FDControl.CurrentPath);
+    frmShowMapNodes.PathChanged(FCurrConn.CurrentPath);
 end;
 
-procedure TfrmMacroing.DAOCStopAllActions;
+procedure TfrmMacroing.DAOCStopAllActions(Sender: TObject);
 begin
+  if Sender <> FCurrConn then
+    exit;
+    
   if frmPowerskill.Visible then
     frmPowerskill.KeepBuying := false;
   if frmSpellcraftHelp.Visible then
     frmSpellcraftHelp.KeepBuying := false;
 end;
 
-procedure TfrmMacroing.DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
+procedure TfrmMacroing.DAOCSkillLevelChanged(Sender: TObject; AItem: TDAOCNameValuePair);
 begin
+  if Sender <> FCurrConn then
+    exit;
+    
   if frmPowerskill.Visible then
     frmPowerskill.SkillLevelChanged(AItem);
 end;
 
-procedure TfrmMacroing.DAOCArriveAtGotoDest(ANode: TMapNode);
+procedure TfrmMacroing.DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
 begin
+  if Sender <> FCurrConn then
+    exit;
+    
     { ANode will not be assigned if we're arriving at a non-pathed destination }
   if Assigned(ANode) and frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
     if ANode.IsNamed(FPSItemList.ForgeNodeName) then
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
-      FDControl.ScheduleCallback(5000, ArrivedAtForge, 0);
+      FCurrConn.ScheduleCallback(5000, ArrivedAtForge, 0);
 
     if ANode.IsNamed(FPSItemList.MerchantNodeName) then
-      FDControl.ScheduleCallback(5000, ArrivedAtMerchant, 0);
+      FCurrConn.ScheduleCallback(5000, ArrivedAtMerchant, 0);
   end;
 end;
 
@@ -439,17 +460,17 @@ end;
 
 procedure TfrmMacroing.OpenMacroTradeSkillWindow;
 begin
-  if not frmMacroTradeSkills.Visible then begin
-    frmMacroTradeSkills.DAOCControl := FDControl;
+  if frmMacroTradeSkills.Visible then
+    frmMacroTradeSkills.Close
+  else
     frmMacroTradeSkills.Show;
-  end;
 end;
 
 function TfrmMacroing.IsAtForgeNode: boolean;
 var
   pNearestNode:   TMapNode;
 begin
-  pNearestNode := FDControl.NodeClosestToPlayerPos;
+  pNearestNode := FCurrConn.NodeClosestToPlayerPos;
   Result := frmPowerskill.Visible and Assigned(pNearestNode) and
     pNearestNode.IsNamed(FPSItemList.ForgeNodeName);
 end;
@@ -458,7 +479,7 @@ function TfrmMacroing.IsAtMerchantNode: boolean;
 var
   pNearestNode:   TMapNode;
 begin
-  pNearestNode := FDControl.NodeClosestToPlayerPos;
+  pNearestNode := FCurrConn.NodeClosestToPlayerPos;
   Result := frmPowerskill.Visible and Assigned(pNearestNode) and
     pNearestNode.IsNamed(FPSItemList.MerchantNodeName);
 end;
@@ -493,41 +514,43 @@ begin
     DoAutoBuy;
 end;
 
-procedure TfrmMacroing.DAOCSelectNPCSuccess;
+procedure TfrmMacroing.DAOCSelectNPCSuccess(Sender: TObject);
 begin
-  if Visible and FSelectingNPC then begin
+  if Visible and (Sender = FCurrConn) and FSelectingNPC then begin
     FSelectingNPC := false;
-    FDControl.Stick;
-    FDControl.AttemptNPCRightClick;
+    FCurrConn.Stick;
+    FCurrConn.AttemptNPCRightClick;
   end;
 end;
 
-procedure TfrmMacroing.DAOCSelectNPCFailed;
+procedure TfrmMacroing.DAOCSelectNPCFailed(Sender: TObject);
 begin
-  FSelectingNPC := false;
+  if Sender = FCurrConn then
+    FSelectingNPC := false;
 end;
 
-procedure TfrmMacroing.DAOCAttemptNPCRightClickFailed;
+procedure TfrmMacroing.DAOCAttemptNPCRightClickFailed(Sender: TObject);
 begin
-  if Visible then begin
+  if Visible and (Sender = FCurrConn) then begin
       { srafe right a bit and try again }
-    FDControl.StrafeRight(500);
+    FCurrConn.StrafeRight(500);
     ArrivedAtMerchant(nil, 0);
   end;
 end;
 
 procedure TfrmMacroing.btnLowOnStatClick(Sender: TObject);
 begin
-  frmLowOnStat.DAOCControl := FDControl;
-  
   if frmLowOnStat.Visible then
     frmLowOnStat.Close
   else
     frmLowOnStat.Show;
 end;
 
-procedure TfrmMacroing.DAOCLocalHealthUpdate;
+procedure TfrmMacroing.DAOCLocalHealthUpdate(Sender: TObject);
 begin
+  if Sender <> FCurrConn then
+    exit;
+    
   if frmLowOnStat.Visible then
     frmLowOnStat.DAOCLocalHealthUpdate;
 end;
@@ -550,6 +573,112 @@ end;
 procedure TfrmMacroing.SetTrinketList(const Value: string);
 begin
   FTrinketList.CommaText := Value;
+end;
+
+procedure TfrmMacroing.SetDAOCControlList(const Value: TDAOCControlList);
+begin
+  FDAOCControlList := Value;
+  AutoSelectConnection;
+end;
+
+procedure TfrmMacroing.AutoSelectConnection;
+var
+  iActiveIdx:   integer;
+begin
+    { if theres any active connections in this list, then select the last one }
+  for iActiveIdx := FDAOCControlList.Count - 1 downto 0 do
+    if FDAOCControlList[iActiveIdx].Active then begin
+      SetCurrentConnection(FDAOCControlList[iActiveIdx]);
+      exit;
+    end;
+
+    { else clear the current connection, because there isn't one }
+  if Assigned(FCurrConn) then
+    SetCurrentConnection(nil);
+end;
+
+procedure TfrmMacroing.SetCurrentConnection(AConn: TDAOCControl);
+begin
+//  if FCurrConn = AConn then
+//    exit;
+
+  FCurrConn := AConn;
+
+  if Assigned(FCurrConn) then begin
+    btnShowMapModes.Enabled := true;
+    btnPowerskillBuy.Enabled := true;
+    btnMacroTradeskill.Enabled := true;
+    btnAFK.Enabled := true;
+    btnTellMacro.Enabled := true;
+    btnLowOnStat.Enabled := true;
+    btnSpellcraftHlp.Enabled := true;
+    chkAutosell.Enabled := true;
+  end
+
+    { no connection.  Clean up }
+  else begin
+    btnShowMapModes.Enabled := false;
+    btnPowerskillBuy.Enabled := false;
+    btnMacroTradeskill.Enabled := false;
+    btnAFK.Enabled := false;
+    btnTellMacro.Enabled := false;
+    btnLowOnStat.Enabled := false;
+    btnSpellcraftHlp.Enabled := false;
+    chkAutosell.Enabled := false;
+
+    frmPowerskill.Close;
+    frmSpellcraftHelp.Close;
+  end;
+
+  frmPowerskill.DAOCControl := FCurrConn;
+  frmMacroTradeSkills.DAOCControl := FCurrConn;
+  frmAFK.DAOCControl := FCurrConn;
+  frmLowOnStat.DAOCControl := FCurrConn;
+  frmSpellcraftHelp.DAOCControl := FCurrConn;
+end;
+
+procedure TfrmMacroing.DAOCConnect(Sender: TObject);
+begin
+  if not Assigned(FCurrConn) then
+    AutoSelectConnection;
+  UpdateConnCbx;
+end;
+
+procedure TfrmMacroing.DAOCDisconnect(Sender: TObject);
+begin
+  if FCurrConn = Sender then
+    AutoSelectConnection;
+  UpdateConnCbx;
+end;
+
+procedure TfrmMacroing.UpdateConnCbx;
+var
+  I:      integer;
+  iSel:   integer;
+begin
+  cbxConnectionList.Items.Clear;
+
+  iSel := -1;
+  if Assigned(FDAOCControlList) then
+    for I := 0 to FDAOCControlList.Count - 1 do begin
+      if FDAOCControlList[I] = FCurrConn then
+        iSel := I;
+      cbxConnectionList.Items.Add(FDAOCControlList[I].ServerIP);
+    end;
+
+  if iSel <> -1 then
+    cbxConnectionList.ItemIndex := iSel;
+end;
+
+procedure TfrmMacroing.cbxConnectionListChange(Sender: TObject);
+begin
+  if Assigned(FDAOCControlList) then
+    SetCurrentConnection(FDAOCControlList[cbxConnectionList.ItemIndex]);
+end;
+
+procedure TfrmMacroing.Button1Click(Sender: TObject);
+begin
+  SetCurrentConnection(nil);
 end;
 
 end.
