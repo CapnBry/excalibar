@@ -333,8 +333,8 @@ void exMap::paintGL() {
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
   exMob *m;
-  double playerhead;
-  double playerrad;
+  float playerhead;
+  float playerrad;
   int minx, maxx, miny, maxy;
 
   if (!objects_made)
@@ -374,8 +374,8 @@ void exMap::paintGL() {
 
   c->updateProjectedPlayer();
 
-  playerhead=(c->playerhead * 360.0) / 4096.0;
-  playerrad=playerhead * M_PI / 180.0;
+  playerhead = c->playerhead * (float)(360.0 / 4096.0);
+  playerrad = playerhead * (float)(M_PI / 180.0);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -436,7 +436,7 @@ void exMap::paintGL() {
         (!m->isObj() || prefs.render_objects) &&
         (!m->isDead() || prefs.render_dead)) {
       glPushMatrix();
-      glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0);  // m->getZ()
+      glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0f);  // m->getZ()
       objRotate(m->getHead());
 
       /* if it is filtered draw a yellow circle around it */
@@ -446,7 +446,7 @@ void exMap::paintGL() {
       /* if the mob is within range, draw an agro circle around it */
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
           drawAggroCircle(1.0, 0.0, 0.0,
-                          (prefs.agro_fading) ? m->playerDist() / 1500.0f : 0.0f);
+                          (prefs.agro_fading) ? m->playerDist() * (1.0f / 1500.0f) : 0.0f);
 
         /* if this is a player, draw the realm color ring */
       if (!m->isMobOrObj()) {
@@ -482,36 +482,7 @@ void exMap::paintGL() {
   }  // for mobs
 
   if (c->groundtarget_x && c->groundtarget_y)
-  {
-    glColor3f(0.5, 0.8, 1.0);  // light blue
-    glPushMatrix();
-    glTranslatef(c->groundtarget_x,c->groundtarget_y, 0.0);  // c->groundtarget_z
-
-    glPushMatrix();
-    glTranslatef(0.0, -2*objsize, 0.0);
-    glCallList(listTriangle);
-    glPopMatrix();
-
-    glRotatef(90.0, 0.0, 0.0, 1.0);
-    glPushMatrix();
-    glTranslatef(0.0, -2*objsize, 0.0);
-    glCallList(listTriangle);
-    glPopMatrix();
-
-    glRotatef(90.0, 0.0, 0.0, 1.0);
-    glPushMatrix();
-    glTranslatef(0.0, -2*objsize, 0.0);
-    glCallList(listTriangle);
-    glPopMatrix();
-
-    glRotatef(90.0, 0.0, 0.0, 1.0);
-    glPushMatrix();
-    glTranslatef(0.0, -2*objsize, 0.0);
-    glCallList(listTriangle);
-    glPopMatrix();
-
-    glPopMatrix();
-  }
+      drawGroundTarget();
 
   glDisable(GL_LIGHTING);
 
@@ -531,24 +502,25 @@ void exMap::paintGL() {
 
     /* Ruler lines */
   if (prefs.map_rulers) {
+      /* mult range * 1.5 to make sure the lines can reach all the way to the corners */
+    float extended_range = range * 1.5f;
     glColor3f (0.45, 0.45, 0.45);
     glLineWidth(1.0);
     glBegin(GL_LINES);
-      /* mult range * 1.5 to make sure the lines can reach all the way to the corners */
-    glVertex3f(-(range * 1.5), 0.0, 0.0);  // 500
-    glVertex3f((range * 1.5), 0.0, 0.0);  // 500
-    glVertex3f(0.0, -(range * 1.5), 0.0);  // 500
-    glVertex3f(0.0, (range * 1.5), 0.0);  // 500
-    glVertex3f(0.0, 0.0, 0.0);  // 500.0
-    glVertex3f(cos(playerrad + M_PI_2) * (range * 1.5),
-               sin(playerrad + M_PI_2) * (range * 1.5), 0.0); // 500.0
+        glVertex3f(-extended_range, 0.0, 0.0);  // 500
+        glVertex3f(extended_range, 0.0, 0.0);  // 500
+        glVertex3f(0.0, -extended_range, 0.0);  // 500
+        glVertex3f(0.0, extended_range, 0.0);  // 500
+        glVertex3f(0.0, 0.0, 0.0);  // 500.0
+        glVertex3f(cos(playerrad + M_PI_2) * extended_range,
+                   sin(playerrad + M_PI_2) * extended_range, 0.0); // 500.0
     glEnd();
   }
 
   /* Range Circles */
   if ((prefs.player_circle_1 > 0) || (prefs.player_circle_2 > 0)) {
-    glColor3f (0.45, 0.45, 0.45);
-    glLineWidth(1.0);
+    glColor3f (0.45f, 0.45f, 0.45f);
+    glLineWidth(1.0f);
     if (prefs.player_circle_1 > 0)
       drawCircle(prefs.player_circle_1, 32);
     if (prefs.player_circle_2 > 0)
@@ -558,7 +530,7 @@ void exMap::paintGL() {
     /* Player triangle */
   if (!prefs.map_simple)
     glEnable(GL_LIGHTING);
-  glColor3f    (1.0, 1.0, 0.0);
+  glColor3f    (1.0f, 1.0f, 0.0f);
   objRotate    (c->playerhead);
   glCallList   (listTriangle);
 
@@ -570,7 +542,7 @@ void exMap::paintGL() {
   frames += 1;
   if ((exTick - _last_fps) >= 1000) {
     c->ex->FPS->setText(QString().sprintf("%.1f FPS",
-      (1000.0 * (double)frames) / (double)(exTick - _last_fps)));
+      (1000.0f * (float)frames) / (float)(exTick - _last_fps)));
     frames = 0;
     _last_fps=exTick;
   }
@@ -638,9 +610,9 @@ void exMap::drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pc
         }
 
         if (distfade_pct > 0)
-            glColor4f(R, G, B, 0.50 - (distfade_pct / 2.0));
+            glColor4f(R, G, B, 0.50f - (distfade_pct / 2.0f));
         else
-            glColor4f(R, G, B, 0.25);
+            glColor4f(R, G, B, 0.25f);
 
         GLUquadricObj *qoCircle;
         qoCircle = gluNewQuadric();
@@ -657,7 +629,7 @@ void exMap::drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pc
         glPushAttrib (GL_ENABLE_BIT);
         glDisable    (GL_LIGHTING);
 
-        glLineWidth  (1.0);
+        glLineWidth  (1.0f);
         if (distfade_pct > 0)
             glColor3f(R - distfade_pct, G - distfade_pct, B - distfade_pct);
         else
@@ -683,6 +655,37 @@ void exMap::drawCircle(int radius, uint8_t segments)
      glEnd();
 }
 
+void exMap::drawGroundTarget()
+{
+    glColor3f(0.5, 0.8, 1.0);  // light blue
+    glPushMatrix();
+    glTranslatef(c->groundtarget_x,c->groundtarget_y, 0.0);  // c->groundtarget_z
+
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glRotatef(90.0, 0.0, 0.0, 1.0);
+    glPushMatrix();
+    glTranslatef(0.0, -2*objsize, 0.0);
+    glCallList(listTriangle);
+    glPopMatrix();
+
+    glPopMatrix();
+}
 
 void exMap::mousePressEvent(QMouseEvent *e) {
   exMob *m;
@@ -805,15 +808,17 @@ void exMap::adjustGLColor(double *col, double z) {
 }
 
 void exMap::setGLColor(QColor col, int z) {
-  setGLColor(col.red() / 255.0, col.green() / 255.0, col.blue() / 255.0, z);
+  const float COLOR_SCALE_FACTOR = (float)(1.0 / 255.0);
+  setGLColor(col.red() * COLOR_SCALE_FACTOR,
+             col.green() * COLOR_SCALE_FACTOR,
+             col.blue() * COLOR_SCALE_FACTOR,
+             z);
 }
 
 void exMap::objRotate(unsigned int daocheading) {
-  GLfloat r;
-  r = (GLfloat)daocheading;
-  r *= 360.0;
-  r /= (GLfloat)0x1000;
-  glRotatef(r,0.0,0.0,1.0);
+  float r;
+  r = (float)daocheading * (float)(360.0 / 4096.0);
+  glRotatef(r,0.0f,0.0f,1.0f);
 }
 
 int exMap::stringInt(QStringList *sl, unsigned int sec) {
@@ -1218,7 +1223,7 @@ void exMapElementLine::draw(exMap *map) {
     for (t=tesspoints.first(); t; t=tesspoints.next()) {
       glBegin(t->type);
       for (p=t->points.first(); p; p=t->points.next()) {
-        glColor4f(p->glcol[0] / 2, p->glcol[1] / 2, p->glcol[2] / 2, p->glcol[3]);
+        glColor4f(p->glcol[0] * 0.5f, p->glcol[1] * 0.5f, p->glcol[2] * 0.5f, p->glcol[3]);
         glVertex3i(p->x, p->y, 0); // p->z / 10);
       }
       glEnd();

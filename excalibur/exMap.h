@@ -180,6 +180,7 @@ protected:
   void drawCircle(int radius, uint8_t segments);
   void drawMobName(exMob *m);
   void drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pct);
+  void drawGroundTarget();
 
 public slots:
   void idleTimeout(void);
