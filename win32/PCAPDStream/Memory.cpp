@@ -222,7 +222,7 @@ bool cMemory::GetKey()
 
 	if(KeyOffset == 0)
 	{
-		pMain->StatusUpdate("crypt key not found in memory\r\n");
+		pMain->StatusUpdate("crypt key NOT FOUND in memory\r\n");
 		return false;
 	}
 	
