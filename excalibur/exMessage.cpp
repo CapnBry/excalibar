@@ -113,7 +113,7 @@ void exMessage::parseMsg()
 
         this->FormattedText = this->Sender;
         this->FormattedText += 
-            this->Sender == "You" ? " say " : " sayss ";
+            this->Sender == "You" ? " say " : " says ";
         this->FormattedText += this->MsgText;
         }
 
