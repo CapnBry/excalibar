@@ -1,4 +1,11 @@
+Teerex (03/Jun/03)
+------------------
+ + Fixed to stop ASSERT errors on 1.62 and above versions of DAoC
+   (DAoC protocol has changed, notably in the 0x09 packet from the
+   server).
+
 Teerex (26/May/03)
+------------------
  + Fixed a bug in exMob that made a non-moving mob spawn in random 
    locations on the map view.  (Bug added in last patch)
 
