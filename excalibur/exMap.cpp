@@ -109,15 +109,15 @@ void exMap::makeObjects(bool simple) {
   if (simple) {
     glBegin(GL_TRIANGLES);
     glNormal3f(0.0,0.0,1.0);
+    glVertex3i(0,l,0);
     glVertex3i(w,-w,0);
     glVertex3i(-w,-w,0);
-    glVertex3i(0,l,0);
   } else {
     glBegin(GL_TRIANGLE_FAN);
     glVertex3f(0,0,w);  // origin
 
     glNormal3f(-(l+w),w,l);
-    glVertex3i(-w,-w,0); // left side
+    glVertex3i(-w,-w,0);  // left side
     glVertex3i(0,l,0);
 
     glNormal3f(l+w,w,l);
@@ -126,19 +126,16 @@ void exMap::makeObjects(bool simple) {
     glNormal3f(0,-w,w);  // bottom
     glVertex3i(-w,-w,0);
   }
-
   glEnd();
 
   glEndList();
 
   glNewList(listCircle, GL_COMPILE);
   glBegin(GL_TRIANGLES);
-  glNormal3f(0.0,0.0,1.0);
-
-  glVertex3f(w*1.5,-w*1.5,-1);
-  glVertex3f(-w*1.5,-w*1.5,-1);
-  glVertex3f(0,l*1.5,-1);
-
+    glNormal3f(0.0,0.0,1.0);
+    glVertex3f(w*1.5,-w*1.5,-1);
+    glVertex3f(0,l*1.5,-1);
+    glVertex3f(-w*1.5,-w*1.5,-1);
   glEnd();
   glEndList();
 
@@ -240,7 +237,9 @@ void exMap::initializeGL() {
 
   glClearColor(0.0, 0.0, 0.0, 0.0);
 
-  glDisable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
+  glFrontFace(GL_CCW);
+  glCullFace(GL_BACK);
 
   glDisable(GL_CLIP_PLANE0);
   glDisable(GL_CLIP_PLANE1);
@@ -413,7 +412,6 @@ void exMap::paintGL() {
       drawCircle(c->playerProjectedX, c->playerProjectedY, prefs.player_circle_2, 20);
   }
 
-
   if (! prefs.map_simple ) {
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -449,7 +447,7 @@ void exMap::paintGL() {
 
       /* if the mob is within range, draw an agro circle around it */
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
-          drawAggroCircle(m->getZ(), 1.0, 1.0, 0);
+          drawAggroCircle(m->getZ(), 1.0, 0.0, 0);
 
         /* if this is a player */
       if (!m->isMobOrObj()) {
@@ -568,7 +566,7 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B)
 
 
         if (prefs.alpha_borders) {
-            glColor3f  (1.0f, 0.0f, 0.0f);
+            glColor3f  (R, G, B);
             drawCircle (0, 0, 500, 18);
         }
 
@@ -828,44 +826,45 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-  if (map->has_direct || map->has_NVdriver) {
-    GLuint  min_filter      = GL_NEAREST;
-    GLuint  mag_filter      = GL_NEAREST;
-    GLuint  tex_compression = GL_RGB16;
+  GLuint  min_filter;
+  GLuint  mag_filter;
+  GLuint  tex_compression;
 
-    if (prefs.map_linear_filter) {
-      mag_filter = GL_LINEAR;
-      if (prefs.map_mipmap)
-        min_filter = GL_LINEAR_MIPMAP_LINEAR;
-      else
-        min_filter = GL_LINEAR;
-    } else {
-      mag_filter = GL_NEAREST;
-      if (prefs.map_mipmap)
-        min_filter = GL_NEAREST_MIPMAP_NEAREST;
-      else
-        min_filter = GL_NEAREST;
-    }
-
-    if (map->has_S3TC && prefs.map_compress_textures)
-      tex_compression = 0x83F0; // DXT1 (4x4 64-bit RGB - NO Alpha Channel)
-    else
-      tex_compression = GL_RGB16;
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-
-    if (prefs.map_mipmap)
-      gluBuild2DMipmaps(GL_TEXTURE_2D, tex_compression, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-    else
-      glTexImage2D(GL_TEXTURE_2D, 0, tex_compression, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-
+  if (prefs.map_linear_filter) {
+      if (prefs.map_mipmap) {
+          min_filter = GL_LINEAR_MIPMAP_LINEAR;
+          mag_filter = GL_LINEAR_MIPMAP_LINEAR;
+      }
+      else {
+          min_filter = GL_LINEAR;
+          mag_filter = GL_LINEAR;
+      }
   } else {
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+      if (prefs.map_mipmap)  {
+          min_filter = GL_NEAREST_MIPMAP_NEAREST;
+          mag_filter = GL_NEAREST_MIPMAP_NEAREST;
+      }
+      else  {
+          min_filter = GL_NEAREST;
+          mag_filter = GL_NEAREST;
+      }
   }
+
+  if (map->has_direct || map->has_NVdriver)
+      if (map->has_S3TC && prefs.map_compress_textures)
+          tex_compression = 0x83F0; // DXT1 (4x4 64-bit RGB - NO Alpha Channel)
+      else
+          tex_compression = GL_RGB16;
+  else
+      tex_compression = 3;
+
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+  if (prefs.map_mipmap)
+      gluBuild2DMipmaps(GL_TEXTURE_2D, tex_compression, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+  else
+      glTexImage2D(GL_TEXTURE_2D, 0, tex_compression, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
 }
 
 exMapElementTexture::~exMapElementTexture() {
@@ -884,17 +883,18 @@ void exMapElementTexture::draw(exMap *) {
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_QUADS);
 
-  glTexCoord2f(0.0, 1.0);
-  glVertex3i(bounds.left(), bounds.top(), 250);
-
-  glTexCoord2f(1.0, 1.0);
-  glVertex3i(bounds.right(), bounds.top(), 250);
+  glTexCoord2f(0.0, 0.0);
+  glVertex3i(bounds.left(), bounds.bottom(), 250);
 
   glTexCoord2f(1.0, 0.0);
   glVertex3i(bounds.right(), bounds.bottom(), 250);
 
-  glTexCoord2f(0.0, 0.0);
-  glVertex3i(bounds.left(), bounds.bottom(), 250);
+  glTexCoord2f(1.0, 1.0);
+  glVertex3i(bounds.right(), bounds.top(), 250);
+
+  glTexCoord2f(0.0, 1.0);
+  glVertex3i(bounds.left(), bounds.top(), 250);
+
   glEnd();
 
   glPopAttrib();
