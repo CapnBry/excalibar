@@ -202,7 +202,7 @@ begin
   AddAction('ArrowRight', HandleRight,
     'Press and hold the Right arrow.  Use ''stop'' to release.');
   AddAction('QuickBarPage', HandleQuickbarPage,
-    '(page) Set the current quickbar page to <page>.  Valid values are 1-8.');
+    '(page) Set the current quickbar page to <page>.  Valid values are 1-10.');
   AddAction('TurnTo', HandleTurnTo,
     '(heading) Set the player heading to <heading> degrees. (zone-relative)');
   AddAction('Jump', HandleJump,

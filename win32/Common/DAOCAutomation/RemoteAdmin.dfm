@@ -2,8 +2,8 @@ object dmdRemoteAdmin: TdmdRemoteAdmin
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
-  Left = 1150
-  Top = 498
+  Left = 658
+  Top = 316
   Height = 150
   Width = 215
   object tcpRemoteAdmin: TIdTCPServer
@@ -12,7 +12,7 @@ object dmdRemoteAdmin: TdmdRemoteAdmin
     DefaultPort = 9023
     OnConnect = tcpRemoteAdminConnect
     OnExecute = tcpRemoteAdminExecute
-    Left = 44
+    Left = 40
     Top = 12
   end
 end
