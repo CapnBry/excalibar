@@ -63,6 +63,7 @@ type
     FRequestEvent:  TEvent;
     FNotifyWnd:     THANDLE;
   protected
+    procedure SetAgentVersion(const AValue: string);
     procedure ProcessRequests;
     procedure Execute; override;
 {$IFDEF LINUX}
@@ -78,6 +79,8 @@ type
     procedure Shutdown;
     procedure Request(ARequest: TBackgroundHTTPRequest);
     procedure ClearRequests;
+    
+    property AgentVersion: string write SetAgentVersion;
   end;
 
 implementation
@@ -158,11 +161,12 @@ end;
 constructor TBackgroundHTTPManager.Create;
 begin
   FIdHTTP := TIdHTTP.Create(nil);
-  FIdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; DaocSkilla)';
   FRequestList := TBackgroundHTTPRequestList.Create;
   FRequestEvent := TEvent.Create(nil, false, false, '');
   FNotifyWnd := AllocateHWnd(NotifyProc);
 
+  SetAgentVersion('');
+  
   inherited Create(false);
 end;
 
@@ -234,6 +238,14 @@ procedure TBackgroundHTTPManager.Request(ARequest: TBackgroundHTTPRequest);
 begin
   FRequestList.Add(ARequest);
   FRequestEvent.SetEvent;
+end;
+
+procedure TBackgroundHTTPManager.SetAgentVersion(const AValue: string);
+begin
+  if AValue <> '' then
+    FIdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; DaocSkilla ' + AValue + ')'
+  else
+    FIdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; DaocSkilla)';
 end;
 
 procedure TBackgroundHTTPManager.Shutdown;
