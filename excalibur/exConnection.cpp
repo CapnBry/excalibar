@@ -269,7 +269,8 @@ void exConnection::processPacket(exPacket * p)
 	    parseSelfHealthUpdate(p);
 	    break;
           case 0x07:
-            parseSystemMessage(p);
+            if (prefs.druppy_leak)
+              parseSystemMessage(p);
             break;
 	  case 0x09:
 	    parseMobPosUpdate(p);
@@ -344,7 +345,8 @@ void exConnection::processPacket(exPacket * p)
 	    parseSelfHealthUpdate(p);
 	    break;
           case 0x07:
-            parseSystemMessage(p);
+            if (prefs.druppy_leak)
+              parseSystemMessage(p);
             break;
 	  case 0x09:
 	    parseMobPosUpdate(p);

@@ -1,4 +1,24 @@
+Andon (26/Feb/02)
+-----------------
+Changes:
+ + Druppy's message parsing code has been disabled
+   by default now, due to it's insane memory leaks.
+   If you understand the risks but still insist on
+   using it, add the command line switch:
+
+     --druppy-leak
+
+Bug Fixes:
+ + Camelot Hills is now being detected by the adjac-
+   ent zone detection algorithm.. It snuck through
+   the cracks since the algorithm assumed the zone
+   numbers were all non-zero.
+
+  * Version bumped to 1.1.3c
+
+
 Andon (25/Feb/02)
+-----------------
 Additions:
  + Added rasterization of player names as an option..
  + Added rasterization of merchant types as an option

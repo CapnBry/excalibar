@@ -105,6 +105,8 @@ int main( int argc, char ** argv )
     options.insert("--realtime",&realtime);
     options.insert("--capture",&capture);
 
+    options.insert("--druppy-leak",&prefs.druppy_leak);
+
     QApplication a( argc, argv );
 
     for(uint8_t ui=1;ui<a.argc();ui++) {
@@ -128,6 +130,8 @@ int main( int argc, char ** argv )
       printf ("                  the Java tools can link with it.\n");
       printf ("  --capture       Turn packet capture files on\n");
       printf ("  --realtime      Set the network thread realtime.\n\n");
+      printf ("  --druppy-leak   Enable Druppy's message parsing code..\n"); 
+      printf ("                  * NOTE: It's a massive memory leak!!!\n\n");
       qFatal ("Please run '%s' again, without the --help switch.", argv[0]);
     }
 

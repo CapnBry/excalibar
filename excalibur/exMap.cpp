@@ -1313,7 +1313,7 @@ END_EXPERIMENTAL_CODE
     if (parent != NULL && mi != NULL)
       qApp->postEvent(parent, new QCustomEvent(CALLBACK_VCT_LOAD, (void*)mi));
 
-    if (i == -1)
+    if (i <= 0)
       i++;
 
     else if (mi != NULL)

@@ -88,6 +88,8 @@ public:
 
   bool enable_experimental_code;
 
+  bool druppy_leak;
+
   exPrefs();
   void loadSettings();
   void saveSettings();

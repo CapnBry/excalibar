@@ -101,6 +101,11 @@ exMapInfo *exMapInfo::getAdjacentZones(int iZoneCheck = -1) const {
   if (iZoneCheck == -1)
     return (exMapInfo*)this;
 
+  /* Since we look for a zone with a HIGHER zone ID, we'd end up
+     skipping Camelot Hills without this !! */
+  if (iZoneCheck == 0)
+    iZoneCheck = -1;
+
   for (mi = mil->first(); mi; mi = mil->next()) {
     if (mi->adjoin(region,this->basex,this->basey,this->maxx,this->maxy)) {
       if (mi->getZoneNum() > iZoneCheck) {
