@@ -225,5 +225,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       TabOrder = 2
       OnClick = chkTypeTagClick
     end
+    object chkStayOnTop: TCheckBox
+      Left = 8
+      Top = 76
+      Width = 153
+      Height = 17
+      Caption = 'Keep window on top (T)'
+      TabOrder = 3
+      OnClick = chkStayOnTopClick
+    end
   end
 end

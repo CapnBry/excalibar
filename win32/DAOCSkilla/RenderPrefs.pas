@@ -33,6 +33,7 @@ type
     RedrawOnDelete:   boolean;
     RedrawOnUpdate:   boolean;
     RedrawOnTimer:    boolean;
+    StayOnTop:        boolean;
 
     constructor Create;
 
@@ -71,6 +72,7 @@ type
     chkTrackMapClick: TCheckBox;
     chkTrackGameSelection: TCheckBox;
     chkTypeTag: TCheckBox;
+    chkStayOnTop: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -81,11 +83,14 @@ type
     procedure chkTrackMapClickClick(Sender: TObject);
     procedure chkTrackGameSelectionClick(Sender: TObject);
     procedure chkTypeTagClick(Sender: TObject);
+    procedure chkStayOnTopClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
+  protected
+    procedure CreateParams(var Params: TCreateParams); override;
   public
-    class function Execute(ARenderPrefs: TRenderPreferences) : boolean;
+    class function Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences) : boolean;
   end;
 
 implementation
@@ -117,6 +122,7 @@ begin
   Result.RedrawOnDelete := RedrawOnDelete;
   Result.RedrawOnUpdate := RedrawOnUpdate;
   Result.RedrawOnTimer := RedrawOnTimer;
+  Result.StayOnTop := StayOnTop;
 end;
 
 constructor TRenderPreferences.Create;
@@ -158,6 +164,7 @@ begin
     RedrawOnDelete := ReadBool('RenderPrefs', 'RedrawOnDelete', true);
     RedrawOnUpdate := ReadBool('RenderPrefs', 'RedrawOnUpdate', true);
     RedrawOnTimer := ReadBool('RenderPrefs', 'RedrawOnTimer', true);
+    StayOnTop := ReadBool('RenderPrefs', 'StayOnTop', false);
   end;
 end;
 
@@ -184,6 +191,7 @@ begin
     WriteBool('RenderPrefs', 'RedrawOnDelete', RedrawOnDelete);
     WriteBool('RenderPrefs', 'RedrawOnUpdate', RedrawOnUpdate);
     WriteBool('RenderPrefs', 'RedrawOnTimer', RedrawOnTimer);
+    WriteBool('RenderPrefs', 'StayOnTop', StayOnTop);
   end;
 end;
 
@@ -205,9 +213,18 @@ end;
 
 { TfrmRenderPrefs }
 
-class function TfrmRenderPrefs.Execute(ARenderPrefs: TRenderPreferences): boolean;
+procedure TfrmRenderPrefs.CreateParams(var Params: TCreateParams);
 begin
-  with TfrmRenderPrefs.Create(Application.MainForm) do
+  inherited CreateParams(Params);
+  with Params do begin
+    ExStyle := ExStyle or WS_EX_TOPMOST;
+    WndParent := GetDesktopWindow;
+  end;
+end;
+
+class function TfrmRenderPrefs.Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences): boolean;
+begin
+  with TfrmRenderPrefs.Create(AOwner) do
   try
     FRenderPrefs := ARenderPrefs;
     SyncFormToPrefs;
@@ -278,6 +295,7 @@ begin
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
   chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
+  chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -293,6 +311,11 @@ end;
 procedure TfrmRenderPrefs.chkTypeTagClick(Sender: TObject);
 begin
   FRenderPrefs.DrawTypeTag := chkTypeTag.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkStayOnTopClick(Sender: TObject);
+begin
+  FRenderPrefs.StayOnTop := chkStayOnTop.Checked;
 end;
 
 end.
