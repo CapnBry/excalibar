@@ -1,3 +1,5 @@
+  + Added Realm Rank for players from other realms.
+
 2003 Oct 08 - v1.51
 -------------------
   + Added character quicklaunch function.
