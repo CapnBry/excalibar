@@ -439,8 +439,8 @@ void exMap::paintGL() {
         }
       }
     }
-    if (! m->isObj() || m->playerDist() > 10000)
-      m->stale();
+
+    m->checkStale();
   }
 
   m=mobs.find((void *)c->selectedid);
