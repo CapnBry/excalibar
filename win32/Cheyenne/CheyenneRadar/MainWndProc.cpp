@@ -450,7 +450,7 @@ private:
 
 // local function prototypes
 void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
-void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* data);
 void HandleSize(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* data);
 void Render(USERDATA* data);
 void HandleMouseWheel(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* data);
@@ -579,7 +579,7 @@ LRESULT CALLBACK MainWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             break;
         
         case WM_COMMAND:
-            HandleCommand(hWnd,uMsg,wParam,lParam);
+            HandleCommand(hWnd,uMsg,wParam,lParam,data);
             break;
             
         case WM_CLOSE:
@@ -807,8 +807,6 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
         std::auto_ptr<DatabaseFunctor>(new DatabaseResetFunctor(*data))
         );
         
-    data->dstream.Open("ignats","9867");
-    
     // create child windows
     WNDCLASS wc;
     // register ppi window class
@@ -895,6 +893,10 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
         SWP_NOMOVE|SWP_NOOWNERZORDER|SWP_NOZORDER
         );
         
+    
+            
+    //data->dstream.Open("ignats","9867");
+    
     // done
     return;
 } // end HandleCreate
@@ -946,7 +948,7 @@ void HandleSize(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* data)
     return;
 } // end HandleSize
 
-void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
+void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* data)
 {
     switch(LOWORD(wParam))
         {
@@ -976,7 +978,75 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                 } // end if dialog was created
             }
             break;        
+            
+        case ID_NETWORKCONNECTIONS_DSTREAMSERVER:
+            if(data->dstream.IsConnected())
+                {
+                int res=MessageBox(hWnd,"DStream is already connected\nAre you sure you want to disconnect?","Confirm Disconnect",MB_YESNO);
+                if(res==IDYES)
+                    {
+                    data->dstream.Close();
+                    }
+                } // end if is connected
+            else
+                {
+                // make connection
+                std::pair<std::string,unsigned short> server;
                 
+                // populate with existing...
+                
+                // open dialog
+                int res=DialogBoxParam
+                    (
+                    (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE),
+                    MAKEINTRESOURCE(IDD_CONNECTSERVER),
+                    hWnd,
+                    ::ConnectServerDialogProc,
+                    (LPARAM)&server
+                    );
+                    
+                if(res==IDOK)
+                    {
+                    // open connection
+                    data->dstream.Open(server.first.c_str(),server.second);
+                    }
+                } // end else not connected
+            break;
+            
+        case ID_NETWORKCONNECTIONS_SHARENETSERVER:
+            if(data->dstream.IsConnected())
+                {
+                int res=MessageBox(hWnd,"Sharenet is already connected\nAre you sure you want to disconnect?","Confirm Disconnect",MB_YESNO);
+                if(res==IDYES)
+                    {
+                    data->sharenet.Close();
+                    }
+                } // end if is connected
+            else
+                {
+                // make connection
+                std::pair<std::string,unsigned short> server;
+                
+                // populate with existing...
+                
+                // open dialog
+                int res=DialogBoxParam
+                    (
+                    (HINSTANCE)GetWindowLongPtr(hWnd,GWLP_HINSTANCE),
+                    MAKEINTRESOURCE(IDD_CONNECTSERVER),
+                    hWnd,
+                    ::ConnectServerDialogProc,
+                    (LPARAM)&server
+                    );
+                    
+                if(res==IDOK)
+                    {
+                    // open connection
+                    data->sharenet.Open(server.first.c_str(),server.second);
+                    }
+                } // end else not connected
+            break;
+
         default:
             break;
         } // end switch
@@ -1061,7 +1131,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         oss << "Reference Actor:\n"
             << data->ReferenceActor.GetName() << "\n"
             << "<" << data->ReferenceActor.GetMotion().GetXPos() << ","
-            << data->ReferenceActor.GetMotion().GetYPos() << ">\n";
+            << data->ReferenceActor.GetMotion().GetYPos() << ">\n\n";
         }
         
     DatabaseStatistics stats;
@@ -1069,16 +1139,16 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
     
     oss << "Global Database Statistics:\n"
         << "Current Time=" << CurrentTime.Seconds() << "\n"
-        << stats.GetLiveAlbs() << " Albs (" << stats.GetNumAlbs() << ")\n"
-        << stats.GetLiveHibs() << " Hibs (" << stats.GetNumHibs() << ")\n"
-        << stats.GetLiveMids() << " Mids (" << stats.GetNumMids() << ")\n"
-        << stats.GetLiveMobs() << " MOBs (" << stats.GetNumMobs() << ")\n"
+        << stats.GetLiveAlbs() << " Live Albs (" << stats.GetNumAlbs() << " total)\n"
+        << stats.GetLiveHibs() << " Live Hibs (" << stats.GetNumHibs() << " total)\n"
+        << stats.GetLiveMids() << " Live Mids (" << stats.GetNumMids() << " total)\n"
+        << stats.GetLiveMobs() << " Live MOBs (" << stats.GetNumMobs() << " total)\n\n"
         << "ShareNet Status: " << data->sharenet.GetStatusString() << "\n"
-        << "ShareNet=" << data->sharenet.GetRemoteAddr() << "\n"
+        << "ShareNet=" << data->sharenet.GetRemoteAddr() << "\n\n"
         << "DStream Status: " << data->dstream.GetStatusString() << "\n"
         << "DStream=" << data->dstream.GetRemoteAddr() << "\n"
-        << unsigned int(data->dstream.GetNumConnections()) << " DStream Connections\n"
-        << "Sharenet mini-server status: " << data->sharenet.GetStatusString() << "\n"
+        << unsigned int(data->dstream.GetNumConnections()) << " DStream Connections\n\n"
+        << "Sharenet status: " << data->sharenet.GetStatusString() << "\n\n"
         << "Scriptserver mini-server status: " << data->scriptserver.GetStatusString() << "\n";
         
     // make running scripts string       
@@ -1167,9 +1237,18 @@ void Render(USERDATA* data)
     // on-screen
     data->ppi.RenderAllZones();
     
-    // update and iterate all actors -- ppi will only render the ones
-    // that are on-screen
-    data->database.UpdateAndIterateActors(ActorRenderFunctor(*data));
+    if(::RadarConfig.GetUpdateActorsOnRender())
+        {
+        // update and iterate all actors -- ppi will only render the ones
+        // that are on-screen
+        data->database.UpdateAndIterateActors(ActorRenderFunctor(*data));
+        }
+    else
+        {
+        // just iterate all actors -- ppi will only render the ones
+        // that are on-screen
+        data->database.IterateActors(ActorRenderFunctor(*data));
+        }
     
     // if uncorrelated stealth is present, draw that too
     if(data->database.IsUncorrelatedStealth())

@@ -45,4 +45,9 @@ private:
     DECL_MEMBER(bool,RaisePriority);
     DECL_MEMBER(bool,UseZoneTextures);
     DECL_MEMBER(bool,UseVectorMaps);
+    DECL_MEMBER(bool,UpdateActorsOnRender);
+    DECL_MEMBER(bool,ShowAlbs);
+    DECL_MEMBER(bool,ShowHibs);
+    DECL_MEMBER(bool,ShowMids);
+    DECL_MEMBER(bool,ShowMobs);
 }; // end Config

@@ -39,6 +39,12 @@ Config::Config()
     SetRaisePriority(false);
     SetUseZoneTextures(false);
     SetUseVectorMaps(false);
+    SetUpdateActorsOnRender(true);
+    SetShowAlbs(true);
+    SetShowHibs(true);
+    SetShowMids(true);
+    SetShowMobs(true);
+    
 } // end Config
 
 Config::Config(const Config& s)
@@ -75,7 +81,12 @@ bool Config::Load(const std::string& filename)
          >> ModifyPrefsMob() >> std::ws
          >> ModifyRaisePriority() >> std::ws
          >> ModifyUseZoneTextures() >> std::ws
-         >> ModifyUseVectorMaps() >> std::ws;
+         >> ModifyUseVectorMaps() >> std::ws
+         >> ModifyUpdateActorsOnRender() >> std::ws
+         >> ModifyShowAlbs() >> std::ws
+         >> ModifyShowHibs() >> std::ws
+         >> ModifyShowMids() >> std::ws
+         >> ModifyShowMobs() >> std::ws;
     
     // done
     return(true);
@@ -96,7 +107,12 @@ bool Config::Save(const std::string& filename)const
          << GetPrefsMob() << std::endl
          << GetRaisePriority() << std::endl
          << GetUseZoneTextures() << std::endl
-         << GetUseVectorMaps() << std::endl;
+         << GetUseVectorMaps() << std::endl
+         << GetUpdateActorsOnRender() << std::endl
+         << GetShowAlbs() << std::endl
+         << GetShowHibs() << std::endl
+         << GetShowMids() << std::endl
+         << GetShowMobs() << std::endl;
     
     // done
     return(true);
@@ -110,5 +126,10 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(RaisePriority);
     MEMBER_ASSIGN(UseZoneTextures);
     MEMBER_ASSIGN(UseVectorMaps);
+    MEMBER_ASSIGN(UpdateActorsOnRender);
+    MEMBER_ASSIGN(ShowAlbs);
+    MEMBER_ASSIGN(ShowHibs);
+    MEMBER_ASSIGN(ShowMids);
+    MEMBER_ASSIGN(ShowMobs);
 
 } // end set

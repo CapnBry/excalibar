@@ -113,8 +113,11 @@ int WINAPI WinMain
                 // save time
                 LastRenderTime=Clock.Current();
 
-                // we advanced in time, render!
-                PostMessage(hMainWnd,RENDER_NOW,0,0);
+                if(!IsIconic(hMainWnd))
+                    {
+                    // we advanced in time and are not iconic, render!
+                    PostMessage(hMainWnd,RENDER_NOW,0,0);
+                    }
                 }
             else
                 {

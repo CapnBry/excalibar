@@ -71,7 +71,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0401"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -123,6 +123,9 @@
 			</File>
 			<File
 				RelativePath=".\ConfigDialogProc.cpp">
+			</File>
+			<File
+				RelativePath=".\ConnectServerDialogProc.cpp">
 			</File>
 			<File
 				RelativePath=".\main.cpp">

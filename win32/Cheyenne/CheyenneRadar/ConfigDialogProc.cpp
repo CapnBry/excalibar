@@ -108,6 +108,21 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                 case IDC_SHOWMOBLEVEL:
                     ::RadarConfig.ModifyPrefsMob().SetRenderLevel(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
                     break;
+                case IDC_UPDATEONRENDER:
+                    ::RadarConfig.SetUpdateActorsOnRender(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
+                case IDC_SHOWALBS:
+                    ::RadarConfig.SetShowAlbs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
+                case IDC_SHOWHIBS:
+                    ::RadarConfig.SetShowHibs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
+                case IDC_SHOWMIDS:
+                    ::RadarConfig.SetShowMids(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
+                case IDC_SHOWMOBS:
+                    ::RadarConfig.SetShowMobs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
                 case IDCLOSE:
                     // re-enable menu
                     EnableMenuItem(GetMenu(GetParent(hWnd)),ID_CONTROLDISPLAY_OPENCONFIGDIALOG,MF_BYCOMMAND|MF_ENABLED);
@@ -153,6 +168,13 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBGUILD,::RadarConfig.GetPrefsMob().GetRenderGuild());
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBHEALTH,::RadarConfig.GetPrefsMob().GetRenderHealth());
     SET_CHECK_BOOL(hWnd,IDC_SHOWMOBLEVEL,::RadarConfig.GetPrefsMob().GetRenderLevel());
+    
+    // performance/feedback group
+    SET_CHECK_BOOL(hWnd,IDC_UPDATEONRENDER,::RadarConfig.GetUpdateActorsOnRender());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWALBS,::RadarConfig.GetShowAlbs());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWHIBS,::RadarConfig.GetShowHibs());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWMIDS,::RadarConfig.GetShowMids());
+    SET_CHECK_BOOL(hWnd,IDC_SHOWMOBS,::RadarConfig.GetShowMobs());
     
     // done
     return;

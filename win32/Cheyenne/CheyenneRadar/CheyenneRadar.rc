@@ -63,6 +63,13 @@ BEGIN
         MENUITEM "&Open Config Dialog",         ID_CONTROLDISPLAY_OPENCONFIGDIALOG
 
     END
+    POPUP "&Network Connections"
+    BEGIN
+        MENUITEM "&DStream Server",             ID_NETWORKCONNECTIONS_DSTREAMSERVER
+
+        MENUITEM "&Sharenet Server",            ID_NETWORKCONNECTIONS_SHARENETSERVER
+
+    END
     POPUP "H&elp"
     BEGIN
         MENUITEM "A&bout",                      ID_HELP_ABOUT
@@ -124,7 +131,7 @@ END
 // Dialog
 //
 
-IDD_CONFIG DIALOGEX 0, 0, 264, 158
+IDD_CONFIG DIALOGEX 0, 0, 264, 222
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
@@ -167,11 +174,36 @@ BEGIN
                     WS_TABSTOP,187,102,56,10
     CONTROL         "Show Level",IDC_SHOWMOBLEVEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,187,116,52,10
-    DEFPUSHBUTTON   "Close",IDCLOSE,207,137,50,14
+    DEFPUSHBUTTON   "Close",IDCLOSE,207,201,50,14
     GROUPBOX        "System (change requires restart)",IDC_STATIC,7,7,250,40
     GROUPBOX        "Same Realm",IDC_STATIC,7,47,80,85
     GROUPBOX        "Enemy Realm",IDC_STATIC,92,47,80,85
     GROUPBOX        "MOB",IDC_STATIC,177,47,80,85
+    CONTROL         "Smooth Animation",IDC_UPDATEONRENDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,142,71,10
+    GROUPBOX        "Performance/Feedback",IDC_STATIC,7,132,250,64
+    CONTROL         "Show Albion",IDC_SHOWALBS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,155,71,10
+    CONTROL         "Show Hibernia",IDC_SHOWHIBS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,168,71,10
+    CONTROL         "Show Midgard",IDC_SHOWMIDS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,181,71,10
+    CONTROL         "Show MOBs",IDC_SHOWMOBS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,142,71,10
+END
+
+IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Set Server"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,39,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,71,39,50,14
+    EDITTEXT        IDC_SERVER,7,17,66,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PORT,78,17,43,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Server",IDC_STATIC,7,7,22,8
+    LTEXT           "Port",IDC_STATIC,81,7,14,8
 END
 
 
@@ -188,7 +220,15 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 257
         TOPMARGIN, 7
-        BOTTOMMARGIN, 151
+        BOTTOMMARGIN, 215
+    END
+
+    IDD_CONNECTSERVER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 121
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 53
     END
 END
 #endif    // APSTUDIO_INVOKED

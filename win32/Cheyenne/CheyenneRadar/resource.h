@@ -5,6 +5,7 @@
 #define IDR_MAIN_MENU                   101
 #define IDI_A                           102
 #define IDD_CONFIG                      103
+#define IDD_CONNECTSERVER               104
 #define IDC_RAISEPRIORITY               1001
 #define IDC_LOADZONETEXTURES            1002
 #define IDC_LOADVECTORMAPS              1003
@@ -23,17 +24,26 @@
 #define IDC_SHOWMOBHEALTH               1016
 #define IDC_SHOWMOBGUILD                1017
 #define IDC_SHOWMOBLEVEL                1018
+#define IDC_UPDATEONRENDER              1019
+#define IDC_SHOWALBS                    1020
+#define IDC_SERVER                      1020
+#define IDC_SHOWHIBS                    1021
+#define IDC_PORT                        1021
+#define IDC_SHOWMIDS                    1022
+#define IDC_SHOWMOBS                    1023
 #define ID_FILE_EXIT                    40001
 #define ID_CONTROLDISPLAY_OPENCONFIGDIALOG 40002
 #define ID_HELP_ABOUT                   40003
+#define ID_NETWORKCONNECTIONS_DSTREAMSERVER 40004
+#define ID_NETWORKCONNECTIONS_SHARENETSERVER 40005
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
-#define _APS_NEXT_COMMAND_VALUE         40004
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_RESOURCE_VALUE        105
+#define _APS_NEXT_COMMAND_VALUE         40006
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
