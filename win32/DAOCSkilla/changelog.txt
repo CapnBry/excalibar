@@ -1,3 +1,13 @@
+2003 Sep 
+-------------------
+  + Fix for "heavy" thread in powerskill recipes.
+  + Parse of group membership updates.
+  + Group members' highlight ring is now half realm color half orange.
+  + Guild members' highlight ring is now half realm color half teal.
+  + Group and guild members rings are slightly larger.
+  + Added crappy implementation of rendering adjacent zones.
+
+
 2003 Sep 17 - v1.35
 -------------------
   + TCP Assemblers allocate 992kB less memory.
