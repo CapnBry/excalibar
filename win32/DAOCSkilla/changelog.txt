@@ -1,3 +1,8 @@
+  + Fix "Format '%c' invalid or incompatable with argument"
+  + Added exception handler to GL render to log rather than MsgBox.
+  + Fix for not being able to turn off "Send packets..." if there is an
+    error ocurring.
+
 2003 Nov 14 - v1.61
 -------------------
   + ~20% performance increase in UDP packet handling.
