@@ -224,3 +224,8 @@ QString exPacket::getDataAsString(void)
     result.append(hex + " " + ascii + "\n");
     return result;
 }
+
+bool exPacket::isAtEOF(void)
+{
+    return offset >= d.size();
+}

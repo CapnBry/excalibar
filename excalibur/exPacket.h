@@ -55,6 +55,8 @@ public:
     void           seek            (const signed int &l);
     
     void           decrypt         (QString key);
+
+    bool isAtEOF(void);
 };
 
 QDataStream &operator<<( QDataStream &s, const exPacket &p );
