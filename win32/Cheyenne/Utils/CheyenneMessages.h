@@ -123,10 +123,10 @@ struct self_health_update : public daocmessages::SniffedMessage
         str << "[self_health_update::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tplayer_id=" << player_id << "\n"
-            << "\thealth=" << health << "\n"
-            << "\tmana=" << mana << "\n"
-            << "\tendurance=" << endurance << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\thealth=" << (unsigned int)health << "\n"
+            << "\tmana=" << (unsigned int)mana << "\n"
+            << "\tendurance=" << (unsigned int)endurance << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[self_health_update::Print] end\n";
     }
 
@@ -520,7 +520,7 @@ struct self_zone_change : public daocmessages::SniffedMessage
         str << "[self_zone_change::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tid=" << id << "\n"
-            << "\tregion=" << region << "\n"
+            << "\tregion=" << (unsigned int)region << "\n"
             << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[self_zone_change::Print] end\n";
     }

@@ -1196,70 +1196,46 @@ daocmessages::mob_pos_update* DAOCConnection::ParseMobPosUpdate
     GetData(msg->heading,ndx,buffer);
     msg->heading &=0xFFF;
 
-    // pre-1.62
-    if(serverprotocol != 0x31)
-        {
-        // get x
-        GetData(msg->x,ndx,buffer);
+    unsigned short local_x;
+    unsigned short local_y;
+    unsigned short local_z;
+    unsigned char zone;
 
-        // get y
-        GetData(msg->y,ndx,buffer);
+    // get x
+    GetData(local_x,ndx,buffer);
 
-        // skip unused
-        SkipData(ndx,8);
+    // skip
+    SkipData(ndx,2);
 
-        // get z
-        GetData(msg->z,ndx,buffer);
+    // get y
+    GetData(local_y,ndx,buffer);
 
-        // get ID
-        GetData(msg->mob_id,ndx,buffer);
+    // skip
+    SkipData(ndx,2);
 
-        // get hitpoints
-        GetData(msg->health,ndx,buffer);
-        } // end if serverprotocol != 0x31
-    else // 0x01, 1.62 version
-        {
-        unsigned short local_x;
-        unsigned short local_y;
-        unsigned short local_z;
-        unsigned char zone;
+    // get z
+    GetData(local_z,ndx,buffer);
 
-        // get x
-        GetData(local_x,ndx,buffer);
+    // skip
+    SkipData(ndx,2);
 
-        // skip
-        SkipData(ndx,2);
+    // get id
+    GetData(msg->mob_id,ndx,buffer);
 
-        // get y
-        GetData(local_y,ndx,buffer);
+    // skip (mob target id is here)
+    SkipData(ndx,2);
 
-        // skip
-        SkipData(ndx,2);
+    // get health
+    GetData(msg->health,ndx,buffer);
 
-        // get z
-        GetData(local_z,ndx,buffer);
+    // skip
+    SkipData(ndx,1);
 
-        // skip
-        SkipData(ndx,2);
+    // get zone
+    GetData(zone,ndx,buffer);
 
-        // get id
-        GetData(msg->mob_id,ndx,buffer);
-
-        // skip (mob target id is here)
-        SkipData(ndx,2);
-
-        // get health
-        GetData(msg->health,ndx,buffer);
-
-        // skip
-        SkipData(ndx,1);
-
-        // get zone
-        GetData(zone,ndx,buffer);
-
-        // convert to global coordinates from zone-relative
-        ::Zones.GetGlobalFromZone(zone,local_x,local_y,local_z,msg->x,msg->y,msg->z);
-        } // end else serverprotocol == 0x31
+    // convert to global coordinates from zone-relative
+    ::Zones.GetGlobalFromZone(zone,local_x,local_y,local_z,msg->x,msg->y,msg->z);
     
     // done
     return(msg);

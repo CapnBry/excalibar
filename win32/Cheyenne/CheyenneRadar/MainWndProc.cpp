@@ -1273,12 +1273,14 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
     std::ostringstream oss;
     const CheyenneTime CurrentTime(::Clock.Current());
 
+    MapInfo::ZoneIndexType zone_number;
+    unsigned int x,y;
+    unsigned short z;
+    MapInfo::ZoneInfo zone;
+
     if(data->ReferenceSet)
         {
-        MapInfo::ZoneIndexType zone_number;
-        unsigned int x,y;
-        unsigned short z;
-        const MapInfo::ZoneInfo& zone=::Zones.GetZoneFromGlobal
+        zone=::Zones.GetZoneFromGlobal
             (
             data->ReferenceActor.GetRegion(),
             (unsigned int)data->ReferenceActor.GetMotion().GetXPos(),
@@ -1289,36 +1291,60 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             z,
             zone_number
             );
-            
+
         // put followed actor in
         oss << "Reference Actor:\n"
             << data->ReferenceActor.GetName() << " (" << zone.ZoneFile << ")\n"
             << "Hdg: " << ToDegrees(data->ReferenceActor.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->ReferenceActor.GetMotion().GetSpeed() << "\n"
-            << "<" << data->ReferenceActor.GetMotion().GetXPos() << ","
-            << data->ReferenceActor.GetMotion().GetYPos() << ">\n\n";
+            << "<" << x << ","
+            << y << ">\n\n";
         }
         
     if(data->ReferenceTargetSet)
         {
+        zone=::Zones.GetZoneFromGlobal
+            (
+            data->ReferenceTarget.GetRegion(),
+            (unsigned int)data->ReferenceTarget.GetMotion().GetXPos(),
+            (unsigned int)data->ReferenceTarget.GetMotion().GetYPos(),
+            (unsigned int)data->ReferenceTarget.GetMotion().GetZPos(),
+            x,
+            y,
+            z,
+            zone_number
+            );
+
         // put hooked actor in
         oss << "Target Actor:\n"
             << data->ReferenceTarget.GetName() << "\n"
             << "Hdg: " << ToDegrees(data->ReferenceTarget.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->ReferenceTarget.GetMotion().GetSpeed() << "\n"
-            << "<" << data->ReferenceTarget.GetMotion().GetXPos() << ","
-            << data->ReferenceTarget.GetMotion().GetYPos() << ">\n\n";
+            << "<" << x << ","
+            << y << ">\n\n";
         }
         
     if(data->HookedSet)
         {
+        zone=::Zones.GetZoneFromGlobal
+            (
+            data->HookedActor.GetRegion(),
+            (unsigned int)data->HookedActor.GetMotion().GetXPos(),
+            (unsigned int)data->HookedActor.GetMotion().GetYPos(),
+            (unsigned int)data->HookedActor.GetMotion().GetZPos(),
+            x,
+            y,
+            z,
+            zone_number
+            );
+
         // put hooked actor in
         oss << "Hooked Actor:\n"
             << data->HookedActor.GetName() << "\n"
             << "Hdg: " << ToDegrees(data->HookedActor.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->HookedActor.GetMotion().GetSpeed() << "\n"
-            << "<" << data->HookedActor.GetMotion().GetXPos() << ","
-            << data->HookedActor.GetMotion().GetYPos() << ">\n\n";
+            << "<" << x << ","
+            << y << ">\n\n";
         }
         
     DatabaseStatistics stats;
