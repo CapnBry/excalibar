@@ -22,7 +22,7 @@ You should have received 5 zip files inside the main "redistributable" zip file:
 	Cheyenne.zip
 	libnids-1.16a-win32.zip
 	glpng.zip
-	Cheyenne_exe.zip
+	Cheyenne_exe.zip (this is only in pre-0.03 versions of Cheyenne. Newer versions have a setup program)
 
 
 - Shared.zip is a collection of things that were not necessarily created for Cheyenne's use. It contains header files and library files for the 
@@ -48,6 +48,8 @@ directory. The actual maps (and .png if you got those some other way, I don't di
 run DAoC on, but if you want to do it on the same machine, then you will want to up the priority of Cheyenne (System->Set Config).
 
 - Mouse wheel and +/- zoom in and out. If an Actor is not being followed, the arrow keys pan the display.
+
+- New for version 0.03: run the setup program ;)
 
 4. How do I build it?
 
