@@ -914,7 +914,7 @@ void exConnection::selectID(unsigned int infoid)
 {
     exMob *m;
 
-    selectedid = id;
+    selectedid = infoid;
 
     m = mobinfo.find((void *) infoid);
     if (m) {
