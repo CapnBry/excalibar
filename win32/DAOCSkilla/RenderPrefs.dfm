@@ -3,7 +3,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   Top = 257
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
-  ClientHeight = 363
+  ClientHeight = 393
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 4
     Top = 144
     Width = 457
-    Height = 213
+    Height = 245
     Caption = ' Include this extra information '
     TabOrder = 1
     object Label1: TLabel
@@ -70,6 +70,15 @@ object frmRenderPrefs: TfrmRenderPrefs
       Width = 258
       Height = 13
       Caption = 'Draw a line to an AI object'#39's destination while en-route.'
+    end
+    object Label7: TLabel
+      Left = 28
+      Top = 224
+      Width = 400
+      Height = 13
+      Caption = 
+        'Draw a green area which shows the visible area of the DAOC rende' +
+        'rer (far clip plane)'
     end
     object chkVectorMaps: TCheckBox
       Left = 8
@@ -124,6 +133,15 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'AI destination vector (D)'
       TabOrder = 5
       OnClick = chkDestinationClick
+    end
+    object chkViewFrustum: TCheckBox
+      Left = 8
+      Top = 208
+      Width = 241
+      Height = 17
+      Caption = 'Show Dark Age renderer "visible" area'
+      TabOrder = 6
+      OnClick = chkViewFrustumClick
     end
   end
   object grpObjects: TGroupBox

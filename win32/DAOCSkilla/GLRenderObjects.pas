@@ -4,7 +4,7 @@ interface
 
 uses
   Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, GLUT,
-  DDSImage, Intersections;
+  DDSImage, Intersections, QuickSinCos;
 
 type
   TGLRenderObject = class(TObject)
@@ -164,6 +164,19 @@ type
     property X: GLuint read FX write FX;
     property Y: GLuint read FY write FY;
     property Size: integer read FSize write SetSize;
+  end;
+
+  TGLFlatViewFrustum = class(TGLCallListObject)
+  private
+    FFOVy: integer;
+    FZFar: integer;
+  public
+    constructor Create; override;
+    procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
+
+    property ZFar: integer read FZFar write FZFar;
+    property FOVy: integer read FFOVy write FFOVy; // degrees!
   end;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
@@ -690,10 +703,10 @@ begin
   inherited;
   FUseColor := false;
 
-  glNewList(FGLList, GL_COMPILE);
-
   pQuadric := gluNewQuadric();
   gluQuadricOrientation(pQuadric, GLU_INSIDE);
+
+  glNewList(FGLList, GL_COMPILE);
 
   glColor4f(1, 0, 0, 0.50);
   gluDisk(pQuadric, (2/3) * FSize, FSize, 15, 2);
@@ -704,9 +717,9 @@ begin
   glColor4f(1, 0, 0, 0.50);
   gluDisk(pQuadric, 0, (1/3) * FSize, 15, 2);
 
-  gluDeleteQuadric(pQuadric);
-
   glEndList();
+
+  gluDeleteQuadric(pQuadric);
 end;
 
 procedure TGLBullsEye.GLRender(const ARenderBounds: TRect);
@@ -728,6 +741,47 @@ end;
 procedure TGLBullsEye.SetSize(const Value: integer);
 begin
   FSize := Value;
+end;
+
+{ TGLViewFrustum }
+
+constructor TGLFlatViewFrustum.Create;
+begin
+  inherited;
+  FUseColor := false;
+  FFOVy := 60;
+  FZFar := 3300;
+end;
+
+procedure TGLFlatViewFrustum.GLInitialize;
+var
+  pQuadric:   PGLUquadric;
+  a:  single;
+begin
+  inherited;
+
+  a := FFOVy * 0.5 * (4 / 3);
+
+  pQuadric := gluNewQuadric();
+  gluQuadricOrientation(pQuadric, GLU_INSIDE);
+  
+  glNewList(FGLList, GL_COMPILE);
+    gluPartialDisk(pQuadric, 0, FZFar, 6, 1, -a, 2 * a);
+  glEndList();
+
+  gluDeleteQuadric(pQuadric);
+end;
+
+procedure TGLFlatViewFrustum.GLRender(const ARenderBounds: TRect);
+begin
+  glPushAttrib(GL_ENABLE_BIT);
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING);
+
+  glColor4f(0, 1, 0, 0.10);
+  inherited;
+
+  glPopAttrib();
 end;
 
 end.

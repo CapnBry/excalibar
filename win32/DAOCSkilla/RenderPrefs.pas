@@ -36,6 +36,7 @@ type
     StayOnTop:        boolean;
     RotateMapWithPlayer:  boolean;
     AdjacentZones:    boolean;
+    ViewFrustum:      boolean;
 
     constructor Create;
 
@@ -77,6 +78,8 @@ type
     chkStayOnTop: TCheckBox;
     chkRotateMap: TCheckBox;
     chkAdjacentZones: TCheckBox;
+    chkViewFrustum: TCheckBox;
+    Label7: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -90,6 +93,7 @@ type
     procedure chkStayOnTopClick(Sender: TObject);
     procedure chkRotateMapClick(Sender: TObject);
     procedure chkAdjacentZonesClick(Sender: TObject);
+    procedure chkViewFrustumClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -131,6 +135,7 @@ begin
   Result.StayOnTop := StayOnTop;
   Result.RotateMapWithPlayer := RotateMapWithPlayer;
   Result.AdjacentZones := AdjacentZones;
+  Result.ViewFrustum := ViewFrustum;
 end;
 
 constructor TRenderPreferences.Create;
@@ -175,6 +180,7 @@ begin
     StayOnTop := ReadBool('RenderPrefs', 'StayOnTop', false);
     RotateMapWithPlayer := ReadBool('RenderPrefs', 'RotateMapWithPlayer', false);
     AdjacentZones := ReadBool('RenderPrefs', 'AdjacentZones', false);
+    ViewFrustum := ReadBool('RenderPrefs', 'ViewFrustum', true);
   end;
 end;
 
@@ -204,6 +210,7 @@ begin
     WriteBool('RenderPrefs', 'StayOnTop', StayOnTop);
     WriteBool('RenderPrefs', 'RotateMapWithPlayer', RotateMapWithPlayer);
     WriteBool('RenderPrefs', 'AdjacentZones', AdjacentZones);
+    WriteBool('RenderPrefs', 'ViewFrustum', ViewFrustum);
   end;
 end;
 
@@ -303,6 +310,7 @@ begin
   chkRulers.Checked := FRenderPrefs.DrawRulers;
   chkHUD.Checked := FRenderPrefs.DrawHUD;
   chkDestination.Checked := FRenderPrefs.DrawAIDestination;
+  chkViewFrustum.Checked := FRenderPrefs.ViewFrustum;
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
@@ -340,6 +348,11 @@ end;
 procedure TfrmRenderPrefs.chkAdjacentZonesClick(Sender: TObject);
 begin
   FRenderPrefs.AdjacentZones := chkAdjacentZones.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkViewFrustumClick(Sender: TObject);
+begin
+  FRenderPrefs.ViewFrustum := chkViewFrustum.Checked;
 end;
 
 end.
