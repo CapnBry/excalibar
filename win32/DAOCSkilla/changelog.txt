@@ -1,5 +1,5 @@
-IN TESTING
-----------
+2004 Feb 09 - v1.83
+-------------------
   + Fix for Access Violation when targeting for people using a period
     as their time separator. (standifer2)
   + Added [Main] ChatInfoXIEnabled to INI
@@ -9,7 +9,24 @@ IN TESTING
   + Fixed Spellcraft Help mbuy to work over 100 items.
   + Patch for using a profile with quicklaunch. (neelm)
   + Added Prompt command with param substitution to remote admin.
-  + Added DumpChat commant to remote admin.
+  + Added DumpChat command to remote admin.
+  + Fixed crafting macro not continuing if forge node and merchant
+    node were set to the same thing in the profile.
+  + Support for custom vector and texture maps, in custommaps/.
+  + Versioning of vector and texture maps.  If you have non-default
+    maps, you MUST move them to the custommaps directory.
+  + Added Z delta to HUD distance and map mouse over.
+  + Updates to recipe selection dialog logic.  YMMV.
+  + Added type I vector map elements.
+  + Added patch for scaling of dialogs for non smallfonts displays.
+    (neelm)
+  + Added Delve info to Chat XI.  Format is same as delveseen file.
+  + Added option to turn off I vector map elements (aka Info Points).
+  + Added Hibernia strip material names.
+  + Added fixes for recipes which are not in Group+Tier+Skill order.
+  + Added "quick mouse over".  If this is on and the radar window has
+    focus, you'll get tooltips without having to hold down the ctrl
+    key.
 
 2004 Jan 16 - v1.78
 -------------------
