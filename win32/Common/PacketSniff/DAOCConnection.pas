@@ -204,7 +204,6 @@ type
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
-    FProtocolVersion: integer;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
@@ -703,9 +702,8 @@ procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TDAOCPacket);
 begin
   pPacket.FHandlerName := 'SetEncryptionKey';
 
-  pPacket.seek(1);
-  FProtocolVersion := pPacket.getByte;
-  pPacket.seek(3);  // x.yz
+  pPacket.seek(1);  // ?
+  pPacket.seek(4);  // Version w x.yz
   pPacket.getBytes(FCryptKey, 12);
   FCryptKeySet := true;
 end;
@@ -1013,6 +1011,7 @@ var
   iIDOffset:  integer;
   iZoneBase:  integer;
   pZoneBase:  TDAOCZoneInfo;
+  V162OrGreater:  boolean;
   procedure SetZoneBase;
   begin
     if Assigned(pZoneBase) and (pZoneBase.ZoneNum = iZoneBase) then
@@ -1024,7 +1023,9 @@ var
   end;
 begin
   pPacket.FHandlerName := 'MobUpdate';
-  if FProtocolVersion = $31 then
+
+  V162OrGreater := pPacket.Size = 27;
+  if V162OrGreater then
     iIDOffset := 22
   else
     iIDOffset := 16;
@@ -1044,18 +1045,7 @@ begin
     with TDAOCMovingObject(pDAOCObject) do begin
       SpeedWord := pPacket.getShort;
       HeadWord := pPacket.getShort;
-        { 1.61 and below }
-      if FProtocolVersion = $31 then begin
-        X := pPacket.getLong;
-        Y := pPacket.getLong;
-        DestinationX := pPacket.getLong;
-        DestinationY := pPacket.getLong;
-        z := pPacket.getShort;
-        pPacket.seek(2);  // ID again
-        pPacket.seek(2);
-        HitPoints := pPacket.getByte;
-      end  { protocol 31 }
-      else begin
+      if V162OrGreater then begin
         X := pPacket.getShort;
         DestinationX := pPacket.getShort;
         Y := pPacket.getShort;
@@ -1084,6 +1074,16 @@ begin
           DestinationX := pZoneBase.ZoneConvertX(X);
           DestinationY := pZoneBase.ZoneConvertY(Y);
         end;
+      end  { protocol }
+      else begin
+        X := pPacket.getLong;
+        Y := pPacket.getLong;
+        DestinationX := pPacket.getLong;
+        DestinationY := pPacket.getLong;
+        z := pPacket.getShort;
+        pPacket.seek(2);  // ID again
+        pPacket.seek(2);
+        HitPoints := pPacket.getByte;
       end;
     end;  { with TDAOCMovingObject(pDAOCObject) }
 
