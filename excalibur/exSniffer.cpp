@@ -33,7 +33,7 @@
 #include <sched.h>
 #include <netdb.h>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__FreeBSD__)
 #define __FreeBSD__
 #endif
 
@@ -310,10 +310,11 @@ QByteArray *exSniffer::get() {
 void exSniffer::run() {
   QString f;
   struct bpf_program bpp;
+  char buff[4096];
+#ifdef MUST_DO_SELECT
   fd_set fdset;
   struct timeval timeout;
-  char buff[4096];
-  bool doalert;
+#endif
 
 #ifndef _WIN32
   struct sched_param sp;
@@ -328,7 +329,7 @@ void exSniffer::run() {
   } else {
     setpriority(PRIO_PROCESS, getpid(), -10);
   }
-#endif
+#endif  // if !_WIN32
 
   pcap=pcap_open_live((char*)INTERFACE, 65535, 1, 200, buff);
 
@@ -354,10 +355,9 @@ void exSniffer::run() {
 #ifdef __APPLE__
   pcap_loop( pcap, -1, exCallback, (u_char *) this );
 #else
-  doalert = false;
+  bool doalert = false;
 
   while (1) {
-
 #ifdef MUST_DO_SELECT
     FD_ZERO(&fdset);
     FD_SET(pcap_fileno(pcap), &fdset);
@@ -377,7 +377,7 @@ void exSniffer::run() {
     }
 #endif
   }
-#endif
+#endif // if !__APPLE__
   pcap_close(pcap);
 }
 
