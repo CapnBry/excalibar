@@ -269,9 +269,7 @@ void exConnection::processPacket(exPacket * p)
 	    parsePlayerHeadUpdate(p);
 	    break;
 	  case 0xbd:
-BEGIN_EXPERIMENTAL_CODE
 	    parseObjectStopped(p);
-END_EXPERIMENTAL_CODE
 	    break;
           default:
 	    if (prefs.dump_unknown_packets)
@@ -346,9 +344,7 @@ END_EXPERIMENTAL_CODE
 	    parsePlayerHeadUpdate(p);
 	    break;
 	  case 0xbd:
-BEGIN_EXPERIMENTAL_CODE
 	    parseObjectStopped(p);
-END_EXPERIMENTAL_CODE
 	    break;
 	  case 0x8a:
 	      p->skip(2);
@@ -558,7 +554,7 @@ END_EXPERIMENTAL_CODE
 void exConnection::parseObjectStopped(exPacket *p)
 {
     unsigned int infoid = p->getShort();
-    exMob *mob = mobinfo.take((void *)infoid);
+    exMob *mob = mobinfo.find((void *)infoid);
     if (mob)  
 	mob->setSpeed(0);
 }
