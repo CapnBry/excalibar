@@ -53,8 +53,9 @@ exMap::exMap(QWidget *parent, const char *name)
 exMap::~exMap() {
   if (mi)
     delete mi;
-  if (PNGLoader != NULL)
+  if (PNGLoader != NULL && ! PNGLoader->running()) {
     delete [] PNGLoader;
+  }
 }
 
 void exMap::dirty() {
@@ -645,11 +646,12 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  if (PNGLoader != NULL)
+  if (PNGLoader != NULL && ! PNGLoader->running())
     delete [] PNGLoader;
   
   PNGLoader = new exMapPNGLoader(this);
-  PNGLoader->start();
+  if (PNGLoader != NULL && ! PNGLoader->running())
+    PNGLoader->start();
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
@@ -1047,7 +1049,9 @@ exMapPNGLoader::exMapPNGLoader ( exMap *parent )
   qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)1));
 }
 
-exMapPNGLoader::~exMapPNGLoader (void) { }
+exMapPNGLoader::~exMapPNGLoader (void)
+{
+}
 
 void exMapPNGLoader::run (void)
 {
@@ -1062,6 +1066,7 @@ void exMapPNGLoader::run (void)
     if (img.load(fimg.name())) {
       w=img.width();
       h=img.height();
+      parent->ignore_fill = true;
       for(y=0;y<8;y++) {
         for(x=0;x<8;x++) {
           qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
@@ -1089,8 +1094,10 @@ bool exMap::event (QEvent *e)
     QCustomEvent *PNGEvent = (QCustomEvent*) e;
     PNGCallback *pc = (PNGCallback*)PNGEvent->data();
     map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
-    if (pc->y == 7 && pc->x == 7)
+    if (pc->y == 7 && pc->x == 7 && PNGLoader != NULL)
+    {
       qApp->postEvent(&PNGLoader->empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    }
     return true;
   }
   QWidget::event( e );
@@ -1114,8 +1121,6 @@ exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
 
 exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 {
-  if (pdProgress != NULL)
-    delete [] pdProgress;
 }
 
 void exMapPNGLoaderDialog::run (void)
