@@ -40,6 +40,7 @@ type
     FOnDraw : TNotifyEvent;         // OpenGL draw function
     FOnInit : TNotifyEvent;         // OpenGL initialization function
     flags : Word;                   // OpenGL window flags
+    FAutoMakeCurrent: boolean;
 
     function GetColorDepth : TDepthBits;
     procedure SetColorDepth(depth : TDepthBits);
@@ -51,7 +52,6 @@ type
     procedure Cleanup;
 
     procedure CreateRC;
-    function MakeCurrent : boolean;
     procedure DestroyRC;
     procedure SwapBuffers;
 {$IFDEF MSWINDOWS}
@@ -68,10 +68,12 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure Initialize;
+    function MakeCurrent : boolean;
     procedure Paint; override;
     procedure Resize; override;
     procedure Redraw;
-    procedure Initialize;
   published
     property Align;
     property Visible;
@@ -80,6 +82,7 @@ type
     property OnMouseMove;
     property OnMouseUp;
     property OnDblClick;
+    property AutoMakeCurrent: boolean read FAutoMakeCurrent write FAutoMakeCurrent;
     property ColorDepth : TDepthBits read GetColorDepth write SetColorDepth;
     property DepthBits : TDepthBits read GetDepthBufferDepth write SetDepthBufferDepth;
     property DepthBufferEnabled : Boolean read FDepthEnabled write FDepthEnabled;
@@ -243,7 +246,8 @@ begin
     exit;
 
   // Make this components rendering context current
-  MakeCurrent;
+  if FAutoMakeCurrent then
+    MakeCurrent;
 
   // Call assigned resize event if component has been initialized
   if Assigned(OnResize) then
@@ -258,7 +262,8 @@ end;
 procedure TGLWindow.Redraw;
 begin
   // Make this components rendering context current
-  MakeCurrent;
+  if FAutoMakeCurrent then
+    MakeCurrent;
 
   // Call assigned drawing routine, updating the OpenGL scene
   if Assigned(OnDraw) then
