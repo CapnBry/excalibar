@@ -14,153 +14,148 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
-  DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
-  Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
-  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns,
-  MapNavigator, PipeThread
-{$IFDEF WINPCAP}
-  ,PReader2
-{$ENDIF WINPCAP}
-  ;
+  DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, INIFiles,
+  Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, GameNetPackets, DAOCPlayerAttributes,
+  DAOCInventory, Recipes, IdBaseComponent, QuickLaunchChars, IdHTTP, ShellAPI,
+  MapNavigator, IdComponent, IdException, IdTCPConnection, IdTCPClient, DStreamClient,
+  DAOCControlList, DStrmServerListFrame, ActnList, Menus;
 
 type
   TfrmMain = class(TForm)
     Memo1: TMemo;
-    btnDebugging: TButton;
-    chkAutolaunchExcal: TCheckBox;
-    chkChatLog: TCheckBox;
-    edtChatLogFile: TEdit;
-    lblServerPing: TLabel;
-    btnResume: TButton;
-    tcpCollectorClient: TIdTCPClient;
-    tcpCollectorServer: TIdTCPServer;
-    tmrReconnect: TTimer;
-    btnConnectionOpts: TBitBtn;
-    Label1: TLabel;
-    Label2: TLabel;
-    btnGLRender: TBitBtn;
-    btnMacroing: TBitBtn;
-    cbxAutoLogin: TComboBox;
-    btnLogin: TBitBtn;
-    chkTrackLogins: TCheckBox;
-    btnDeleteChar: TBitBtn;
     lblUpdates: TLabel;
     tmrUpdateCheck: TTimer;
     httpUpdateChecker: TIdHTTP;
-    cbxAutoLoginProfile: TComboBox;
+    frmDStrmServerList1: TfrmDStrmServerList;
+    mnuMain: TMainMenu;
+    atlMain: TActionList;
+    atnRadar: TAction;
+    atnAutoLaunchRadar: TAction;
+    atnChatLog: TAction;
+    atnChangeChatLogFile: TAction;
+    atnSetDaocPath: TAction;
+    atnRemoteAdminEnable: TAction;
+    atnDumpMobList: TAction;
+    atnDumpPacketDataToLog: TAction;
+    atnProcessPackets: TAction;
+    atnTrackLogins: TAction;
+    atnCaptureMobseen: TAction;
+    atnCaptureDelveseen: TAction;
+    Network1: TMenuItem;
+    Logging1: TMenuItem;
+    Windows1: TMenuItem;
+    atnRemoteTelnetServer1: TMenuItem;
+    Processpackets1: TMenuItem;
+    atnRealTimeChatLog1: TMenuItem;
+    Setrealtimechatlogfile1: TMenuItem;
+    Capturemobupdatestomobseen1: TMenuItem;
+    Capturedelveinfotodelveseen1: TMenuItem;
+    Dumppacketdatatolog1: TMenuItem;
+    atnDumpMobList1: TMenuItem;
+    Viewradar1: TMenuItem;
+    Autolaunchradarwindow1: TMenuItem;
+    SetDAoCpath1: TMenuItem;
+    Quicklaunch1: TMenuItem;
+    rackcharacterlogins1: TMenuItem;
+    lblChatLogFile: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure btnGLRenderClick(Sender: TObject);
     procedure btnDebuggingClick(Sender: TObject);
     procedure chkChatLogClick(Sender: TObject);
     procedure btnMacroingClick(Sender: TObject);
-    procedure btnResumeClick(Sender: TObject);
-    procedure tcpCollectorServerExecute(AThread: TIdPeerThread);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure tcpCollectorServerStatus(ASender: TObject;
-      const AStatus: TIdStatus; const AStatusText: String);
-    procedure tcpCollectorClientStatus(ASender: TObject;
-      const AStatus: TIdStatus; const AStatusText: String);
-    procedure btnConnectionOptsClick(Sender: TObject);
-    procedure tmrReconnectTimer(Sender: TObject);
-    procedure tcpCollectorClientDisconnected(Sender: TObject);
     procedure btnDeleteCharClick(Sender: TObject);
     procedure btnLoginClick(Sender: TObject);
     procedure cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
-    procedure tcpCollectorServerConnect(AThread: TIdPeerThread);
-    procedure tcpCollectorServerDisconnect(AThread: TIdPeerThread);
     procedure tmrUpdateCheckTimer(Sender: TObject);
     procedure lblUpdatesClick(Sender: TObject);
     procedure chkTrackLoginsClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure lblRemoteAdminEnableClick(Sender: TObject);
+    procedure atnSetDaocPathExecute(Sender: TObject);
+    procedure atnRadarExecute(Sender: TObject);
   private
-{$IFDEF WINPCAP}
-    FPReader:   TPacketReader2;
-{$ENDIF WINPCAP}
 {$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
 {$ENDIF DAOC_AUTO_SERVER}
-    FConnection:  TDAOCControl;
-    FChatLog:       TFileStream;
-    FClosing:       boolean;
+    FChatLog:     TFileStream;
+    FClosing:     boolean;
     FCheckForUpdates:   boolean;
     FLastUpdateCheck:   TDateTime;
     FProcessPackets:    boolean;
-    FSegmentFromCollector:    TEthernetSegment;
     FChatLogXIEnabled:  boolean;
-    FCollectorPipe:     TNamedPipeThread;
-    FPacket:        TDAOCPacket;
-    FCBTHook:       HHOOK;
+    FRemoteAdminEnabled:  boolean;
+    FDAOCPath:          string;
+    FDStreamClients:    TDStreamClientList;
+    FDControlList:      TDAOCControlList;
 
-{$IFDEF WINPCAP}
-    procedure OpenAdapter(const AAdapterName: string);
-    procedure CloseAdapter;
-{$ENDIF WINPCAP}
     procedure LoadSettings;
+    procedure LoadSettingsForConnection(AConn: TDAOCConnection);
     procedure SaveSettings;
+    procedure SaveSettingsForConnection(AConn: TDAOCConnection);
+    procedure SetupDAOCConnectionObj(AConn: TDAOCConnection);
+    procedure SetupDStreamObj;
     function GetConfigFileName : string;
-    procedure SetupDAOCConnectionObj;
-    procedure ShowGLRenderer(AConnection: TDAOCConnection);
+    procedure ShowGLRenderer;
     procedure CreateChatLog;
     procedure CloseChatLog;
-    procedure SendSegmentToCollector(ASegment: TEthernetSegment);
-    procedure CloseCollectionServer;
-    procedure OpenCollectionServer;
-    procedure OpenCollectionClient;
-    procedure CloseCollectionClient;
     procedure OpenRemoteAdmin;
     procedure CloseRemoteAdmin;
-    procedure NewSegmentFromCollector;
-    function UseCollectionClient : boolean;
-    function SetServerNet : boolean;
     procedure UpdateQuickLaunchList;
     procedure UpdateQuickLaunchProfileList;
     procedure ChatLogXI(const s: string);
     procedure LogLocalPlayerXI;
-    procedure SetCBTHook;
-    procedure ClearCBTHook;
+    procedure SetRemoteAdminEnabled(const Value: boolean);
   protected
+    procedure CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
+    procedure CONNLISTDeleteConnection(Sender: TObject; AConn: TDAOCConnection);
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
     procedure DAOCConnect(Sender: TObject);
     procedure DAOCDisconnect(Sender: TObject);
     procedure DAOCLog(Sender: TObject; const s: string);
     procedure DAOCZoneChange(Sender: TObject);
-    procedure DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
-    procedure DAOCAfterPacket(Sender: TObject; APacket: TDAOCPacket);
+    procedure DAOCPacket(Sender: TObject; APacket: TGameNetPacket);
+    procedure DAOCAfterPacket(Sender: TObject; APacket: TGameNetPacket);
     procedure DAOCInventoryChanged(Sender: TObject);
     procedure DAOCVendorWindow(Sender: TObject);
     procedure DAOCPathChanged(Sender: TObject);
     procedure DAOCStopAllActions(Sender: TObject);
-    procedure DAOCNewObject(ASender: TObject; ADAOCObject: TDAOCObject);
-    procedure DAOCDeleteObject(ASender: TObject; ADAOCObject: TDAOCObject);
-    procedure DAOCObjectMoved(ASender: TObject; ADAOCObject: TDAOCObject);
-    procedure DAOCSkillLevelChanged(ASender: TObject; AItem: TDAOCNameValuePair);
-    procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
-    procedure DAOCSetGroundTarget(ASender: TObject);
-    procedure DAOCChatLog(ASender: TObject; const s: string);
-    procedure DAOCPingReply(ASender: TObject; ATime: integer);
-    procedure DAOCCharacterLogin(ASender: TObject);
-    procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
-    procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
-    procedure DAOCArriveAtGotoDest(ASender: TObject; ANode: TMapNode);
-    procedure DAOCSelectNPCSuccess(ASender: TObject);
-    procedure DAOCSelectNPCFailed(ASender: TObject);
-    procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
-    procedure DAOCLocalHealthUpdate(ASender: TObject);
-    procedure DAOCDoorPositionUpdate(ASender: TObject; ADoor: TDAOCObject);
-    procedure PIPEData(ASender: TObject; AData: Pointer; ADataLen: integer);
-    procedure PIPEConnected(ASender: TObject);
-    procedure PIPEDisconnected(ASender: TObject);
+    procedure DAOCNewObject(Sender: TObject; ADAOCObject: TDAOCObject);
+    procedure DAOCDeleteObject(Sender: TObject; ADAOCObject: TDAOCObject);
+    procedure DAOCObjectMoved(Sender: TObject; ADAOCObject: TDAOCObject);
+    procedure DAOCSkillLevelChanged(Sender: TObject; AItem: TDAOCNameValuePair);
+    procedure DAOCSelectedObjectChanged(Sender: TObject; ADAOCObject: TDAOCObject);
+    procedure DAOCSetGroundTarget(Sender: TObject);
+    procedure DAOCChatLog(Sender: TObject; const s: string);
+    procedure DAOCPingReply(Sender: TObject; ATime: integer);
+    procedure DAOCCharacterLogin(Sender: TObject);
+    procedure DAOCUnknownStealther(Sender: TObject; AUnk: TDAOCObject);
+    procedure DAOCDelveItem(Sender: TObject; AItem: TDAOCInventoryItem);
+    procedure DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
+    procedure DAOCSelectNPCSuccess(Sender: TObject);
+    procedure DAOCSelectNPCFailed(Sender: TObject);
+    procedure DAOCAttemptNPCRightClickFailed(Sender: TObject);
+    procedure DAOCLocalHealthUpdate(Sender: TObject);
+    procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
+
+    procedure DSTREAMDAOCConnect(Sender: TObject;
+      AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
+      AClientIP: Cardinal; AClientPort: WORD);
+    procedure DSTREAMDAOCData(Sender: TObject;
+      AConnectionID: Cardinal; AIsFromClient: boolean; AIsTCP: boolean;
+      AData: Pointer; ADataLen: integer);
+    procedure DSTREAMDAOCDisconnect(Sender: TObject;
+      AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
+      AClientIP: Cardinal; AClientPort: WORD);
+    procedure DSTREAMStatusChange(Sender: TObject);
   public
     procedure Log(const s: string);
-    procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
-    procedure InjectPacket(APacket: TDAOCPacket);
+    procedure InjectPacket(ASource: TObject; APacket: TGameNetPacket);
 
     property ProcessPackets: boolean read FProcessPackets write FProcessPackets;
+    property RemoteAdminEnabled: boolean read FRemoteAdminEnabled write SetRemoteAdminEnabled;
   end;
 
 var
@@ -172,8 +167,8 @@ implementation
 
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  SpellcraftHelp, DebugAndTracing, Macroing, LowOnStat,
-  ConnectionConfig, VCLMemStrms, RemoteAdmin, StringParseHlprs
+  SpellcraftHelp, Macroing, LowOnStat, VCLMemStrms, RemoteAdmin,
+  StringParseHlprs, DebugAndTracing
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -186,51 +181,12 @@ uses
 
 const
   CHAT_XI_PREFIX = 'XI: ';
-  
-var
-    { ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) }
-  BP_Instns: array[0..17] of Tbpf_insn = (
-    (code: BPF_LD + BPF_H + BPF_ABS; jt: 0; jf: 0; k: 12),  // load the ethernet protocol word (offset 12)
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 14; jf: 0; k: $8864),  // see if it is PPPoE ($8864)
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 14; k: $0800),  // see if it is IP ($0800)
-
-      { source net 208.254.16.0/24 }
-    (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 26),  // load the source DWORD
-    (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-{5} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 3; jf: 0; k: $D0FE1000),  // is it 208.254.16.0
-
-      { dest net 208.254.16.0/24 }
-    (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 30),  // load the dest DWORD
-    (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-{8} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 8; k: $D0FE1000),  // is it 208.254.16.0?
-
-      { udp }
-    (code: BPF_LD + BPF_B + BPF_ABS; jt: 0; jf: 0; k: 23),  // load the IP proto byte (23)
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 5; jf: 0; k: $11),  // is it 17?  match!
-
-      { tcp }
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 5; k: $6),  // is it 6?
-
-      { src port 10622 }
-    (code: BPF_LD + BPF_H + BPF_ABS; jt: 0; jf: 0; k: 34),  // load src port
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 2; jf: 0; k: $297E),  // is it 10622?
-
-      { dest port 10622 }
-    (code: BPF_LD + BPF_H + BPF_ABS; jt: 0; jf: 0; k: 36),  // load dest port
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 1; k: $297E),  // is it 10622?
-
-    (code: BPF_RET + BPF_K; jt: 0; jf: 0; k: $ffffffff),   // return true
-    (code: BPF_RET + BPF_K; jt: 0; jf: 0; k: $0)   // return false
-    // (code: ; jt: ; jf: ; k: )
-  );
-
-  BPProgram: Tbpf_program = (bf_len: high(BP_Instns)+1; bf_insns: @BP_Instns);
 
 procedure CreateOptionalForms;
 begin
 {$IFDEF OPENGL_RENDERER}
   Application.CreateForm(TfrmGLRender, frmGLRender);
-  frmGLRender.DAOCControl := frmMain.FConnection;
+  // frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
 
 {$IFDEF DAOC_AUTO_SERVER}
@@ -265,16 +221,6 @@ begin
   end;
 end;
 
-function StrToHNet(const AIP: string) : Cardinal;
-begin
-  Result := ntohl(inet_addr(PChar(AIP)));
-end;
-
-function HNetToStr(AIP: Cardinal) : string;
-begin
-  Result := string(my_inet_ntoa(ntohl(AIP)));
-end;
-
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   Memo1.Lines.Clear;
@@ -285,22 +231,12 @@ begin
   Log('  See LICENSE.TXT for more information regarding licensing.');
   Log('--==========================================================--');
 
-  SetupDAOCConnectionObj;
-
-{$IFDEF WINPCAP}
-  FPReader := TPacketReader2.CreateInst;
-  FPReader.OnEthernetSegment := EthernetSegment;
-  Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
-{$ENDIF WINPCAP}
+  FDControlList := TDAOCControlList.Create;
+  FDControlList.OnNewConnection := CONNLISTNewConnection;
+  FDControlList.OnDeleteConnection := CONNLISTDeleteConnection;
+  SetupDStreamObj;
 
   FProcessPackets := true;
-
-  FPacket := TDAOCPacket.Create;
-  FCollectorPipe := TNamedPipeThread.Create('daocskilla');
-  FCollectorPipe.OnPipeConnected := PIPEConnected;
-  FCollectorPipe.OnPipeDisconnected := PIPEDisconnected;
-  FCollectorPipe.OnPipeData := PIPEData;
-  FCollectorPipe.Resume;
 
 {$IFNDEF OPENGL_RENDERER}
   btnGLRender.Visible := false;
@@ -309,47 +245,30 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-{$IFDEF WINPCAP}
-  FPReader.Free;
-{$ENDIF WINPCAP}
-
-  FPacket.Free;
   CloseChatLog
 end;
 
-procedure TfrmMain.EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
-begin
-  frmDebugging.EthernetSegment(Sender, ASegment);
-
-  if not FProcessPackets then
-    exit;
-
-  if UseCollectionClient then
-    SendSegmentToCollector(ASegment)
-  else
-    FConnection.ProcessEthernetSegment(ASegment);
-end;
-
 procedure TfrmMain.DAOCConnect(Sender: TObject);
+var
+  pConn:  TDAOCControl;
 begin
-  lblServerPing.Caption := 'Connected';
-  Log('New connection: ' + FConnection.ClientIP + '->' +
-    FConnection.ServerIP);
+  pConn := TDAOCControl(Sender);
+  // lblServerPing.Caption := 'Connected';
+  Log('New connection: ' + pConn.ClientIP + '->' + pConn.ServerIP);
 
 {$IFDEF OPENGL_RENDERER}
-  if chkAutolaunchExcal.Checked then
-    ShowGLRenderer(FConnection);
+  if atnAutoLaunchRadar.Checked then
+    ShowGLRenderer;
 {$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCDisconnect(Sender: TObject);
 begin
-  // Log('Connection closed.  Largest packet was: ' + IntToStr(FConnection.LargestDAOCPacketSeen));
   CloseChatLog;
-  lblServerPing.Caption := 'Disconnected';
+  // lblServerPing.Caption := 'Disconnected';
 
 {$IFDEF OPENGL_RENDERER}
-  if chkAutolaunchExcal.Checked then
+  if atnAutoLaunchRadar.Checked then
     frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}
 end;
@@ -357,82 +276,65 @@ end;
 procedure TfrmMain.DAOCPlayerPosUpdate(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCPlayerPosUpdate;
+  frmGLRender.DAOCPlayerPosUpdate(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.SetupDAOCConnectionObj;
+procedure TfrmMain.SetupDAOCConnectionObj(AConn: TDAOCConnection);
 begin
-  FConnection := TDAOCControl.Create;
+  with TDAOCControl(AConn) do begin
+    OnPlayerPosUpdate := DAOCPlayerPosUpdate;
+    OnLog := DAOCLog;
+    OnConnect := DAOCConnect;
+    OnDisconnect := DAOCDisconnect;
+    OnZoneChange := DAOCZoneChange;
+    OnAfterPacket := DAOCAfterPacket;
+//  OnPacket := DAOCPacket;
+    OnInventoryChanged := DAOCInventoryChanged;
+    OnVendorWindow := DAOCVendorWindow;
+    OnPathChanged := DAOCPathChanged;
+    OnStopAllActions := DAOCStopAllActions;
+    OnNewDAOCObject := DAOCNewObject;
+    OnDeleteDAOCObject := DAOCDeleteObject;
+    OnDAOCObjectMoved := DAOCObjectMoved;
+    OnSkillLevelChanged := DAOCSkillLevelChanged;
+    OnSelectedObjectChange := DAOCSelectedObjectChanged;
+    OnRegionChanged := DAOCRegionChanged;
+    OnSetGroundTarget := DAOCSetGroundTarget;
+    OnChatLog := DAOCChatLog;
+    OnPingReply := DAOCPingReply;
+    OnCharacterLogin := DAOCCharacterLogin;
+    OnUnknownStealther := DAOCUnknownStealther;
+    OnDelveItem := DAOCDelveItem;
+    OnArriveAtGotoDest := DAOCArriveAtGotoDest;
+    OnSelectNPCSuccess := DAOCSelectNPCSuccess;
+    OnSelectNPCFailed := DAOCSelectNPCFailed;
+    OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
+    OnLocalHealthUpdate := DAOCLocalHealthUpdate;
+
+    DAOCPath := FDAOCPath;
+    MainHWND := Handle;
+  end;
+  
+  LoadSettingsForConnection(AConn);
+
 {$IFDEF DAOC_AUTO_SERVER}
   FIConnection := FConnection as IDAOCControl;
 {$ENDIF DAOC_AUTO_SERVER}
-  FConnection.MainHWND := Handle;
-
-  FConnection.OnPlayerPosUpdate := DAOCPlayerPosUpdate;
-  FConnection.OnLog := DAOCLog;
-  FConnection.OnConnect := DAOCConnect;
-  FConnection.OnDisconnect := DAOCDisconnect;
-  FConnection.OnZoneChange := DAOCZoneChange;
-  FConnection.OnAfterPacket := DAOCAfterPacket;
-//  FConnection.OnPacket := DAOCPacket;
-  FConnection.OnInventoryChanged := DAOCInventoryChanged;
-  FConnection.OnVendorWindow := DAOCVendorWindow;
-  FConnection.OnPathChanged := DAOCPathChanged;
-  FConnection.OnStopAllActions := DAOCStopAllActions;
-  FConnection.OnNewDAOCObject := DAOCNewObject;
-  FConnection.OnDeleteDAOCObject := DAOCDeleteObject;
-  FConnection.OnDAOCObjectMoved := DAOCObjectMoved;
-  FConnection.OnSkillLevelChanged := DAOCSkillLevelChanged;
-  FConnection.OnSelectedObjectChange := DAOCSelectedObjectChanged;
-  FConnection.OnRegionChanged := DAOCRegionChanged;
-  FConnection.OnSetGroundTarget := DAOCSetGroundTarget;
-  FConnection.OnChatLog := DAOCChatLog;
-  FConnection.OnPingReply := DAOCPingReply;
-  FConnection.OnCharacterLogin := DAOCCharacterLogin;
-  FConnection.OnUnknownStealther := DAOCUnknownStealther;
-  FConnection.OnDelveItem := DAOCDelveItem;
-  FConnection.OnArriveAtGotoDest := DAOCArriveAtGotoDest;
-  FConnection.OnSelectNPCSuccess := DAOCSelectNPCSuccess;
-  FConnection.OnSelectNPCFailed := DAOCSelectNPCFailed;
-  FConnection.OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
-  FConnection.OnLocalHealthUpdate := DAOCLocalHealthUpdate;
-  FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
-  FConnection.PacketHandlerDefFile := ExtractFilePath(ParamStr(0)) + 'packethandlers.ini';
-  FConnection.InitPacketHandlers;
-  FConnection.ServerProtocol := $01;
-
-  Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
     { setup the adapterlist first, so the load settings can set the active
       adapter properly }
-{$IFDEF WINPCAP}
-  frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
-{$ENDIF WINPCAP}
   LoadSettings;
-  dmdRemoteAdmin.DAOCControl := FConnection;
-  if frmConnectionConfig.RemoteAdminEnabled then
-    OpenRemoteAdmin;
+  // dmdRemoteAdmin.DAOCControl := FConnection;
+  SetRemoteAdminEnabled(FRemoteAdminEnabled);
 
-{$IFDEF WINPCAP}
-  FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
-  if frmConnectionConfig.SniffPackets then
-    OpenAdapter(frmConnectionConfig.AdapterName)
-  else
-    CloseAdapter;
-{$ENDIF WINPCAP}
-
-  if frmConnectionConfig.InjectClientProcess then
-    SetCBTHook;
-
-  OpenCollectionServer;
-  if not frmConnectionConfig.ProcessLocally then
-    OpenCollectionClient;
   UpdateQuickLaunchList;
   UpdateQuickLaunchProfileList;
+
+  FDStreamClients.OpenAll;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -444,51 +346,24 @@ procedure TfrmMain.DAOCZoneChange(Sender: TObject);
 begin
   frmDebugging.DAOCZoneChange;
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCZoneChanged;
+  frmGLRender.DAOCZoneChanged(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.LoadSettings;
 begin
-  FConnection.QuickLaunchChars.LoadFromFile(GetConfigFileName);
-  FConnection.QuickLaunchProfiles.LoadFromFile(GetConfigFileName);
-
   with TINIFile.Create(GetConfigFileName) do begin
+    FDAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');;
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
-    FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
-    FConnection.WindowManager.UIStyle := ReadString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8500);
-    FConnection.MaxObjectStaleTime := ReadInteger('Main', 'MaxObjectStaleTime', 300) * 1000;
-    chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
-    chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
-    edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
-    btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
-    FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
+    FRemoteAdminEnabled := ReadBool('Main', 'RemoteAdminEnabled', true);
+    atnAutoLaunchRadar.Checked := ReadBool('Main', 'AutolaunchExcal', true);
+    atnChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
+    lblChatLogFile.Caption := ReadString('Main', 'ChatLogFile', ExtractFilePath(ParamStr(0)) + 'realchat.log');
+    //btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
     FChatLogXIEnabled := ReadBool('Main', 'ChatLogXIEnabled', true);
-
-    FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
-    FConnection.SendKeysSlashDelay := ReadInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
-    FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
-    FConnection.InventoryLookupEnabled := ReadBool('Main', 'InventoryLookupEnabled', FConnection.InventoryLookupEnabled);
-    FConnection.KeyQuickSell := ReadString('Keys', 'QuickSell', FConnection.KeyQuickSell);
-    FConnection.KeySelectFriendly := ReadString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
-    FConnection.KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
-    FConnection.KeyStrafeRight := ReadString('Keys', 'StrafeRight', FConnection.KeyStrafeRight);
-
-    frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
-    frmConnectionConfig.CustomServerSubnet := ReadString('Main', 'CustomServerSubnet', '208.254.16.0');
-    frmConnectionConfig.InjectClientProcess := ReadBool('Main', 'InjectClientProcess', true);
-    frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
-    frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
-    frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
-    frmConnectionConfig.RemoteAdminEnabled := ReadBool('Main', 'RemoteAdminEnabled', true);
-    frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
-    frmConnectionConfig.ServerSubnet := TServerSubnet(ReadInteger('Main', 'ServerSubnet', 0));
-    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', false);
-    SetServerNet;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -546,45 +421,25 @@ begin
     Free;
   end;  { with INI }
 
-  Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
-  chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
+  Self.Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FDAOCPath;
+//  chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
     { set up chat log if applicable }
   chkChatLogClick(nil);
 end;
 
 procedure TfrmMain.SaveSettings;
 begin
-  FConnection.QuickLaunchChars.SaveToFile(GetConfigFileName);
-
   with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
-    WriteBool('Main', 'AutolaunchExcal', chkAutolaunchExcal.Checked);
-    WriteBool('Main', 'RealtimeChatLog', chkChatLog.Checked);
-    WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
-    WriteBool('Main', 'TrackLogins', chkTrackLogins.Checked);
+    WriteBool('Main', 'AutolaunchExcal', atnAutoLaunchRadar.Checked);
+    WriteBool('Main', 'RealtimeChatLog', atnChatLog.Checked);
+    WriteString('Main', 'ChatLogFile', lblChatLogFile.Caption);
+    WriteBool('Main', 'TrackLogins', atnTrackLogins.Checked);
     WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
     WriteBool('Main', 'ChatLogXIEnabled', FChatLogXIEnabled);
 
-    WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
-    WriteString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
-    WriteInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
-    WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
-    WriteBool('Main', 'InventoryLookupEnabled', FConnection.InventoryLookupEnabled);
-    WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
-    WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
-    WriteString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
-    WriteString('Keys', 'StrafeRight', FConnection.KeyStrafeRight);
-
-    WriteString('Main', 'Adapter', frmConnectionConfig.AdapterName);
-    WriteBool('Main', 'ProcessLocally', frmConnectionConfig.ProcessLocally);
-    WriteBool('Main', 'SniffPackets', frmConnectionConfig.SniffPackets);
-    WriteBool('Main', 'PromiscCapture', frmConnectionConfig.PromiscuousCapture);
-    WriteString('Main', 'RemoteCollector', frmConnectionConfig.RemoteCollector);
-    WriteInteger('Main', 'LocalCollectorPort', frmConnectionConfig.LocalCollectorPort);
-    WriteInteger('Main', 'ServerSubnet', Ord(frmConnectionConfig.ServerSubnet));
-    WriteString('Main', 'CustomServerSubnet', frmConnectionConfig.CustomServerSubnet);
-    WriteBool('Main', 'RemoteAdminEnabled', frmConnectionConfig.RemoteAdminEnabled);
+    WriteBool('Main', 'RemoteAdminEnabled', FRemoteAdminEnabled);
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -631,7 +486,7 @@ begin
   end;  { with INI }
 end;
 
-procedure TfrmMain.DAOCAfterPacket(Sender: TObject; APacket: TDAOCPacket);
+procedure TfrmMain.DAOCAfterPacket(Sender: TObject; APacket: TGameNetPacket);
 begin
   frmDebugging.DAOCAfterPacket(APacket);
 end;
@@ -663,19 +518,13 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  FCollectorPipe.Shutdown;
-  ClearCBTHook;
-
-{$IFDEF WINPCAP}
-  CloseAdapter;
-  Application.ProcessMessages;  // get any packets pending out of the message q
-{$ENDIF WINPCAP}
-
   SaveSettings;
 {$IFDEF OPENGL_RENDERER}
   if frmGLRender.Visible then
     frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}
+
+  FDStreamClients.Clear;
 
     { we want to free the connection before our destroy because the connection
       might fire callbacks as it closes.  Firing a callback to a sub-form
@@ -684,48 +533,34 @@ begin
   FConnection := nil;
   FIConnection := nil;  // interface release frees obj
 {$ELSE}
-  FConnection.Free;
+//  FConnection.Free;
 {$ENDIF DAOC_AUTO_SERVER}
 end;
 
-procedure TfrmMain.btnGLRenderClick(Sender: TObject);
+procedure TfrmMain.DAOCDeleteObject(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  if frmGLRender.Visible then
-    frmGLRender.Close
-  else
-    ShowGLRenderer(FConnection);
-{$ENDIF}
-end;
-
-procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
-  ADAOCObject: TDAOCObject);
-begin
-{$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCDeleteObject(ADAOCObject);
+  frmGLRender.DAOCDeleteObject(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 //  Log('Deleteing: ' + ADaocObject.Name + ' longest update delta ' + IntToStr(ADAOCObject.LongestUpdateTime));
 end;
 
-procedure TfrmMain.DAOCNewObject(ASender: TObject;
-  ADAOCObject: TDAOCObject);
+procedure TfrmMain.DAOCNewObject(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
   frmDebugging.DAOCNewObject(ADAOCObject);
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCAddObject(ADAOCObject);
+  frmGLRender.DAOCAddObject(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.DAOCObjectMoved(ASender: TObject;
-  ADAOCObject: TDAOCObject);
+procedure TfrmMain.DAOCObjectMoved(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCUpdateObject(ADAOCObject);
+  frmGLRender.DAOCUpdateObject(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.DAOCSkillLevelChanged(ASender: TObject;
-  AItem: TDAOCNameValuePair);
+procedure TfrmMain.DAOCSkillLevelChanged(Sender: TObject; AItem: TDAOCNameValuePair);
 begin
   frmMacroing.DAOCSkillLevelChanged(AItem);
 end;
@@ -735,8 +570,7 @@ begin
   Result := ChangeFileExt(ParamStr(0), '.ini');
 end;
 
-procedure TfrmMain.DAOCSelectedObjectChanged(ASender: TObject;
-  ADAOCObject: TDAOCObject);
+procedure TfrmMain.DAOCSelectedObjectChanged(Sender: TObject; ADAOCObject: TDAOCObject);
 begin
   if Assigned(ADAOCObject) and (ADAOCObject.ObjectClass = ocMob) then begin
     ChatLogXI(Format('New Target: "%s" Level: %d Health: %d%%',
@@ -745,7 +579,7 @@ begin
   end;
   
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCSelectedObjectChanged(ADAOCObject);
+  frmGLRender.DAOCSelectedObjectChanged(Sender, ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 //  if Assigned(ADAOCObject) then
 //    Log('Largest update delta: ' + IntToStr(ADAOCObject.LongestUpdateTime));
@@ -753,33 +587,32 @@ end;
 
 procedure TfrmMain.DAOCRegionChanged(Sender: TObject);
 begin
-  FConnection.SaveConnectionState(GetConfigFileName);
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCRegionChanged;
+  frmGLRender.DAOCRegionChanged(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.DAOCSetGroundTarget(ASender: TObject);
+procedure TfrmMain.DAOCSetGroundTarget(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCSetGroundTarget;
+  frmGLRender.DAOCSetGroundTarget(Sender);
 {$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.btnDebuggingClick(Sender: TObject);
 begin
-  frmDebugging.DAOCControl := FConnection;
-  
+  // frmDebugging.DAOCControl := FConnection;
+
   if frmDebugging.Visible then
     frmDebugging.Close
   else
     frmDebugging.Show;
 end;
 
-procedure TfrmMain.ShowGLRenderer(AConnection: TDAOCConnection);
+procedure TfrmMain.ShowGLRenderer;
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCControl := AConnection;
+  frmGLRender.DAOCConnectionList := FDControlList;
   frmGLRender.PrefsFile := GetConfigFileName;
   frmGLRender.Show;
 {$ENDIF OPENGL_RENDERER}
@@ -787,9 +620,9 @@ end;
 
 procedure TfrmMain.chkChatLogClick(Sender: TObject);
 begin
-  edtChatLogFile.Enabled := not chkChatLog.Checked;
+  atnChangeChatLogFile.Enabled := not atnChatLog.Checked;
 
-  if not chkChatLog.Checked then
+  if not atnChatLog.Checked then
     CloseChatLog;
 end;
 
@@ -802,18 +635,18 @@ begin
     CloseChatLog;
 
     { make sure we have a file, Delphi 6 will not respect the share mode on an fmCreate }
-  if not FileExists(edtChatLogFile.Text) then begin
-    sDirectory := ExtractFilePath(edtChatLogFile.Text);
+  if not FileExists(lblChatLogFile.Caption) then begin
+    sDirectory := ExtractFilePath(lblChatLogFile.Caption);
       { make sure the directory exists }
     if sDirectory <> '' then
       ForceDirectories(sDirectory);
     try
-      FChatLog := TFileStream.Create(edtChatLogFile.Text, fmCreate);
+      FChatLog := TFileStream.Create(lblChatLogFile.Caption, fmCreate);
     except
       on E: Exception do begin
           { if we get an exception, log it and turn off the chat file }
-        chkChatLog.Checked := false;
-        chkChatLogClick(nil);
+        atnChatLog.Checked := false;
+        atnChatLog.Execute;
         Log(e.Message);
         exit;
       end;
@@ -821,7 +654,7 @@ begin
     FreeAndNil(FChatLog);
   end;  { if creating a new file }
 
-  FChatLog := TFileStream.Create(edtChatLogFile.Text, fmOpenWrite or fmShareDenyNone);
+  FChatLog := TFileStream.Create(lblChatLogFile.Caption, fmOpenWrite or fmShareDenyNone);
   FChatLog.Seek(0, soFromEnd);
 
   sOpenLine := #13#10'*** Chat Log Opened: ' +
@@ -845,13 +678,13 @@ begin
   end;
 end;
 
-procedure TfrmMain.DAOCChatLog(ASender: TObject; const s: string);
+procedure TfrmMain.DAOCChatLog(Sender: TObject; const s: string);
 var
   sChatLogLine:   string;
 begin
   sChatLogLine := FormatDateTime('[hh:nn:ss] ', Now) + s + #13#10;
 
-  if chkChatLog.Checked then begin
+  if atnChatLog.Checked then begin
     if not Assigned(FChatLog) then
       CreateChatLog;
 
@@ -864,280 +697,45 @@ end;
 
 procedure TfrmMain.btnMacroingClick(Sender: TObject);
 begin
-  frmMacroing.DAOCControl := FConnection;
+  // frmMacroing.DAOCControl := FConnection;
   if frmMacroing.Visible then
     frmMacroing.Close
   else
     frmMacroing.Show;
 end;
 
-procedure TfrmMain.DAOCPingReply(ASender: TObject; ATime: integer);
+procedure TfrmMain.DAOCPingReply(Sender: TObject; ATime: integer);
 begin
-  lblServerPing.Caption := 'Server ping ' + IntToStr(ATime) + 'ms';
-end;
-
-procedure TfrmMain.btnResumeClick(Sender: TObject);
-begin
-  FConnection.ResumeConnection(GetConfigFileName);
-end;
-
-procedure TfrmMain.tcpCollectorServerExecute(AThread: TIdPeerThread);
-var
-  ms:   TMinSizeVCLMemStream;
-begin
-  ms := TMinSizeVCLMemStream.Create;
-  ms.MinCapacity := 2048;  // should be large enough to hold 1500 MTU
-  try
-    while not FClosing and AThread.Connection.Connected do begin
-      AThread.Connection.ReadStream(ms);
-      ms.Seek(0, soFromBeginning);
-
-      FSegmentFromCollector := TEthernetSegment.Create;
-      FSegmentFromCollector.LoadFromStream(ms, 0);
-      AThread.Synchronize(NewSegmentFromCollector);
-      FSegmentFromCollector.Free;
-      FSegmentFromCollector := nil;
-
-      ms.Size := 0;
-    end;
-  finally
-    ms.Free;
-  end;
-end;
-
-procedure TfrmMain.SendSegmentToCollector(ASegment: TEthernetSegment);
-var
-  ms:   TVCLMemoryStream;
-begin
-  if not tcpCollectorClient.Connected then
-    exit;
-
-  ms := TVCLMemoryStream.Create;
-  try
-    ASegment.SaveToStream(ms);
-    ms.Seek(0, soFromBeginning);
-    
-    tcpCollectorClient.WriteStream(ms, true, true);
-  finally
-    ms.Free;
-  end;
+//  lblServerPing.Caption := 'Server ping ' + IntToStr(ATime) + 'ms';
 end;
 
 procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   FClosing := true;
-  tcpCollectorClient.Disconnect;
-  tcpCollectorServer.Active := false;
 end;
 
-procedure TfrmMain.tcpCollectorServerStatus(ASender: TObject;
-  const AStatus: TIdStatus; const AStatusText: String);
-begin
-  Log('Collection Server: ' + AStatusText);
-end;
-
-procedure TfrmMain.tcpCollectorClientStatus(ASender: TObject;
-  const AStatus: TIdStatus; const AStatusText: String);
-begin
-  Log('Collection client: ' + AStatusText);
-end;
-
-procedure TfrmMain.btnConnectionOptsClick(Sender: TObject);
-{$IFDEF WINPCAP}
-var
-  bNeedAdapterRestart:    boolean;
-{$ENDIF WINPCAP}
-begin
-  frmConnectionConfig.ShowModal;
-
-{$IFDEF WINPCAP}
-  bNeedAdapterRestart := SetServerNet;
-  bNeedAdapterRestart := bNeedAdapterRestart or (
-    frmConnectionConfig.SniffPackets <> FPReader.Active);
-  bNeedAdapterRestart := bNeedAdapterRestart or (
-    FPReader.Promiscuous <> frmConnectionConfig.PromiscuousCapture);
-  bNeedAdapterRestart := bNeedAdapterRestart or (
-    FPReader.DeviceNameForAdapter(frmConnectionConfig.AdapterName) <> FPReader.DeviceName);
-
-  if bNeedAdapterRestart then begin
-    CloseAdapter;
-    FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
-    if frmConnectionConfig.SniffPackets then
-      OpenAdapter(frmConnectionConfig.AdapterName);
-  end;
-{$ENDIF WINPCAP}
-
-  if frmConnectionConfig.InjectClientProcess then
-    SetCBTHook
-  else
-    ClearCBTHook;
-
-  if frmConnectionConfig.LocalCollectorPort <> tcpCollectorServer.DefaultPort then begin
-    CloseCollectionServer;
-    OpenCollectionServer;
-  end;
-
-    { if sniff and not process locally, start a connect }
-  if UseCollectionClient then
-    OpenCollectionClient
-  else
-    CloseCollectionClient;
-
-  if frmConnectionConfig.RemoteAdminEnabled <> dmdRemoteAdmin.Enabled then
-    if frmConnectionConfig.RemoteAdminEnabled then
-      OpenRemoteAdmin
-    else
-      CloseRemoteAdmin;
-end;
-
-{$IFDEF WINPCAP}
-procedure TfrmMain.OpenAdapter(const AAdapterName: string);
-var
-  iIdx:   integer;
-begin
-  CloseAdapter;
-
-  if AAdapterName <> '' then begin
-    iIdx := FPReader.AdapterList.IndexOf(AAdapterName);
-    if iIdx <> -1 then begin
-      FPReader.DeviceName := FPReader.DeviceList[iIdx];
-      FPReader.BPFilter := @BPProgram;
-      FPReader.Open;
-      Log('Adapter opened:');
-      Log('  ' + AAdapterName);
-    end;
-  end;  { if adapter name <> '' }
-end;
-{$ENDIF WINPCAP}
-
-{$IFDEF WINPCAP}
-procedure TfrmMain.CloseAdapter;
-begin
-  if FPReader.Active then begin
-    FPReader.Close;
-    FPReader.WaitForClose;
-    Log('Adapter closed: ' + FPReader.DeviceName);
-  end;
-end;
-{$ENDIF WINPCAP}
-
-procedure TfrmMain.CloseCollectionServer;
-begin
-  if tcpCollectorServer.Active then begin
-    tcpCollectorServer.Active := false;
-    Log('Collection server deactivated');
-  end;
-end;
-
-procedure TfrmMain.OpenCollectionServer;
-begin
-  CloseCollectionServer;
-
-  tcpCollectorServer.DefaultPort := frmConnectionConfig.LocalCollectorPort;
-  if tcpCollectorServer.DefaultPort <> 0 then begin
-    tcpCollectorServer.Active := true;
-    Log('Collection server activated on port ' + IntToStr(tcpCollectorServer.DefaultPort));
-  end;
-end;
-
-procedure TfrmMain.CloseCollectionClient;
-begin
-  tcpCollectorClient.Disconnect;
-end;
-
-procedure TfrmMain.OpenCollectionClient;
-var
-  iPos:   integer;
-  s:      string;
-begin
-  try
-    CloseCollectionClient;
-
-    s := frmConnectionConfig.RemoteCollector;
-    iPos := Pos(':', s);
-    if iPos <> 0 then begin
-      tcpCollectorClient.Host := copy(s, 1, iPos - 1);
-      tcpCollectorClient.Port := StrToIntDef(copy(s, iPos + 1, Length(s)), DEFAULT_COLLECTOR_PORT);
-    end
-    else begin
-      tcpCollectorClient.Host := s;
-      tcpCollectorClient.Port := DEFAULT_COLLECTOR_PORT;
-    end;
-
-    tcpCollectorClient.Connect;
-  except
-    on E: Exception do
-      Log(E.Message);
-  end;
-
-  tmrReconnect.Enabled := not frmConnectionConfig.ProcessLocally and not tcpCollectorClient.Connected;
-end;
-
-procedure TfrmMain.tmrReconnectTimer(Sender: TObject);
-begin
-  tmrReconnect.Enabled := false;
-  OpenCollectionClient;
-end;
-
-procedure TfrmMain.NewSegmentFromCollector;
-begin
-  EthernetSegment(nil, FSegmentFromCollector);
-end;
-
-procedure TfrmMain.tcpCollectorClientDisconnected(Sender: TObject);
-begin
-  if UseCollectionClient then
-    OpenCollectionClient;
-end;
-
-function TfrmMain.UseCollectionClient: boolean;
-begin
-  Result := not FClosing and frmConnectionConfig.SniffPackets and
-    not frmConnectionConfig.ProcessLocally
-end;
-
-procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TGameNetPacket);
 begin
   frmDebugging.DAOCPacket(APacket);
 end;
 
-function TfrmMain.SetServerNet : boolean;
-(*** Returns true if subnet changed ***)
-var
-  dwNet:  DWORD;
-begin
-    { The ServerNet is stored in host order like 1.2.3.4 = $01020304,
-      also remember it is a NET not an IP so the last number should be 00 }
-  case frmConnectionConfig.ServerSubnet of
-    ssUS:  dwNet := $D0FE1000;  // 208.254.16.0
-    ssEU:  dwNet := $C1FC7B00;  // 193.252.123.0
-    else
-      dwNet := StrToHNet(frmConnectionConfig.CustomServerSubnet);
-  end;
-
-  Result := dwNet <> BP_Instns[5].k;
-
-  BP_Instns[5].k := dwNet;
-  BP_Instns[8].k := dwNet;
-{$IFDEF WINPCAP}
-  Log('ServerNet set to ' + my_inet_htoa(dwNet));
-{$ENDIF WINPCAP}
-end;
-
-procedure TfrmMain.DAOCCharacterLogin(ASender: TObject);
+procedure TfrmMain.DAOCCharacterLogin(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCCharacterLogin;
+  frmGLRender.DAOCCharacterLogin(Sender);
 {$ENDIF OPENGL_RENDERER}
 
-  if chkTrackLogins.Checked then
+  if atnTrackLogins.Checked then
     UpdateQuickLaunchList;
 end;
 
 procedure TfrmMain.UpdateQuickLaunchList;
-var
-  I:    integer;
+//var
+//  I:    integer;
 begin
+
+exit;
+(***
   cbxAutoLogin.Clear;
   for I := 0 to FConnection.QuickLaunchChars.Count - 1 do
     with FConnection do
@@ -1152,18 +750,22 @@ begin
     btnLogin.Enabled := false;
     btnDeleteChar.Enabled := false;
   end;
+  **)
 end;
 
 procedure TfrmMain.btnDeleteCharClick(Sender: TObject);
 begin
+(**
   if cbxAutoLogin.ItemIndex < FConnection.QuickLaunchChars.Count then begin
     FConnection.QuickLaunchChars.Delete(cbxAutoLogin.ItemIndex);
     UpdateQuickLaunchList;
   end;
+  ***)
 end;
 
 procedure TfrmMain.btnLoginClick(Sender: TObject);
 begin
+(****
   if cbxAutoLoginProfile.ItemIndex > 0 then
     TQuickLaunchProfile(
       cbxAutoLoginProfile.Items.Objects[
@@ -1171,6 +773,7 @@ begin
       ]).Activate(FConnection.DAOCPath);
 
   FConnection.LaunchCharacterIdx(cbxAutoLogin.ItemIndex);
+***)
 end;
 
 procedure TfrmMain.cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
@@ -1179,16 +782,6 @@ begin
     Key := #0;
     btnLoginClick(nil);
   end;
-end;
-
-procedure TfrmMain.tcpCollectorServerConnect(AThread: TIdPeerThread);
-begin
-  Log('Remote sniffer connected');
-end;
-
-procedure TfrmMain.tcpCollectorServerDisconnect(AThread: TIdPeerThread);
-begin
-  Log('Remote sniffer disconnected');
 end;
 
 procedure TfrmMain.tmrUpdateCheckTimer(Sender: TObject);
@@ -1234,20 +827,21 @@ end;
 
 procedure TfrmMain.chkTrackLoginsClick(Sender: TObject);
 begin
-  FConnection.TrackCharacterLogins := chkTrackLogins.Checked;
+  // FConnection.TrackCharacterLogins := atnTrackLogins.Checked;
 end;
 
-procedure TfrmMain.DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
+procedure TfrmMain.DAOCUnknownStealther(Sender: TObject; AUnk: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCUnknownStealther(AUnk);
+  frmGLRender.DAOCUnknownStealther(Sender, AUnk);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
+procedure TfrmMain.DAOCDelveItem(Sender: TObject; AItem: TDAOCInventoryItem);
 begin
-  ChatLogXI('DELVE,' + IntToStr(ord(FConnection.LocalPlayer.Realm)) + ',' + AItem.SummaryLine);
-  frmDebugging.DAOCDelveItem(ASender, AItem);
+  ChatLogXI('DELVE,' + IntToStr(ord(TDAOCConnection(Sender).LocalPlayer.Realm)) +
+    ',' + AItem.SummaryLine);
+  frmDebugging.DAOCDelveItem(Sender, AItem);
 end;
 
 procedure TfrmMain.CloseRemoteAdmin;
@@ -1263,22 +857,22 @@ begin
     IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
 end;
 
-procedure TfrmMain.DAOCArriveAtGotoDest(ASender: TObject; ANode: TMapNode);
+procedure TfrmMain.DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
 begin
   frmMacroing.DAOCArriveAtGotoDest(ANode);
 end;
 
-procedure TfrmMain.DAOCSelectNPCSuccess(ASender: TObject);
+procedure TfrmMain.DAOCSelectNPCSuccess(Sender: TObject);
 begin
   frmMacroing.DAOCSelectNPCSuccess;
 end;
 
-procedure TfrmMain.DAOCSelectNPCFailed(ASender: TObject);
+procedure TfrmMain.DAOCSelectNPCFailed(Sender: TObject);
 begin
   frmMacroing.DAOCSelectNPCFailed;
 end;
 
-procedure TfrmMain.DAOCAttemptNPCRightClickFailed(ASender: TObject);
+procedure TfrmMain.DAOCAttemptNPCRightClickFailed(Sender: TObject);
 begin
   frmMacroing.DAOCAttemptNPCRightClickFailed;
 end;
@@ -1291,143 +885,188 @@ end;
 
 procedure TfrmMain.LogLocalPlayerXI;
 begin
+(***
   with FConnection.LocalPlayer do
     ChatLogXI(Format(
       'Local Player: "%s" Level: %d Health: %d%% Endurance: %d%% Mana: %d%%',
       [Name, Level, HitPoints, EndurancePct, ManaPct]));
+***)
 end;
 
-procedure TfrmMain.DAOCLocalHealthUpdate(ASender: TObject);
+procedure TfrmMain.DAOCLocalHealthUpdate(Sender: TObject);
 begin
   frmMacroing.DAOCLocalHealthUpdate;
 end;
 
 procedure TfrmMain.UpdateQuickLaunchProfileList;
-var
-  I:    integer;
+//var
+//  I:    integer;
 begin
+
+exit;
+(***
   cbxAutoLoginProfile.Clear;
   cbxAutoLoginProfile.Items.Add('Normal Profile (none)');
   cbxAutoLoginProfile.ItemIndex := 0;
 
-  for I := 0 to FConnection.QuickLaunchProfiles.Count - 1 do 
+  for I := 0 to FConnection.QuickLaunchProfiles.Count - 1 do
     cbxAutoLoginProfile.Items.AddObject(
       FConnection.QuickLaunchProfiles[I].ProfileName, FConnection.QuickLaunchProfiles[I]);
+***)
 end;
 
-procedure TfrmMain.DAOCDoorPositionUpdate(ASender: TObject; ADoor: TDAOCObject);
+procedure TfrmMain.DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DAOCDoorPositionUpdate(ADoor);
+  frmGLRender.DAOCDoorPositionUpdate(Sender, ADoor);
 {$ENDIF OPENGL_RENDERER}
 end;
 
-procedure TfrmMain.PIPEData(ASender: TObject; AData: Pointer;
-  ADataLen: integer);
-var
-  wDataSize:      WORD;
-  bIPType:      BYTE;
-  pData:        PChar;
-begin
-  // Log('PipeData: ' + IntToStr(ADataLen) + ' bytes');
-  pData := AData;
-  while ADataLen >= 8 do begin
-    wDataSize := PWORD(pData)^;
-    dec(ADataLen, 2);
-    inc(pData, 2);
-
-    FPacket.ConnectionID := 0; // PCardinal(pData)^;
-    //dec(ADataLen, 4);
-    //inc(pData, 4);
-
-    bIPType := PBYTE(pData)^;
-    dec(ADataLen);
-    inc(pData);
-
-    if bIPType = 1 then
-      FPacket.IPProtocol := daocpUDP
-    else
-    FPacket.IPProtocol := daocpTCP;
-
-    FPacket.IsFromClient := PBYTE(pData)^ <> 0;
-    dec(ADataLen);
-    inc(pData);
-
-    if wDataSize <= ADataLen then begin
-      FPacket.LinkDataToPacket(pData, wDataSize);
-      try
-        InjectPacket(FPacket);
-      except
-        on E: Exception do
-          Log('Error in ' + FPacket.HandlerName + ': ' + e.Message);
-      end;
-      dec(ADataLen, wDataSize);
-      inc(pData, wDataSize);
-    end
-    else
-      ADataLen := 0;
-  end;
-end;
-
-procedure TfrmMain.Button1Click(Sender: TObject);
-begin
-  if FCBTHook = 0 then
-    SetCBTHook
-  else
-    ClearCBTHook;
-end;
-
-procedure TfrmMain.ClearCBTHook;
-begin
-  if FCBTHook <> 0 then begin
-    UnhookWindowsHookEx(FCBTHook);
-    FCBTHook := 0;
-    Log('Process hook deactivated');
-  end;
-end;
-
-procedure TfrmMain.SetCBTHook;
-var
-  hLib:     HINST;
-  pFunc:    Pointer;
-begin
-  if FCBTHook <> 0 then
-    exit;
-    
-  hLib := LoadLibrary('daocinject.dll');
-  if hLib = 0 then
-    exit;
-
-  try
-    pFunc := GetProcAddress(hLib, PChar(1));
-    if not Assigned(pFunc) then
-      exit;
-
-    FCBTHook := SetWindowsHookEx(WH_CBT, pFunc, hLib, 0);
-    if FCBTHook <> 0 then
-      Log('Process hook activated');
-  finally
-    FreeLibrary(hLib);
-  end;
-end;
-
-procedure TfrmMain.PIPEConnected(ASender: TObject);
-begin
-  Log('Pipe to client connected');
-  FConnection.WatchedConnectionID := 0;
-end;
-
-procedure TfrmMain.PIPEDisconnected(ASender: TObject);
-begin
-  Log('Pipe disconnected');
-end;
-
-procedure TfrmMain.InjectPacket(APacket: TDAOCPacket);
+procedure TfrmMain.InjectPacket(ASource: TObject; APacket: TGameNetPacket);
 begin
   if FProcessPackets then
-    FConnection.ProcessDAOCPacket(APacket)
+    FDControlList.ProcessDAOCPacket(ASource, APacket)
   else
     DAOCPacket(Self, APacket);
+end;
+
+procedure TfrmMain.SetRemoteAdminEnabled(const Value: boolean);
+begin
+  atnRemoteAdminEnable.Checked := Value;
+  if atnRemoteAdminEnable.Checked then
+    OpenRemoteAdmin
+  else 
+    CloseRemoteAdmin;
+end;
+
+procedure TfrmMain.lblRemoteAdminEnableClick(Sender: TObject);
+begin
+  RemoteAdminEnabled := not RemoteAdminEnabled;
+end;
+
+procedure TfrmMain.DSTREAMDAOCData(Sender: TObject;
+  AConnectionID: Cardinal; AIsFromClient, AIsTCP: boolean; AData: Pointer;
+  ADataLen: integer);
+var
+  pPacket:  TGameNetPacket;
+begin
+  pPacket := TGameNetPacket.Create;
+  try
+    pPacket.ConnectionID := AConnectionID;
+    pPacket.IsFromClient := AIsFromClient;
+    if AIsTCP then
+      pPacket.IPProtocol := gnppTCP
+    else
+      pPacket.IPProtocol := gnppUDP;
+    pPacket.LinkDataToPacket(AData, ADataLen);
+
+    InjectPacket(Sender, pPacket);
+  finally
+    pPacket.Free;
+  end;
+end;
+
+procedure TfrmMain.DSTREAMDAOCConnect(Sender: TObject; AConnectionID,
+  AServerIP: Cardinal; AServerPort: WORD; AClientIP: Cardinal;
+  AClientPort: WORD);
+begin
+  FDControlList.NewDAOCConnection(Sender, AConnectionID, AServerIP, AClientIP);
+end;
+
+procedure TfrmMain.DSTREAMDAOCDisconnect(Sender: TObject; AConnectionID,
+  AServerIP: Cardinal; AServerPort: WORD; AClientIP: Cardinal;
+  AClientPort: WORD);
+begin
+  FDControlList.CloseDAOCConnection(Sender, AConnectionID);
+end;
+
+procedure TfrmMain.SetupDStreamObj;
+begin
+  FDStreamClients := TDStreamClientList.Create;
+  FDStreamClients.OnDAOCConnect := DSTREAMDAOCConnect;
+  FDStreamClients.OnDAOCData := DSTREAMDAOCData;
+  FDStreamClients.OnDAOCDisconnect := DSTREAMDAOCDisconnect;
+//  FDStreamClients.OnError := DSTREAMError;
+  FDStreamClients.OnStatusChange := DSTREAMStatusChange;
+
+  FDStreamClients.LoadFromINI(GetConfigFileName);
+
+  frmDStrmServerList1.DStrmList := FDStreamClients;
+end;
+
+procedure TfrmMain.DSTREAMStatusChange(Sender: TObject);
+begin
+  frmDStrmServerList1.RefreshStatuses;
+end;
+
+procedure TfrmMain.LoadSettingsForConnection(AConn: TDAOCConnection);
+begin
+  with TINIFile.Create(GetConfigFileName) do begin
+    with TDAOCControl(AConn) do begin
+      QuickLaunchChars.LoadFromFile(GetConfigFileName);
+      QuickLaunchProfiles.LoadFromFile(GetConfigFileName);
+
+      WindowManager.UIStyle := ReadString('Main', 'UIStyle', WindowManager.UIStyle);
+      MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', MaxObjectDistance);
+      MaxObjectStaleTime := ReadInteger('Main', 'MaxObjectStaleTime', 300) * 1000;
+      TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
+
+      DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', DAOCWindowClass);
+      SendKeysSlashDelay := ReadInteger('Main', 'SendKeysSlashDelay', SendKeysSlashDelay);
+      TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', TurnUsingFaceLoc);
+      InventoryLookupEnabled := ReadBool('Main', 'InventoryLookupEnabled', InventoryLookupEnabled);
+      KeyQuickSell := ReadString('Keys', 'QuickSell', KeyQuickSell);
+      KeySelectFriendly := ReadString('Keys', 'SelectFriendly', KeySelectFriendly);
+      KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', KeyStrafeLeft);
+      KeyStrafeRight := ReadString('Keys', 'StrafeRight', KeyStrafeRight);
+    end;  { with connection }
+
+    Free;
+  end;  { with INI }
+end;
+
+procedure TfrmMain.SaveSettingsForConnection(AConn: TDAOCConnection);
+begin
+  with TINIFile.Create(GetConfigFileName) do begin
+    with TDAOCControl(AConn) do begin
+      QuickLaunchChars.SaveToFile(GetConfigFileName);
+
+      WriteString('Main', 'UIStyle', WindowManager.UIStyle);
+      WriteInteger('Main', 'SendKeysSlashDelay', SendKeysSlashDelay);
+      WriteBool('Main', 'TurnUsingFaceLoc', TurnUsingFaceLoc);
+      WriteBool('Main', 'InventoryLookupEnabled', InventoryLookupEnabled);
+      WriteString('Keys', 'QuickSell', KeyQuickSell);
+      WriteString('Keys', 'SelectFriendly', KeySelectFriendly);
+      WriteString('Keys', 'StrafeLeft', KeyStrafeLeft);
+      WriteString('Keys', 'StrafeRight', KeyStrafeRight);
+    end;  { with connection }
+
+    Free;
+  end;  { with INI }
+end;
+
+procedure TfrmMain.atnSetDaocPathExecute(Sender: TObject);
+var
+  s:  string;
+begin
+  s := FDAOCPath;
+  if InputQuery('Set DAoC Path', 'Enter the path to your DAoC installation', s) then
+    FDAOCPath := s;
+end;
+
+procedure TfrmMain.CONNLISTNewConnection(Sender: TObject; AConn: TDAOCConnection);
+begin
+  SetupDAOCConnectionObj(AConn);
+end;
+
+procedure TfrmMain.CONNLISTDeleteConnection(Sender: TObject; AConn: TDAOCConnection);
+begin
+  SaveSettingsForConnection(AConn);
+end;
+
+procedure TfrmMain.atnRadarExecute(Sender: TObject);
+begin
+  ShowGLRenderer;
 end;
 
 end.
