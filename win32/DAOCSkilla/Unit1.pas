@@ -359,7 +359,7 @@ begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8000);
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8500);
     FConnection.MaxObjectStaleTime := ReadInteger('Main', 'MaxObjectStaleTime', 300) * 1000;
     Caption := 'DAOCSkilla ' + GetVersionString + ' - ' + FConnection.DAOCPath;
     chkAutolaunchExcal.Checked := ReadBool('Main', 'AutolaunchExcal', true);
