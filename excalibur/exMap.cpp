@@ -32,6 +32,7 @@
 #include <qtextstream.h>
 #include <qslider.h>
 #include <qimage.h>
+#include <qmessagebox.h>
 
 #include <stdio.h>
 
@@ -646,12 +647,20 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  if (PNGLoader != NULL && ! PNGLoader->running())
-    delete [] PNGLoader;
-  
-  PNGLoader = new exMapPNGLoader(this);
-  if (PNGLoader != NULL && ! PNGLoader->running())
+  if (PNGLoader == NULL)
+    PNGLoader = new exMapPNGLoader(this);
+
+  if (PNGLoader != NULL) {
+    if (PNGLoader->running()) {
+      PNGLoader->cleanup();
+      if (PNGLoader->running())
+        qWarning("Poor Man's Mutex Error:\tUnable to ABORT PNG Loading Engine..  Multiple threads may occur!!!!!!!!!!");
+BEGIN_EXPERIMENTAL_CODE
+        QMessageBox::information(0,"PNG Loading Engine", "***WARNING*** Polly needs a THREAD MUTEX! (and a cracker) ***WARNING***");
+END_EXPERIMENTAL_CODE
+    }
     PNGLoader->start();
+  }
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
