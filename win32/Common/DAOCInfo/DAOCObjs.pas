@@ -71,6 +71,7 @@ type
     function GetName : string; virtual;
     procedure SetHitPoints(const Value: BYTE);
   public
+    DoorID:      Cardinal;
     LongestUpdateTime:    Cardinal;
     constructor Create; virtual;
 
@@ -142,6 +143,9 @@ type
     property Items[I: integer]: TDAOCObject read GetItems; default;
   end;
 
+  TDAOCObjectIteratorCallback = procedure (AObj: TDAOCObject; AParam: Integer;
+    var AContinue: boolean) of object;
+  
   TDAOCObjectLinkedList = class(TObject)
   private
     FCount: integer;
@@ -160,6 +164,7 @@ type
     function FindNearest3D(X, Y, Z: Cardinal) : TDAOCObject;
     function FindNearest2D(X, Y: Cardinal) : TDAOCObject;
     function FindByName(const AName: string) : TDAOCObject;
+    procedure WalkList(ACallback: TDAOCObjectIteratorCallback; AParam: Integer = 0);
 
     property Head: TDAOCObject read FHead;
     property Count: integer read FCount;
@@ -1478,6 +1483,21 @@ begin
   ADAOCObj.FNext := nil;
   ADAOCObj.FPrev := nil;
   dec(FCount);
+end;
+
+procedure TDAOCObjectLinkedList.WalkList(ACallback: TDAOCObjectIteratorCallback; AParam: Integer);
+var
+  bContinue:  boolean;
+  pObj:       TDAOCObject;
+begin
+  if Assigned(ACallback) then begin
+    pObj := FHead;
+    bContinue := true;
+    while bContinue and Assigned(pObj) do begin
+      ACallback(pObj, AParam, bContinue);
+      pObj := pObj.Next;
+    end;
+  end;
 end;
 
 { TDAOCVehicle }
