@@ -778,7 +778,7 @@ begin
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
 
-  glColor4f(0, 1, 0, 0.10);
+  glColor4f(0, 1, 0, 0.15);
   inherited;
 
   glPopAttrib();
