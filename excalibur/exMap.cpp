@@ -18,7 +18,6 @@
  *
  */
 
-
 #include "exMap.h"
 #include "exMob.h"
 #include "exMapInfo.h"
@@ -51,13 +50,13 @@ exMap::exMap(QWidget *parent, const char *name)
   edit_xofs = edit_yofs = 0;
   recache = true;
   map.setAutoDelete(true);
-  PNGLoader.initialize();
-  PNGLoader.setParent(this);
-  m_bNeedPNGReload = false;
+  MapLoader.initialize();
+  MapLoader.setParent(this);
+  m_bNeedMapReload = false;
 }
 
 exMap::~exMap() {
-  PNGLoader.abort();
+  MapLoader.abort();
   
   if (mi)
     delete mi;
@@ -357,9 +356,10 @@ void exMap::paintGL() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  qglColor( yellow );
+  qglColor( darkGray );
 
   glPushMatrix();
+  qglColor( yellow );
   glTranslated(c->playerx,c->playery,c->playerz);
   objRotate(c->playerhead);
   glCallList(listTriangle);
@@ -421,15 +421,82 @@ void exMap::paintGL() {
       glPopMatrix();
 
       /* if it is filtered draw a yellow circle around it */
-	  if( m->isFiltered() && prefs.filter_circles) 
-         {
-         qglColor( yellow );
-         drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
-         }
+      if( m->isFiltered() && prefs.filter_circles ) {
+        glPushMatrix();
+
+        if (prefs.alpha_circles) {
+          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
+
+          glEnable     (GL_DEPTH_TEST);
+          glDepthFunc  (GL_LEQUAL);
+        
+          setGLColor( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+                      ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255), 0.0f, (int)0.25f );
+
+          if (prefs.alpha_borders) {
+            qglColor   (darkRed);
+            drawCircle (0, 0, 500, 18);
+          }
+
+          setGLColor  (1.0f, 1.0f, 0.0f, (int)0.25f);
+
+          GLUquadricObj *qoCircle;
+          qoCircle = gluNewQuadric();
+
+          if (prefs.alpha_speed)
+            gluDisk   (qoCircle, 0, 500, 18, 18);
+
+          else
+            gluSphere (qoCircle, 500, 32, 32);
+        }
+
+        else {
+          glPushMatrix();
+          glLineWidth(1.0);
+          qglColor(yellow);
+          drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
+          glPopMatrix();
+        }
+        
+        glPopMatrix();
+      }
 
       /* if the mob is within range, draw an agro circle around it */
-      if (prefs.agro_circles) {
-        if ((m->isMob()) && (m->playerDist() < 1000))  {
+      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))  {
+        glPushMatrix();
+
+        if (prefs.alpha_circles) {
+
+          glEnable     (GL_DEPTH_TEST);
+          glDepthFunc  (GL_LEQUAL);
+
+          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
+
+          if (prefs.alpha_borders) {
+            qglColor   (yellow);
+            drawCircle (0, 0, 500, 18);
+          }
+
+          if (prefs.agro_fading) {
+            setGLColor( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+                        0.0f, 0.0f, (int)0.25f );
+
+          } else {
+            setGLColor( 1.0f, 0.0f, 0.0f, (int)0.25f );
+          }
+          
+          GLUquadricObj *qoCircle;
+          qoCircle = gluNewQuadric();
+
+          if (prefs.alpha_speed)
+            gluDisk   (qoCircle, 0, 500, 18, 18);
+
+          else
+            gluSphere (qoCircle, 500, 32, 32);
+        }
+
+        else {
+          glPushMatrix();
           glLineWidth(1.0);
 
           if (prefs.agro_fading) {
@@ -440,8 +507,12 @@ void exMap::paintGL() {
           } else {
             qglColor( darkRed );
           }
+
           drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
+          glPopMatrix();
         }
+
+        glPopMatrix();
       }
     }
 
@@ -458,15 +529,15 @@ void exMap::paintGL() {
     glEnd();
   }
 
-  /* draw a couple range cirlces around the player */
+/* draw a couple range cirlces around the player */
 
   if(prefs.player_circle_1 >= 226){
-    glLineWidth (1.0);
+    glLineWidth (2.0);
     qglColor(darkGray);
     drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
   }
   if(prefs.player_circle_2 >= 251){
-    glLineWidth (1.0);
+    glLineWidth (2.0);
     qglColor(darkGray);
     drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
 }
@@ -638,79 +709,18 @@ int exMap::stringInt(QStringList *sl, unsigned int sec) {
 
 
 void exMap::mapRead() {
-  QString line;
-  QString cmd;
-  QString color;
-  QString title;
-  exMapElement *elem;
-  int xadd;
-  int yadd;
-  unsigned int i;
 
   map.clear();
   recache = true;
 
-  xadd=mi->getBaseX();
-  yadd=mi->getBaseY();
-
   ignore_fill = false;
 
-  if (PNGLoader.running())
-    m_bNeedPNGReload = true;
+  if (MapLoader.running())
+    m_bNeedMapReload = true;
   
-  if (! PNGLoader.running())
-    PNGLoader.start();
+  if (! MapLoader.running())
+    MapLoader.start();
 
-  QFile f;
-  f.setName(QString("usermaps/").append(mi->getName()));
-  if (! f.open(IO_ReadOnly)) {
-    f.setName(QString("maps/").append(mi->getName()));
-    if (! f.open(IO_ReadOnly)) {
-      qWarning("Failed to open map named %s",(const char *) mi->getName());
-      elem = new exMapElementPoint();
-      elem->fromString("NO MAP LOADED", xadd, yadd);
-      map.append(elem);
-    }
-    else {
-      f.readLine(line, 0x10000);
-
-      while (f.readLine(line, 0x10000)!=-1) {
-        bool ok;
-        QStringList split=QStringList::split(",",line,TRUE);
-        QStringList lst;
-        for(i=0;i<split.size();i++) 
-          lst+=split[i].simplifyWhiteSpace().stripWhiteSpace();
-
-        if (lst.size() < 3) 
-          continue;
-
-        ok = false;
-        elem = NULL;
-
-        cmd=lst[0];
-        if (cmd.length() == 1) {
-          switch (cmd[0].latin1()) {
-            case 'M':
-            case 'F':
-              elem=new exMapElementLine();
-              break;
-            case 'P':
-              elem=new exMapElementPoint();
-              break;
-          }
-          if (elem && elem->fromString(lst, xadd, yadd)) {
-             ok = true;
-             map.append(elem);
-          }
-        }
-        if (! ok) {
-          qWarning("Map element %s was not accepted", (const char *)line);
-          if (elem)
-            delete elem;
-        }
-      }
-    }
-  }
 }
 
 exMapElement::exMapElement() {
@@ -1052,18 +1062,89 @@ void exMapElementLine::draw(exMap *map) {
   glEnd();  
 }
 
-exMapPNGLoader::exMapPNGLoader  (void) {m_bGhettoMutex = true;}
-exMapPNGLoader::~exMapPNGLoader (void) {    this->abort();    }
+void exMap::loadVectorMap (const exMapInfo *mi) {
+  QString line;
+  QString cmd;
+  QString color;
+  QString title;
+  exMapElement *elem;
+  int xadd;
+  int yadd;
+  unsigned int i;
 
-void exMapPNGLoader::setParent ( exMap *parent )
+  recache = true;
+
+  xadd=mi->getBaseX();
+  yadd=mi->getBaseY();
+
+  QFile f;
+  f.setName(QString("usermaps/").append(mi->getName()));
+
+  if (! f.open(IO_ReadOnly)) {
+    f.setName(QString("maps/").append(mi->getName()));
+
+    if (! f.open(IO_ReadOnly)) {
+      qWarning("Failed to open map named %s",(const char *) mi->getName());
+      elem = new exMapElementPoint();
+      elem->fromString("NO MAP LOADED", xadd, yadd);
+      map.append(elem);
+    } else {
+      f.readLine(line, 0x10000);
+
+      while (f.readLine(line, 0x10000)!=-1) {
+        bool ok;
+        QStringList split=QStringList::split(",",line,TRUE);
+        QStringList lst;
+
+        for(i=0;i<split.size();i++) 
+          lst+=split[i].simplifyWhiteSpace().stripWhiteSpace();
+
+        if (lst.size() < 3) 
+          continue;
+
+        ok = false;
+        elem = NULL;
+
+        cmd=lst[0];
+        if (cmd.length() == 1) {
+          switch (cmd[0].latin1()) {
+            case 'M':
+            case 'F':
+              elem=new exMapElementLine();
+              break;
+            case 'P':
+              elem=new exMapElementPoint();
+              break;
+          }
+
+          if (elem && elem->fromString(lst, xadd, yadd)) {
+             ok = true;
+             map.append(elem);
+          }
+        }
+
+        if (! ok) {
+          qWarning("Map element %s was not accepted", (const char *)line);
+          if (elem)
+            delete elem;
+        }
+      }
+    }
+  }
+}
+
+exMapLoader::exMapLoader  (void) {m_bGhettoMutex = true;}
+exMapLoader::~exMapLoader (void) {    this->abort();    }
+
+void exMapLoader::setParent ( exMap *parent )
 {
   this->parent = parent;
 }
 
-void exMapPNGLoader::run (void)
+void exMapLoader::run (void)
 {
-BeginPNGLoad:
-  parent->m_bNeedPNGReload = false;
+BeginMapLoad:
+  parent->m_bNeedMapReload = false;
 
   if (parent == NULL) {
     m_bGhettoMutex = false;
@@ -1081,11 +1162,11 @@ BeginPNGLoad:
   exMapInfo *mi;
 
   mi = parent->mi->getAdjacentZones(-1);
-  for  (int i = -1; i < 300 && mi && m_bGhettoMutex && !parent->m_bNeedPNGReload; mi = parent->mi->getAdjacentZones(i)) {
+  for  (int i = -1; i < 300 && mi && m_bGhettoMutex && !parent->m_bNeedMapReload; mi = parent->mi->getAdjacentZones(i)) {
     if (i != -1 && parent->mi->getZoneNum() == mi->getZoneNum())
       mi = parent->mi->getAdjacentZones(mi->getZoneNum());
 
-    while (! prefs.map_loadadjacentpngs && mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum()) {
+    while (! prefs.map_load_adjacent_zones && mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum()) {
 
       mi = parent->mi->getAdjacentZones(mi->getZoneNum());
 
@@ -1112,7 +1193,7 @@ END_EXPERIMENTAL_CODE
 
     QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
 
-    if (fimg.exists()) {
+    if (prefs.map_load_png_maps && fimg.exists()) {
 
       if (! empldProgress.running())
         empldProgress.start();
@@ -1132,8 +1213,8 @@ END_EXPERIMENTAL_CODE
 
         parent->ignore_fill = true;
 
-        for(   int y = 0; y < 8 && m_bGhettoMutex && !parent->m_bNeedPNGReload; y++ ) {
-          for( int x = 0; x < 8 && m_bGhettoMutex && !parent->m_bNeedPNGReload; x++ ) {
+        for(   int y = 0; y < 8 && m_bGhettoMutex && !parent->m_bNeedMapReload; y++ ) {
+          for( int x = 0; x < 8 && m_bGhettoMutex && !parent->m_bNeedMapReload; x++ ) {
 
             if (empldProgress.running())
               qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
@@ -1160,6 +1241,9 @@ END_EXPERIMENTAL_CODE
       }
     }
 
+    if (parent != NULL && mi != NULL)
+      qApp->postEvent(parent, new QCustomEvent(CALLBACK_VCT_LOAD, (void*)mi));
+
     if (i == -1)
       i++;
 
@@ -1172,7 +1256,7 @@ END_EXPERIMENTAL_CODE
     if (empldProgress.running())
       qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
 
-    if (! prefs.map_loadadjacentpngs)
+    if (! prefs.map_load_adjacent_zones)
       return;
   }
 
@@ -1182,11 +1266,10 @@ END_EXPERIMENTAL_CODE
   }
 
   if (empldProgress.running())
-  qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*
-)1));
+    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
 
-  if (parent->m_bNeedPNGReload)
-    goto BeginPNGLoad;
+  if (parent->m_bNeedMapReload)
+    goto BeginMapLoad;
 }
 
 
@@ -1202,18 +1285,26 @@ bool exMap::event (QEvent *e)
       pc->img = (QImage)NULL;
     }
 
-    if (! PNGLoader.running()) {
-      if (PNGLoader.empldProgress.running())
-        qApp->postEvent(&PNGLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    if (! MapLoader.running()) {
+      if (MapLoader.empldProgress.running())
+        qApp->postEvent(&MapLoader.empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
     }
 
+    return true;
+  }
+  else if (e->type() == CALLBACK_VCT_LOAD) {
+    QCustomEvent *MapEvent = (QCustomEvent*) e;
+    exMapInfo *mi = (exMapInfo*)MapEvent->data();
+
+    if (mi != NULL)
+      loadVectorMap(mi);
     return true;
   }
   QWidget::event( e );
   return false;
 }
 
-bool exMapPNGLoader::event (QEvent *e)
+bool exMapLoader::event (QEvent *e)
 {
   if (e->type() == CALLBACK_PNG_ABRT) {
     this->abort();
@@ -1222,7 +1313,7 @@ bool exMapPNGLoader::event (QEvent *e)
   return false;
 }
 
-void exMapPNGLoader::abort (void)
+void exMapLoader::abort (void)
 {
   m_bGhettoMutex = false;
   if (empldProgress.running())

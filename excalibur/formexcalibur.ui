@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>848</width>
-            <height>589</height>
+            <height>588</height>
         </rect>
     </property>
     <property name="caption">
@@ -199,18 +199,29 @@
         <cstring>menubar</cstring>
     </property>
     <item text="Settings" name="PopupMenu_2">
-        <action name="ReloadMaps"/>
         <action name="AutoSelectTarget"/>
         <action name="GroupPlayers"/>
         <action name="SortDistance"/>
-        <action name="GLObjectSizes"/>
-        <action name="GLRulers"/>
-        <action name="GLMapFade"/>
-        <action name="ItemUpload"/>
-        <action name="Preferences"/>
+        <separator/>
         <action name="vaderWarn"/>
+        <separator/>
         <action name="ShowMsgs"/>
+        <separator/>
         <action name="EditorSpawn"/>
+        <action name="ItemUpload"/>
+        <separator/>
+        <action name="Preferences"/>
+    </item>
+    <item text="Map" name="PopupMenu">
+        <action name="GLObjectSizes"/>
+        <action name="GLMapFade"/>
+        <separator/>
+        <action name="MapAdjacentZones"/>
+        <action name="MapPNGs"/>
+        <action name="GLRulers"/>
+        <separator/>
+        <action name="MapReload"/>
+        <action name="MapRecache"/>
     </item>
 </menubar>
 <toolbars>
@@ -230,17 +241,10 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
+        <pixmap>image0</pixmap>
     </customwidget>
 </customwidgets>
 <actions>
-    <action>
-        <property name="name">
-            <cstring>ReloadMaps</cstring>
-        </property>
-        <property name="text">
-            <string>Reload Maplist</string>
-        </property>
-    </action>
     <action>
         <property name="name">
             <cstring>AutoSelectTarget</cstring>
@@ -357,6 +361,9 @@
         <property name="text">
             <string>Draw Rulers</string>
         </property>
+        <property name="menuText">
+            <string>Render Rulers</string>
+        </property>
         <property name="accel">
             <number>82</number>
         </property>
@@ -430,6 +437,68 @@
             <number>4194391</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>MapRecache</cstring>
+        </property>
+        <property name="text">
+            <string>Recache Map</string>
+        </property>
+        <property name="accel">
+            <number>12582994</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>MapReload</cstring>
+        </property>
+        <property name="text">
+            <string>Reload</string>
+        </property>
+        <property name="accel">
+            <number>4194386</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>MapAdjacentZones</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Render Adjacent Zones</string>
+        </property>
+        <property name="accel">
+            <number>4194369</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>MapPNGs</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Render PNG maps</string>
+        </property>
+        <property name="menuText">
+            <string>Render PNG maps</string>
+        </property>
+        <property name="toolTip">
+            <string>Render PNG maps</string>
+        </property>
+        <property name="statusTip">
+            <string>Render PNG maps</string>
+        </property>
+        <property name="accel">
+            <number>4194384</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -437,12 +506,6 @@
     </image>
 </images>
 <connections>
-    <connection>
-        <sender>ReloadMaps</sender>
-        <signal>activated()</signal>
-        <receiver>FormExcalibur</receiver>
-        <slot>ReloadMaps_activated()</slot>
-    </connection>
     <connection>
         <sender>MapSlider</sender>
         <signal>valueChanged(int)</signal>
@@ -515,27 +578,54 @@
         <receiver>FormExcalibur</receiver>
         <slot>vaderWarn_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>MapReload</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ReloadMaps_activated()</slot>
+    </connection>
+    <connection>
+        <sender>MapPNGs</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MapPNGs_toggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>MapAdjacentZones</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MapAdjacentZones_toggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>MapRecache</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MapRecache_activated()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
 </includes>
 <slots>
-    <slot>vaderWarn_toggled( bool ena)</slot>
-    <slot>GLMapFade_toggled(bool ena)</slot>
-    <slot>GLObjectSizes_selected(QAction * act)</slot>
-    <slot>GLRulers_toggled(bool ena)</slot>
-    <slot>GroupPlayers_toggled(bool ena)</slot>
-    <slot>ItemUpload_activated()</slot>
-    <slot>MapSlider_valueChanged(int range)</slot>
-    <slot>MobFilter_returnPressed()</slot>
-    <slot>Preferences_activated()</slot>
-    <slot>ProfileExit_activated()</slot>
-    <slot>ReloadMaps_activated()</slot>
-    <slot>SortDistance_toggled(bool ena)</slot>
-    <slot>destroy()</slot>
+    <slot>resizeEvent( QResizeEvent * e )</slot>
+    <slot>showEvent( QShowEvent * e )</slot>
     <slot>init()</slot>
-    <slot>resizeEvent(QResizeEvent * e)</slot>
-    <slot>showEvent(QShowEvent * e)</slot>
+    <slot>destroy()</slot>
+    <slot>ReloadMaps_activated()</slot>
+    <slot>MapSlider_valueChanged( int range )</slot>
+    <slot>GroupPlayers_toggled( bool ena )</slot>
+    <slot>GLObjectSizes_selected( QAction * act )</slot>
+    <slot>SortDistance_toggled( bool ena )</slot>
+    <slot>Preferences_activated()</slot>
+    <slot>GLRulers_toggled( bool ena )</slot>
+    <slot>ItemUpload_activated()</slot>
+    <slot>GLMapFade_toggled( bool ena )</slot>
+    <slot>ProfileExit_activated()</slot>
+    <slot>vaderWarn_toggled( bool ena )</slot>
+    <slot>MapPNGs_toggled( bool ena )</slot>
+    <slot>MapAdjacentZones_toggled( bool ena )</slot>
+    <slot>MapRecache_activated( void )</slot>
+    <slot>MobFilter_returnPressed()</slot>
     <slot>showMsgs()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>

@@ -1,3 +1,38 @@
+Andon (23/Feb/02)
+-----------------
+Major Changes:
+==============
+ + The PNG Loader has been renamed MapLoader.. It will now
+   work for BOTH PNG and Vector maps.
+ + Vector Maps are now overlayed on top of PNG maps again.
+ + Vector Maps can now be loaded using the adjacent zone
+   algorithms.
+ + PNG Maps may now be toggled on / off at runtime
+
+Major Additions:
+================
+ + Alpha blended surfaces for filter / agro circles now.
+   There are two optimization methods to choose from:
+  - Speed Optimized   (Lower Quality, but FAST)
+  - Quality Optimized (High Quality, but SLOW)
+ + Alpha blended surfaces may now overlap without freaky
+   things going on.
+ + The new alpha blended circles have a toggle for border.
+   These are red / yellow circles encompasing the surface.
+ + A new map menu:
+  - Manual recache (DEBUG)
+  - Manual on-the-fly map reloading
+  - Toggle PNG Maps        (Requires a Map Reload)
+  - Toggle Adjacent Zones  (Requires a Map Reload)
+  - Toggle alpha blended range circles
+
+ NOTE: Alpha blending requires map depth filtering to be
+       enabled manually to work right.. I'll fix that in
+       1.1.3a
+
+ * Version bumped to 1.1.3
+
+
 Andon (22/Feb/02)
 -----------------
 Changes:

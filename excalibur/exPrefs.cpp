@@ -69,6 +69,8 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);
     frm->vaderWarn->setOn(vaderWarn);
+    frm->MapPNGs->setOn(map_load_png_maps);
+    frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
   }
   frm->Map->makeObjects(map_simple);
   frm->Map->dirty();
@@ -87,10 +89,15 @@ void exPrefs::show() {
   dlg->GLMapRotate->setChecked(map_rotate);
   dlg->GLSimpleObjects->setChecked(map_simple);
   dlg->GLMapFill->setChecked(map_fill);
-  dlg->LoadAdjacentPNGs->setChecked(map_loadadjacentpngs);
+  dlg->LoadAdjacentZones->setChecked(map_load_adjacent_zones);
+  dlg->LoadPNGMaps->setChecked(map_load_png_maps);
   dlg->AgroCircles->setChecked(agro_circles);
   dlg->FilterCircles->setChecked(filter_circles);
   dlg->AgroFading->setChecked(agro_fading);
+  dlg->AlphaBlendCircles->setChecked(alpha_circles);
+  dlg->AlphaSpeed->setChecked(alpha_speed);
+  dlg->AlphaQuality->setChecked(alpha_quality);
+  dlg->AlphaBorders->setChecked(alpha_borders);
 
 
   dlg->MapSimplifyRange->setValue(map_autosimplifyrange);
@@ -146,12 +153,17 @@ void exPrefs::accept() {
 
   map_fill=dlg->GLMapFill->isOn();
 
-  map_loadadjacentpngs=dlg->LoadAdjacentPNGs->isOn();
+  map_load_adjacent_zones=dlg->LoadAdjacentZones->isOn();
+  map_load_png_maps=dlg->LoadPNGMaps->isOn();
 
 
   agro_circles=dlg->AgroCircles->isOn();
   filter_circles=dlg->FilterCircles->isOn();
   agro_fading=dlg->AgroFading->isOn();
+  alpha_circles=dlg->AlphaBlendCircles->isOn();
+  alpha_speed=dlg->AlphaSpeed->isOn();
+  alpha_quality=dlg->AlphaQuality->isOn();
+  alpha_borders=dlg->AlphaBorders->isOn();
 
   player_circle_1=dlg->PlayerCircle1->value();
   player_circle_2=dlg->PlayerCircle2->value();
@@ -212,7 +224,8 @@ void exPrefs::loadSettings() {
   map_fade=s.readBoolEntry("/Excalibur/GLMapFade", TRUE);
   map_fill=s.readBoolEntry("/Excalibur/GLMapFill", TRUE);
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
-  map_loadadjacentpngs=s.readBoolEntry("/Excalibur/LoadAdjacentPNGs", FALSE);
+  map_load_adjacent_zones=s.readBoolEntry("/Excalibur/LoadAdjacentZones", FALSE);
+  map_load_png_maps=s.readBoolEntry("/Excalibur/LoadPNGMaps", FALSE);
 
 
   player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
@@ -220,8 +233,11 @@ void exPrefs::loadSettings() {
 
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
   filter_circles=s.readBoolEntry("/Excalibur/FilterCircles", TRUE);
-  agro_fading=s.readBoolEntry("Excalibur/AgroFading", TRUE);
-
+  agro_fading=s.readBoolEntry("/Excalibur/AgroFading", TRUE);
+  alpha_circles=s.readBoolEntry("/Excalibur/AlphaBlendCircles", FALSE);
+  alpha_speed=s.readBoolEntry("/Excalibur/AlphaSpeed", FALSE);
+  alpha_quality=s.readBoolEntry("/Excalibur/AlphaQuality", TRUE);
+  alpha_borders=s.readBoolEntry("/Excalibur/AlphaBorders", TRUE);
 
   select_target=s.readBoolEntry("/Excalibur/AutoSelectTarget",TRUE);
   sort_group_players=s.readBoolEntry("/Excalibur/GroupPlayers",TRUE);
@@ -262,7 +278,8 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/GLMapFade", map_fade);
   s.writeEntry("/Excalibur/GLMapFill", map_fill);
   s.writeEntry("/Excalibur/MapAutoSimplifyRange", map_autosimplifyrange);
-  s.writeEntry("/Excalibur/LoadAdjacentPNGs", map_loadadjacentpngs);
+  s.writeEntry("/Excalibur/LoadAdjacentZones", map_load_adjacent_zones);
+  s.writeEntry("/Excalibur/LoadPNGMaps", map_load_png_maps);
   s.writeEntry("/Excalibur/AutoSelectTarget", select_target);
   s.writeEntry("/Excalibur/GroupPlayers", sort_group_players);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);
@@ -279,6 +296,10 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
   s.writeEntry("/Excalibur/FilterCircles", filter_circles);
   s.writeEntry("/Excalibur/AgroFading", agro_fading);
+  s.writeEntry("/Excalibur/AlphaBlendCircles", alpha_circles);
+  s.writeEntry("/Excalibur/AlphaSpeed", alpha_speed);
+  s.writeEntry("/Excalibur/AlphaQuality", alpha_quality);
+  s.writeEntry("/Excalibur/AlphaBorders", alpha_borders);
 
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
   s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);

@@ -4,7 +4,7 @@
  * Portions of this software are based on the work of Slicer/Hackersquest.
  * Those portions, Copyright 2001 Slicer/Hackersquest <slicer@hackersquest.org)
  * 
- * This file is part of Excalibur.
+ * This file is part of Excal/ibur.
  *
  * Excalibur is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,6 +142,24 @@ void FormExcalibur::vaderWarn_toggled( bool ena)
   if( Map->c)
   	Map->c->vaderWarn = ena;
   prefs.vaderWarn = ena;
+  prefs.activate();
+}
+
+void FormExcalibur::MapPNGs_toggled( bool ena )
+{
+  prefs.map_load_png_maps = ena;
+  prefs.activate();
+}
+
+void FormExcalibur::MapAdjacentZones_toggled( bool ena )
+{
+    prefs.map_load_adjacent_zones = ena;
+    prefs.activate();
+}
+
+void FormExcalibur::MapRecache_activated( void )
+{
+    Map->dirty();
 }
 
 void FormExcalibur::MobFilter_returnPressed()

@@ -59,10 +59,15 @@ public:
   bool gl_smooth_lines;
   bool gl_smooth_polygons;
   bool map_fill;
-  bool map_loadadjacentpngs;
+  bool map_load_adjacent_zones;
+  bool map_load_png_maps;
   bool agro_circles;
   bool filter_circles;
   bool agro_fading;
+  bool alpha_circles;
+  bool alpha_speed;
+  bool alpha_quality;
+  bool alpha_borders;
   bool dump_unknown_packets;
   bool MobListColors;
   bool sticky_list;

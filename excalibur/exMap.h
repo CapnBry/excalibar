@@ -116,15 +116,15 @@ public:
 	virtual void run (void);
         virtual bool event (QEvent *e);
 protected:
-	friend class exMapPNGLoader;
+	friend class exMapLoader;
         QProgressDialog pdProgress;
 };
 
-class exMapPNGLoader : public QObject, public QThread {
+class exMapLoader : public QObject, public QThread {
 Q_OBJECT
 public:
-        exMapPNGLoader  (void);
-        ~exMapPNGLoader (void);
+        exMapLoader  (void);
+        ~exMapLoader (void);
 
 	void setParent (exMap *parent);
 
@@ -143,9 +143,9 @@ protected:
 class exMap : public QGLWidget {
 Q_OBJECT
 protected:
-  friend class exMapPNGLoader;
-  exMapPNGLoader  PNGLoader;
-  bool            m_bNeedPNGReload;
+  friend class exMapLoader;
+  exMapLoader  MapLoader;
+  bool         m_bNeedMapReload;
 
   bool is_dirty;
   bool map_load;
@@ -187,6 +187,7 @@ public:
   void objRotate(unsigned int daocheading);
   void setMap(exMapInfo *m);
   void mapRead();
+  void loadVectorMap (const exMapInfo *mi);
   void textGL(QString text, int x, int y, int z);
   void setObjectSize(uint8_t uiSize);
   int stringInt(QStringList *sl, unsigned int sec);
@@ -203,6 +204,7 @@ public:
 #define CALLBACK_PNG_ABRT (QEvent::Type)(QEvent::User + 0x03)
 #define CALLBACK_PNG_FNSH (QEvent::Type)(QEvent::User + 0x04)
 #define CALLBACK_PNG_INFO (QEvent::Type)(QEvent::User + 0x05)
+#define CALLBACK_VCT_LOAD (QEvent::Type)(QEvent::User + 0x06)
 
  struct PNGCallback {
 	int a;
@@ -219,6 +221,6 @@ class exMapElement;
 class exMapElementPoint;
 class exMapElementLine;
 class exMapPNGLoaderDialog;
-class exMapPNGLoader;
+class exMapLoader;
 class exMap;
 #endif
