@@ -89,6 +89,7 @@ type
     function StepCurrentPath: boolean;
     procedure SetTradeSkillProgression(const Value: string);
     function GetTradeRecipes: TUniversalRecipeCollection;
+    procedure InternalTradeskillFailure;
   protected
     procedure DoTurntoDest(AMaxTurnTime: integer);
     function PlayerToHeadingDelta(AHead: integer) : integer;
@@ -127,6 +128,7 @@ type
     procedure DoOnTradeskillTaskCompleted; override;
     procedure DoOnTradeskillSuccess(AQuality: integer); override;
     procedure DoOnTradeskillFailure; override;
+    procedure DoOnTradeskillFailureWithLoss; override;
     procedure DoOnTradeskillCapped; override;
     procedure DoOnPlayerPosUpdate; override;
     procedure DoOnCharacterLogin; override;
@@ -1151,17 +1153,26 @@ begin
 {$ENDIF DAOC_AUTO_SERVER}
 end;
 
-procedure TDAOCControl.DoOnTradeskillFailure;
+procedure TDAOCControl.InternalTradeskillFailure;
 begin
   if FTradeSkillProgression <> '' then
     DoSendKeys(FTradeSkillProgression[FTradeSkillProgressionIdx]);
-
-  inherited;
-
 {$IFDEF DAOC_AUTO_SERVER}
   if Assigned(FAxEvents) then
     FAxEvents.OnTradeskillFailure;
 {$ENDIF DAOC_AUTO_SERVER}
+end;
+
+procedure TDAOCControl.DoOnTradeskillFailure;
+begin
+  InternalTradeskillFailure;
+  inherited;
+end;
+
+procedure TDAOCControl.DoOnTradeskillFailureWithLoss;
+begin
+  InternalTradeskillFailure;
+  inherited;
 end;
 
 function TDAOCControl.FindDAOCWindow: HWND;
