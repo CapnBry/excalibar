@@ -438,6 +438,7 @@ begin
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
     FConnection.SendKeysSlashDelay := ReadInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
     FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
+    FConnection.InventoryLookupEnabled := ReadBool('Main', 'InventoryLookupEnabled', FConnection.InventoryLookupEnabled);
     FConnection.KeyQuickSell := ReadString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     FConnection.KeySelectFriendly := ReadString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
     FConnection.KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
@@ -532,6 +533,7 @@ begin
     WriteString('Main', 'UIStyle', FConnection.WindowManager.UIStyle);
     WriteInteger('Main', 'SendKeysSlashDelay', FConnection.SendKeysSlashDelay);
     WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
+    WriteBool('Main', 'InventoryLookupEnabled', FConnection.InventoryLookupEnabled);
     WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
     WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
     WriteString('Keys', 'StrafeLeft', FConnection.KeyStrafeLeft);
