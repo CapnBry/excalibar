@@ -291,9 +291,7 @@ void exConnection::processPacket(exPacket * p)
                      .arg((mi) ? playerx - mi->getBaseX() : playerx)
                      .arg((mi) ? playery - mi->getBaseY() : playery)
                      .arg(playerz));
-              ex->Zone->setText(QString("%1 / %2")
-                     .arg(playerzone)
-                     .arg((mi) ? mi->getZoneName(playerzone) : "N/A"));
+              ex->Zone->setText((mi) ? mi->getZoneName() : "UNKNOWN");
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
