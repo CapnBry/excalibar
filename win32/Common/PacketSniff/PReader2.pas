@@ -70,6 +70,7 @@ type
     FBPFilter: Pbpf_program;
     hSegmentNotifyWhd:  HWND;
     FSegmentList:   TEthernetSegmentList;
+    FPromiscuous:   boolean;
 
     FOnEthernetSegment: TEthernetSegmentNotify;
 
@@ -95,12 +96,14 @@ type
     procedure Open;
     procedure Close;
     procedure WaitForClose;
+    function DeviceNameForAdapter(const AAdapterName: string) : string;
 
     property Active: boolean read FActive write SetActive;
     property DeviceName: string read FDeviceName write SetDeviceName;
     property AdapterList: TStrings read GetAdapterList;
     property DeviceList: TStrings read GetDeviceList;
     property BPFilter: Pbpf_program read FBPFilter write FBPFilter;
+    property Promiscuous: boolean read FPromiscuous write FPromiscuous; 
 
     property OnEthernetSegment: TEthernetSegmentNotify read FOnEthernetSegment
       write FOnEthernetSegment;
@@ -208,6 +211,17 @@ begin
   FPacketBuffer := nil;
 end;
 
+function TPacketReader2.DeviceNameForAdapter(const AAdapterName: string): string;
+var
+  iIdx:   integer;
+begin
+  iIdx := GetAdapterList.IndexOf(AAdapterName);
+  if iIdx <> -1 then
+    Result := GetDeviceList[iIdx]
+  else
+    Result := '';
+end;
+
 procedure TPacketReader2.DoPacketCapLoop;
 begin
   if not Assigned(FPacket) then
@@ -310,12 +324,18 @@ begin
 end;
 
 procedure TPacketReader2.InitializeAdapter;
+var
+  wCaptureMode: DWORD;
 begin
   if Assigned(FAdapter) then
     exit;
 
   FAdapter := PacketOpenAdapter(PChar(FDeviceName));
- 	if not PacketSetHwFilter(FAdapter, NDIS_PACKET_TYPE_ALL_LOCAL) then  // NDIS_PACKET_TYPE_PROMISCUOUS)
+  if FPromiscuous then
+    wCaptureMode := NDIS_PACKET_TYPE_PROMISCUOUS
+  else
+    wCaptureMode := NDIS_PACKET_TYPE_ALL_LOCAL;
+ 	if not PacketSetHwFilter(FAdapter, wCaptureMode) then
     OutputDebugString('PacketSetHwFilter failed');
   if Assigned(FBPFilter) then
     if not PacketSetBpf(FAdapter, FBPFilter) then
