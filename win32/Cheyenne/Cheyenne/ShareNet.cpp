@@ -31,6 +31,21 @@ public:
     }
 }; // end class WaitSingleFunctor
 
+template <typename MSG_T> CheyenneMessage* ShareMsgPopulate
+    (
+    const unsigned char* opcode_msg_ptr // points to the opcode in the message
+    )
+{
+    // make new message
+    MSG_T* msg=new MSG_T;
+    // alias into message implementation
+    const typename MSG_T::impl_t* data=reinterpret_cast<const typename MSG_T::impl_t*>(&opcode_msg_ptr[sizeof(share_opcodes::opcode_t)]);
+    // use assignment operator to store data
+    msg->data = *data;
+    // done
+    return(msg);
+}
+
 VOID CALLBACK ShareNetClientData::ReadCompletionRoutine
     (
     DWORD dwErrorCode,
@@ -112,7 +127,8 @@ bool ShareNetClientData::DoInputMaintenance(void)
                 }
             else
                 {
-                // do something with the message here
+                // handle a sharemessage
+                BuildShareMessage(&data[0],sz);
                 }
             } // end if we have an entire message available 
         } // end if we got a size 
@@ -154,7 +170,7 @@ DWORD ShareNetClientData::Run(const bool& bContinue)
 {
     Logger << "[ShareNetClientData::Run] thread id " << GetCurrentThreadId() << " created\n";
     
-    // recover the go param to get the input message fifo
+    // recover the go param to get the output message fifo
     MessageOutputFifo=static_cast<tsfifo<CheyenneMessage*>*>(GoParam);
 
     // do forever
@@ -431,3 +447,63 @@ void ShareNetClientData::Close(void)
     ModifyInputBuffer().Flush();
     ModifyOutputBuffer().Flush();
 } // end Close
+
+void ShareNetClientData::BuildShareMessage
+    (
+    const unsigned char* buf,
+    const unsigned short len
+    )
+{
+    // first 2 bytes are the size of the entire message --
+    // which was passed in as the len
+    // third byte is the opcode
+    // alias pointer to opcode and go from there
+    const unsigned char* message=&buf[sizeof(unsigned short)];
+    share_opcodes::c_opcode_t opcode=message[1];
+    
+    switch(opcode)
+        {
+        case share_opcodes::request_full_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::request_full_update>(message)
+                );
+            break;
+            
+        case share_opcodes::full_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::full_update>(message)
+                );
+            break;
+            
+        case share_opcodes::heartbeat_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::heartbeat_update>(message)
+                );
+            break;
+            
+        case share_opcodes::threshold_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::threshold_update>(message)
+                );
+            break;
+
+        case share_opcodes::visibility_update:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::visibility_update>(message)
+                );
+            break;
+            
+        default:
+            Logger << "[ShareNetClientData::BuildShareMessage] unknown opcode: " 
+                   << unsigned int(opcode) << "\n";
+            break;
+        }; // end switch opcode
+    
+    // done
+    return;
+} // end BuildShareMessage

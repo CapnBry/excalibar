@@ -76,12 +76,6 @@ namespace opcodes
     c_opcode_t player_level_name=0xBE;      // 190
 }; // end namespace opcodes
 
-namespace share_opcodes
-{
-    typedef const unsigned char c_opcode_t;
-    typedef unsigned char opcode_t;
-} // end namespace share_opcodes
-
 namespace daocmessages
 {
 class SniffedMessage : public CheyenneMessage
@@ -379,6 +373,18 @@ struct stealth : public daocmessages::SniffedMessage
 
 }; // end namespace daocmessages
 
+namespace share_opcodes
+{
+    typedef const unsigned char c_opcode_t;
+    typedef unsigned char opcode_t;
+    
+    c_opcode_t request_full_update=1;
+    c_opcode_t full_update=2;
+    c_opcode_t heartbeat_update=3;
+    c_opcode_t threshold_update=4;
+    c_opcode_t visibility_update=5;
+} // end namespace share_opcodes
+
 namespace sharemessages
 {
 class ShareMessage : public CheyenneMessage
@@ -393,4 +399,95 @@ protected:
 private:
 }; // end ShareMessage
 
+struct request_full_update_data
+    {
+    }; // end request_full_update_data
+struct request_full_update : public sharemessages::ShareMessage
+    {
+    request_full_update(){opcode=share_opcodes::request_full_update;};
+    ~request_full_update(){};
+    
+    typedef request_full_update_data impl_t;
+    
+    impl_t data;
+    }; // end request_full_update
+
+struct full_update_data
+    {
+    char name[33];
+    char surname[33];
+    char guild[33];
+    float x;
+    float y;
+    float z;
+    float heading;
+    float speed;
+    unsigned char health;
+    unsigned char level;
+    unsigned char realm;
+    unsigned int id;
+    unsigned int infoid;
+    int type; // actor type (player, mob, object)
+    unsigned char region;
+    unsigned char stealth;
+    };
+struct full_update : public sharemessages::ShareMessage
+    {
+    full_update(){opcode=share_opcodes::full_update;};
+    ~full_update(){};
+    
+    typedef full_update_data impl_t;
+    
+    impl_t data;
+    }; // end full_update
+    
+struct heartbeat_update_data
+    {
+    unsigned int infoid;
+    }; // end struct heartbeat_update_data;
+struct heartbeat_update : public sharemessages::ShareMessage
+    {
+    heartbeat_update(){opcode=share_opcodes::heartbeat_update;};
+    ~heartbeat_update(){};
+    
+    typedef heartbeat_update_data impl_t;
+    
+    impl_t data;
+    }; // end heartbeat_update
+    
+struct threshold_update_data
+    {
+    float x;
+    float y;
+    float z;
+    float heading;
+    float speed;
+    unsigned int infoid;
+    }; // end threshold_update_data
+    
+struct threshold_update : public sharemessages::ShareMessage
+    {
+    threshold_update(){opcode=share_opcodes::threshold_update;};
+    ~threshold_update(){};
+    
+    typedef threshold_update_data impl_t;
+    
+    impl_t data;
+    }; // end threshold_update
+    
+struct visibility_update_data
+    {
+    unsigned char visibility; // bits:
+                              // 1 is stealth
+    unsigned int infoid;
+    }; // end visibility_update_data
+struct visibility_update : public sharemessages::ShareMessage
+    {
+    visibility_update(){opcode=share_opcodes::visibility_update;};
+    ~visibility_update(){};
+    
+    typedef visibility_update_data impl_t;
+    
+    impl_t data;
+    }; // end visibility_update
 }; // end namespace sharemessages

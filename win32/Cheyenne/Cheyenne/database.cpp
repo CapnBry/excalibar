@@ -32,7 +32,8 @@ Database::Database() :
     SpeedCorrection(1.0f),
     ActorEvents(DatabaseEvents::_LastEvent),
     OldActorThreshold(15.0),
-    bGroundTargetSet(false)
+    bGroundTargetSet(false),
+    bFullUpdateRequest(false)
 {
 
     // done
@@ -171,7 +172,8 @@ void Database::WaitForData(unsigned int timeout)
             }
         else
             {
-            // handle non-sniffed message
+            // handle sharenet message
+            HandleShareMessage(static_cast<const sharemessages::ShareMessage*>(msg));
             }
 
         // done with this
@@ -188,7 +190,8 @@ void Database::WaitForData(unsigned int timeout)
                 }
             else
                 {
-                // handle non-sniffed message
+                // handle sharenet message
+                HandleShareMessage(static_cast<const sharemessages::ShareMessage*>(msg));
                 }
 
             // done with this
@@ -314,6 +317,10 @@ void Database::DoMaintenance(void)
 
     // fire event -- we did the maintenance
     ActorEvents[DatabaseEvents::MaintenanceIntervalDone]();
+    
+    // clear the full update request flag: full update
+    // requests only last for 1 maintenance interval
+    bFullUpdateRequest=false;
     
     // done
     return;
@@ -548,6 +555,190 @@ Database::id_type Database::GetUniqueId
     
     return(Database::id_type(wb.dword));
 } // end GetUniqueId
+
+void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
+{
+    // lock database
+    AutoLock al(DBMutex);
+    
+    // handle the message
+    switch(msg->GetOpcode())
+        {
+        case share_opcodes::request_full_update:
+            {
+            const sharemessages::request_full_update* p=static_cast<const sharemessages::request_full_update*>(msg);
+            
+            // no data in this message, but we set the full update flag
+            // as a result
+            bFullUpdateRequest=true;
+            }
+            break;
+            
+        case share_opcodes::full_update:
+            {
+            const sharemessages::full_update* p=static_cast<const sharemessages::full_update*>(msg);
+            
+            // first, see if we have this actor. The infoid
+            // here has already been made unique so we don't have to do that
+            Actor* pa=GetActorById(p->data.infoid);
+            
+            if(!pa)
+                {
+                // this is a new actor
+                bool bInserted; // don't need to check this
+                Actor& ThisActor=InsertActorById(p->data.infoid,bInserted);
+
+                // save motion info
+                ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
+                ThisActor.ModifyMotion().SetXPos(p->data.x);
+                ThisActor.ModifyMotion().SetYPos(p->data.y);
+                ThisActor.ModifyMotion().SetZPos(p->data.z);
+                ThisActor.ModifyMotion().SetHeading(p->data.heading);
+                ThisActor.ModifyMotion().SetSpeed(p->data.speed);
+
+                // save other actor info
+                ThisActor.SetRealm(p->data.realm);
+                ThisActor.SetLevel(p->data.level);
+                ThisActor.SetName(std::string(p->data.name));
+                ThisActor.SetSurname(std::string(p->data.surname));
+                ThisActor.SetGuild(std::string(p->data.guild));
+
+                // mark as type
+                ThisActor.SetActorType(Actor::ActorTypes(p->data.type));
+
+                // save id
+                ThisActor.SetId(p->data.id);
+                ThisActor.SetInfoId(p->data.infoid);
+
+                // save region
+                ThisActor.SetRegion(p->data.region);
+
+                // if player, save id->infoid mapping
+                if(ThisActor.IsType(Actor::Player))
+                    {
+                    InfoIdMap.insert(infoid_map_value(ThisActor.GetId(),ThisActor.GetInfoId()));
+                    }
+
+                ThisActor.SetLastUpdateTime(::Clock.Current());
+
+                // fire event
+                ActorEvents[DatabaseEvents::ActorCreated](ThisActor);
+                } // end if new actor
+            else
+                {
+                // update an existing actor
+                
+                // don't bother if our data is pretty recent
+                if((::Clock.Current() - pa->GetLastUpdateTime()).Seconds() > 2.0f)
+                    {
+                    // our last update time is 2s old. Use new data.
+
+                    // save motion info
+                    pa->ModifyMotion().SetValidTime(::Clock.Current());
+                    pa->ModifyMotion().SetXPos(p->data.x);
+                    pa->ModifyMotion().SetYPos(p->data.y);
+                    pa->ModifyMotion().SetZPos(p->data.z);
+                    pa->ModifyMotion().SetHeading(p->data.heading);
+                    pa->ModifyMotion().SetSpeed(p->data.speed);
+
+                    // save other actor info
+                    pa->SetLevel(p->data.level);
+                    pa->SetName(std::string(p->data.name));
+                    pa->SetSurname(std::string(p->data.surname));
+                    pa->SetGuild(std::string(p->data.guild));
+                    
+                    pa->SetLastUpdateTime(::Clock.Current());
+                    } // end if existing actor is old enough to warrant updating
+                } // end else existing actor
+            }
+            break;
+            
+        case share_opcodes::heartbeat_update:
+            {
+            const sharemessages::heartbeat_update* p=static_cast<const sharemessages::heartbeat_update*>(msg);
+            
+            // find the actor
+            Actor* pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // save update time, somebody out there still sees this actor
+                pa->SetLastUpdateTime(::Clock.Current());
+                }
+            else
+                {
+                // got heartbeat on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got heartbeat on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::threshold_update:
+            {
+            const sharemessages::threshold_update* p=static_cast<const sharemessages::threshold_update*>(msg);
+            
+            // we get this message when the sender determines that 
+            // the actor has violated the dead reckoning threshold
+            // and needs to be updated to the network
+            // find the actor
+            Actor* pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // save motion info
+                pa->ModifyMotion().SetValidTime(::Clock.Current());
+                pa->ModifyMotion().SetXPos(p->data.x);
+                pa->ModifyMotion().SetYPos(p->data.y);
+                pa->ModifyMotion().SetZPos(p->data.z);
+                pa->ModifyMotion().SetHeading(p->data.heading);
+                pa->ModifyMotion().SetSpeed(p->data.speed);
+
+                // save update time
+                pa->SetLastUpdateTime(::Clock.Current());
+                }
+            else
+                {
+                // got threshold on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got threshold on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::visibility_update:
+            {
+            const sharemessages::visibility_update* p=static_cast<const sharemessages::visibility_update*>(msg);
+            
+            // we get this message when someone needs to update the visibility on this actor
+            Actor* pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // save visiblity info
+                if(p->data.visibility & 0x01)
+                    {
+                    pa->SetStealth(true);
+                    }
+
+                // save update time
+                pa->SetLastUpdateTime(::Clock.Current());
+                }
+            else
+                {
+                // got visiblity on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got visiblity on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        default:
+            Logger << "[Database::HandleShareMessage] unknown opcode: "
+                   << unsigned int(msg->GetOpcode()) << "\n";
+            break;
+        } // end switch opcode
+    
+    // done
+    return;
+} // end HandleShareMessage
 
 void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 {

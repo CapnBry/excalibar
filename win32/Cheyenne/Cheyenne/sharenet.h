@@ -67,6 +67,8 @@ public:
             }
     }
 
+    bool QueueOutputMessage(const void* data,const unsigned int length);
+
     bool Open(const std::string& remote_addr,const std::string& remote_port);
     void Close(void);
     
@@ -79,7 +81,6 @@ private:
     bool Open(const char* remote_addr,unsigned short remote_port);
     bool Open(SOCKET s);
 
-    bool QueueOutputMessage(const void* data,const unsigned int length);
     unsigned int ExtractInputMessage(void* data,const unsigned int max_len);
 
     static VOID CALLBACK ReadCompletionRoutine
@@ -103,6 +104,8 @@ private:
         sz=sizeof(sz);
         QueueOutputMessage(&sz,sz);
     } // end SendPing
+    
+    void BuildShareMessage(const unsigned char* buf, const unsigned short len);
 
     ShareNetClientData(const ShareNetClientData& s); // disallow
     ShareNetClientData& operator=(const ShareNetClientData& s); // disallow

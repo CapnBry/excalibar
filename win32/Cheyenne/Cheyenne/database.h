@@ -222,6 +222,7 @@ private:
     virtual DWORD Run(const bool& bContinue);
     void WaitForData(unsigned int timeout=250);
     void HandleSniffedMessage(const daocmessages::SniffedMessage* msg);
+    void HandleShareMessage(const sharemessages::ShareMessage* msg);
     void DoMaintenance(void);
     void IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor);
 
@@ -254,5 +255,7 @@ private:
     bool bGroundTargetSet;
     CheyenneTime UncorrelatedStealthTime;
     Actor UncorrelatedStealthCenter;
+    
+    bool bFullUpdateRequest; // true when a sharenet full update request is active
 
 }; // end class Database
