@@ -344,49 +344,50 @@ type
     FOnTradeskillCapped: TDAOCParserNotify;
     FTradeSkillQualityDistribution: array[94..101] of integer;
     FTradeSkillStreaks: array[94..100] of integer;
-    FEffectDamageType:  TEffectDamageType;  
+    FEffectDamageType:  TEffectDamageType;
+    FOnTradeSkillFailureWithLoss: TDAOCParserNotify;
 
-    procedure ParseCastSpell(const sLine: string);
-    procedure ParseEffectDamage(const sLine: string);
-    procedure ParseTradeskillCap(const sLine: string);
-    procedure ParseBracketCommand(const sLine: string);
-    procedure ParseGuildChat(const sLine: string);
-    procedure ParseHealed(const sLine: string);
-    procedure ParseYouSend(const sLine: string);
-    procedure ParseStylePrereqFailure(const sLine: string);
-    procedure ParseWeaponEquiped(const sLine: string);
-    procedure ParseBowDamage(const sLine: string);
-    procedure ParseExtraOutDamage(const sLine: string);
-    procedure ParseMOBDies(const sLine: string);
-    procedure ParseTooFatigued(const sLine: string);
-    procedure ParseEnterCombatMode(const sLine: string);
-    procedure ParseYouSay(const sLine: string);
-    procedure ParseConsider(const sLine: string);
-    procedure ParseTradeskillSuccess(const sLine: string);
-    procedure ParseTradeskillFailure(const sLine: string);
-    procedure ParseDrop(const sLine: string);
-    procedure ParseSellItem(const sLine: string);
-    procedure ParseStyleDamage(const sLine: string);
-    procedure ParseItemPickup(const sLine: string);
-    procedure ParseExp(const sLine: string);
-    procedure ParseAttackDamage(const sLine: string);
-    procedure ParsePrepareStyle(const sLine: string);
-    procedure ParseTradeskillTask(const sLine: string);
-    procedure ParseTradeskillTask2(const sLine: string);
-    procedure ParseTarget(const sLine: string);
+    procedure ParseCastSpell;
+    procedure ParseEffectDamage;
+    procedure ParseTradeskillCap;
+    procedure ParseBracketCommand;
+    procedure ParseGuildChat;
+    procedure ParseHealed;
+    procedure ParseYouSend;
+    procedure ParseStylePrereqFailure;
+    procedure ParseWeaponEquiped;
+    procedure ParseBowDamage;
+    procedure ParseExtraOutDamage;
+    procedure ParseMOBDies;
+    procedure ParseTooFatigued;
+    procedure ParseEnterCombatMode;
+    procedure ParseYouSay;
+    procedure ParseConsider;
+    procedure ParseTradeskillSuccess;
+    procedure ParseTradeskillFailure;
+    procedure ParseDrop;
+    procedure ParseSellItem;
+    procedure ParseStyleDamage;
+    procedure ParseItemPickup;
+    procedure ParseExp;
+    procedure ParseAttackDamage;
+    procedure ParsePrepareStyle;
+    procedure ParseTradeskillTask;
+    procedure ParseTradeskillTask2;
+    procedure ParseTarget;
     procedure DoEnterZone(const AZone: string);
-    procedure ParseLoc(const sLine: string);
-    procedure ParseEnterLeaveRegion(const sLine: string);
-    procedure ParseTimeStamp(const sLine: string);
+    procedure ParseLoc;
+    procedure ParseEnterLeaveRegion;
+    procedure ParseTimeStamp;
     function MonthToInt(const sMonth : string) : integer;
-    procedure ParseChatLogOpenClose(const sLine: string);
+    procedure ParseChatLogOpenClose;
     function GetTimeStamp: TDateTime;
-    procedure ParseInParry(const sLine: string);
-    procedure ParseInBlock(const sLine: string);
-    procedure ParseInEvade(const sLine: string);
-    procedure ParseInMiss(const sLine: string);
-    procedure ParseOutMiss(const sLine: string);
-    procedure ParseInAttack(const sLine: string);
+    procedure ParseInParry;
+    procedure ParseInBlock;
+    procedure ParseInEvade;
+    procedure ParseInMiss;
+    procedure ParseOutMiss;
+    procedure ParseInAttack;
     procedure DoOnAttackStatsChg;
     procedure DoOnDeath;
     procedure DoTarget(const ATarget: string);
@@ -400,6 +401,9 @@ type
     function GetTradeSkillQualityDistribution(I: integer): integer;
     function GetTradeSkillStreaks(I: integer): integer;
   protected
+    function LineBeginsWith(const ABegins: string): boolean;
+    function LineContains(const AContains: string): boolean;
+    function LineEndsWith(const AEnds: string): boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -450,6 +454,7 @@ type
     property OnSessionClose: TDAOCParserNotify read FOnSessionClose write FOnSessionClose;
     property OnTradeSkillSuccess: TDAOCParserIntNotify read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
     property OnTradeSkillFailure: TDAOCParserNotify read FOnTradeSkillFailure write FOnTradeSkillFailure;
+    property OnTradeSkillFailureWithLoss: TDAOCParserNotify read FOnTradeSkillFailureWithLoss write FOnTradeSkillFailureWithLoss;
     property OnTradeskillMasterpiece: TDAOCParserNotify read FOnTradeskillMasterpiece write FOnTradeskillMasterpiece; 
     property OnDeath: TDAOCParserNotify read FOnDeath write FOnDeath;
     property OnYouSay: TDAOCParserNotify read FOnYouSay write FOnYouSay;
@@ -538,11 +543,29 @@ end;
 
 { TDAOCChatParser }
 
-procedure TDAOCChatParser.ParseInBlock(const sLine: string);
+function TDAOCChatParser.LineBeginsWith(const ABegins: string) : boolean;
+begin
+  Result := StrLComp(PChar(Pointer(FCurrentLine)) + 11, PChar(Pointer(ABegins)),
+    Length(ABegins)) = 0;
+end;
+
+function TDAOCChatParser.LineEndsWith(const AEnds: string) : boolean;
+begin
+  Result := (Length(FCurrentLine) >= Length(AEnds)) and
+    (StrLComp(PChar(Pointer(FCurrentLine)) + Length(FCurrentLine) - Length(AEnds),
+      PChar(Pointer(AEnds)), Length(AEnds)) = 0);
+end;
+
+function TDAOCChatParser.LineContains(const AContains: string) : boolean;
+begin
+  Result := Pos(AContains, FCurrentLine) <> 0;
+end;
+
+procedure TDAOCChatParser.ParseInBlock;
 var
   sMob:  string;
 begin
-  sMob := RemoveThe(copy(sLine, 12, Length(sLine) - 12 - 35));
+  sMob := RemoveThe(copy(FCurrentLine, 12, Length(FCurrentLine) - 12 - 35));
   FAttackStats.FindOrAddMob(sMob);
   inc(FAttackStats.LastMob.FBlocks);
 
@@ -553,11 +576,11 @@ begin
   DoOnAttackStatsChg;
 end;
 
-procedure TDAOCChatParser.ParseInEvade(const sLine: string);
+procedure TDAOCChatParser.ParseInEvade;
 var
   sMob:  string;
 begin
-  sMob := RemoveThe(copy(sLine, 12, Length(sLine) - 12 - 35));
+  sMob := RemoveThe(copy(FCurrentLine, 12, Length(FCurrentLine) - 12 - 35));
   FAttackStats.FindOrAddMob(sMob);
   inc(FAttackStats.LastMob.FEvades);
 
@@ -568,11 +591,11 @@ begin
   DoOnAttackStatsChg;
 end;
 
-procedure TDAOCChatParser.ParseInMiss(const sLine: string);
+procedure TDAOCChatParser.ParseInMiss;
 var
   sMob:  string;
 begin
-  sMob := RemoveThe(copy(sLine, 12, Length(sLine) - 12 - 23));
+  sMob := RemoveThe(copy(FCurrentLine, 12, Length(FCurrentLine) - 12 - 23));
   FAttackStats.FindOrAddMob(sMob);
   inc(FAttackStats.LastMob.FInMisses);
 
@@ -583,11 +606,11 @@ begin
   DoOnAttackStatsChg;
 end;
 
-procedure TDAOCChatParser.ParseInParry(const sLine: string);
+procedure TDAOCChatParser.ParseInParry;
 var
   sMob:  string;
 begin
-  sMob := RemoveThe(copy(sLine, 12, Length(sLine) - 12 - 35));
+  sMob := RemoveThe(copy(FCurrentLine, 12, Length(FCurrentLine) - 12 - 35));
   FAttackStats.FindOrAddMob(sMob);
   inc(FAttackStats.LastMob.FParries);
 
@@ -749,22 +772,22 @@ begin
   Result := 12;
 end;
 
-procedure TDAOCChatParser.ParseAttackDamage(const sLine: string);
+procedure TDAOCChatParser.ParseAttackDamage;
 var
   iPos:   integer;
   sMob:   string;
 begin
     { [23:41:17] You attack the werewolf guard with your sword and hit for 28 (+3) damage! }
-  iPos := Pos(' with your ', sLine);
+  iPos := Pos(' with your ', FCurrentLine);
   if iPos > 0 then begin
-    sMob := RemoveThe(copy(sLine, 23, iPos - 23));
+    sMob := RemoveThe(copy(FCurrentLine, 23, iPos - 23));
     FAttackStats.FindOrAddMob(sMob);
   end;
 
-  iPos := Pos(' and hit for ', sLine);
+  iPos := Pos(' and hit for ', FCurrentLine);
   if iPos > 0 then begin
     inc(iPos, 13);
-    FAttackStats.LastMob.OutDamage.AddAttack(ParseInt(sLine, iPos), dtMelee);
+    FAttackStats.LastMob.OutDamage.AddAttack(ParseInt(FCurrentLine, iPos), dtMelee);
   end;
 
   DoOnOutAttack;
@@ -773,23 +796,23 @@ begin
   FEffectDamageType := edtProc;
 end;
 
-procedure TDAOCChatParser.ParseChatLogOpenClose(const sLine: string);
+procedure TDAOCChatParser.ParseChatLogOpenClose;
 begin
     { *** Chat Log Opened: Sat Oct 20 15:27:35 2001 }
   FDate := EncodeDate(
-    StrToIntDef(copy(sLine, Length(sLine) - 3, 4), 1899),  // yyyy
-    MonthToInt(copy(sLine, Length(sLine) - 19, 3)),  // mmm
-    StrToIntDef(copy(sLine, Length(sLine) - 15, 2), 31)  // dd
+    StrToIntDef(copy(FCurrentLine, Length(FCurrentLine) - 3, 4), 1899),  // yyyy
+    MonthToInt(copy(FCurrentLine, Length(FCurrentLine) - 19, 3)),  // mmm
+    StrToIntDef(copy(FCurrentLine, Length(FCurrentLine) - 15, 2), 31)  // dd
   );
 
   FTime := EncodeTime(
-    StrToIntDef(copy(sLine, Length(sLine) - 12, 2), 0),  // hh
-    StrToIntDef(copy(sLine, Length(sLine) - 9, 2), 0),  // mm
-    StrToIntDef(copy(sLine, Length(sLine) - 6, 2), 0),  // ss
+    StrToIntDef(copy(FCurrentLine, Length(FCurrentLine) - 12, 2), 0),  // hh
+    StrToIntDef(copy(FCurrentLine, Length(FCurrentLine) - 9, 2), 0),  // mm
+    StrToIntDef(copy(FCurrentLine, Length(FCurrentLine) - 6, 2), 0),  // ss
     0
   );
 
-  if copy(sLine, 14, 6) = 'Opened' then begin
+  if copy(FCurrentLine, 14, 6) = 'Opened' then begin
     FInSession := true;
     if Assigned(FOnSessionOpen) then
       FOnSessionOpen(Self)
@@ -801,31 +824,31 @@ begin
   end;
 end;
 
-procedure TDAOCChatParser.ParseConsider(const sLine: string);
+procedure TDAOCChatParser.ParseConsider;
 var
   iPos:     integer;
   sTarget:  string;
 begin
     { [23:37:32] You examine the werewolf warder.  It is aggressive towards you! }
-  iPos := Pos('.', sLine);
+  iPos := Pos('.', FCurrentLine);
   if iPos = 0 then
     exit;
 
     { some targets don't have a 'the' (ie Lords in Varul.) }
-  sTarget := RemoveThe(copy(sLine, 24, iPos - 24));
+  sTarget := RemoveThe(copy(FCurrentLine, 24, iPos - 24));
   DoTarget(sTarget);
 end;
 
-procedure TDAOCChatParser.ParseDrop(const sLine: string);
+procedure TDAOCChatParser.ParseDrop;
 var
   sMob:   string;
   sItem:  string;
   iDropPos: integer;
 begin
-  iDropPos := Pos(' drops ', sLine);
-  sMob := RemoveThe(copy(sLine, 12, iDropPos - 12));
+  iDropPos := Pos(' drops ', FCurrentLine);
+  sMob := RemoveThe(copy(FCurrentLine, 12, iDropPos - 12));
 
-  sItem := copy(sLine, iDropPos + 7, Length(sLine) - iDropPos - 7);
+  sItem := copy(FCurrentLine, iDropPos + 7, Length(FCurrentLine) - iDropPos - 7);
     { if the item begins with a cut that out }
   if (sItem <> '') and (sItem[1] = 'a') then
     Delete(sItem, 1, 2);
@@ -839,10 +862,10 @@ begin
     FOnItemDropped(Self);
 end;
 
-procedure TDAOCChatParser.ParseEnterLeaveRegion(const sLine: string);
+procedure TDAOCChatParser.ParseEnterLeaveRegion;
 begin
     { [15:32:20] (Region) You have left Huginfell. }
-  if StrLComp(PChar(Pointer(sLine)) + 29, 'left', 4) = 0 then begin
+  if StrLComp(PChar(Pointer(FCurrentLine)) + 29, 'left', 4) = 0 then begin
     if Assigned(FOnLeaveZone) then
       FOnLeaveZone(Self);
     FZone := '';
@@ -851,24 +874,24 @@ begin
 
     { [15:32:10] (Region) You have entered Huginfell. }
   else
-    DoEnterZone(copy(sLine, 38, Length(sLine) - 38));
+    DoEnterZone(copy(FCurrentLine, 38, Length(FCurrentLine) - 38));
 end;
 
-procedure TDAOCChatParser.ParseExp(const sLine: string);
+procedure TDAOCChatParser.ParseExp;
 var
   iExp:   integer;
   iPos:   integer;
 begin
     { You get nnnnn experience points. (mmmm bonus) }
   iPos := 11 + 8;
-  iExp := ParseIntWCommas(sLine, iPos);
+  iExp := ParseIntWCommas(FCurrentLine, iPos);
 
   if iExp = 0 then begin
-    ParseItemPickup(sLine);
+    ParseItemPickup;
     exit;
   end;
 
-  if Pos(' experience points', sLine) > 0 then begin
+  if Pos(' experience points', FCurrentLine) > 0 then begin
     if Assigned(FAttackStats.LastMOB) then
       FAttackStats.LastMOB.FLastExperience := iExp;
 
@@ -884,14 +907,14 @@ begin
       FOnExperienceChange(Self);
   end
 
-  else if Pos(' realm points', sLine) > 0 then begin
+  else if Pos(' realm points', FCurrentLine) > 0 then begin
     inc(FRealmPoints, iExp);
 
     if Assigned(FOnRealmPointsChange) then
       FOnRealmPointsChange(Self)
   end
 
-  else if Pos(' Specialization Points ', sLine) > 0 then 
+  else if Pos(' Specialization Points ', FCurrentLine) > 0 then 
 
   else begin { ' bounty points' }
     inc(FBountyPoints, iExp);
@@ -901,30 +924,30 @@ begin
   end
 end;
 
-procedure TDAOCChatParser.ParseItemPickup(const sLine: string);
+procedure TDAOCChatParser.ParseItemPickup;
 var
   iPos:   integer;
   sItem:  string;
 begin
     { [15:53:31] You get a pine tree amulet and put it in your backpack. }
-  iPos := Pos(' and put it in your backpack.', sLine);
+  iPos := Pos(' and put it in your backpack.', FCurrentLine);
   if iPos = 0 then
     exit;
 
-  sItem := copy(sLine, 22, iPos - 22);
+  sItem := copy(FCurrentLine, 22, iPos - 22);
   FDropItems.FindOrAddItem(sItem, '*');
 
   if Assigned(FOnItemPickUp) then
     FOnItemPickUp(Self);
 end;
 
-procedure TDAOCChatParser.ParseLoc(const sLine: string);
+procedure TDAOCChatParser.ParseLoc;
 var
   iPos:   integer;
   sZoneLine:  string;
   sTmpLine:   string;
 begin
-  sTmpLine := copy(sLine, 16, Length(sLine));
+  sTmpLine := copy(FCurrentLine, 16, Length(FCurrentLine));
 
   iPos := Pos(':', sTmpLine);
     { [19:37:41]  In Myrkwood Forest: loc=3813,16756,5317 dir=178 }
@@ -942,7 +965,7 @@ begin
     FOnLocationChange(Self);
 end;
 
-procedure TDAOCChatParser.ParseOutMiss(const sLine: string);
+procedure TDAOCChatParser.ParseOutMiss;
 begin
     { TODO: parse the mob name from this line, this will throw an AV if log
       starts with this line }
@@ -954,19 +977,19 @@ begin
   DoOnOutAttack;
 end;
 
-procedure TDAOCChatParser.ParsePrepareStyle(const sLine: string);
+procedure TDAOCChatParser.ParsePrepareStyle;
 begin
   if not Assigned(FAttackStats.LastMob) then
     exit;
     
     { [23:37:44] You prepare to perform a Assault! }
-  FAttackStats.LastMob.OutDamage.FindOrAddStyle(copy(sLine, 37, Length(sLine) - 37));
+  FAttackStats.LastMob.OutDamage.FindOrAddStyle(copy(FCurrentLine, 37, Length(FCurrentLine) - 37));
 
   if Assigned(FOnStylePrepared) then
     FOnStylePrepared(Self);
 end;
 
-procedure TDAOCChatParser.ParseSellItem(const sLine: string);
+procedure TDAOCChatParser.ParseSellItem;
 var
   iPos:   integer;
   iValue: integer;
@@ -975,20 +998,20 @@ var
   bFoundItem:   boolean;
 begin
     { [18:36:14] Wolgrun gives you 1130 copper for the lapis lazuli stone. }
-  iPos := Pos(' gives you ', sLine);
+  iPos := Pos(' gives you ', FCurrentLine);
   if iPos = -1 then
     exit;
 
   inc(iPos, 11);
-  iValue := ParseInt(sLine, iPos);
-  if ParseWord(sLine, iPos) <> 'copper' then
+  iValue := ParseInt(FCurrentLine, iPos);
+  if ParseWord(FCurrentLine, iPos) <> 'copper' then
     exit;
-  if ParseWord(sLine, iPos) <> 'for' then
+  if ParseWord(FCurrentLine, iPos) <> 'for' then
     exit;
-  if ParseWord(sLine, iPos) <> 'the' then
+  if ParseWord(FCurrentLine, iPos) <> 'the' then
     exit;
 
-  sItem := copy(sLine, iPos + 1, Length(sLine) - iPos - 1);
+  sItem := copy(FCurrentLine, iPos + 1, Length(FCurrentLine) - iPos - 1);
 
   bFoundItem := false;
   for I := 0 to FDropItems.Count - 1 do
@@ -1001,7 +1024,7 @@ begin
     FDropItems.FindOrAddItem(sItem, '').SetSellValue(iValue);
 end;
 
-procedure TDAOCChatParser.ParseStyleDamage(const sLine: string);
+procedure TDAOCChatParser.ParseStyleDamage;
 var
   iPos:   integer;
   sStyle: string;
@@ -1010,25 +1033,25 @@ begin
     exit;
 
     { [19:51:15] You perform your Assault perfectly. (+8) }
-  iPos := Pos(' perfectly.', sLine);
+  iPos := Pos(' perfectly.', FCurrentLine);
   if iPos = 0 then
-    iPos := Pos(' perfectly!', sLine);
+    iPos := Pos(' perfectly!', FCurrentLine);
   if iPos > 0 then begin
-    sStyle := copy(sLine, 29, iPos - 29);
+    sStyle := copy(FCurrentLine, 29, iPos - 29);
     FAttackStats.LastMOB.OutDamage.FindOrAddStyle(sStyle);
-    // ParseWord(sLine, iPos);  // perfectly
+    // ParseWord(FCurrentLine, iPos);  // perfectly
 
     if Assigned(FOnStyleExecuteSuccess) then
       FOnStyleExecuteSuccess(Self);
   end;
 end;
 
-procedure TDAOCChatParser.ParseTarget(const sLine: string);
+procedure TDAOCChatParser.ParseTarget;
 var
   sTmpLine:   string;
 begin
     { [23:53:15] You target [Clug] }
-  sTmpLine := copy(sLine, 23, Length(sLine));
+  sTmpLine := copy(FCurrentLine, 23, Length(FCurrentLine));
     { the line might include a "the" }
   sTmpLine := RemoveThe(sTmpLine);
 
@@ -1038,7 +1061,7 @@ begin
   // DoTarget(copy(sTmpLine, 2, Length(sTmpLine) - 2));
 end;
 
-procedure TDAOCChatParser.ParseInAttack(const sLine: string);
+procedure TDAOCChatParser.ParseInAttack;
 var
   iPos:   integer;
   sMob:   string;
@@ -1050,8 +1073,8 @@ var
     begin
       inc(pDmg.Count);
       iDmg := 0;
-      while sLine[iStart] in ['0'..'9'] do begin
-        iDmg := (iDmg * 10) + ord(sLine[iStart]) - ord('0');
+      while FCurrentLine[iStart] in ['0'..'9'] do begin
+        iDmg := (iDmg * 10) + ord(FCurrentLine[iStart]) - ord('0');
         inc(iStart);
       end;
       inc(pDmg.Damage, iDmg);
@@ -1059,17 +1082,17 @@ var
 
 begin
     { [15:31:23] The svartalf watcher hits your torso for 19 (+1) damage! }
-  iPos := Pos(' hits your ', sLine);
+  iPos := Pos(' hits your ', FCurrentLine);
   if iPos <> 0 then begin
-    sMob := RemoveThe(copy(sLine, 12, iPos - 12));
+    sMob := RemoveThe(copy(FCurrentLine, 12, iPos - 12));
     pStats := FAttackStats.FindOrAddMob(sMob);
-    case sLine[iPos + 11] of
+    case FCurrentLine[iPos + 11] of
       'a':  { arm }
           UpdateInDmg(pStats.FInArm, iPos + 19);
       'f':  { foot }
           UpdateInDmg(pStats.FInFoot, iPos + 20);
       'h':  { hand / head }
-        if sLine[iPos + 12] = 'a' then  { hand }
+        if FCurrentLine[iPos + 12] = 'a' then  { hand }
           UpdateInDmg(pStats.FInHand, iPos + 20)
         else  { head }
           UpdateInDmg(pStats.FInHead, iPos + 20);
@@ -1090,15 +1113,15 @@ begin
   end;  { attack hit }
 end;
 
-procedure TDAOCChatParser.ParseTimeStamp(const sLine: string);
+procedure TDAOCChatParser.ParseTimeStamp;
 var
   timeLine: TDateTime;
 begin
     { [15:27:35] Charname was just killed by a grass viper! }
   timeLine := EncodeTime(
-    StrToIntDef(copy(sLine, 2, 2), 0),  // hh
-    StrToIntDef(copy(sLine, 5, 2), 0),  // mm
-    StrToIntDef(copy(sLine, 8, 2), 0),  // ss
+    StrToIntDef(copy(FCurrentLine, 2, 2), 0),  // hh
+    StrToIntDef(copy(FCurrentLine, 5, 2), 0),  // mm
+    StrToIntDef(copy(FCurrentLine, 8, 2), 0),  // ss
     0
   );
 
@@ -1112,7 +1135,7 @@ end;
 (*****
 function TDAOCChatParser.ReadLn: string;
 var
-  sLine:  string;
+  FCurrentLine:  string;
   cIn:    char;
   cBuff:  array[0..1] of char;
   iBufPos:  integer;
@@ -1130,7 +1153,7 @@ begin
       cIn := cBuff[iBufPos];
       if cIn = #13 then
         break;
-      AppendStr(sLine, cIn);
+      AppendStr(FCurrentLine, cIn);
     end;    { for }
 
     if cIn = #13 then
@@ -1138,7 +1161,7 @@ begin
   end;    { while }
 
   if cIn = #13 then begin
-    Result := FPrevLineBuffer + sLine;
+    Result := FPrevLineBuffer + FCurrentLine;
     FPrevLineBuffer := '';
       { get the LF too, we have the LF in cBuff if our pos is < high, else
         read it from the file }
@@ -1146,20 +1169,20 @@ begin
       FChatStream.Read(cIn, sizeof(cIn));
   end
   else
-    FPrevLineBuffer := sLine;
+    FPrevLineBuffer := FCurrentLine;
 end;
 ****)
 
-procedure TDAOCChatParser.ParseTradeskillSuccess(const sLine: string);
+procedure TDAOCChatParser.ParseTradeskillSuccess;
 var
   iPos:     integer;
   iQuality: integer;
 begin
     { [10:41:55] You successfully make the Dusty Essence Jewel!  (95) }
-  iPos := Pos('!  (', sLine);
+  iPos := Pos('!  (', FCurrentLine);
   if (iPos > 0) then begin
     inc(iPos, 4);
-    iQuality := ParseInt(sLine, iPos);
+    iQuality := ParseInt(FCurrentLine, iPos);
   end
   else
     iQuality := 0;
@@ -1184,7 +1207,7 @@ begin
       FOnTradeskillMasterpiece(Self);
 end;
 
-procedure TDAOCChatParser.ParseTradeskillTask(const sLine: string);
+procedure TDAOCChatParser.ParseTradeskillTask;
 var
   iPos:   integer;
   sWord:  string;
@@ -1193,35 +1216,35 @@ begin
   FTradeSkillNPC := '';
   FTradeSkillItem := '';
 
-  iPos := Pos('"', sLine);
+  iPos := Pos('"', FCurrentLine);
   sWord := '';
 
-  sWord := ParseWord(sLine, iPos);
+  sWord := ParseWord(FCurrentLine, iPos);
   while sWord <> 'wants' do begin
     if FTradeSkillNPC <> '' then
       FTradeSkillNPC := FTradeSkillNPC + ' ' + sWord
     else
       FTradeSkillNPC := sWord;
-    sWord := ParseWord(sLine, iPos);
+    sWord := ParseWord(FCurrentLine, iPos);
   end;
 
     { this should be 'a' }
-  ParseWord(sLine, iPos);
+  ParseWord(FCurrentLine, iPos);
 
-  sWord := ParseWord(sLine, iPos);
+  sWord := ParseWord(FCurrentLine, iPos);
   while sWord <> 'made' do begin
     if FTradeSkillItem <> '' then
       FTradeSkillItem := FTradeSkillItem + ' ' + sWord
     else
       FTradeSkillItem := sWord;
-    sWord := ParseWord(sLine, iPos);
+    sWord := ParseWord(FCurrentLine, iPos);
   end;
 
   if Assigned(FOnTradeSkillTask) then
     FOnTradeSkillTask(Self);
 end;
 
-procedure TDAOCChatParser.ParseTradeskillTask2(const sLine: string);
+procedure TDAOCChatParser.ParseTradeskillTask2;
 var
   iPos:   integer;
   sWord:  string;
@@ -1233,25 +1256,25 @@ begin
   iPos := 42;
   sWord := '';
 
-  sWord := ParseWord(sLine, iPos);
+  sWord := ParseWord(FCurrentLine, iPos);
   while sWord <> 'for' do begin
     if FTradeSkillItem <> '' then
       FTradeSkillItem := FTradeSkillItem + ' ' + sWord
     else
       FTradeSkillItem := sWord;
-    sWord := ParseWord(sLine, iPos);
+    sWord := ParseWord(FCurrentLine, iPos);
   end;
 
-  FTradeSkillNPC := copy(sLine, iPos + 1, Length(sLine) - iPos - 1);
+  FTradeSkillNPC := copy(FCurrentLine, iPos + 1, Length(FCurrentLine) - iPos - 1);
   
   if Assigned(FOnTradeSkillTask) then
     FOnTradeSkillTask(Self);
 end;
 
-procedure TDAOCChatParser.ParseYouSay(const sLine: string);
+procedure TDAOCChatParser.ParseYouSay;
 begin
     { [23:55:30] @@You say, "hey you're right" }
-  FLastYouSay := copy(sLine, 24, Length(sLine) - 23 - 1);
+  FLastYouSay := copy(FCurrentLine, 24, Length(FCurrentLine) - 23 - 1);
   if Assigned(FOnYouSay) then
     FOnYouSay(Self);
 end;
@@ -1272,93 +1295,76 @@ begin
 end;
 
 procedure TDAOCChatParser.ProcessLine(const ALine: string);
-  function LineBeginsWith(const ABegins: string) : boolean;
-  begin
-    Result := StrLComp(PChar(Pointer(ALine)) + 11, PChar(Pointer(ABegins)),
-      Length(ABegins)) = 0;
-  end;
-
-  function LineEndsWith(const AEnds: string) : boolean;
-  begin
-    Result := (Length(ALine) >= Length(AEnds)) and
-      (StrLComp(PChar(Pointer(ALine)) + Length(ALine) - Length(AEnds),
-        PChar(Pointer(AEnds)), Length(AEnds)) = 0);
-  end;
-
-  function LineContains(const AContains: string) : boolean;
-  begin
-    Result := Pos(AContains, ALine) <> 0;
-  end;
 begin
   FCurrentLine := ALine;
   if ALine = '' then
     exit;
 
     { *** Chat Log Opened: Sat Oct 20 15:27:35 2001 }
-  if StrLComp(Pointer(ALine), '*** ', 4) = 0 then
-    ParseChatLogOpenClose(ALine)
+  if LineBeginsWith('*** ') then
+    ParseChatLogOpenClose
   else begin
       { [15:27:35] Charname was just killed by a grass viper! }
-    ParseTimeStamp(ALine);
+    ParseTimeStamp;
 
       { [15:32:10] (Region) You have entered Huginfell. }
     if LineBeginsWith('(Region)') then
-      ParseEnterLeaveRegion(ALine)
+      ParseEnterLeaveRegion
       { [23:53:06]  In Myrkwood Forest: loc=32614,5406,4740 dir=282 }
     else if LineBeginsWith(' In ') then
-      ParseLoc(ALine)
+      ParseLoc
       { [23:55:30] @@You say, "xxx" }
     else if LineBeginsWith('@@You say, "') then
-      ParseYouSay(ALine)
+      ParseYouSay
       { [09:14:22] @@You send, "I can have that mith cleaver made for 110g" to Charname }
     else if LineBeginsWith('@@You send, "') then
-      ParseYouSend(ALine)
+      ParseYouSend
       { [15:12:09] @@[Guild] Charname: "*gives you the finger as he passes*" }
     else if LineBeginsWith('@@[Guild] ') then
-      ParseGuildChat(ALine)
+      ParseGuildChat
       { [19:17:38] You target the [Kobold Helen] }
     else if LineBeginsWith('You target ') then
-      ParseTarget(ALine)
+      ParseTarget
     else if LineEndsWith(' attacks you and you evade the blow!') then
-      ParseInEvade(ALine)
+      ParseInEvade
     else if LineEndsWith(' attacks you and you parry the blow!') then
-      ParseInParry(ALine)
+      ParseInParry
     else if LineEndsWith(' attacks you and you block the blow!') then
-      ParseInBlock(ALine)
+      ParseInBlock
     else if LineEndsWith(' attacks you and misses!') then
-      ParseInMiss(ALine)
+      ParseInMiss
     else if LineEndsWith(' evades your attack!') then
-      ParseOutMiss(ALine)
+      ParseOutMiss
     else if LineEndsWith(' parries your attack!') then
-      ParseOutMiss(ALine)
+      ParseOutMiss
     else if LineBeginsWith('You have been asked to make a ') then
-      ParseTradeskillTask2(ALine)
+      ParseTradeskillTask2
     else if LineBeginsWith('You prepare to perform a ') then
-      ParsePrepareStyle(ALine)
+      ParsePrepareStyle
     else if LineBeginsWith('You fail to execute your ') then
       DoStyleFailure
     else if LineBeginsWith('You perform your ') then
-      ParseStyleDamage(ALine)
+      ParseStyleDamage
     else if LineBeginsWith('You miss!') then
-      ParseOutMiss(ALine)
+      ParseOutMiss
     else if LineBeginsWith('You attack ') then
-      ParseAttackDamage(ALine)
+      ParseAttackDamage
     else if LineBeginsWith('You shoot ') then
-      ParseBowDamage(ALine)
+      ParseBowDamage
     else if LineBeginsWith('You get ') then
-      ParseExp(ALine)
+      ParseExp
     else if LineBeginsWith('You successfully make ') then
-      ParseTradeskillSuccess(ALine)
+      ParseTradeskillSuccess
     else if LineBeginsWith('You fail to make ') then
-      ParseTradeskillFailure(ALine)
+      ParseTradeskillFailure
     else if LineBeginsWith('You must talk to your Order Trainer to raise ') then
-      ParseTradeskillCap(ALine)
+      ParseTradeskillCap
       { [15:24:02] You hit for 225 (+45) damage! }
     else if LineBeginsWith('You hit for ') then
-      ParseEffectDamage(ALine)
+      ParseEffectDamage
       { [15:24:02] You cast a Greater Rune of Obscurity Spell! }
     else if LineBeginsWith('You cast a ') then
-      ParseCastSpell(ALine)
+      ParseCastSpell
       { [18:14:54] You have died.  Type /release to return to your last bind point. }
     else if LineBeginsWith('You have died. ') then
       DoOnDeath
@@ -1370,7 +1376,7 @@ begin
       DoOnNotInCombatMode
       { [23:37:32] You examine the werewolf warder.  It is aggressive towards you! }
     else if LineBeginsWith('You examine ') then
-      ParseConsider(ALine)
+      ParseConsider
       { [19:35:33] You stand up. }
     else if LineBeginsWith('You stand up.') then
       DoOnStandUp
@@ -1379,37 +1385,37 @@ begin
       DoOnLinkDead
       { [08:22:02] The wolfaur quixot dies! }
     else if LineEndsWith(' dies!') then
-      ParseMOBDies(ALine)
+      ParseMOBDies
       { [19:10:56] You enter combat mode and target [the hagbui squire] }
     else if LineBeginsWith('You enter combat mode and target [') then
-      ParseEnterCombatMode(ALine)
+      ParseEnterCombatMode
       { [21:14:13] You are too fatigued to perform the Assault style! }
     else if LineBeginsWith('You are too fatigued to perform ') then
-      ParseTooFatigued(ALine)
+      ParseTooFatigued
       { [21:55:51] You wield the Forged Darksteel Bastard Sword in your right hand. }
     else if LineBeginsWith('You wield the ') then
-      ParseWeaponEquiped(ALine)
+      ParseWeaponEquiped
       { [09:12:19] You must perform the Assault style before this one! }
     else if LineBeginsWith('You must perform the ') then
-      ParseStylePrereqFailure(ALine)
+      ParseStylePrereqFailure
     else if LineBeginsWith('[ALL]:  ]') then
-      ParseBracketCommand(ALine)
+      ParseBracketCommand
       { [08:23:49] You hit wolfaur quixot for 27 extra damage! }
     else if LineEndsWith(' extra damage!') then
-      ParseExtraOutDamage(ALine)
+      ParseExtraOutDamage
       { [10:14:40] You are healed by Snu for 20 hit points. }
     else if LineBeginsWith('You are healed by ') then
-      ParseHealed(ALine)
+      ParseHealed
     else if LineContains(' gives you ') then
-      ParseSellItem(ALine)
+      ParseSellItem
     else if LineContains(' made for ') then
-      ParseTradeskillTask(ALine)
+      ParseTradeskillTask
       { [21:17:35] The wolfaur quixot hits your arm for 63 (-20) damage! }
     else if LineContains(' hits your ') then
-      ParseInAttack(ALine)
+      ParseInAttack
       { [15:31:20] The svartalf watcher drops a onyx. }
     else if LineContains(' drops ') then
-      ParseDrop(ALine)
+      ParseDrop
   end;
 end;
 
@@ -1438,10 +1444,15 @@ begin
     FOnNotInCombatMode(Self);
 end;
 
-procedure TDAOCChatParser.ParseTradeskillFailure(const sLine: string);
+procedure TDAOCChatParser.ParseTradeskillFailure;
 begin
-  if Assigned(FOnTradeSkillFailure) then
-    FOnTradeSkillFailure(Self);
+  if LineEndsWith(' and lose some materials!') then begin
+    if Assigned(FOnTradeSkillFailureWithLoss) then
+      FOnTradeSkillFailureWithLoss(Self);
+  end
+  else
+    if Assigned(FOnTradeSkillFailure) then
+      FOnTradeSkillFailure(Self);
 end;
 
 procedure TDAOCChatParser.DoOnLinkDead;
@@ -1450,18 +1461,18 @@ begin
     FOnLinkDead(Self);
 end;
 
-procedure TDAOCChatParser.ParseEnterCombatMode(const sLine: string);
+procedure TDAOCChatParser.ParseEnterCombatMode;
 var
   sMob:   string;
 begin
-  sMob := RemoveThe(copy(sLine, 46, Length(sLine) - 46));
+  sMob := RemoveThe(copy(FCurrentLine, 46, Length(FCurrentLine) - 46));
   FAttackStats.FindOrAddMob(sMob);
 
   if Assigned(FOnEnterCombatMode) then
     FOnEnterCombatMode(Self);
 end;
 
-procedure TDAOCChatParser.ParseTooFatigued(const sLine: string);
+procedure TDAOCChatParser.ParseTooFatigued;
 begin
   if Assigned(FAttackStats.LastMOB) then
     FAttackStats.LastMOB.OutDamage.ResetUpcomingStyle;
@@ -1470,29 +1481,29 @@ begin
     FOnTooFatigued(Self);
 end;
 
-procedure TDAOCChatParser.ParseMOBDies(const sLine: string);
+procedure TDAOCChatParser.ParseMOBDies;
 var
   sMob:   string;
 begin
-  sMob := RemoveThe(copy(sLine, 12, Length(sLine) - 11 - 6));
+  sMob := RemoveThe(copy(FCurrentLine, 12, Length(FCurrentLine) - 11 - 6));
   FAttackStats.FindOrAddMob(sMob);
 
   if Assigned(FOnMOBDeath) then
     FOnMOBDeath(Self);
 end;
 
-procedure TDAOCChatParser.ParseExtraOutDamage(const sLine: string);
+procedure TDAOCChatParser.ParseExtraOutDamage;
 var
   sMob: string;
   iPos: integer;
   iDmg: integer;
 begin
-  iPos := Pos(' for ', sLine);
+  iPos := Pos(' for ', FCurrentLine);
   if iPos <> 0 then begin
-    sMob := RemoveThe(copy(sLine, 20, iPos - 20));
+    sMob := RemoveThe(copy(FCurrentLine, 20, iPos - 20));
     FAttackStats.FindOrAddMob(sMob);
     inc(iPos, 5);
-    iDmg := ParseInt(sLine, iPos);
+    iDmg := ParseInt(FCurrentLine, iPos);
 
     if Assigned(FAttackStats.LastMOB.OutDamage.LastStyle) then
       with FAttackStats.LastMOB.OutDamage.LastStyle do begin
@@ -1514,7 +1525,7 @@ begin
     FOnExtraOutDamage(Self);
 end;
 
-procedure TDAOCChatParser.ParseBowDamage(const sLine: string);
+procedure TDAOCChatParser.ParseBowDamage;
 var
   iDmg:   integer;
   iPos:   integer;
@@ -1522,7 +1533,7 @@ var
   sMob:   string;
 begin
   iPos := 22;
-  sWord := ParseWord(sLine, iPos);
+  sWord := ParseWord(FCurrentLine, iPos);
   sMob := '';
     { [13:53:41] You shoot Charnmae with your bow and hit for 160 damage! }
   while not AnsiSameText(sWord, 'with') do begin
@@ -1530,19 +1541,19 @@ begin
       sMob := sMob + ' ';
     if not AnsiSameText(sWord, 'the') then
       sMob := sMob + sWord;
-    sWord := ParseWord(sLine, iPos);
+    sWord := ParseWord(FCurrentLine, iPos);
   end;
   FAttackStats.FindOrAddMob(sMob);
 
   inc(iPos, 6);  // your
-  ParseWord(sLine, iPos);  // bow / crossbow
+  ParseWord(FCurrentLine, iPos);  // bow / crossbow
   inc(iPos, 13);  // and hit for
 
-  iDmg := ParseInt(sLine, iPos);
+  iDmg := ParseInt(FCurrentLine, iPos);
   FAttackStats.LastMOB.OutDamage.AddAttack(iDmg, dtBow);
 end;
 
-procedure TDAOCChatParser.ParseWeaponEquiped(const sLine: string);
+procedure TDAOCChatParser.ParseWeaponEquiped;
 begin
   FAttackStats.FIncludedOutDelayCnt := 0;
   FAttackStats.FOutAvgDelay := 0;
@@ -1551,48 +1562,48 @@ begin
     FOnEquipWeapon(Self);
 end;
 
-procedure TDAOCChatParser.ParseStylePrereqFailure(const sLine: string);
+procedure TDAOCChatParser.ParseStylePrereqFailure;
 begin
   if Assigned(FOnStylePrereqFailure) then
     FOnStylePrereqFailure(Self);
 end;
 
-procedure TDAOCChatParser.ParseYouSend(const sLine: string);
+procedure TDAOCChatParser.ParseYouSend;
 begin
   { [09:14:22] @@You send, "I can have that mith cleaver made for 110g" to Charname }
   ;
 end;
 
-procedure TDAOCChatParser.ParseHealed(const sLine: string);
+procedure TDAOCChatParser.ParseHealed;
 var
   iPos:   integer;
   iHP:    integer;
 begin
     { [10:14:40] You are healed by Charname for 20 hit points. }
   iPos := 30;
-  ParseWord(sLine, iPos);  // who healed
-  ParseWord(sLine, iPos);  // for
-  iHP := ParseInt(sLine, iPos);
+  ParseWord(FCurrentLine, iPos);  // who healed
+  ParseWord(FCurrentLine, iPos);  // for
+  iHP := ParseInt(FCurrentLine, iPos);
 
   if Assigned(FOnHealed) then
     FOnHealed(Self, iHP);
 end;
 
-procedure TDAOCChatParser.ParseGuildChat(const sLine: string);
+procedure TDAOCChatParser.ParseGuildChat;
 begin
   ; // nothing yet
 end;
 
-procedure TDAOCChatParser.ParseBracketCommand(const sLine: string);
+procedure TDAOCChatParser.ParseBracketCommand;
 var
   sCommandText: string;
 begin
-  sCommandText := copy(sLine, 21, Length(sLine) - 20);
+  sCommandText := copy(FCurrentLine, 21, Length(FCurrentLine) - 20);
   if Assigned(FOnBracketCommand) then
     FOnBracketCommand(Self, sCommandText);
 end;
 
-procedure TDAOCChatParser.ParseTradeskillCap(const sLine: string);
+procedure TDAOCChatParser.ParseTradeskillCap;
 begin
     { [16:29:25] You must talk to your Order Trainer to raise Skillname again! }
     { [11:14:32] You must talk to your Order Trainer to raise Skillname! }
@@ -1622,12 +1633,12 @@ begin
     Result := 0;
 end;
 
-procedure TDAOCChatParser.ParseCastSpell(const sLine: string);
+procedure TDAOCChatParser.ParseCastSpell;
 var
   sSpell:   string;
 begin
     { [15:24:02] You cast a Greater Rune of Obscurity Spell! }
-  sSpell := copy(sLine, 22, Length(sLine) - 22 - 1);
+  sSpell := copy(FCurrentLine, 22, Length(FCurrentLine) - 22 - 1);
 
     { TODO: Maintain a list of cast spells.  Set LastSpell to sSpell }
 
@@ -1635,14 +1646,14 @@ begin
   FEffectDamageType := edtSpell;
 end;
 
-procedure TDAOCChatParser.ParseEffectDamage(const sLine: string);
+procedure TDAOCChatParser.ParseEffectDamage;
 //var
 //  iPos:     integer;
 //  iDamage:  integer;
 begin
       { [15:24:02] You hit for 225 (+45) damage! }
 //  iPos := 24;
-//  iDamage := ParseInt(sLine, iPos);
+//  iDamage := ParseInt(FCurrentLine, iPos);
 
     { TODO: Update the spell / proc / proc / bleed damage with effect damage }
 
