@@ -271,12 +271,13 @@ public:
     void RenderEnd(void);
 
     // zoom/pan api
-    void GLPPI::ZoomIn(void);
-    void GLPPI::ZoomOut(void);
-    void GLPPI::PanRight(void);
-    void GLPPI::PanLeft(void);
-    void GLPPI::PanDown(void);
-    void GLPPI::PanUp(void);
+    void ZoomIn(void);
+    void ZoomOut(void);
+    void PanRight(void);
+    void PanLeft(void);
+    void PanDown(void);
+    void PanUp(void);
+    void CenterOn(const Actor& actor);
     
 protected:
 private:

@@ -575,6 +575,26 @@ void GLPPI::RecalcIncrements(void)
     return;
 } // end RecalcIncrements
 
+void GLPPI::CenterOn(const Actor& actor)
+{
+    // recenter display on this actor
+    Motion Pos;
+    GetRenderPosition(actor,Pos);
+
+    // move camera to Pos
+    ProjectionX=Pos.GetXPos()-(0.5f*ProjectionWidthX);
+    ProjectionY=Pos.GetYPos()-(0.5f*ProjectionWidthY);
+
+    // init display matrices
+    InitDisplayMatrices();
+
+    // don't need to recalculate the increments
+    // since we didn't change them to begin with
+    
+    // done
+    return;
+} // end CenterOn
+
 void GLPPI::ZoomIn(void)
 {
     if(ProjectionWidthX-ZoomIncrement < 100.0f)
