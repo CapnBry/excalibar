@@ -94,6 +94,7 @@ type
 
     procedure Open;
     procedure Close;
+    procedure WaitForClose;
 
     property Active: boolean read FActive write SetActive;
     property DeviceName: string read FDeviceName write SetDeviceName;
@@ -152,12 +153,14 @@ begin
     exit;
 
   FActive := false;
+  if Suspended then
+    Resume;
 end;
 
 constructor TPacketReader2.CreateInst;
 begin
   FAdapterBuffSize := 512 * 1024;
-  FPacketBuffSize := 256 * 1024;
+  FPacketBuffSize := 96 * 1024;
   FReadTimeout := 1000;
 
   FSegmentList := TEthernetSegmentList.Create;
@@ -373,6 +376,13 @@ end;
 procedure TPacketReader2.SetDeviceName(const Value: string);
 begin
   FDeviceName := Value;
+end;
+
+procedure TPacketReader2.WaitForClose;
+begin
+  Close;
+  while not Suspended do
+    sleep(100);
 end;
 
 { TEthernetSegment }
