@@ -65,6 +65,7 @@ type
     FSelectedObjectCached:  TDAOCObject;
     FPacketHandlerDefFile: string;
     FLastUDPSeq:    WORD;
+    FDefaultLocalPlayerLevel: integer;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -130,6 +131,7 @@ type
     procedure OBJWALKResetGuild(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
     procedure OBJWALKRemoveTarget(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
     procedure LinkPacketHandlers(AHandlerList: TNamedPacketHandlerList);
+    procedure GuessLocalPlayerRealmFromAnotherPlayer(APlayer: TDAOCPlayer);
   protected
     FSource:        TObject;  // usually a dstream server
     FConnectionID:  Cardinal;
@@ -299,6 +301,7 @@ type
     property ConnectionID: Cardinal read FConnectionID write FConnectionID;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property DAOCObjsStale: TDAOCObjectLinkedList read FDAOCObjsStale;
+    property DefaultLocalPlayerLevel: integer read FDefaultLocalPlayerLevel write FDefaultLocalPlayerLevel;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
@@ -414,6 +417,7 @@ begin
   FServerProtocol := $01;
   SetMaxObjectDistance(8500);
   FMaxObjectStaleTime := 240000;  // 240,000ms = 4min
+  FDefaultLocalPlayerLevel := 50;
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -652,6 +656,9 @@ begin
   AdjustObjLocForZone(FLocalPlayer, pPacket.getByte);
   pPacket.seek(1);
   FLocalPlayer.HeadWord := pPacket.getShort;
+
+  if FLocalPlayer.Level = 0 then
+    FLocalPlayer.Level := FDefaultLocalPlayerLevel;
 {$ENDIF}
 
   DoOnPlayerPosUpdate;
@@ -1214,6 +1221,9 @@ begin
             FUnknownStealthers.Delete(pOldObject);
             pOldObject := FUnknownStealthers.FindByInfoID(tmpObject.InfoID);
           end;
+
+          if FLocalPlayer.Realm = drNeutral then
+            GuessLocalPlayerRealmFromAnotherPlayer(TDAOCPlayer(tmpObject));
         end;  { with TDAOCPlayer }
       end;  { ocPlayer }
 
@@ -1911,8 +1921,7 @@ begin
     FOnVersionNumsSet(Self, FVersionMajor, FVersionMinor, FVersionRelease);
 end;
 
-procedure TDAOCConnection.ParseCharacterActivationRequest(
-  pPacket: TGameNetPacket);
+procedure TDAOCConnection.ParseCharacterActivationRequest(pPacket: TGameNetPacket);
 var
   sCharName:  string;
 begin
@@ -2588,6 +2597,24 @@ begin
   
   if Assigned(FOnMobInventoryChanged) then
     FOnMobInventoryChanged(Self, AObj);
+end;
+
+procedure TDAOCConnection.GuessLocalPlayerRealmFromAnotherPlayer(APlayer: TDAOCPlayer);
+begin
+    { if the other player's first name is actually there, then we're from the
+      same realm as that player }
+  if AnsiSameText(APlayer.Name, 'Avalonian') or AnsiSameText(APlayer.Name, 'Briton') or
+    AnsiSameText(APlayer.Name, 'Celt') or AnsiSameText(APlayer.Name, 'Dwarf') or
+    AnsiSameText(APlayer.Name, 'Elf') or AnsiSameText(APlayer.Name, 'Firbolg') or
+    AnsiSameText(APlayer.Name, 'Frostalf') or AnsiSameText(APlayer.Name, 'Half Ogre') or
+    AnsiSameText(APlayer.Name, 'Highlander') or AnsiSameText(APlayer.Name, 'Inconnu') or
+    AnsiSameText(APlayer.Name, 'Kobold') or AnsiSameText(APlayer.Name, 'Lurikeen') or
+    AnsiSameText(APlayer.Name, 'Norse') or AnsiSameText(APlayer.Name, 'Saracen') or
+    AnsiSameText(APlayer.Name, 'Shar') or AnsiSameText(APlayer.Name, 'Sylvan') or
+    AnsiSameText(APlayer.Name, 'Troll') or AnsiSameText(APlayer.Name, 'Valkyn') then
+    exit;
+
+  FLocalPlayer.Realm := APlayer.Realm;
 end;
 
 end.
