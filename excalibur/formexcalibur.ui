@@ -540,4 +540,5 @@
     <slot>showMsgs()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
+<pixmapinproject/>
 </UI>
