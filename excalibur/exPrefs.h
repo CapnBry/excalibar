@@ -72,6 +72,8 @@ public:
   bool items_autoupload;
   QString items_contributor;
 
+  bool enable_experimental_code;
+
   exPrefs();
   void loadSettings();
   void saveSettings();

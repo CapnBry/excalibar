@@ -218,7 +218,6 @@ unsigned int exMob::getY() const {
    return y;
 }
 
-#ifdef ALPHA_QUALITY
 unsigned int exMob::getProjectedX() {
     if (exTick == _lastprojectedX)
 	return projectedX;
@@ -246,7 +245,6 @@ unsigned int exMob::getProjectedY() {
     _lastprojectedY = exTick;
     return projectedY;
 }
-#endif
 
 unsigned int exMob::getZ() const {
    return z;

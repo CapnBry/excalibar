@@ -33,7 +33,7 @@
 
 #include "exPrefs.h"
 
-#define EX_VERSION "1.0.5a"
+#define EX_VERSION "1.0.6"
 
 typedef long int exTimeType;
 extern exTimeType exTick;
@@ -46,5 +46,11 @@ enum Realm {
     rMidgaard,
     rHibernia
 };
+
+#define BEGIN_EXPERIMENTAL_CODE if (prefs.enable_experimental_code) {
+#define END_EXPERIMENTAL_CODE }
+
+#define BEGIN_NORMAL_CODE else {	
+#define END_NORMAL_CODE }
         
 #endif

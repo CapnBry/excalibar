@@ -89,6 +89,7 @@ void exPrefs::show() {
   dlg->AgroFading->setChecked(agro_fading);
   dlg->RangeCircles->setChecked(range_circles);
   dlg->MapSimplifyRange->setValue(map_autosimplifyrange);
+  dlg->ShowUnknown->setChecked(dump_unknown_packets);
 
   dlg->SliderAliveColor->setValue(brightness_alive);
   dlg->SliderDeadColor->setValue(brightness_dead);
@@ -111,6 +112,8 @@ void exPrefs::show() {
 
   dlg->ItemAutoUpload->setChecked(items_autoupload);
   dlg->ItemContributor->setText(items_contributor);
+
+  dlg->EnableExperimentalCode->setChecked(enable_experimental_code);
 
   dlg->show();
   dlg->raise();
@@ -144,6 +147,10 @@ void exPrefs::accept() {
 
   items_autoupload=dlg->ItemAutoUpload->isChecked();
   items_contributor=dlg->ItemContributor->text();
+
+  enable_experimental_code=dlg->EnableExperimentalCode->isChecked();
+
+  dump_unknown_packets=dlg->ShowUnknown->isChecked();
 
   frm=f.first();
   if (frm) {
@@ -198,6 +205,9 @@ void exPrefs::loadSettings() {
 
   items_autoupload=s.readBoolEntry("/Excalibur/ItemsAutoUpload", FALSE);
   items_contributor=s.readEntry("/Excalibur/ItemsContributor", "");
+
+  dump_unknown_packets=s.readBoolEntry("/Excalibur/ShowUnknown", FALSE);
+  enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
 }
 
 void exPrefs::saveSettings() {
@@ -230,6 +240,8 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/RangeCircles", range_circles);
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
   s.writeEntry("/Excalibur/AgroFading", agro_fading);
+  s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
+  s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);
   exItem::save();
 }
 

@@ -61,9 +61,7 @@ protected:
   exPacket *nextpacket;
   exLink *link;
   
-#ifdef ALPHA_QUALITY
   void parseObjectStopped(exPacket *p);
-#endif
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);

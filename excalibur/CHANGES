@@ -1,3 +1,17 @@
+Andon (09/Feb/02)
+------------------
+
+Additions:
+ + Added the ability to toggle a few DEBUG features on or off
+   at runtime... They are:
+     - Log unknown packets to stdout
+     - Log unknown packets to a file
+     - Enable experimental code
+     - Show out of order packets
+
+    * More to come later
+
+
 Andon (08/Feb/02)
 ------------------
 

@@ -253,11 +253,11 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;
-#ifdef ALPHA_QUALITY
 	  case 0xbd:
+BEGIN_EXPERIMENTAL_CODE
 	    parseObjectStopped(p);
+END_EXPERIMENTAL_CODE
 	    break;
-#endif
 	  default:
 	    if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
@@ -324,11 +324,11 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;
-#ifdef ALPHA_QUALITY
 	  case 0xbd:
+BEGIN_EXPERIMENTAL_CODE
 	    parseObjectStopped(p);
+END_EXPERIMENTAL_CODE
 	    break;
-#endif
 	  case 0x8a:
 	      p->skip(2);
 	      bigver = p->getByte();
@@ -506,7 +506,6 @@ void exConnection::processPacket(exPacket * p)
     }
 }
 
-#ifdef ALPHA_QUALITY
 void exConnection::parseObjectStopped(exPacket *p)
 {
     unsigned int infoid = p->getShort();
@@ -514,7 +513,6 @@ void exConnection::parseObjectStopped(exPacket *p)
     if (mob)  
 	mob->setSpeed(0);
 }
-#endif
 
 void exConnection::parseMobPosUpdate(exPacket *p)
 {
