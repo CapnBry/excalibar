@@ -190,6 +190,16 @@ void CSLLoader::Init(void)
     params:
     string
     */
+    CmdLookup.insert(lookup_value("InterceptActor",new csl::InterceptActor));
+    /*
+    params:
+    name reference_velocity time_limit
+    */
+    CmdLookup.insert(lookup_value("InterceptTarget",new csl::InterceptTarget));
+    /*
+    params:
+    reference_velocity time_limit
+    */
     CmdLookup.insert(lookup_value("CheckTargetHealthAndCall",new csl::CheckTargetHealthAndCall));
     /*
     params:

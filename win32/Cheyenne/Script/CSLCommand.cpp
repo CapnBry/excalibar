@@ -1971,6 +1971,296 @@ csl::CSLCommandAPI::EXECUTE_STATUS Delay::Execute(csl::EXECUTE_PARAMS& params)
     return(std::make_pair(true,true));
 } // end Delay::Execute
 
+bool InterceptActor::Extract(std::istream& arg_stream)
+{
+    arg_stream >> std::ws >> Name 
+               >> std::ws >> reference_velocity 
+               >> std::ws >> time_limit 
+               >> std::ws;
+    
+    if(Name.length() == 0)
+        {
+        ::Logger << "[InterceptActor::Extract] expected a non zero name argument.\n";
+        return(false);
+        }
+    else if(reference_velocity<=0.0 || reference_velocity > 3600.0f)
+        {
+        ::Logger << "[InterceptActor::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[InterceptActor::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        // go ahead and init these to something (as long
+        // as its a legal float, it doesn't matter)
+        intercept_x=0.0f;
+        intercept_y=0.0f;
+        return(true);
+        }
+} // end Extract
+
+void InterceptActor::Reinit(csl::EXECUTE_PARAMS& params)
+{
+    
+    start_time=-1.0;
+    last_target_check_time=-10.0;
+
+    // go ahead and clear this out too, if it exists
+    // then we are probably moving or turning so we
+    // need to stop that too
+    if(move_point)
+        {
+        delete move_point;
+        move_point=0;
+        
+        // stop moving
+        params.keyboard->PressAndReleaseVK("VK_UP");
+
+        // release any turning keys
+        params.keyboard->PressAndReleaseVK("VK_LEFT");
+        params.keyboard->PressAndReleaseVK("VK_RIGHT");
+        }
+    
+    // init to a legal float
+    intercept_x=0.0f;
+    intercept_y=0.0f;
+    
+    // done
+    return;
+} // end Reinit
+
+bool InterceptActor::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target)
+{
+    // create intercept data
+    INTERCEPT_DATA<float> id;
+    id.params.t0x=Target.GetMotion().GetXPos();
+    id.params.t0y=Target.GetMotion().GetYPos();
+    id.params.a0x=params.followed_actor->GetMotion().GetXPos();
+    id.params.a0y=params.followed_actor->GetMotion().GetYPos();
+    id.params.s=float(reference_velocity);
+    
+    // this is wierd: the heading stored in Actor is opposite
+    // of what we would expect. A heading of 0 causes Y to 
+    // decrease. For this reason, we negate Y here.
+    id.params.tvx=Target.GetMotion().GetSpeed() * sin(Target.GetMotion().GetHeading());
+    id.params.tvy=Target.GetMotion().GetSpeed() * -cos(Target.GetMotion().GetHeading());
+    
+    if(!FindIntercept(id))
+        {
+        // no intercept
+        ::Logger << "[InterceptActor::DoIntercept] no intercept possible for \"" 
+                 << Target.GetName() << "\"" << std::endl;
+        
+        return(false);
+        } // end if no intercept
+    else
+        {
+        // check to see if we need to recreate the move_point command proxy
+        if(not_near(id.XIntercept,intercept_x,50.0f) || not_near(id.YIntercept,intercept_y,50.0f) || !move_point)
+            {
+            // intercept has changed or this is the first 
+            // time we have computed an intercept, kick off
+            // move_to with new parameters
+            intercept_x=id.XIntercept; // these are in global coordinates
+            intercept_y=id.YIntercept; // move to needs local coordinates
+            
+            unsigned int move_to_x;
+            unsigned int move_to_y;
+        
+            unsigned short curr_z;
+            unsigned char zone;
+            
+            // get zone relative coordinates
+            ::Zones.GetZoneFromGlobal
+                (
+                Target.GetRegion(),
+                unsigned int(intercept_x),
+                unsigned int(intercept_y),
+                unsigned short(Target.GetMotion().GetZPos()), // this doesnt really matter here
+                move_to_x,
+                move_to_y,
+                curr_z, // don't care
+                zone // don't care
+                );
+                
+            // recreate move_to -- yes this is a waste, deleting and recreating
+            // all the time :-/
+            delete move_point; // yes, we can delete a null pointer safely...
+            move_point=new csl::MoveToPoint;
+            
+            std::stringstream ss;
+            ss << move_to_x << " " << move_to_y << " " << time_limit << std::endl;
+            
+            // return extract status
+            return(move_point->Extract(ss));
+            } // end if intercept changed or we need to create move_to
+        
+        // done, previous calculations are still valid
+        // so we keep using them
+        return(true);
+        }
+} // end DoIntercept
+
+csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& params)
+{
+    // make sure we are following someone
+    if(!params.followed_actor->GetInfoId())
+        {
+        ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+                 << time_limit << " seconds because there is no followed (reference) actor" << std::endl;
+        
+        // reinit
+        Reinit(params);
+        
+        // return error
+        return(std::make_pair(false,true));
+        } // end if no followed actor
+    
+    // see if first time through
+    if(start_time==-1.0)
+        {
+        // save start time
+        start_time=params.current_time->Seconds();
+        }
+    
+    // see if we are over our time limit
+    if(start_time+time_limit < params.current_time->Seconds())
+        {
+        // we exceeded out time limit
+        ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+                 << time_limit << " seconds" << std::endl;
+        
+        // reinit
+        Reinit(params);
+        
+        // return error
+        return(std::make_pair(false,true));
+        } // end if time limit exceeded
+    
+    // see if we need to recheck for target existance
+    // and a redo of the intercept algorithm
+    // since last_target_check_time is initialized negative
+    // we will always execute this the first time through.
+    
+    // the addend for last check time dictates how often
+    // we can detect target velocity changes -- 
+    // we will do this 3 or 4 times a second
+    if(last_target_check_time+0.25 < params.current_time->Seconds())
+        {
+        // check for target existance
+        Actor Target;
+        if(!params.database->CopyActorByName(Name,Target))
+            {
+            // we lost the target
+            ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+                    << time_limit << " seconds, we lost the target!" << std::endl;
+            
+            // reinit
+            Reinit(params);
+            
+            // return error
+            return(std::make_pair(false,true));
+            } // end if we lost the target
+        else if(!DoIntercept(params,Target))
+            {
+            // we are unable to intercept the target
+            // bail out
+            Reinit(params);
+            
+            // return error
+            return(std::make_pair(false,true));
+            } // end else if target not interceptable
+        } // end if we need to check for target existance
+    
+    // if we get here, the move_point proxy must exist!
+    // proxy the execute command
+    csl::CSLCommandAPI::EXECUTE_STATUS status=move_point->Execute(params);
+    
+    // see if we need to delete the proxy
+    if(!status.first || !status.second)
+        {
+        // we need to reinit now, we
+        // are done, success or not
+        Reinit(params);
+        } // end if proxy done, or proxy failed
+    
+    // return proxy's status
+    return(status);
+} // end Execute
+
+bool InterceptTarget::Extract(std::istream& arg_stream)
+{
+    arg_stream >> std::ws >> time_limit 
+               >> reference_velocity >> std::ws;
+    
+    if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[InterceptTarget::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else if(reference_velocity<=0.0 || reference_velocity > 3600.0f)
+        {
+        ::Logger << "[InterceptTarget::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        proxy=0; // init to 0
+        return(true);
+        }
+} // end Extract
+
+csl::CSLCommandAPI::EXECUTE_STATUS InterceptTarget::Execute(csl::EXECUTE_PARAMS& params)
+{
+    if(!proxy)
+        {
+        if(!params.targetted_actor->GetInfoId())
+            {
+            // did not find it
+            ::Logger << "[InterceptTarget::Execute] no target!" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // make a stream with command arguments for intercept actor
+            std::stringstream ss;
+            ss << params.targetted_actor->GetName() << " " << reference_velocity << " " << time_limit << std::endl;
+            csl::InterceptActor* ia=new csl::InterceptActor;
+            if(!ia->Extract(ss))
+                {
+                delete ia;
+                // intercept actor extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, ia will do the rest of my job for me
+            proxy=ia;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
+} // end Execute
+
 csl::CSLCommandAPI::EXECUTE_STATUS CSLSubroutine::Execute(csl::EXECUTE_PARAMS& params)
 {
     if(command_iterator != Commands.end())

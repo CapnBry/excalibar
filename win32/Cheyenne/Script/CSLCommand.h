@@ -449,6 +449,44 @@ private:
     std::string Output;
 }; // end class DebugString
 
+class InterceptActor : public CSLCommandAPI
+{
+public:
+    InterceptActor(){move_point=0;};
+    ~InterceptActor(){delete move_point;};
+    virtual bool Extract(std::istream& arg_stream);
+    virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptActor(*this));};
+protected:
+private:
+    void Reinit(csl::EXECUTE_PARAMS& params);
+    bool DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target);
+    
+    std::string Name;
+    double time_limit;
+    double reference_velocity;
+    double start_time;
+    double last_target_check_time;
+    float intercept_x;
+    float intercept_y;
+    csl::CSLCommandAPI* move_point;
+}; // end class InterceptActor
+
+class InterceptTarget : public CSLCommandAPI
+{
+public:
+    InterceptTarget(){proxy=0;};
+    ~InterceptTarget(){delete proxy;};
+    virtual bool Extract(std::istream& arg_stream);
+    virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptTarget(*this));};
+protected:
+private:
+    double time_limit;
+    double reference_velocity;
+    csl::CSLCommandAPI* proxy;
+}; // end class InterceptTarget
+
 class CSLSubroutine
 {
 public:
