@@ -26,6 +26,26 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "..\Utils\locks.h"
 #include "..\Utils\signals.h"
 
+class AlertableWaitSingleFunctor
+{
+public:
+    typedef DWORD return_type;
+    DWORD operator()(HANDLE hEvent,unsigned int timeout_ms) const
+    {
+        return(WaitForSingleObjectEx(hEvent,timeout_ms,TRUE));
+    }
+}; // end class AlertableWaitSingleFunctor
+
+class WaitSingleFunctor
+{
+public:
+    typedef DWORD return_type;
+    DWORD operator()(HANDLE hEvent,unsigned int timeout_ms) const
+    {
+        return(WaitForSingleObject(hEvent,timeout_ms));
+    }
+}; // end class WaitSingleFunctor
+
 namespace buffer_space
 {
 // buffer size

@@ -36,6 +36,29 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     private: \
     type m_##name;
 
+#define DECL_MEMBER_VIEW(type,name) \
+    public: \
+    inline const type & Get##name(void)const{return(m_##name);}; \
+    private: \
+    inline type & Modify##name(void){return(m_##name);}; \
+    inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
+    type m_##name;
+
+#define DECL_MEMBER_PROTECTED(type,name) \
+    protected: \
+    inline const type & Get##name(void)const{return(m_##name);}; \
+    inline type & Modify##name(void){return(m_##name);}; \
+    inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
+    private: \
+    type m_##name;
+
+#define DECL_MEMBER_PRIVATE(type,name) \
+    private: \
+    inline const type & Get##name(void)const{return(m_##name);}; \
+    inline type & Modify##name(void){return(m_##name);}; \
+    inline const type & Set##name(const type & val){m_##name=val;return(m_##name);}; \
+    type m_##name;
+
 #define MEMBER_ASSIGN(name) \
     Set##name(s.Get##name());
 
@@ -49,12 +72,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // this assumes a variable in-scope called
 // "Logger"
 #define LOG_FILE_LINE \
-    Logger << __FILE << " " << __LINE__ << " "
+    Logger << __FILE__ << " " << __LINE__ << " "
 
 // this assumes a variable in-scope called
 // "Logger"
 #define LOG_FUNC_FILE_LINE \
-    Logger << __FILE << " " << __LINE__ << " [" << __FUNCTION__ << "] "
+    Logger << __FILE__ << " " << __LINE__ << " [" << __FUNCTION__ << "] "
 
 // replacements for min and max macros
 template<typename T> T max(const T a,const T b){return(a > b ? a : b);};
