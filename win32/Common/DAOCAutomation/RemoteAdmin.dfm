@@ -4,7 +4,7 @@ object dmdRemoteAdmin: TdmdRemoteAdmin
   OnDestroy = DataModuleDestroy
   Left = 658
   Top = 316
-  Height = 150
+  Height = 118
   Width = 215
   object tcpRemoteAdmin: TIdTCPServer
     Active = True

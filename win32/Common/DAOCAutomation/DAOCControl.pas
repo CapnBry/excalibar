@@ -5,7 +5,7 @@ interface
 uses
   SysUtils, Windows, Messages, Classes, SndKey32, DAOCConnection, DAOCObjs,
   MapNavigator, ExtCtrls, DAOCWindows, MMSystem, ComObj, ActiveX, AxCtrls,
-  DAOCSkilla_TLB, Recipes, MPKFile;
+  DAOCSkilla_TLB, Recipes, MPKFile, QuickLaunchChars;
 
 {$WARN SYMBOL_PLATFORM OFF}
 
@@ -61,6 +61,9 @@ type
     FTradeSkillOddsloadCount: integer;
     FTradeSkillOddsloadKey: string;
     FTradeSkillOddsloadPct: integer;
+    FTrackCharacterLogins:  boolean;
+    FQuickLaunchChars:      TQuickLaunchCharList;
+
 
     FTradeRecipes:  TUniversalRecipeCollection;
     
@@ -194,6 +197,8 @@ type
     procedure CloseDialog;
     procedure FocusDAOCWindow;
     procedure TradeskillContinueProgression;
+    function LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
+    function LaunchCharacterIdx(AIndex: integer) : boolean;
 
       { read-only props }
     property TurnRate: integer read FTurnRate;
@@ -202,6 +207,7 @@ type
     property WindowManager: TDAOCWindowManager read FWindowManager;
     property ClassTypeInfo: ITypeInfo read GetClassTypeInfo;
     property TradeRecipes: TUniversalRecipeCollection read GetTradeRecipes;
+    property QuickLaunchChars: TQuickLaunchCharList read FQuickLaunchChars;
       { internal props }
     property MainHWND: HWND read FMainHWND write FMainHWND;
       { Configuration tweaks }
@@ -218,6 +224,7 @@ type
     property TradeSkillOddsloadKey: string read FTradeSkillOddsloadKey write FTradeSkillOddsloadKey;
     property TradeSkillOddsloadCount: integer read FTradeSkillOddsloadCount write FTradeSkillOddsloadCount;
     property TradeSkillOddsloadPct: integer read FTradeSkillOddsloadPct write FTradeSkillOddsloadPct;
+    property TrackCharacterLogins: boolean read FTrackCharacterLogins write FTrackCharacterLogins;
       { DAOC Props }
     property ArrowUp: boolean read FArrowUp write SetArrowUp;
     property ArrowDown: boolean read FArrowDown write SetArrowDown;
@@ -271,6 +278,8 @@ begin
   StopAllActions;
   FLastPlayerPos.Free;
   FMapNodes.Free;
+  FQuickLaunchChars.Free;
+  
   inherited Destroy;
 end;
 
@@ -402,6 +411,9 @@ begin
   FWindowManager.OnNeedSendKeys := SendKeysEvent;
   FWindowManager.OnNeedVKUp := SendVKUpEvent;
   FWindowManager.OnNeedVKDown := SendVKDownEvent;
+
+  FQuickLaunchChars := TQuickLaunchCharList.Create;
+  FQuickLaunchChars.ServerNameFile := ExtractFilePath(ParamStr(0)) + 'servers.ini';
 end;
 
 procedure TDAOCControl.QuitDAOC;
@@ -738,6 +750,14 @@ end;
 procedure TDAOCControl.DoOnCharacterLogin;
 begin
   FWindowManager.CharacterName := FLocalPlayer.Name;
+
+  if FTrackCharacterLogins then
+    FQuickLaunchChars.AddOrUpdateChar(
+      AccountCharacterList.AccountName,
+      AccountCharacterList.AccountPassword,
+      AccountCharacterList.ServerName,
+      LocalPlayer.Name, ord(LocalPlayer.Realm), ServerAddr);
+
   inherited DoOnCharacterLogin;
 
   if Assigned(FAxEvents) then
@@ -1444,6 +1464,59 @@ begin
   inherited;
   if Assigned(FAxEvents) then
     FAxEvents.OnCombatStyleSuccess(AStyle);
+end;
+
+function TDAOCControl.LaunchCharacter(ALogin: TQuickLaunchChar) : boolean;
+var
+  sDLL:       string;
+  sCmdLine:   string;
+  pi:   TProcessInformation;
+  si:   TStartupInfo;
+  sLastDir:   string;
+begin
+  Result := false;
+  if not Assigned(ALogin) then
+    exit;
+    
+  sLastDir := GetCurrentDir;
+  if not SetCurrentDir(DAOCPath) then
+    exit;
+
+  try
+    if (ALogin.ServerAddr = $3210FED0) then  // Pendragon
+      sDLL := 'tgame.dll'
+    else
+      sDLL := 'game.dll';
+
+    sCmdLine := Format('%s %s 10622 %s %s %s %d', [sDLL,
+      ALogin.ServerIP, ALogin.Account, ALogin.Password, ALogin.Name, ALogin.Realm]);
+
+    FillChar(si, sizeof(si), 0);
+    si.cb := sizeof(si);
+    FillChar(pi, sizeof(pi), 0);
+    if not CreateProcess(nil, PChar(sCmdLine),
+      nil, nil, false, CREATE_SUSPENDED, nil, nil, si, pi) then begin
+      MessageBox(0, PChar('Error ' + IntToStr(GetLastError) + ' launching'), 'QuickLaunch', MB_OK);
+      exit;
+    end;
+
+    ResumeThread(pi.hThread);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    Result := true;
+  finally
+    SetCurrentDir(sLastDir);
+  end;
+end;
+
+function  TDAOCControl.LaunchCharacterIdx(AIndex: integer) : boolean;
+begin
+  if (AIndex < 0) or (AIndex >= FQuickLaunchChars.Count) then begin
+    Result := false;
+    exit;
+  end;
+
+  Result := LaunchCharacter(FQuickLaunchChars[AIndex]);
 end;
 
 initialization

@@ -85,6 +85,8 @@ type
     procedure HandleLeftClick(AConn: TClientConn; const ACmd: string);
     procedure HandleRightClick(AConn: TClientConn; const ACmd: string);
     procedure HandleZone(AConn: TClientConn; const ACmd: string);
+    procedure HandleQuickLaunchList(AConn: TClientConn; const ACmd: string);
+    procedure HandleQuickLaunch(AConn: TClientConn; const ACmd: string);
   public
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -269,6 +271,8 @@ begin
     'Display information about the current tradeskill commission.');
   AddAction('AutoMode', HandleAutoMode,
     '([mode]) Sets automation mode to <mode>.  Options are none, and trade.');
+  AddAction('QuickLaunch', HandleQuickLaunch,
+    '([index or name]) Launch character <index> from the QuickLaunch list. Lists characters available for quicklaunch if no index is given.');
 end;
 
 procedure TdmdRemoteAdmin.AddAction(const AKey: string;
@@ -933,6 +937,51 @@ begin
     AConn.WriteLn('200 Automation mode set to ' + sMode + '.')
   else
     AConn.WriteLn('200 Automation mode set to none.');
+end;
+
+procedure TdmdRemoteAdmin.HandleQuickLaunchList(AConn: TClientConn;
+  const ACmd: string);
+var
+  I:  integer;
+begin
+  AConn.WriteLn('201 QuickLaunch character list follows');
+  with FDControl do
+    for I := 0 to QuickLaunchChars.Count - 1 do
+      AConn.WriteLn(Format('  %2d %s', [I, QuickLaunchChars[I].DisplayName]));
+  AConn.WriteLn('.');
+end;
+
+procedure TdmdRemoteAdmin.HandleQuickLaunch(AConn: TClientConn;
+  const ACmd: string);
+var
+  sIndex: string;
+  iIndex: integer;
+  I:      integer;
+begin
+  sIndex := ParseParamWord;
+  if sIndex = '' then begin
+    HandleQuickLaunchList(AConn, ACmd);
+    exit;
+  end;
+
+  iIndex := StrToIntDef(sIndex, -1);
+  if iIndex = -1 then begin
+    for I := 0 to FDControl.QuickLaunchChars.Count - 1 do
+      if AnsiSameText(FDControl.QuickLaunchChars[I].Name, sIndex) then begin
+        iIndex := I;
+        break;
+      end;
+      
+    if iIndex = -1 then begin
+      AConn.WriteLn('500 Character not found ('+ sIndex + ')');
+      exit;
+    end;
+  end;
+
+  if FDControl.LaunchCharacterIdx(iIndex) then
+    AConn.WriteLn('200 QuickLaunching character: ' + FDControl.QuickLaunchChars[iIndex].DisplayName)
+  else
+    AConn.WriteLn('500 Could not launch index ' + sIndex);
 end;
 
 end.
