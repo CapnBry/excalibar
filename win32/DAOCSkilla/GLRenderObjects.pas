@@ -16,10 +16,12 @@ type
     FOffsetY: integer;
     FOffsetX: integer;
     FUseColor: boolean;
+    function ColorToStr : string;
   public
     constructor Create; virtual;
 
     procedure SetColorFromString(const AColor: string);
+    function ToString : string; virtual;
 
     procedure GLInitialize; virtual;
     procedure GLRender(const ARenderBounds: TRect); virtual;
@@ -88,6 +90,7 @@ type
     procedure GLRender(const ARenderBounds: TRect); override;
 
     procedure Assign(AX, AY, AZ: GLuint);
+    function ToString : string; override;
 
     property X: GLuint read FX write FX;
     property Y: GLuint read FY write FY;
@@ -461,6 +464,11 @@ end;
 
 { TGLRenderObject }
 
+function TGLRenderObject.ColorToStr: string;
+begin
+  Result := ColorToString(FColor);  
+end;
+
 constructor TGLRenderObject.Create;
 begin
   FColor := clWhite;
@@ -523,7 +531,12 @@ begin
   else if AnsiSameText(AColor, 'darkgray') then
     FColor := clGray
   else
-    FColor := clFuchsia;
+    FColor := StringToColor(AColor);
+end;
+
+function TGLRenderObject.ToString: string;
+begin
+  Result := '';
 end;
 
 { TGLCallListObject }
@@ -579,6 +592,11 @@ begin
   glEnd();
 
   WriteGLUTTextH10(X + 50, Y + 20, FName)
+end;
+
+function TMapElementPoint.ToString: string;
+begin
+  Result := Format('P,%s,%s,%u,%u,%u', [FName, ColorToStr, FX, FY, FZ]);
 end;
 
 { TMapElementLine }
