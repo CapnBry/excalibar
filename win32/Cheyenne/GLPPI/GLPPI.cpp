@@ -1014,6 +1014,48 @@ void GLPPI::RenderActor
     return;
 } // end RenderActor
 
+void GLPPI::RenderRangeRing
+    (
+    const Actor& Center,
+    const float Radius,
+    const float Red,
+    const float Green,
+    const float Blue
+    )
+{
+    // get position to render
+    Motion RenderPosition;
+    GetRenderPosition(Center,RenderPosition);
+    
+    // don't bother if not visible
+    if(!IsVisible(RenderPosition.GetXPos(),RenderPosition.GetYPos()))
+        {
+        // do nothing
+        return;
+        }
+    
+    // push matrix stack
+    glPushMatrix();
+    
+    // move to position
+    glTranslatef(RenderPosition.GetXPos(),RenderPosition.GetYPos(),0.0f);
+    
+    // set color
+    glColor4f(Red,Green,Blue,1.0f);
+    
+    // disable texturing
+    RenderState.Disable(GL_TEXTURE_2D);
+    
+    // draw ring
+    DrawCircle(Radius);
+    
+    // pop matrix stack
+    glPopMatrix();
+    
+    // done
+    return;
+} // end RenderRangeRing
+
 void GLPPI::RenderVectorMap(const VectorMap& Map)
 {
     // done

@@ -229,6 +229,16 @@ void OnRenderActor(const Actor& a)
             }
         }
     
+    // check if we need to do the range rings
+    if(a.GetInfoId() == ReferenceActor.GetInfoId())
+        {
+        if(::RadarConfig.GetShowRangeRing1())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange1());
+        if(::RadarConfig.GetShowRangeRing2())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange2());
+        if(::RadarConfig.GetShowRangeRing3())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange3());
+        if(::RadarConfig.GetShowRangeRing4())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange4());
+        if(::RadarConfig.GetShowRangeRing5())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange5());
+        if(::RadarConfig.GetShowRangeRing6())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange6());
+        }
     // done
     return;
 } // end OnRenderActor

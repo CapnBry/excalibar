@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // this dialog box expects a std::pair<bool,unsigned int>* as its lParam to WM_INITDIALOG!
 // on IDOK, the passed in pointer is populated with the user selection
 
-typedef std::pair<bool,unsigned int> dialog_result_t;
+typedef std::pair<bool,float> dialog_result_t;
 
 void SyncRangeRingDialogToConfig(HWND hWnd,const dialog_result_t* const param);
 
@@ -90,7 +90,7 @@ INT_PTR CALLBACK ConfigRangeRingsDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LP
                     ss << str;
                     ss >> param->second;
                     
-                    if(param->second == 0)
+                    if(param->second <= 0)
                         {
                         MessageBox(hWnd,"Range must be > 0!", "Error",MB_OK);
                         }

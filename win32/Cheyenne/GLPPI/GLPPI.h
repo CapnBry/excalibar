@@ -299,6 +299,14 @@ public:
             );
         void RenderAllZones(void);
         void RenderUncorrelatedStealth(const Actor& UncorrelatedPosition);
+        void RenderRangeRing
+            (
+            const Actor& Center,
+            const float Radius,
+            const float Red=1.0f,
+            const float Green=1.0f,
+            const float Blue=1.0f
+            );
     void RenderEnd(void);
 
     // zoom/pan api

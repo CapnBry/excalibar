@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "main.h" 
 
 void SyncDialogToConfig(HWND hWnd);
-void RangeRingDialog(HWND hWnd,UINT control,bool& enable,unsigned int& range);
+void RangeRingDialog(HWND hWnd,UINT control,bool& enable,float& range);
 INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
     switch(uMsg)
@@ -278,9 +278,9 @@ void SyncDialogToConfig(HWND hWnd)
     return;
 } // end SyncDialogToConfig
 
-void RangeRingDialog(HWND hWnd,UINT control,bool& enable,unsigned int& range)
+void RangeRingDialog(HWND hWnd,UINT control,bool& enable,float& range)
 {
-    std::pair<bool,unsigned int>param(true,range);
+    std::pair<bool,float>param(true,range);
     
     INT_PTR result=DialogBoxParam
         (
