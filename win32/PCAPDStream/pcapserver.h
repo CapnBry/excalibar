@@ -15,7 +15,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define int_ntoa(x)	inet_ntoa(*((struct in_addr *)&x))
-#define VERSIONSTRING		"0.4"
+#define VERSIONSTRING		"0.5"
 #define CAPTIONSTRING		"PCAP-DStream Server"
 #define MAX_PENDING_CONNECTS	4  /* The backlog allowed for listen() */
 #define MAX_MSG_LENGTH 1024
