@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "sharenet.h"
 #include "..\..\Common\MobsightParse\MobsightParseAPI.h" // for mobfinder stuff
 #include "..\..\Common\PacketStore\PacketStore.h" // include for offline packet storage
+#include "glfont2.h" // include for text engine
 
 //typedef Sniffer SNIFFER_T; // use this for 'normal' sniffing operation
 typedef PktLoadSniffer<PacketStore<std::ifstream> > SNIFFER_T; // use this for loading saved packet files
@@ -122,7 +123,8 @@ public:
     
     enum GeneralAssociations
     {
-    ground_target
+    ground_target,
+    font_texture
     };
 
     typedef std::map<unsigned char,unsigned int> ZoneTextureMapType;
@@ -382,5 +384,8 @@ private:
     // framerate storage, these are conceptually const
     mutable unsigned long Frames;
     mutable CheyenneTime FrameMeasureStart;
+    
+    // text rendering engine
+    //glfont::GLFont TextEngine;
 
 }; // end Central

@@ -605,7 +605,7 @@ void Database::SendNetworkUpdate
         {
         case share_opcodes::full_update:
             {
-            ::Logger << "[Database::SendNetworkUpdate] full_update on " << ThisActor.GetName().c_str() << "\n";
+            //::Logger << "[Database::SendNetworkUpdate] full_update on " << ThisActor.GetName().c_str() << "\n";
             sharemessages::full_update msg;
             msg.data.id=ThisActor.GetId();
             msg.data.infoid=ThisActor.GetInfoId();
@@ -647,7 +647,7 @@ void Database::SendNetworkUpdate
             
         case share_opcodes::threshold_update:
             {
-            ::Logger << "[Database::SendNetworkUpdate] threshold_update on " << ThisActor.GetName().c_str() << "\n";
+            //::Logger << "[Database::SendNetworkUpdate] threshold_update on " << ThisActor.GetName().c_str() << "\n";
             sharemessages::threshold_update msg;
             msg.data.infoid=ThisActor.GetInfoId();
             msg.data.heading=ThisActor.GetMotion().GetHeading();
@@ -663,7 +663,7 @@ void Database::SendNetworkUpdate
         
         case share_opcodes::visibility_update:
             {
-            ::Logger << "[Database::SendNetworkUpdate] visibility_update on " << ThisActor.GetName().c_str() << "\n";
+            //::Logger << "[Database::SendNetworkUpdate] visibility_update on " << ThisActor.GetName().c_str() << "\n";
             sharemessages::visibility_update msg;
             msg.data.infoid=ThisActor.GetInfoId();
             msg.data.visibility=0;//init to 0
@@ -678,7 +678,7 @@ void Database::SendNetworkUpdate
         
         case share_opcodes::heartbeat_update:
             {
-            ::Logger << "[Database::SendNetworkUpdate] heartbeat_update on " << ThisActor.GetName().c_str() << "\n";
+            //::Logger << "[Database::SendNetworkUpdate] heartbeat_update on " << ThisActor.GetName().c_str() << "\n";
             sharemessages::heartbeat_update msg;
             msg.data.infoid=ThisActor.GetInfoId();
             msg.data.health=ThisActor.GetHealth();
@@ -693,6 +693,14 @@ void Database::SendNetworkUpdate
             RequestFullUpdate();
             break;
         
+        case share_opcodes::hard_delete:
+            {
+            sharemessages::hard_delete msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            TransmitMessage(msg);
+            }
+            break;
+            
         default:
             // hmm...
             ::Logger << "[Database::SendNetworkUpdate] unknown opcode: "
@@ -939,6 +947,27 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                 {
                 // got visiblity on an actor we don't hold! Hmmm.
                 Logger << "[Database::HandleShareMessage] got visiblity on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::hard_delete:
+            {
+            //::Logger << "[share_opcodes::hard_delete]\n";
+            const sharemessages::hard_delete* p=static_cast<const sharemessages::hard_delete*>(msg);
+            
+            // we get this message when someone needs to update the visibility on this actor
+            pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // delete it
+                DeleteActor(pa->GetInfoId());
+                }
+            else
+                {
+                // got visiblity on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got hard delete on an actor we don't have!\n";
                 }
             }
             break;
@@ -1270,8 +1299,16 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             {
             const daocmessages::delete_object* p=static_cast<const daocmessages::delete_object*>(msg);
 
+            id_type id=GetUniqueId(p->detected_region,p->object_id);
+
+            // get actor
+            Actor* pa=GetActorById(id);
+            
+            // send hard_delete to network
+            SendNetworkUpdate(*pa,share_opcodes::hard_delete);
+            
             // delete the actor
-            DeleteActor(GetUniqueId(p->detected_region,p->object_id));
+            DeleteActor(id);
 
             //Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
 

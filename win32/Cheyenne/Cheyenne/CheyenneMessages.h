@@ -385,6 +385,7 @@ namespace share_opcodes
     c_opcode_t heartbeat_update=3;
     c_opcode_t threshold_update=4;
     c_opcode_t visibility_update=5;
+    c_opcode_t hard_delete=6;
 } // end namespace share_opcodes
 
 namespace sharemessages
@@ -571,6 +572,30 @@ struct visibility_update : public sharemessages::ShareMessage
 
     impl_t data;
     }; // end visibility_update
+
+struct hard_delete_data
+    {
+    unsigned int infoid;
+    }; // end struct hard_delete_data;
+struct hard_delete : public sharemessages::ShareMessage
+    {
+    hard_delete(){opcode=share_opcodes::hard_delete;};
+    ~hard_delete(){};
+    
+    typedef hard_delete_data impl_t;
+    
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
+    impl_t data;
+    }; // end hard_delete
 }; // end namespace sharemessages
 
 #pragma pack(pop,b1)

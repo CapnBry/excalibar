@@ -1468,7 +1468,7 @@ void Central::InitDisplayMatrices(void)const
         ProjectionX, // left
         ProjectionX+ProjectionWidthX, // right
         ProjectionY+ProjectionWidthY, // top
-        ProjectionY, // botton
+        ProjectionY, // bottom
         1.0f, // near
         5.0f // far
         );
@@ -1981,6 +1981,14 @@ void Central::InitTextures(void)
     
     // load the general textures
     PngBindContainer(GeneralTextureMap,Central::ground_target,"skins\\ground_target.png");
+    
+    /*
+    // special case for the font texture
+    GeneralTextureMapType::value_type::second_type id;
+    glGenTextures(1,&id);
+    TextEngine.Create("tahoma8.glf",id);
+    GeneralTextureMap.insert(GeneralTextureMapType::value_type(Central::font_texture,id));
+    */
 
     // flag
     bTexturesCreated=true;
@@ -3018,6 +3026,20 @@ void Central::DrawPPI(void)
     
     // render mobfinder results
     RenderMobfinderResults();
+    
+    /*
+    // debug
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    TextEngine.Begin();
+    glScalef(100.0f,100.0f,0.0f);
+    glColor4f(1.0f,1.0f,1.0f,1.0f);
+    //glRotatef(180.0f,1.0f,0.0f,0.0f);
+    TextEngine.DrawString("Bite me!",0.0f,0.0f);
+    TextEngine.End();
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    */
     
     glPopMatrix();
 

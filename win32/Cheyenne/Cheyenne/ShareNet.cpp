@@ -549,6 +549,13 @@ void ShareNetClientData::BuildShareMessage
                 );
             break;
             
+        case share_opcodes::hard_delete:
+            MessageOutputFifo->Push
+                (
+                ShareMsgPopulate<sharemessages::hard_delete>(message)
+                );
+            break;
+            
         default:
             Logger << "[ShareNetClientData::BuildShareMessage] unknown opcode: " 
                    << unsigned int(opcode) << "\n";
