@@ -192,6 +192,8 @@ type
   TTradeRecipeWindow = class(TScrollableListWindow)
   private
     FExpandedGroupIdx:  integer;
+    FItemRecipeLeft:  integer;
+    FItemGroupLeft:   integer;
   public
     constructor Create(AWndManager: TDAOCWindowManager); override;
     procedure ExpandGroup(AItem: TTradeSkillRecipe; ACraft: TCraftRecipeCollection;
@@ -513,8 +515,9 @@ end;
 procedure TTradeRecipeWindow.ClickRecipe(AItem: TTradeSkillRecipe;
   ACraft: TCraftRecipeCollection; ACurrentSkill: integer);
 var
-  iGroupIdx: integer;
-  iTierIdx: integer;
+  iGroupIdx:  integer;
+  iTierIdx:   integer;
+  iSubTierIdx:  integer;
 begin
   ExpandGroup(AItem, ACraft, ACurrentSkill);
   sleep(500);
@@ -527,8 +530,10 @@ begin
   if iTierIdx = -1 then
     exit;
 
-  FItemLeftOffset := 25;
-  SelectItem(iGroupIdx + 1 + iTierIdx);
+  iSubTierIdx := ACraft.OrdinalOfItemInTier(AItem.Group, AItem.Tier, AItem.SkillLevel);
+
+  FItemLeftOffset := FItemRecipeLeft;
+  SelectItem(iGroupIdx + 1 + iTierIdx + iSubTierIdx);
 end;
 
 constructor TTradeRecipeWindow.Create(AWndManager: TDAOCWindowManager);
@@ -547,7 +552,8 @@ begin
   FScrollUpTopOffset := GetUIOffset('TradeskillScrollbarUpTop', 25);
   FScrollDownTopOffset := GetUIOffset('TradeskillScrollbarDownTop', 370);
   FItemTopOffset := GetUIOffset('TradeskillItemTop', 25);
-  FItemLeftOffset := GetUIOffset('TradeskillItemLeft', 15);
+  FItemRecipeLeft := GetUIOffset('TradeskillItemLeft', 15);
+  FItemGroupLeft := GetUIOffset('TradeskillItemGroupLeft', 25);
   FItemHeight := GetUIOffset('TradeskillItemHeight', 18);
   FCloseTopOffset := GetUIOffset('TradeskillCloseTop', 5);
 end;
@@ -560,7 +566,7 @@ var
 begin
   iGroupIdx := ACraft.OrdinalOfGroup(AItem.Group);
   if iGroupIdx <> -1 then begin
-    FItemLeftOffset := 0;
+    FItemLeftOffset := FItemGroupLeft;
     SelectItem(iGroupIdx);
     FExpandedGroupIdx := iGroupIdx;
 
