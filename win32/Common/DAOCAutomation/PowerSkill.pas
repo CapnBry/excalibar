@@ -36,6 +36,7 @@ type
     FRecipeSkillName: string;
     FRecipeRealm: TCraftRealm;
     FHowOrange: integer;
+    FUseMBuy: boolean;
     function GetItems(Index: integer): TPowerSkillItemDef;
   public
     procedure LoadFromFile(const AFileName: string; ARecipes: TUniversalRecipeCollection);
@@ -53,6 +54,7 @@ type
     property RecipeSkillName: string read FRecipeSkillName;
     property RecipeRealm: TCraftRealm read FRecipeRealm;
     property HowOrange: integer read FHowOrange;
+    property UseMBuy: boolean read FUseMBuy;
   end;
 
 implementation
@@ -147,6 +149,7 @@ begin
     FRecipeSkillName := ReadString('Main', 'RecipeSkillName', FSkillName);
     FRecipeRealm := TCraftRealm(ReadInteger('Main', 'RecipeRealm', 1));
     FHowOrange := ReadInteger('Main', 'HowOrange', 0);
+    FUseMBuy := ReadBool('Main', 'UseMBuy', true);
     Free;
   end;  { with INI }
 
