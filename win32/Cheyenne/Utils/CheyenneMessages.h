@@ -145,9 +145,9 @@ struct system_message : public daocmessages::SniffedMessage
     {
         str << "[system_message::Print] begin\n";
         SniffedMessage::Print(str);
-        str << "\tsubcode=" << subcode << "\n"
-            << "\ttypecode=" << typecode << "\n"
-            << "\tstring=" << string << "\n"
+        str << "\tsubcode=" << (unsigned int)subcode << "\n"
+            << "\ttypecode=" << (unsigned int)typecode << "\n"
+            << "\tstring=" << (string?string:"") << "\n"
         << "[system_message::Print] end\n";
     }
 
@@ -171,8 +171,8 @@ struct mob_pos_update : public daocmessages::SniffedMessage
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\thealth=" << health << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\thealth=" << (unsigned int)health << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[mob_pos_update::Print] end\n";
     }
 
@@ -196,9 +196,9 @@ struct player_head_update : public daocmessages::SniffedMessage
         SniffedMessage::Print(str);
         str << "\tplayer_id=" << player_id << "\n"
             << "\theading=" << heading << "\n"
-            << "\thp=" << hp << "\n"
-            << "\tvisibility=" << visibility << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\thp=" << (unsigned int)hp << "\n"
+            << "\tvisibility=" << (unsigned int)visibility << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[mob_pos_update::Print] end\n";
     }
 
@@ -256,7 +256,7 @@ struct player_target : public daocmessages::SniffedMessage
         SniffedMessage::Print(str);
         str << "\tplayer_id=" << player_id << "\n"
             << "\ttarget_id=" << target_id << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[player_target::Print] end\n";
     }
 
@@ -277,7 +277,7 @@ struct player_ground_target : public daocmessages::SniffedMessage
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[player_ground_target::Print] end\n";
     }
 
@@ -305,9 +305,9 @@ struct name_realm_zone : public daocmessages::SniffedMessage
     {
         str << "[name_realm_zone::Print] begin\n";
         SniffedMessage::Print(str);
-        str << "\tname=" << name << "\n"
-            << "\trealm=" << realm << "\n"
-            << "\tregion=" << region << "\n"
+        str << "\tname=" << (name?name:"") << "\n"
+            << "\trealm=" << (unsigned int)realm << "\n"
+            << "\tregion=" << (unsigned int)region << "\n"
         << "[name_realm_zone::Print] end\n";
     }
 
@@ -334,10 +334,10 @@ struct self_id_position : public daocmessages::SniffedMessage
         str << "[self_id_position::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tself_id=" << self_id << "\n"
-            << "\trealm=" << realm << "\n"
+            << "\trealm=" << (unsigned int)realm << "\n"
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[self_id_position::Print] end\n";
     }
 
@@ -358,7 +358,7 @@ struct delete_object : public daocmessages::SniffedMessage
         str << "[delete_object::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tobject_id=" << object_id << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[delete_object::Print] end\n";
     }
 
@@ -379,8 +379,8 @@ struct object_identity : public daocmessages::SniffedMessage
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\tname=" << name << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tname=" << (name?name:"") << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[object_identity::Print] end\n";
     }
 
@@ -402,13 +402,13 @@ struct vehicle_identity : public daocmessages::SniffedMessage
         str << "[object_identity::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tobject_id=" << object_id << "\n"
-            << "\tname=" << name << "\n"
+            << "\tname=" << (name?name:"") << "\n"
             << "\theading=" << heading << "\n"
             << "\tspeed=" << speed << "\n"
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[object_identity::Print] end\n";
     }
 
@@ -431,15 +431,15 @@ struct mob_identity : public daocmessages::SniffedMessage
         str << "[mob_identity::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tmob_id=" << mob_id << "\n"
-            << "\tname=" << name << "\n"
-            << "\tguild=" << guild << "\n"
+            << "\tname=" << (name?name:"") << "\n"
+            << "\tguild=" << (guild?guild:"") << "\n"
             << "\theading=" << heading << "\n"
             << "\tspeed=" << speed << "\n"
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\tlevel=" << level << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tlevel=" << (unsigned int)level << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[mob_identity::Print] end\n";
     }
 
@@ -465,16 +465,16 @@ struct player_identity : public daocmessages::SniffedMessage
         SniffedMessage::Print(str);
         str << "\tplayer_id=" << player_id << "\n"
             << "\tinfo_id=" << info_id << "\n"
-            << "\tname=" << name << "\n"
-            << "\tsurname=" << surname << "\n"
-            << "\tguild=" << guild << "\n"
+            << "\tname=" << (name?name:"") << "\n"
+            << "\tsurname=" << (surname?surname:"") << "\n"
+            << "\tguild=" << (guild?guild:"") << "\n"
             << "\theading=" << heading << "\n"
-            << "\trealm=" << realm << "\n"
+            << "\trealm=" << (unsigned int)realm << "\n"
             << "\tx=" << x << "\n"
             << "\ty=" << y << "\n"
             << "\tz=" << z << "\n"
-            << "\tlevel=" << level << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tlevel=" << (unsigned int)level << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[player_identity::Print] end\n";
     }
 
@@ -501,8 +501,8 @@ struct set_hp : public daocmessages::SniffedMessage
         str << "[set_hp::Print] begin\n";
         SniffedMessage::Print(str);
         str << "\tid=" << id << "\n"
-            << "\thp=" << hp << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\thp=" << (unsigned int)hp << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[set_hp::Print] end\n";
     }
 
@@ -521,7 +521,7 @@ struct self_zone_change : public daocmessages::SniffedMessage
         SniffedMessage::Print(str);
         str << "\tid=" << id << "\n"
             << "\tregion=" << region << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[self_zone_change::Print] end\n";
     }
 
@@ -538,12 +538,12 @@ struct inventory_change : public daocmessages::SniffedMessage
     {
         str << "[inventory_change::Print] begin\n";
         SniffedMessage::Print(str);
-        str << "\tslot=" << slot << "\n"
-            << "\tcondition=" << condition << "\n"
-            << "\tdurability=" << durability << "\n"
-            << "\tquality=" << quality << "\n"
-            << "\tbonus=" << bonus << "\n"
-            << "\tname=" << name << "\n"
+        str << "\tslot=" << (unsigned int)slot << "\n"
+            << "\tcondition=" << (unsigned int)condition << "\n"
+            << "\tdurability=" << (unsigned int)durability << "\n"
+            << "\tquality=" << (unsigned int)quality << "\n"
+            << "\tbonus=" << (unsigned int)bonus << "\n"
+            << "\tname=" << (name?name:"") << "\n"
         << "[inventory_change::Print] end\n";
     }
 
@@ -563,13 +563,13 @@ struct player_level_name : public daocmessages::SniffedMessage
     {
         str << "[player_level_name::Print] begin\n";
         SniffedMessage::Print(str);
-        str << "\twhat=" << what << "\n"
-            << "\ttp=" << tp << "\n"
-            << "\tname=" << name << "\n"
-            << "\tlevel=" << level << "\n"
+        str << "\twhat=" << (unsigned int)what << "\n"
+            << "\ttp=" << (unsigned int)tp << "\n"
+            << "\tname=" << (name?name:"") << "\n"
+            << "\tlevel=" << (unsigned int)level << "\n"
             << "\tplayer_id=" << player_id << "\n"
-            << "\tregion=" << region << "\n"
-            << "\toriginal_self_region=" << original_self_region << "\n"
+            << "\tregion=" << (unsigned int)region << "\n"
+            << "\toriginal_self_region=" << (unsigned int)original_self_region << "\n"
         << "[player_level_name::Print] end\n";
     }
 
@@ -592,7 +592,7 @@ struct stealth : public daocmessages::SniffedMessage
         SniffedMessage::Print(str);
         str << "\tinfo_id=" << info_id << "\n"
             << "\tdetector_id=" << detector_id << "\n"
-            << "\tdetected_region=" << detected_region << "\n"
+            << "\tdetected_region=" << (unsigned int)detected_region << "\n"
         << "[stealth::Print] end\n";
     }
 
