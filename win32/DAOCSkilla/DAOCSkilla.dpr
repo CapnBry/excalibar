@@ -6,11 +6,6 @@ uses
   bpf in '..\Common\PacketSniff\bpf.pas',
   DAOCConnection in '..\Common\PacketSniff\DAOCConnection.pas',
   FrameFns in '..\Common\PacketSniff\FrameFns.pas',
-  Ndis_def in '..\Common\PacketSniff\Ndis_def.pas',
-  NtDdNDIS in '..\Common\PacketSniff\NtDDNdis.pas',
-  Packet32 in '..\Common\PacketSniff\Packet32.pas',
-  Pcap in '..\Common\PacketSniff\pcap.pas',
-  PReader2 in '..\Common\PacketSniff\PReader2.pas',
   DAOCInventory in '..\Common\DAOCInfo\daocinventory.pas',
   DAOCObjs in '..\Common\DAOCInfo\DAOCObjs.pas',
   DAOCPlayerAttributes in '..\Common\DAOCInfo\DAOCPlayerAttributes.pas',
@@ -32,16 +27,12 @@ uses
   ShowMapNodes in '..\Common\ShowMapNodes.pas' {frmShowMapNodes},
   MacroTradeSkill in '..\Common\DAOCAutomation\MacroTradeSkill.pas' {frmMacroTradeSkills},
   AFKMessage in '..\Common\DAOCAutomation\AFKMessage.pas' {frmAFK},
-  TellMacro in '..\Common\DAOCAutomation\TellMacro.pas' {frmTellMacro},
   AXScript in '..\Common\DAOCAutomation\AXScript.pas',
   ScriptSiteImpl in '..\Common\DAOCAutomation\ScriptSiteImpl.pas',
   SpellcraftHelp in '..\Common\DAOCAutomation\SpellcraftHelp.pas' {frmSpellcraftHelp},
-  GLRenderObjects in 'GLRenderObjects.pas',
-  MapElementList in 'MapElementList.pas',
   DDSImage in 'DDSImage.pas',
   VCLMemStrms in '..\Common\VCLMemStrms.pas',
   DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
-  RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs},
   DAOCClasses in '..\Common\DAOCInfo\DAOCClasses.pas',
   DAOCConSystem in '..\Common\DAOCInfo\DAOCConSystem.pas',
   DebugAndTracing in 'DebugAndTracing.pas' {frmDebugging},
@@ -53,9 +44,7 @@ uses
   ConnectionConfig in 'ConnectionConfig.pas' {frmConnectionConfig},
   RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
   zlib2 in '..\Components\ZLib\zlib2.pas',
-  QuickLaunchChars in 'QuickLaunchChars.pas',
-  TexFont in 'TexFont.pas',
-  AddPushPin in 'AddPushPin.pas' {frmAddPushpin};
+  QuickLaunchChars in 'QuickLaunchChars.pas';
 
 {$R *.TLB}
 
@@ -69,7 +58,6 @@ begin
   Application.CreateForm(TfrmShowMapNodes, frmShowMapNodes);
   Application.CreateForm(TfrmMacroTradeSkills, frmMacroTradeSkills);
   Application.CreateForm(TfrmAFK, frmAFK);
-  Application.CreateForm(TfrmTellMacro, frmTellMacro);
   Application.CreateForm(TfrmSpellcraftHelp, frmSpellcraftHelp);
   Application.CreateForm(TfrmDebugging, frmDebugging);
   Application.CreateForm(TfrmMacroing, frmMacroing);

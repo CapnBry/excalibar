@@ -1,4 +1,10 @@
-@003 Nov 20 - v1.64
+  + Internal changes to ChatParse unit.
+  + Internal changes to fix no DAOC_AUTO_SERVER build.
+  + Added WINPCAP define to enable / disable packet sniffing.
+  + DaocSkilla compiled with no DAOC_AUTO_SERVER or WINPCAP defined
+    will now run on Linux under wine.
+  
+2003 Nov 20 - v1.64
 -------------------
   + Map lists now make sure destination directory exists before
     requesting a map.
