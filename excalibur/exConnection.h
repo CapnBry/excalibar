@@ -46,7 +46,6 @@ class exConnection;
 #include "exLink.h"
 #include "exFilter.h"
 #include "exMessage.h"
-#include "messages.h"
 
 using namespace std;
 
