@@ -102,7 +102,7 @@ implementation
 // {$DEFINE CLEAR_PACKET_BUFFER}
 
 const
-  MAX_EXPECTED_DAOC_PACKET_SIZE = 4096;
+  MAX_EXPECTED_DAOC_PACKET_SIZE = 2048;
 
 procedure ODS(const s: string);
 begin
