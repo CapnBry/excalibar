@@ -8,13 +8,17 @@ uses
 
 type
   TRenderPreferences = class(TObject)
+  private
+    FObjectFilter: TDAOCObjectClasses;
+    FOnObjectFilterChanged: TNotifyEvent;
+    procedure SetObjectFilter(const Value: TDAOCObjectClasses);
+    procedure DoOnObjectFilterChanged;
   public
     Left:   integer;
     Top:    integer;
     Width:  integer;
     Height: integer;
     Range:  integer;
-    ObjectFilter:     TDAOCObjectClasses;
     DrawHUD:          boolean;
     DrawMapVector:    boolean;
     DrawMapTexture:   boolean;
@@ -24,6 +28,11 @@ type
     TrackMapClick:    boolean;
     TrackInGameSelect:  boolean;
     DrawTypeTag:      boolean;
+    DrawFrameStats:   boolean;
+    RedrawOnAdd:      boolean;
+    RedrawOnDelete:   boolean;
+    RedrawOnUpdate:   boolean;
+    RedrawOnTimer:    boolean;
 
     constructor Create;
 
@@ -32,6 +41,9 @@ type
     function Clone : TRenderPreferences;
     function IsObjectInFilter(AObj: TDAOCObject) : boolean;
     procedure XORObjectFilter(AObjectClass: TDAOCObjectClass);
+
+    property ObjectFilter: TDAOCObjectClasses read FObjectFilter write SetObjectFilter; 
+    property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
   end;
 
   TfrmRenderPrefs = class(TForm)
@@ -100,11 +112,22 @@ begin
   Result.TrackMapClick := TrackMapClick;
   Result.TrackInGameSelect := TrackInGameSelect;
   Result.DrawTypeTag := DrawTypeTag;
+  Result.DrawFrameStats := DrawFrameStats;
+  Result.RedrawOnAdd := RedrawOnAdd;
+  Result.RedrawOnDelete := RedrawOnDelete;
+  Result.RedrawOnUpdate := RedrawOnUpdate;
+  Result.RedrawOnTimer := RedrawOnTimer;
 end;
 
 constructor TRenderPreferences.Create;
 begin
   ObjectFilter := [ocUnknown, ocObject, ocMob, ocPlayer];
+end;
+
+procedure TRenderPreferences.DoOnObjectFilterChanged;
+begin
+  if Assigned(FOnObjectFilterChanged) then
+    FOnObjectFilterChanged(Self);
 end;
 
 function TRenderPreferences.IsObjectInFilter(AObj: TDAOCObject): boolean;
@@ -130,6 +153,11 @@ begin
     TrackMapClick := ReadBool('RenderPrefs', 'TrackMapClick', true);
     TrackInGameSelect := ReadBool('RenderPrefs', 'TrackInGameSelect', true);
     DrawTypeTag := ReadBool('RenderPrefs', 'DrawTypeTag', true);
+    DrawFrameStats := ReadBool('RenderPrefs', 'DrawFrameStats', false);
+    RedrawOnAdd := ReadBool('RenderPrefs', 'RedrawOnAdd', true);
+    RedrawOnDelete := ReadBool('RenderPrefs', 'RedrawOnDelete', true);
+    RedrawOnUpdate := ReadBool('RenderPrefs', 'RedrawOnUpdate', true);
+    RedrawOnTimer := ReadBool('RenderPrefs', 'RedrawOnTimer', true);
   end;
 end;
 
@@ -151,15 +179,28 @@ begin
     WriteBool('RenderPrefs', 'TrackMapClick', TrackMapClick);
     WriteBool('RenderPrefs', 'TrackInGameSelect', TrackInGameSelect);
     WriteBool('RenderPrefs', 'DrawTypeTag', DrawTypeTag);
+    WriteBool('RenderPrefs', 'DrawFrameStats', DrawFrameStats);
+    WriteBool('RenderPrefs', 'RedrawOnAdd', RedrawOnAdd);
+    WriteBool('RenderPrefs', 'RedrawOnDelete', RedrawOnDelete);
+    WriteBool('RenderPrefs', 'RedrawOnUpdate', RedrawOnUpdate);
+    WriteBool('RenderPrefs', 'RedrawOnTimer', RedrawOnTimer);
   end;
+end;
+
+procedure TRenderPreferences.SetObjectFilter(const Value: TDAOCObjectClasses);
+begin
+  FObjectFilter := Value;
+  DoOnObjectFilterChanged;
 end;
 
 procedure TRenderPreferences.XORObjectFilter(AObjectClass: TDAOCObjectClass);
 begin
-  if AObjectClass in ObjectFilter then
-    Exclude(ObjectFilter, AObjectClass)
+  if AObjectClass in FObjectFilter then
+    Exclude(FObjectFilter, AObjectClass)
   else
-    Include(ObjectFilter, AObjectClass);
+    Include(FObjectFilter, AObjectClass);
+
+  DoOnObjectFilterChanged;
 end;
 
 { TfrmRenderPrefs }
@@ -177,12 +218,17 @@ begin
 end;
 
 procedure TfrmRenderPrefs.ObjectFilterClick(Sender: TObject);
+var
+  objFilter: TDAOCObjectClasses;
 begin
+  objFilter := FRenderPrefs.ObjectFilter;
   with TCheckbox(Sender) do
     if Checked then
-      Include(FRenderPrefs.ObjectFilter, TDAOCObjectClass(Tag))
+      Include(objFilter, TDAOCObjectClass(Tag))
     else
-      Exclude(FRenderPrefs.ObjectFilter, TDAOCObjectClass(Tag));
+      Exclude(objFilter, TDAOCObjectClass(Tag));
+      
+  FRenderPrefs.ObjectFilter := objFilter;
 end;
 
 procedure TfrmRenderPrefs.chkVectorMapsClick(Sender: TObject);
