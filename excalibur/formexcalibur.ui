@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>FormExcalibur</class>
 <widget class="QMainWindow">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>849</width>
-            <height>588</height>
+            <width>572</width>
+            <height>609</height>
         </rect>
     </property>
     <property name="caption">
@@ -18,6 +18,22 @@
     <widget class="QLabel">
         <property name="name">
             <cstring>xyzstatus</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1</width>
+                <height>1</height>
+            </rect>
+        </property>
+        <property name="alignment">
+            <set>AlignTop|AlignHCenter</set>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>Zoom</cstring>
         </property>
         <property name="geometry">
             <rect>
@@ -139,88 +155,478 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>0</x>
+                <x>1</x>
                 <y>0</y>
-                <width>560</width>
-                <height>164</height>
+                <width>523</width>
+                <height>406</height>
             </rect>
-        </property>
-        <property name="sizePolicy">
-            <sizepolicy>
-                <hsizetype>7</hsizetype>
-                <vsizetype>7</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-            </sizepolicy>
         </property>
         <property name="orientation">
             <enum>Horizontal</enum>
         </property>
-        <widget class="QListView">
-            <column>
-                <property name="text">
-                    <string>Name</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                    <string>Level</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                    <string>Health</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                    <string>Distance</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
+        <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>ListViewMobs</cstring>
+                <cstring>layout15</cstring>
             </property>
-            <property name="sizePolicy">
-                <sizepolicy>
-                    <hsizetype>7</hsizetype>
-                    <vsizetype>7</vsizetype>
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                </sizepolicy>
-            </property>
-            <property name="frameShape">
-                <enum>StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="allColumnsShowFocus">
-                <bool>true</bool>
-            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QListView">
+                    <column>
+                        <property name="text">
+                            <string>Name</string>
+                        </property>
+                        <property name="clickable">
+                            <bool>true</bool>
+                        </property>
+                        <property name="resizable">
+                            <bool>true</bool>
+                        </property>
+                    </column>
+                    <column>
+                        <property name="text">
+                            <string>Level</string>
+                        </property>
+                        <property name="clickable">
+                            <bool>true</bool>
+                        </property>
+                        <property name="resizable">
+                            <bool>true</bool>
+                        </property>
+                    </column>
+                    <column>
+                        <property name="text">
+                            <string>Health</string>
+                        </property>
+                        <property name="clickable">
+                            <bool>true</bool>
+                        </property>
+                        <property name="resizable">
+                            <bool>true</bool>
+                        </property>
+                    </column>
+                    <column>
+                        <property name="text">
+                            <string>Distance</string>
+                        </property>
+                        <property name="clickable">
+                            <bool>true</bool>
+                        </property>
+                        <property name="resizable">
+                            <bool>true</bool>
+                        </property>
+                    </column>
+                    <property name="name">
+                        <cstring>ListViewMobs</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>7</hsizetype>
+                            <vsizetype>7</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="allColumnsShowFocus">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>xpFrame</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <property name="lineWidth">
+                        <number>2</number>
+                    </property>
+                    <property name="margin">
+                        <number>0</number>
+                    </property>
+                    <property name="midLineWidth">
+                        <number>0</number>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>3</number>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout11</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel14</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>32767</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                    <property name="text">
+                                        <string>Time Frame:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QComboBox">
+                                    <item>
+                                        <property name="text">
+                                            <string>Show All</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 5 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 10 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 15 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 20 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 30 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 45 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Last 60 Minutes</string>
+                                        </property>
+                                    </item>
+                                    <property name="name">
+                                        <cstring>comboDuration</cstring>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>32767</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </widget>
+                            </hbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout14</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout13</cstring>
+                                    </property>
+                                    <vbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Total XP:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Total Mobs Killed:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel3</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Average XP per Mob:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>XP Rate(per minute):</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>XP Rate(per hour):</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>comboXPRate</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Deaths / XP Loss:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel5</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Play Time:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel6</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Est. Kills to Level:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel7</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Est. Time to Level:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>Est. XP per Tick:</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>Est. XP per Mini-Bubble:</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>Est. XP per Bubble:</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>comboXPTick</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel9</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Current Tick:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Est. XP to Level:</string>
+                                            </property>
+                                        </widget>
+                                    </vbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout12</cstring>
+                                    </property>
+                                    <vbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>totalXP</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0 (0.00 Bub)</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignVCenter</set>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>mobsKilled</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>avgXPperMob</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0 (0.000 Bub)</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>xpRate</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0 (0.000 Bub)</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>deaths</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0 / 0 (0.00 Bub)</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>playTime</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>00:00:00</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>estKillstoLevel</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>estTimetoLevel</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>00:00:00</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>estXPperTicketc</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>currentTick</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0 / 999</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>estXPtoLevel</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="indent">
+                                                <number>3</number>
+                                            </property>
+                                        </widget>
+                                    </vbox>
+                                </widget>
+                            </hbox>
+                        </widget>
+                    </vbox>
+                </widget>
+            </vbox>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -301,7 +707,7 @@ Hibs: 0  Mobs: 0</string>
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>4</width>
+                                    <width>16</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -391,6 +797,7 @@ Hibs: 0  Mobs: 0</string>
         <action name="atnCrafting"/>
         <separator/>
         <action name="MaxFPS"/>
+        <action name="ExpWindow"/>
         <action name="vaderWarn"/>
         <action name="EditorSpawn"/>
         <separator/>
@@ -399,6 +806,8 @@ Hibs: 0  Mobs: 0</string>
     <item text="Map" name="PopupMenu">
         <action name="GLObjectSizes"/>
         <action name="GLMapFade"/>
+        <separator/>
+        <action name="ZoomSelect"/>
         <separator/>
         <action name="MapMerchantTypes"/>
         <action name="MapPlayerNames"/>
@@ -445,13 +854,13 @@ Hibs: 0  Mobs: 0</string>
             <bool>true</bool>
         </property>
         <property name="on">
-            <bool>false</bool>
+            <bool>true</bool>
         </property>
         <property name="text">
             <string>Select Ingame Target</string>
         </property>
         <property name="accel">
-            <number>84</number>
+            <string>T</string>
         </property>
     </action>
     <action>
@@ -465,7 +874,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Group Players</string>
         </property>
         <property name="accel">
-            <number>80</number>
+            <string>P</string>
         </property>
     </action>
     <actiongroup>
@@ -489,7 +898,7 @@ Hibs: 0  Mobs: 0</string>
                 <string>Small</string>
             </property>
             <property name="accel">
-                <number>49</number>
+                <string>1</string>
             </property>
         </action>
         <action>
@@ -503,7 +912,7 @@ Hibs: 0  Mobs: 0</string>
                 <string>Medium</string>
             </property>
             <property name="accel">
-                <number>50</number>
+                <string>2</string>
             </property>
         </action>
         <action>
@@ -517,7 +926,7 @@ Hibs: 0  Mobs: 0</string>
                 <string>Large</string>
             </property>
             <property name="accel">
-                <number>51</number>
+                <string>3</string>
             </property>
         </action>
     </actiongroup>
@@ -532,7 +941,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Sort by Distance</string>
         </property>
         <property name="accel">
-            <number>68</number>
+            <string>D</string>
         </property>
     </action>
     <action>
@@ -557,7 +966,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Render Rulers</string>
         </property>
         <property name="accel">
-            <number>82</number>
+            <string>R</string>
         </property>
     </action>
     <action>
@@ -571,7 +980,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Depthfade Map</string>
         </property>
         <property name="accel">
-            <number>70</number>
+            <string>F</string>
         </property>
     </action>
     <action>
@@ -582,7 +991,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Exit with Profiling</string>
         </property>
         <property name="accel">
-            <number>6291536</number>
+            <string>Ctrl+Shift+P</string>
         </property>
     </action>
     <action>
@@ -593,7 +1002,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Spawn Editor</string>
         </property>
         <property name="accel">
-            <number>4194373</number>
+            <string>Ctrl+E</string>
         </property>
     </action>
     <action>
@@ -607,7 +1016,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Vader Warning</string>
         </property>
         <property name="accel">
-            <number>4194391</number>
+            <string>Ctrl+W</string>
         </property>
     </action>
     <action>
@@ -618,7 +1027,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Recache Map</string>
         </property>
         <property name="accel">
-            <number>12582994</number>
+            <string>Ctrl+Alt+R</string>
         </property>
     </action>
     <action>
@@ -629,7 +1038,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Reload</string>
         </property>
         <property name="accel">
-            <number>4194386</number>
+            <string>Ctrl+R</string>
         </property>
     </action>
     <action>
@@ -643,7 +1052,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Render Adjacent Zones</string>
         </property>
         <property name="accel">
-            <number>4194369</number>
+            <string>Ctrl+A</string>
         </property>
     </action>
     <action>
@@ -669,7 +1078,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Render PNG maps</string>
         </property>
         <property name="accel">
-            <number>4194384</number>
+            <string>Ctrl+P</string>
         </property>
     </action>
     <action>
@@ -689,7 +1098,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Toggle the rasterization of player names.</string>
         </property>
         <property name="accel">
-            <number>78</number>
+            <string>N</string>
         </property>
     </action>
     <action>
@@ -706,7 +1115,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Toggle the rasterization of merchant types.</string>
         </property>
         <property name="accel">
-            <number>77</number>
+            <string>M</string>
         </property>
     </action>
     <action>
@@ -723,7 +1132,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Group Items</string>
         </property>
         <property name="accel">
-            <number>73</number>
+            <string>I</string>
         </property>
     </action>
     <action>
@@ -762,7 +1171,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Render Objects</string>
         </property>
         <property name="accel">
-            <number>79</number>
+            <string>O</string>
         </property>
     </action>
     <action>
@@ -779,7 +1188,7 @@ Hibs: 0  Mobs: 0</string>
             <string>Render Dead</string>
         </property>
         <property name="accel">
-            <number>90</number>
+            <string>Z</string>
         </property>
     </action>
     <action>
@@ -796,7 +1205,94 @@ Hibs: 0  Mobs: 0</string>
             <string>Crafting Alerts</string>
         </property>
         <property name="accel">
-            <number>67</number>
+            <string>C</string>
+        </property>
+    </action>
+    <actiongroup>
+        <property name="name">
+            <cstring>ZoomSelect</cstring>
+        </property>
+        <property name="text">
+            <string>Quick Zoom</string>
+        </property>
+        <property name="accel">
+            <string>J</string>
+        </property>
+        <property name="usesDropDown">
+            <bool>true</bool>
+        </property>
+        <action>
+            <property name="name">
+                <cstring>ZoomClose</cstring>
+            </property>
+            <property name="toggleAction">
+                <bool>false</bool>
+            </property>
+            <property name="text">
+                <string>Close</string>
+            </property>
+            <property name="accel">
+                <string>F1</string>
+            </property>
+        </action>
+        <action>
+            <property name="name">
+                <cstring>ZoomDefault</cstring>
+            </property>
+            <property name="toggleAction">
+                <bool>false</bool>
+            </property>
+            <property name="text">
+                <string>Default</string>
+            </property>
+            <property name="accel">
+                <string>F2</string>
+            </property>
+        </action>
+        <action>
+            <property name="name">
+                <cstring>ZoomFar</cstring>
+            </property>
+            <property name="toggleAction">
+                <bool>false</bool>
+            </property>
+            <property name="text">
+                <string>Far</string>
+            </property>
+            <property name="accel">
+                <string>F3</string>
+            </property>
+        </action>
+        <action>
+            <property name="name">
+                <cstring>ZoomLast</cstring>
+            </property>
+            <property name="toggleAction">
+                <bool>false</bool>
+            </property>
+            <property name="text">
+                <string>Last</string>
+            </property>
+            <property name="accel">
+                <string>F4</string>
+            </property>
+        </action>
+    </actiongroup>
+    <action>
+        <property name="name">
+            <cstring>ExpWindow</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Experience Window</string>
+        </property>
+        <property name="accel">
+            <string>Ctrl+X</string>
         </property>
     </action>
 </actions>
@@ -944,10 +1440,61 @@ Hibs: 0  Mobs: 0</string>
         <receiver>FormExcalibur</receiver>
         <slot>AutoSelectTarget_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>ZoomClose</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ZoomClose_activated()</slot>
+    </connection>
+    <connection>
+        <sender>ZoomDefault</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ZoomDefault_activated()</slot>
+    </connection>
+    <connection>
+        <sender>ZoomFar</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ZoomFar_activated()</slot>
+    </connection>
+    <connection>
+        <sender>ZoomLast</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ZoomLast_activated()</slot>
+    </connection>
+    <connection>
+        <sender>ExpWindow</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>ExpWindow_toggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>comboDuration</sender>
+        <signal>activated(int)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>comboDuration_activated(int)</slot>
+    </connection>
+    <connection>
+        <sender>comboXPRate</sender>
+        <signal>activated(int)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>comboXPRate_activated(int)</slot>
+    </connection>
+    <connection>
+        <sender>comboXPTick</sender>
+        <signal>activated(int)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>comboXPTick_activated(int)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
 </includes>
+<variables>
+    <variable access="private">int last_zoom;</variable>
+</variables>
 <slots>
     <slot>resizeEvent( QResizeEvent * e )</slot>
     <slot>showEvent( QShowEvent * e )</slot>
@@ -977,6 +1524,17 @@ Hibs: 0  Mobs: 0</string>
     <slot>atnRenderDead_toggled( bool ena )</slot>
     <slot>atnCrafting_toggled( bool ena )</slot>
     <slot>AutoSelectTarget_toggled( bool ena )</slot>
+    <slot>ExpWindow_toggled( bool ena )</slot>
+    <slot>ZoomClose_activated()</slot>
+    <slot>ZoomDefault_activated()</slot>
+    <slot>ZoomFar_activated()</slot>
+    <slot>ZoomLast_activated()</slot>
+    <slot>comboXPRate_activated( int sel )</slot>
+    <slot>comboXPTick_activated( int sel )</slot>
+    <slot>comboDuration_activated( int sel )</slot>
 </slots>
 <layoutdefaults spacing="2" margin="0"/>
+<includehints>
+    <includehint>exmap.h</includehint>
+</includehints>
 </UI>
