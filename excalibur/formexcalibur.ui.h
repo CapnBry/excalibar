@@ -139,7 +139,9 @@ void FormExcalibur::ProfileExit_activated()
 
 void FormExcalibur::vaderWarn_toggled( bool ena)
 {
-  Map->c->vaderWarn = ena;
+  if( Map->c)
+  	Map->c->vaderWarn = ena;
+  prefs.vaderWarn = ena;
 }
 
 void FormExcalibur::MobFilter_returnPressed()
