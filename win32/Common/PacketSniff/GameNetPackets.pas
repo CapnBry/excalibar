@@ -36,6 +36,8 @@ type
     FConnectionID: Cardinal;
     function GetIsFromServer: boolean;
     procedure FreePacketData;
+    function GetIPProtocolStr: string;
+    function GetIsFromClientStr: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -60,7 +62,9 @@ type
     property Size: Cardinal read FSize;
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;
     property IsFromServer: boolean read GetIsFromServer;
+    property IsFromClientStr: string read GetIsFromClientStr;
     property IPProtocol: TGNPackIPProtocol read FIPProtocol write FIPProtocol;
+    property IPProtocolStr: string read GetIPProtocolStr;
   end;
 
   TGNPacketEvent = procedure (Sender: TObject; APacket: TGameNetPacket) of Object;
@@ -165,6 +169,22 @@ procedure TGameNetPacket.getBytes(var dest; iBytes: integer);
 begin
   Move(FPacketDataPos^, dest, iBytes);
   seek(iBytes);
+end;
+
+function TGameNetPacket.GetIPProtocolStr: string;
+begin
+  if FIPProtocol = gnppTCP then
+    Result := 'TCP'
+  else
+    Result := 'UDP';
+end;
+
+function TGameNetPacket.GetIsFromClientStr: string;
+begin
+  if FIsFromClient then
+    Result := ' TO  client'
+  else
+    Result := 'FROM client';
 end;
 
 function TGameNetPacket.GetIsFromServer: boolean;
