@@ -134,13 +134,28 @@ object frmPowerskill: TfrmPowerskill
     object chkAutoAdvance: TCheckBox
       Left = 4
       Top = 28
-      Width = 209
+      Width = 169
       Height = 17
       Caption = 'Auto-advance item with skill'
       Checked = True
       State = cbChecked
       TabOrder = 2
       OnClick = chkAutoAdvanceClick
+    end
+    object chkUngroupRecipes: TCheckBox
+      Left = 192
+      Top = 28
+      Width = 61
+      Height = 17
+      Hint = 'Flatten recipe list to display by skill'
+      Caption = 'Ungroup'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 3
+      Visible = False
+      OnClick = chkUngroupRecipesClick
     end
   end
   object pnlLoading: TPanel

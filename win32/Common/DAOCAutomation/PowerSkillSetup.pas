@@ -32,6 +32,7 @@ type
     pnlLoading: TPanel;
     lblCost: TLabel;
     btnToQuickbar: TSpeedButton;
+    chkUngroupRecipes: TCheckBox;
     procedure btnLoadClick(Sender: TObject);
     procedure lstItemsClick(Sender: TObject);
     procedure btnBuyClick(Sender: TObject);
@@ -42,6 +43,7 @@ type
     procedure chkAutoAdvanceClick(Sender: TObject);
     procedure btnToQuickbarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure chkUngroupRecipesClick(Sender: TObject);
   private
     FPSItemList:  TPowerSkillItemList;
     FDControl:    TDAOCControl;
@@ -60,6 +62,8 @@ type
     procedure SetAutoAdvance(const Value: boolean);
     procedure SetProfile(const Value: string);
     procedure UpdateCurrentSkillLevel;
+    function GetUngroupRecipes: boolean;
+    procedure SetUngroupRecipes(const Value: boolean);
   public
     procedure ExecutePurchases;
     procedure SelectItemForSkill;
@@ -73,6 +77,7 @@ type
     property KeepBuying: boolean read FKeepBuying write FKeepBuying;
     property Profile: string read GetProfile write SetProfile;
     property AutoAdvance: boolean read GetAutoAdvance write SetAutoAdvance;
+    property UngroupRecipes: boolean read GetUngroupRecipes write SetUngroupRecipes; 
     property LastQuickSlot: string read FLastQuickSlot write FLastQuickSlot;
   end;
 
@@ -316,7 +321,7 @@ procedure TfrmPowerskill.RefreshFromPSList;
 begin
   if Assigned(FPSItemList) and (FPSItemList.LocaleNodeListName <> '') then
     FDControl.MapNodes.LoadFromFile(FPSItemList.LocaleNodeListName);
-    
+
   UpdateCurrentSkillLevel;
   RefreshListItems;
 end;
@@ -521,6 +526,23 @@ begin
         FDControl.SelectNPC(pVendorItems.Vendor.Name);
     end;  { if we have an item and the item requres materials }
   end;
+end;
+
+function TfrmPowerskill.GetUngroupRecipes: boolean;
+begin
+  Result := chkUngroupRecipes.Checked;
+end;
+
+procedure TfrmPowerskill.SetUngroupRecipes(const Value: boolean);
+begin
+  chkUngroupRecipes.Checked := Value;
+  chkUngroupRecipesClick(nil);
+end;
+
+procedure TfrmPowerskill.chkUngroupRecipesClick(Sender: TObject);
+begin
+  { Not implemented because I'd have to write a grouped PSItemList sorter }
+//  RefreshFromPSList;
 end;
 
 end.
