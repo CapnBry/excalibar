@@ -5,6 +5,7 @@ object frmGLRender: TfrmGLRender
   Height = 643
   Caption = 'Excalibur'
   Color = clBtnFace
+  DockSite = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -81,7 +82,11 @@ object frmGLRender: TfrmGLRender
     Height = 616
     Align = alLeft
     BevelOuter = bvNone
+    Caption = 'Mob List'
+    DragKind = dkDock
+    DragMode = dmAutomatic
     TabOrder = 1
+    OnEndDock = pnlLeftEndDock
     object lblObjCounts: TLabel
       Left = 0
       Top = 0
@@ -99,6 +104,7 @@ object frmGLRender: TfrmGLRender
       Font.Style = []
       ParentColor = False
       ParentFont = False
+      OnMouseDown = MobListMouseDown
     end
     object lstObjects: TListBox
       Left = 0
@@ -113,8 +119,8 @@ object frmGLRender: TfrmGLRender
       ItemHeight = 16
       ParentCtl3D = False
       TabOrder = 0
-      OnClick = lstObjectsClick
       OnDrawItem = lstObjectsDrawItem
+      OnMouseDown = MobListMouseDown
     end
     object pnlGridHeader: TPanel
       Left = 0
@@ -126,6 +132,7 @@ object frmGLRender: TfrmGLRender
       BevelOuter = bvNone
       Caption = '  Name                                    Level   Health'
       TabOrder = 1
+      OnMouseDown = MobListMouseDown
     end
   end
   object tmrMinFPS: TTimer

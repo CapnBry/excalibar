@@ -39,9 +39,11 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure lstObjectsDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
-    procedure lstObjectsClick(Sender: TObject);
     procedure glMapMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure MobListMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure pnlLeftEndDock(Sender, Target: TObject; X, Y: Integer);
   private
     FDControl: TDAOCConnection;
     FRange:         DWORD;
@@ -100,9 +102,12 @@ type
     procedure RefreshFilteredList;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
     function FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
+    function FilteredObjectInsertByName(ADAOCObject: TDAOCObject) : integer;
+    function FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject) : integer;
     procedure UpdateObjectCounts;
-    procedure SetObjectListRowCount(ACount: integer);
+    function SetObjectListRowCount(ACount: integer) : boolean;
     procedure RENDERPrefsObjectFilterChanged(Sender: TObject);
+    procedure RENDERPrefsMobListOptionChanged(Sender: TObject);
     procedure UpdateFrameStats(ATime: integer);
     procedure InvalidateListObject(AObj: TDAOCObject);
     procedure UpdateStayOnTop;
@@ -110,6 +115,7 @@ type
     procedure DoPrefsDialog;
     function PlayerMobListText(AMob: TDAOCPlayer) : string;
     procedure MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
+    function CompareObjectClasses(A, B: TDAOCObjectClass): integer;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -120,6 +126,8 @@ type
     procedure DAOCRegionChanged;
     procedure DAOCZoneChanged;
     procedure DAOCSetGroundTarget;
+    procedure DAOCCharacterLogin;
+    procedure DAOCPlayerPosUpdate;
 
     procedure Dirty;
     property DAOCControl: TDAOCConnection read FDControl write SetDControl;
@@ -318,6 +326,7 @@ procedure TfrmGLRender.FormShow(Sender: TObject);
 begin
   if FPrefsFile <> '' then begin
     FRenderPrefs.LoadSettings(FPrefsFile);
+    FRangeCircles.LoadFromFile(FPrefsFile);
     Left := FRenderPrefs.Left;
     Top := FRenderPrefs.Top;
     Width := FRenderPrefs.Width;
@@ -487,7 +496,10 @@ end;
 procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
 begin
   InvalidateListObject(AObj);
-  if FRenderPrefs.RedrawOnUpdate then
+    { RefreshFilteredList calls Dirty for us }
+  if FRenderPrefs.MobListSortOrder = msoDistance then
+    RefreshFilteredList
+  else if FRenderPrefs.RedrawOnUpdate then
     Dirty;
 end;
 
@@ -600,19 +612,8 @@ begin
 end;
 
 procedure TfrmGLRender.FormCreate(Sender: TObject);
-var
-  rngCircle:  TRangeCircle;
 begin
   FRangeCircles := TRangeCircleList.Create;
-  rngCircle := TRangeCircle.CreateRange(500, 24);
-  rngCircle.Color := clRed;
-  FRangeCircles.Add(rngCircle);
-  rngCircle := TRangeCircle.CreateRange(1500, 24);
-  rngCircle.Color := clLime;
-  FRangeCircles.Add(rngCircle);
-  rngCircle := TRangeCircle.CreateRange(6000, 40);
-  rngCircle.Color := clSilver;
-  FRangeCircles.Add(rngCircle);
 
   FMapElementsListList := TVectorMapElementListList.Create;
   FMapElementsListList.VectorMapDir := ExtractFilePath(ParamStr(0)) + 'maps\';
@@ -626,6 +627,7 @@ begin
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
+  FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
   FRenderPrefs.HasGLUT := Assigned(glutInit);
 
@@ -707,6 +709,7 @@ procedure TfrmGLRender.DAOCRegionChanged;
 begin
   Caption := FDControl.LocalPlayer.Name + S_CAPTION_SUFFIX;
   FRenderPrefs.PlayerRealm := FDControl.LocalPlayer.Realm;
+  FRenderPrefs.PlayerLevel := FDControl.LocalPlayer.Level;
   DAOCSetGroundTarget;
 end;
 
@@ -949,6 +952,11 @@ begin
         DoPrefsDialog;
         Key := 0;
       end;
+    VK_F2:
+      begin
+        pnlLeft.Visible := not pnlLeft.Visible; 
+        Key := 0;
+      end;
   end;
 end;
 
@@ -1069,8 +1077,14 @@ end;
 procedure TfrmGLRender.RefreshFilteredList;
 var
   pObj:   TDAOCObject;
+  I:      integer;
+  R:      TRect;
+  pOldFilteredList:  TDAOCObjectList;
 begin
-  FFilteredObjects.Clear;
+    { save the old list because we might need it for invalidating }
+  pOldFilteredList := FFilteredObjects;
+  FFilteredObjects := TDAOCObjectList.Create(false);
+
   pObj := FDControl.DAOCObjects.Head;
   while Assigned(pObj) do begin
     if FRenderPrefs.IsObjectInFilter(pObj) then
@@ -1079,7 +1093,16 @@ begin
   end;
 
   UpdateObjectCounts;
-  SetObjectListRowCount(FFilteredObjects.Count);
+    { if the number of items hasn't changed then we need to selectively invalidate }
+  if not SetObjectListRowCount(FFilteredObjects.Count) then
+    for I := 0 to pOldFilteredList.Count - 1 do
+      if pOldFilteredList[I] <> FFilteredObjects[I] then begin
+        R := lstObjects.ItemRect(I);
+        InvalidateRect(lstObjects.Handle, @R, false);
+      end;
+
+  pOldFilteredList.Free;
+
   Dirty;
 end;
 
@@ -1092,48 +1115,18 @@ begin
     FRenderPrefs.Height := Height;
     FRenderPrefs.Range := FRange;
     FRenderPrefs.SaveSettings(FPrefsFile);
+    FRangeCircles.SaveToFile(FPrefsFile);
   end;
 end;
 
 function TfrmGLRender.FilteredObjectInsert(ADAOCObject: TDAOCObject) : integer;
-const
-  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (5, 4, 3, 2, 1, 0);
-var
-  I:   integer;
-  function CompareObjectClasses(A, B: TDAOCObjectClass) : integer;
-  begin
-    if OBJECT_ORDER[A] < OBJECT_ORDER[B] then
-      Result := -1
-    else if OBJECT_ORDER[A] > OBJECT_ORDER[B] then
-      Result := 1
-    else
-      Result := 0;
-  end;
 begin
-  for I := 0 to FFilteredObjects.Count - 1 do
-    if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) < 0 then begin
-      FFilteredObjects.Insert(I, ADAOCObject);
-      Result := I;
-      exit;
-    end
-
-    else if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) = 0 then begin
-      if FRenderPrefs.GroupByRealm and (ADAOCObject.Realm < FFilteredObjects[I].Realm) then begin
-        FFilteredObjects.Insert(I, ADAOCObject);
-        Result := I;
-        exit;
-      end
-
-      else if not FRenderPrefs.GroupByRealm or (ADAOCObject.Realm = FFilteredObjects[I].Realm) then begin
-        if AnsiCompareText(ADAOCObject.Name, FFilteredObjects[I].Name) < 0 then begin
-          FFilteredObjects.Insert(I, ADAOCObject);
-          Result := I;
-          exit;
-        end;
-      end;  { if same realm }
-    end;  { if samce object class }
-
-  Result := FFilteredObjects.Add(ADAOCObject);
+  case FRenderPrefs.MobListSortOrder of
+    msoName:  Result := FilteredObjectInsertByName(ADAOCObject);
+    msoDistance: Result := FilteredObjectInsertByDistance(ADAOCObject);
+    else
+      Result := FFilteredObjects.Add(ADAOCObject);
+  end;  { case Sort order }
 end;
 
 procedure TfrmGLRender.UpdateObjectCounts;
@@ -1171,9 +1164,15 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.SetObjectListRowCount(ACount: integer);
+function TfrmGLRender.SetObjectListRowCount(ACount: integer) : boolean;
+{ Returns true if the number of items has changed }
 begin
-  lstObjects.Count := FFilteredObjects.Count;
+  if lstObjects.Count <> FFilteredObjects.Count then begin
+    lstObjects.Count := FFilteredObjects.Count;
+    Result := true;
+  end
+  else
+    Result := false;
 end;
 
 function TfrmGLRender.PlayerMobListText(AMob: TDAOCPlayer) : string;
@@ -1271,12 +1270,6 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.lstObjectsClick(Sender: TObject);
-begin
-  if lstObjects.ItemIndex < FFilteredObjects.Count then
-    FDControl.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
-end;
-
 procedure TfrmGLRender.RENDERPrefsObjectFilterChanged(Sender: TObject);
 begin
   RefreshFilteredList;
@@ -1355,7 +1348,7 @@ var
   tmpPrefs:   TRenderPreferences;
 begin
   tmpPrefs := FRenderPrefs.Clone;
-  if TfrmRenderPrefs.Execute(Self, FRenderPrefs) then begin
+  if TfrmRenderPrefs.Execute(Self, FRenderPrefs, FRangeCircles) then begin
     if tmpPrefs.AdjacentZones <> FRenderPrefs.AdjacentZones then
       ReloadMapElementsAndTextures;
     UpdateStayOnTop;
@@ -1571,6 +1564,119 @@ begin
   if Assigned(pNearest) then
     ptMouse.Y := WriteGLUTTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
   WriteGLUTTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
+end;
+
+procedure TfrmGLRender.MobListMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  pnlLeft.BeginDrag(false);
+  if lstObjects.ItemIndex < FFilteredObjects.Count then
+    FDControl.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
+end;
+
+procedure TfrmGLRender.pnlLeftEndDock(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  if Assigned(pnlLeft.Parent) then
+    pnlLeft.Align := alLeft;
+end;
+
+procedure TfrmGLRender.DAOCCharacterLogin;
+begin
+  FRenderPrefs.PlayerLevel := FDControl.LocalPlayer.Level;
+end;
+
+procedure TfrmGLRender.RENDERPrefsMobListOptionChanged(Sender: TObject);
+begin
+  RefreshFilteredList;
+end;
+
+function TfrmGLRender.FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject): integer;
+var
+  I:   integer;
+begin
+  if Assigned(FDControl.Zone) then
+    for I := 0 to FFilteredObjects.Count - 1 do
+      if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) < 0 then begin
+        FFilteredObjects.Insert(I, ADAOCObject);
+        Result := I;
+        exit;
+      end
+      else if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) = 0 then begin
+        if FRenderPrefs.GroupByRealm and (ADAOCObject.Realm < FFilteredObjects[I].Realm) then begin
+          FFilteredObjects.Insert(I, ADAOCObject);
+          Result := I;
+          exit;
+        end
+
+        else if not FRenderPrefs.GroupByRealm or (ADAOCObject.Realm = FFilteredObjects[I].Realm) then begin
+          if ((FDControl.Zone.ZoneType = dztDungeon) and
+              (ADAOCObject.DistanceSqr3D(FDControl.LocalPlayer) < FFilteredObjects[I].DistanceSqr3D(FDControl.LocalPlayer)))
+            or
+            ((FDControl.Zone.ZoneType <> dztDungeon) and
+              (ADAOCObject.DistanceSqr2D(FDControl.LocalPlayer) < FFilteredObjects[I].DistanceSqr2D(FDControl.LocalPlayer)))
+            then begin
+            FFilteredObjects.Insert(I, ADAOCObject);
+            Result := I;
+            exit;
+          end;
+        end;  { if same realm }
+      end;  { if samce object class }
+
+  Result := FFilteredObjects.Add(ADAOCObject);
+end;
+
+function TfrmGLRender.FilteredObjectInsertByName(ADAOCObject: TDAOCObject): integer;
+var
+  I:   integer;
+begin
+  for I := 0 to FFilteredObjects.Count - 1 do
+    if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) < 0 then begin
+      FFilteredObjects.Insert(I, ADAOCObject);
+      Result := I;
+      exit;
+    end
+
+    else if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) = 0 then begin
+      if FRenderPrefs.GroupByRealm and (ADAOCObject.Realm < FFilteredObjects[I].Realm) then begin
+        FFilteredObjects.Insert(I, ADAOCObject);
+        Result := I;
+        exit;
+      end
+
+      else if not FRenderPrefs.GroupByRealm or (ADAOCObject.Realm = FFilteredObjects[I].Realm) then begin
+        if AnsiCompareText(ADAOCObject.Name, FFilteredObjects[I].Name) < 0 then begin
+          FFilteredObjects.Insert(I, ADAOCObject);
+          Result := I;
+          exit;
+        end;
+      end;  { if same realm }
+    end;  { if samce object class }
+
+  Result := FFilteredObjects.Add(ADAOCObject);
+end;
+
+function TfrmGLRender.CompareObjectClasses(A, B: TDAOCObjectClass) : integer;
+const
+  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (5, 4, 3, 2, 1, 0);
+begin
+  if not FRenderPrefs.GroupByClass then
+    Result := 0
+  else if OBJECT_ORDER[A] < OBJECT_ORDER[B] then
+    Result := -1
+  else if OBJECT_ORDER[A] > OBJECT_ORDER[B] then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+procedure TfrmGLRender.DAOCPlayerPosUpdate;
+begin
+    { RefreshFilteredList calls Dirty for us }
+  if FRenderPrefs.MobListSortOrder = msoDistance then
+    RefreshFilteredList
+  else
+    Dirty;
 end;
 
 end.
