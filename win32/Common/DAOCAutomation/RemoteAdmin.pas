@@ -99,6 +99,9 @@ type
     procedure HandleZone(AConn: TClientConn; const ACmd: string);
     procedure HandleQuickLaunchList(AConn: TClientConn; const ACmd: string);
     procedure HandleQuickLaunch(AConn: TClientConn; const ACmd: string);
+    procedure HandleSelectNPC(AConn: TClientConn; const ACmd: string);
+    procedure HandleSendkeys(AConn: TClientConn; const ACmd: string);
+    procedure HandleAttemptNPCRightClick(AConn: TClientConn; const ACmd: string);
   public
     property DAOCControl: TDAOCControl read FDControl write FDControl;
     property Enabled: boolean read GetEnabled write SetEnabled;
@@ -136,7 +139,7 @@ begin
     { convert backspace to destructive backspace }
   iPos := Pos(#8, sCmd);
   while iPos > 0 do begin
-      { if we're after the first char delete the BS and the preceding char } 
+      { if we're after the first char delete the BS and the preceding char }
     if iPos > 1 then
       Delete(sCmd, iPos - 1, 2)
     else
@@ -286,6 +289,12 @@ begin
     '([mode]) Sets automation mode to <mode>.  Options are none, and trade.');
   AddAction('QuickLaunch', HandleQuickLaunch,
     '([index or name]) Launch character <index> from the QuickLaunch list. Lists characters available for quicklaunch if no index is given.');
+  AddAction('SelectNPC', HandleSelectNPC,
+    '(name) Use the SelectFriendly key and attempt to select the NPC <name>.');
+  AddAction('SendKeys', HandleSendkeys,
+    '(keys) Do a SendKeys call to the DAOC client.  Extended key syntax is available if the DAOC window has focus.');
+  AddAction('AttemptNPCRightClick', HandleAttemptNPCRightClick,
+    'Attempt to right click the NPC in the middle of the screen.');
 end;
 
 procedure TdmdRemoteAdmin.AddAction(const AKey: string;
@@ -1005,6 +1014,45 @@ end;
 procedure TdmdRemoteAdmin.SetEnabled(const Value: boolean);
 begin
   tcpRemoteAdmin.Active := Value;
+end;
+
+procedure TdmdRemoteAdmin.HandleSelectNPC(AConn: TClientConn; const ACmd: string);
+var
+  sName:      string;
+begin
+  sName := copy(ACmd, 11, Length(ACmd));
+  try
+    FDControl.SelectNPC(sName);
+    AConn.WriteLn('200 Attempting to select (' + sName + ').');
+  except
+    on e: Exception do
+      AConn.WriteLn('500 ' + e.Message);
+  end;
+end;
+
+procedure TdmdRemoteAdmin.HandleSendkeys(AConn: TClientConn; const ACmd: string);
+var
+  sKeys:      string;
+begin
+  sKeys := copy(ACmd, 10, Length(ACmd));
+  try
+    FDControl.DoSendKeys(sKeys);
+    AConn.WriteLn('200 Performing SendKeys (' + sKeys + ').');
+  except
+    on e: Exception do
+      AConn.WriteLn('500 ' + e.Message);
+  end;
+end;
+
+procedure TdmdRemoteAdmin.HandleAttemptNPCRightClick(AConn: TClientConn; const ACmd: string);
+begin
+  try
+    FDControl.AttemptNPCRightClick;
+    AConn.WriteLn('200 Attempting NPC right click.');
+  except
+    on e: Exception do
+      AConn.WriteLn('500 ' + e.Message);
+  end;
 end;
 
 end.
