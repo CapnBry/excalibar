@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <gl\glut.h>
 #include "database.h"
 #include "VectorMapLoader.h"
+#include "soundspool.h"
 
 class Central
 {
@@ -324,6 +325,9 @@ private:
 
     // vector map loader
     VectorMapLoader VmLoader;
+
+    // sound spooler
+    SoundSpool Sounds;
 
 }; // end Central
 

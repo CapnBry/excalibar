@@ -219,19 +219,19 @@ void Database::DoMaintenance(void)
         switch(ThisActor.GetActorType())
             {
             case Actor::Player:
-                // 60 seconds
-                MaxAge=CheyenneTime(60.0);
+                // 45 seconds
+                MaxAge=CheyenneTime(45.0);
                 break;
 
             case Actor::Object:
-                // 300 seconds
-                MaxAge=CheyenneTime(300.0);
+                // 45 seconds
+                MaxAge=CheyenneTime(45.0);
                 break;
 
             case Actor::Mob:
             default:
-                // 60 seconds
-                MaxAge=CheyenneTime(60.0);
+                // 45 seconds
+                MaxAge=CheyenneTime(45.0);
                 break;
             } // end switch actor type
 

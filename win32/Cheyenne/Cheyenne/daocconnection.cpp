@@ -187,7 +187,7 @@ void GetZeroString(char** unallocated_string,int& start,const unsigned char* buf
     sz[len]='\0';
 
     // if len < minlen then adjust
-    if(len<minlen)
+    if(len<int(minlen))
         {
         start += minlen;
         }

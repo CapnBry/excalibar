@@ -91,7 +91,7 @@ protected:
 private:
     DatabaseFunctorWrapper(std::auto_ptr<DatabaseFunctor>& s);
 
-    std::auto_ptr<DatabaseFunctor> wrapped;
+    mutable std::auto_ptr<DatabaseFunctor> wrapped; // conceptually const ;)
 };
 
 class DatabaseStatistics

@@ -68,10 +68,10 @@ inline void DrawGLFontString(const std::string& text)
     DrawGLUTFontString(text);
 }
 
-template<class container> container::value_type::second_type PngBindContainer
+template<class container> typename container::value_type::second_type PngBindContainer
     (
     container& Container,
-    container::value_type::first_type association,
+    typename container::value_type::first_type association,
     const char *filename,
     int mipmap=PNG_BUILDMIPMAPS,
     int trans=PNG_SOLID,

@@ -22,3 +22,5 @@ render context, so that will still have to be done in the GUI thread.
 - Speed up text rendering
 
 - Possibly optimize the new/delete memory allocation scheme for the fifos
+
+- Add euro IPs to the sniffer class

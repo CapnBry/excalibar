@@ -117,7 +117,7 @@ public:
         InitializeCriticalSection(&cs);
     }
 
-    CriticalSectionLock(const CriticalSectionLock& s) throw()
+    CriticalSectionLock(const CriticalSectionLock& s)
     {
         std::logic_error oops("no critical section copy constructor can exist");
         throw oops;

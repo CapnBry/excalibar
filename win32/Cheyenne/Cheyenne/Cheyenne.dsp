@@ -141,6 +141,10 @@ SOURCE=.\sniffer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SoundSpool.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\times.cpp
 # End Source File
 # Begin Source File
@@ -222,6 +226,10 @@ SOURCE=.\signals.h
 # Begin Source File
 
 SOURCE=.\sniffer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SoundSpool.h
 # End Source File
 # Begin Source File
 

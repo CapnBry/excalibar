@@ -70,6 +70,7 @@ Central::~Central()
     VmLoader.Stop();
     sniffer.Stop();
     db.Stop();
+    Sounds.Stop();
 
     // delete everything on the message fifo
     while(MessageInputFifo.size() != 0)
@@ -185,27 +186,18 @@ void Central::OnNewActor(const Actor& ThisActor)
 
     if(ThisActor.GetRealm() == Actor::Albion && Config.GetPlaySoundOnAlbCreate())
         {
-        // stop playing whatever is playing now
-        PlaySound(NULL,NULL,SND_FILENAME|SND_ASYNC);
-
-        // play the midgard create sound
-        PlaySound(Config.GetAlbSoundFile().c_str(),NULL,SND_FILENAME|SND_ASYNC);
+        // queue the sound to be played
+        Sounds.QueueSound(SoundSpool::AlbCreate);
         }
     else if(ThisActor.GetRealm() == Actor::Hibernia && Config.GetPlaySoundOnHibCreate())
         {
-        // stop playing whatever is playing now
-        PlaySound(NULL,NULL,SND_FILENAME|SND_ASYNC);
-
-        // play the midgard create sound
-        PlaySound(Config.GetHibSoundFile().c_str(),NULL,SND_FILENAME|SND_ASYNC);
+        // queue the sound to be played
+        Sounds.QueueSound(SoundSpool::HibCreate);
         }
     else if(ThisActor.GetRealm() == Actor::Midgard && Config.GetPlaySoundOnMidCreate())
         {
-        // stop playing whatever is playing now
-        PlaySound(NULL,NULL,SND_FILENAME|SND_ASYNC);
-
-        // play the midgard create sound
-        PlaySound(Config.GetMidSoundFile().c_str(),NULL,SND_FILENAME|SND_ASYNC);
+        // queue the sound to be played
+        Sounds.QueueSound(SoundSpool::MidCreate);
         }
 
 
@@ -1013,7 +1005,7 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                 hInstance,
                 MAKEINTRESOURCE(IDD_ABOUT),
                 hWnd,
-                (DLGPROC)AboutDlgProc,
+                DLGPROC(AboutDlgProc)
                 );
             break;
 
@@ -1025,7 +1017,7 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                 MAKEINTRESOURCE(IDD_SETSOUNDS),
                 hWnd,
                 (DLGPROC)SetSoundsDlgProc,
-                (LPARAM)&Config
+                (LPARAM)(&Config)
                 );
             break;
 
@@ -1335,7 +1327,7 @@ void Central::InitPixelFormat(void)
     pfd.nVersion=1;
     
     int iPF=GetPixelFormat(hPPIDC);
-    iPF=GetLastError();
+    //iPF=GetLastError();
 
     DescribePixelFormat(hPPIDC,iPF,sizeof(PIXELFORMATDESCRIPTOR),&pfd);
 
@@ -1360,6 +1352,9 @@ void Central::InitPixelFormat(void)
 
 void Central::InitCheyenne(void)
 {
+    // start sound spooler
+    Sounds.Go();
+
     // start database
     GetDatabase().Go(&MessageInputFifo);
 
@@ -1999,9 +1994,9 @@ void Central::RenderActor(const Actor& ThisActor)const
 
         // if AutoHookTarget is set and no hooked actor exists already
         // then set the hooked actor equal to the targeted actor
-        if(Config.GetAutoHookTarget() && HookedActor!=0)
+        if(Config.GetAutoHookTarget() && HookedActor==0)
             {
-            HookedActor=ThisActor.GetInfoId();
+            HookedActor=ThisActor.GetId();
             }
         }
 
