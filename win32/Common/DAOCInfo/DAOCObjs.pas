@@ -299,6 +299,8 @@ type
 
   TDAOCLocalPlayer = class(TDAOCMovingObject)
   private
+    FManaPct: BYTE;
+    FEndurancePct: BYTE;
     function GetFullName: string;
   protected
     FSkills:    TDAOCNameValueList;
@@ -325,11 +327,13 @@ type
     property Abilities: TDAOCNameValueList read FAbilities;
     property BaseClass: string read FBaseClass write FBaseClass;
     property Currency: TDAOCCurrency read FCurrency;
+    property EndurancePct: BYTE read FEndurancePct write FEndurancePct;
     property FullName: string read GetFullName;
     property Guild: string read FGuild write FGuild;
     property House: string read FHouse write FHouse;
     property HouseTitle: string read FHouseTitle write FHouseTitle;
     property LastName: string read FLastName write FLastName;
+    property ManaPct: BYTE read FManaPct write FManaPct;
     property PlayerClassStr: string read FPlayerClassStr write FPlayerClassStr;
     property Race: string read FRace write FRace;
     property RealmTitle: string read FRealmTitle write FRealmTitle;
