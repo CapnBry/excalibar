@@ -1605,7 +1605,11 @@ var
 begin
   if FSelectedObjectCached = AObject then
     FSelectedObjectCached := nil;
-    
+  if FSelectedID = AObject.InfoID then begin
+    FSelectedID := 0;
+    DoOnSelectedObjectChanged(nil);
+  end;
+
   FDAOCObjs.WalkList(OBJWALKRemoveTarget, Integer(AObject));
 
     { make sure we don't have them in our group list }
