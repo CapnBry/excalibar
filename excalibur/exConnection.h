@@ -36,6 +36,7 @@ class exConnection;
 #include <qmemarray.h>
 #include <qdatetime.h>
 #include <qtimer.h>
+#include <iostream.h>
 #include "formexcalibur.h"
 #include "exPacket.h"
 #include "exMob.h"
@@ -50,7 +51,7 @@ class exConnection;
 template <class T>
 class exMobList : public QPtrDict<T> {
 public:
-    ostream & operator << (ostream & os);
+    ostream& operator << (ostream& os);
 };
 
 class exConnection : public QObject {

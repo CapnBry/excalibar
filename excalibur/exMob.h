@@ -25,6 +25,7 @@ class exMob;
 
 #include <qlistview.h>
 #include <qstring.h>
+#include <iostream.h>
 #include "excalibur.h"
 #include "exConnection.h"
 #include "exFilter.h"
