@@ -24,6 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class MapInfo
 {
 public:
+    typedef unsigned char ZoneIndexType;
+    typedef unsigned char RegionIndexType;
+    const ZoneIndexType MaxZone;
+    const RegionIndexType MaxRegion;
+    
     MapInfo();
     virtual ~MapInfo();
 
@@ -92,24 +97,24 @@ public:
         unsigned int ZMax;
         int XOffset; // the offsets are used for display purposes
         int YOffset; // the offsets are used for display purposes
-        unsigned char Region;
+        RegionIndexType Region;
         }; // end struct RegionLimits
 
     const MapInfo::ZoneInfo& GetZoneFromGlobal
         (
-        const unsigned char region,
+        const RegionIndexType region,
         const unsigned int global_x,
         const unsigned int global_y,
         const unsigned int global_z,
         unsigned int& x,
         unsigned int& y,
         unsigned short& z,
-        unsigned char& zone
+        ZoneIndexType& zone
         );
 
     void GetGlobalFromZone
         (
-        const unsigned char zone,
+        const ZoneIndexType zone,
         const unsigned short x,
         const unsigned short y,
         const unsigned short z,
@@ -120,13 +125,13 @@ public:
 
     const RegionLimits& GetLimitsFromRegion
         (
-        const unsigned char region
+        const RegionIndexType region
         )const
     {
         return(RegionLimit[region]);
     }
 
-    const MapInfo::ZoneInfo& GetZone(const unsigned char zone)const
+    const MapInfo::ZoneInfo& GetZone(const ZoneIndexType zone)const
     {
         return(Zone[zone]);
     } // end GetZone
@@ -139,7 +144,7 @@ protected:
 private:
 
     ZoneInfo Zone[256];
-    typedef std::list<unsigned char> ZonesByRegionType;
+    typedef std::list<RegionIndexType> ZonesByRegionType;
     typedef ZonesByRegionType::iterator ZonesByRegionIterator;
     typedef ZonesByRegionType::value_type ZonesByRegionValueType;
     ZonesByRegionType ZonesByRegion[256];

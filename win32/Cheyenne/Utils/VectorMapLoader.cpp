@@ -54,6 +54,7 @@ void VectorMapItem::Draw(void)const
     switch(GetType())
         {
         case 'P':
+        case 'I':
             glBegin(GL_POINTS);
             break;
 
@@ -82,16 +83,6 @@ void VectorMapItem::Draw(void)const
         {
         glVertex3f(it->x,it->y,1.0f);//it->z); render it flat for now
 
-        /*
-        if(GetType() == 'P')
-            {
-            // draw name too
-            glRasterPos3f(it->x+10.0f,it->y,1.0f);
-            glColor4f(1.0f,1.0f,1.0f,1.0f);
-            DrawGLFontString(Name);
-
-            }
-        */
         }
 
     if(GetType() == 'P' || GetType() == 'I')
@@ -142,7 +133,7 @@ bool VectorMapLoader::MakeDisplayLists(void)
     return(true);
 } // end MakeDisplayLists
 
-void VectorMapLoader::Draw(const unsigned char MapNumber)const
+void VectorMapLoader::Draw(const unsigned int MapNumber)const
 {
     Maps[MapNumber].Draw();
 

@@ -231,7 +231,15 @@ public:
     void SetListBase(unsigned int base){ListBase=base;};
 
     bool MakeDisplayLists(void);
-    void Draw(const unsigned char MapNumber)const;
+    void Draw(const unsigned int MapNumber)const;
+    
+    void MakeEmpty(void)
+    {
+        for(int i=0;i<256;++i)
+            {
+            Maps[i].MakeEmpty();
+            }
+    }
 
 protected:
 private:

@@ -25,7 +25,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 extern logger_t Logger;
 
-MapInfo::MapInfo()
+MapInfo::MapInfo() :
+    MaxZone(255),
+    MaxRegion(255)
 {
     int i;
 
@@ -58,14 +60,14 @@ MapInfo::~MapInfo()
 
 const MapInfo::ZoneInfo& MapInfo::GetZoneFromGlobal
     (
-    const unsigned char region,
+    const RegionIndexType region,
     const unsigned int global_x,
     const unsigned int global_y,
     const unsigned int global_z,
     unsigned int& x,
     unsigned int& y,
     unsigned short& z,
-    unsigned char& zone
+    ZoneIndexType& zone
     )
 {
     // init to 0
@@ -101,7 +103,7 @@ const MapInfo::ZoneInfo& MapInfo::GetZoneFromGlobal
 
 void MapInfo::GetGlobalFromZone
     (
-    const unsigned char zone,
+    const ZoneIndexType zone,
     const unsigned short x,
     const unsigned short y,
     const unsigned short z,
@@ -301,7 +303,7 @@ bool MapInfo::ReadRegionOffsets(void)
         offsetfile >> std::ws; // skip whitespace for remainder of this line
 
         // store in the limits structure
-        unsigned char region=unsigned char(ui_region);
+        RegionIndexType region=RegionIndexType(ui_region);
         RegionLimit[region].XOffset=x_offset;
         RegionLimit[region].YOffset=y_offset;
         } // end while file not completely read
