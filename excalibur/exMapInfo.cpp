@@ -25,7 +25,9 @@
 
 QPtrDict<exMapInfoList> exMapInfo::maps;
 
-exMapInfo::exMapInfo(int nregion, int bx, int by, int mx, int my, int type, QString fname, int nzone) {
+exMapInfo::exMapInfo(int nregion, int bx, int by, int mx, int my, int type,
+                     QString fname, int nzone, int nrotate)
+{
   region=nregion;
   basex=bx;
   basey=by;
@@ -34,6 +36,7 @@ exMapInfo::exMapInfo(int nregion, int bx, int by, int mx, int my, int type, QStr
   zonetype=type;
   fileName=fname;
   zone=nzone;
+  rotate=nrotate;
 }
 
 bool exMapInfo::right(int nregion, int x, int y) {
@@ -139,6 +142,7 @@ void exMapInfo::setup(QString infofile) {
   int zt;
   QString fname;
   int zn;
+  int nrotate;
 
   if (&maps == NULL)
     Q_ASSERT(true);
@@ -195,8 +199,13 @@ void exMapInfo::setup(QString infofile) {
       qWarning("Error in mapinfo reading zone in line %s",(const char *)line);
       continue;
     }
+    nrotate=line.section(" ",9,9).toInt(&ok, 10);
+    if (!ok) {
+      qWarning("Error in mapinfo reading rotate in line %s",(const char *)line);
+      continue;
+    }
 
-    mi=new exMapInfo(nregion,bx,by,mx,my,zt,fname,zn);
+    mi=new exMapInfo(nregion,bx,by,mx,my,zt,fname,zn,nrotate);
 
     mil=maps.find((void *)nregion);
     if (! mil) {

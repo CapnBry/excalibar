@@ -39,10 +39,12 @@ class exMapInfo {
     int maxy;
     int zonetype;
     int zone;
+    int rotate;
     QString fileName;
     static QPtrDict<exMapInfoList> maps;
-  public:
-    exMapInfo(int nregion, int bx, int by, int mx, int my, int type, QString fname, int nzone);
+public:
+    exMapInfo(int nregion, int bx, int by, int mx, int my, int type,
+              QString fname, int nzone, int nrotate);
     bool right(int nregion, int x, int y);
     bool adjoin(int nregion, int xbase, int ybase, int xmax, int ymax);
     QString getName();
@@ -50,6 +52,7 @@ class exMapInfo {
     int getBaseY() const;
     int getZoneType() const;
     int getZoneNum() const;
+    int getRotate() const { return rotate; };
     QString getZoneName();
     exMapInfo *getAdjacentZones (int iZoneCheck = -1);
     static void setup(QString infofile);
