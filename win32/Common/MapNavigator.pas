@@ -40,6 +40,8 @@ type
   TMapNode = class;
   TMapNodeList = class;
 
+  TMapNodeNotify = procedure (Sender: TObject; ANode: TMapNode) of object;
+
   TMapVector = class(TObject)
   private
     FFromNode:  TMapNode;
