@@ -188,7 +188,7 @@ var
     // (code: ; jt: ; jf: ; k: )
   );
 
-  BPProgram: Tbpf_program = (bf_len: 17; bf_insns: @BP_Instns);
+  BPProgram: Tbpf_program = (bf_len: high(BP_Instns)+1; bf_insns: @BP_Instns);
 
 procedure CreateOptionalForms;
 begin
