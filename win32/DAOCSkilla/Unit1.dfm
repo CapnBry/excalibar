@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 550
   Top = 223
   Width = 510
-  Height = 307
+  Height = 327
   Caption = 'DAOC Skilla'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,7 +17,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    280)
+    300)
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
@@ -65,8 +65,8 @@ object frmMain: TfrmMain
     Caption = 'Not zoned in'
   end
   object lblServerPing: TLabel
-    Left = 240
-    Top = 88
+    Left = 236
+    Top = 108
     Width = 91
     Height = 13
     Caption = 'Server ping: ???ms'
@@ -92,9 +92,9 @@ object frmMain: TfrmMain
   end
   object Memo1: TMemo
     Left = 4
-    Top = 136
+    Top = 152
     Width = 493
-    Height = 141
+    Height = 145
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -108,8 +108,8 @@ object frmMain: TfrmMain
     TabOrder = 1
   end
   object btnGLRender: TButton
-    Left = 8
-    Top = 76
+    Left = 4
+    Top = 96
     Width = 75
     Height = 25
     Caption = 'E&xcalibur'
@@ -117,8 +117,8 @@ object frmMain: TfrmMain
     OnClick = btnGLRenderClick
   end
   object btnDebugging: TButton
-    Left = 84
-    Top = 76
+    Left = 80
+    Top = 96
     Width = 75
     Height = 25
     Caption = '&Debugging'
@@ -127,7 +127,7 @@ object frmMain: TfrmMain
   end
   object chkAutolaunchExcal: TCheckBox
     Left = 8
-    Top = 56
+    Top = 76
     Width = 165
     Height = 17
     Caption = 'Autolaunch Excalibur windows'
@@ -137,7 +137,7 @@ object frmMain: TfrmMain
   end
   object chkChatLog: TCheckBox
     Left = 8
-    Top = 110
+    Top = 126
     Width = 105
     Height = 17
     Caption = 'Realtime chat.log'
@@ -146,7 +146,7 @@ object frmMain: TfrmMain
   end
   object edtChatLogFile: TEdit
     Left = 116
-    Top = 108
+    Top = 124
     Width = 381
     Height = 22
     Font.Charset = ANSI_CHARSET
@@ -159,12 +159,21 @@ object frmMain: TfrmMain
     Text = 'c:\mythic\isles\realchat.log'
   end
   object btnMacroing: TButton
-    Left = 160
-    Top = 76
+    Left = 156
+    Top = 96
     Width = 75
     Height = 25
     Caption = 'Macroing'
     TabOrder = 7
     OnClick = btnMacroingClick
+  end
+  object btnResume: TButton
+    Left = 4
+    Top = 56
+    Width = 145
+    Height = 17
+    Caption = 'Resume last connection'
+    TabOrder = 8
+    OnClick = btnResumeClick
   end
 end

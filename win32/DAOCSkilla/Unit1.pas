@@ -9,13 +9,6 @@ uses
   Recipes;
 
 type
-  TSavedCaptureState = record
-    CryptKey:   string;
-    ServerIP:   string;
-    ClientIP:   string;
-    RegionID:   integer;
-  end;
-
   TfrmMain = class(TForm)
     lstAdapters: TListBox;
     Memo1: TMemo;
@@ -30,6 +23,7 @@ type
     edtChatLogFile: TEdit;
     btnMacroing: TButton;
     lblServerPing: TLabel;
+    btnResume: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -41,22 +35,19 @@ type
     procedure btnDebuggingClick(Sender: TObject);
     procedure chkChatLogClick(Sender: TObject);
     procedure btnMacroingClick(Sender: TObject);
+    procedure btnResumeClick(Sender: TObject);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
     FIConnection: IDAOCControl;
     FChatLog:       TFileStream;
     FProcessPackets:  boolean;
-    FLastConnection:  TSavedCaptureState;
 
     procedure LoadSettings;
     procedure SaveSettings;
     function GetConfigFileName : string;
     procedure SetupDAOCConnectionObj;
     procedure UpdatePlayer;
-    procedure SaveConnectionState;
-    procedure LoadConnectionState;
-    procedure RestoreConnectionState;
     procedure ShowGLRenderer(AConnection: TDAOCConnection);
     procedure CreateChatLog;
     procedure CloseChatLog;
@@ -305,7 +296,6 @@ begin
   dmdRemoteAdmin.DAOCControl := FConnection;
 {$ENDIF REMOTE_ADMIN}
   Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
-  RestoreConnectionState;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -355,8 +345,6 @@ begin
       lstAdapters.ItemIndex := lstAdapters.Items.IndexOf(s);
       lstAdaptersClick(nil);
     end;
-
-    LoadConnectionState;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
@@ -409,8 +397,6 @@ begin
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
     if lstAdapters.ItemIndex <> -1 then
       WriteString('Main', 'Adapter', lstAdapters.Items[lstAdapters.ItemIndex]);
-
-    SaveConnectionState;
 
     WriteString('PowerskillBuy', 'Profile', frmPowerskill.Profile);
     WriteBool('PowerskillBuy', 'AutoAdvance', frmPowerskill.AutoAdvance);
@@ -503,6 +489,7 @@ end;
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   FPReader.Close;
+  Application.ProcessMessages;  // get any packets pending out of the message q
   
   SaveSettings;
 {$IFDEF OPENGL_RENDERER}
@@ -537,9 +524,9 @@ begin
   FPReader.DeviceName := FPReader.DeviceList[lstAdapters.ItemIndex];
   FPReader.BPFilter := @BPProgram;
   FPReader.Open;
-  Log('Adapter opened: ');
+  Log('Adapter opened:');
   Log('  ' + lstAdapters.Items[lstAdapters.ItemIndex]);
-  Log('  ' + FPReader.DeviceName);
+  // Log('  ' + FPReader.DeviceName);
 end;
 
 procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
@@ -588,50 +575,10 @@ end;
 
 procedure TfrmMain.DAOCRegionChanged(Sender: TObject);
 begin
-  FLastConnection.CryptKey := FConnection.CryptKey;
-  FLastConnection.ServerIP := FConnection.ServerIP;
-  FLastConnection.ClientIP := FConnection.ClientIP;
-  FLastConnection.RegionID := FConnection.RegionID;
-
-  SaveConnectionState;
-  
+  FConnection.SaveConnectionState(GetConfigFileName);
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCRegionChanged;
 {$ENDIF OPENGL_RENDERER}
-end;
-
-procedure TfrmMain.SaveConnectionState;
-begin
-  with TINIFile.Create(GetConfigFileName) do begin
-    WriteString('ConnectionState', 'CryptKey', FLastConnection.CryptKey);
-    WriteString('ConnectionState', 'ServerIP', FLastConnection.ServerIP);
-    WriteString('ConnectionState', 'ClientIP', FLastConnection.ClientIP);
-    WriteInteger('ConnectionState', 'RegionID', FLastConnection.RegionID);
-    Free;
-  end;
-end;
-
-procedure TfrmMain.LoadConnectionState;
-begin
-  with TINIFile.Create(GetConfigFileName) do begin
-    FLastConnection.CryptKey := ReadString('ConnectionState', 'CryptKey', '');
-    FLastConnection.ServerIP := ReadString('ConnectionState', 'ServerIP', '');
-    FLastConnection.ClientIP := ReadString('ConnectionState', 'ClientIP', '');
-    FLastConnection.RegionID := ReadInteger('ConnectionState', 'RegionID', 0);
-    Free;
-  end;
-end;
-
-procedure TfrmMain.RestoreConnectionState;
-begin
-(*** NOT WORKIMG YET
-  if FLastConnection.CryptKey <> '' then begin
-    FConnection.CryptKey := FLastConnection.CryptKey;
-    FConnection.ServerIP := FLastConnection.ServerIP;
-    FConnection.ClientIP := FLastConnection.ClientIP;
-    FConnection.RegionID := FLastConnection.RegionID;
-  end;
-***)
 end;
 
 procedure TfrmMain.DAOCSetGroundTarget(ASender: TObject);
@@ -746,6 +693,11 @@ end;
 procedure TfrmMain.DAOCPingReply(ASender: TObject; ATime: integer);
 begin
   lblServerPing.Caption := 'Server ping ' + IntToStr(ATime) + 'ms';
+end;
+
+procedure TfrmMain.btnResumeClick(Sender: TObject);
+begin
+  FConnection.ResumeConnection(GetConfigFileName);
 end;
 
 end.
