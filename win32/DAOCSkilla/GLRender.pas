@@ -513,10 +513,9 @@ begin
       if FRenderPrefs.DrawAIDestination and
         (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
         glLineWidth(3.0);
-//        if pMovingObj.DestinationAhead then
-          SetGLColorFromTColor(clMob, 0.33);
-//        else
-//          SetGLColorFromTColor(clRed, 1.0);
+
+        SetGLColorFromTColor(clMob, 0.33);
+
         glBegin(GL_LINES);
           glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
           glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
@@ -533,7 +532,7 @@ begin
         DrawMobTypeTag(TDAOCMob(pObj));
 
       if pObj.Stealthed then
-        SetGLColorFromTColor(clBlack, 1.0) // clMob, 0.5)
+        SetGLColorFromTColor(clBlack, 1.0)
       else if pObj.Stale then
         SetGLColorFromTColor(clMob, 0.75)
       else
