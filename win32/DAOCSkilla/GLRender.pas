@@ -23,7 +23,6 @@ type
   end;
 
   TfrmGLRender = class(TForm)
-    glMap: TglWindow;
     slideZoom: TTrackBar;
     tmrMinFPS: TTimer;
     pnlMap: TPanel;
@@ -57,6 +56,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure pnlLeftEndDock(Sender, Target: TObject; X, Y: Integer);
   private
+    glMap:     TglWindow;
     FDControl: TDAOCConnection;
     FRange:         DWORD;
     FRenderBounds:  TRect;
@@ -146,6 +146,7 @@ type
     procedure LoadRegionPushpins;
     procedure AddPushPin;
     procedure SetSmoothingOpts;
+    procedure CreateGLWindow;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -691,6 +692,9 @@ end;
 
 procedure TfrmGLRender.FormCreate(Sender: TObject);
 begin
+    { create the glwindow first in case other loads require a context }
+  CreateGLWindow;
+
   FBasePath := ExtractFilePath(ParamStr(0));
   FRangeCircles := TRangeCircleList.Create;
 
@@ -1951,6 +1955,26 @@ begin
     glEnable(GL_POINT_SMOOTH)
   else
     glDisable(GL_POINT_SMOOTH);
+end;
+
+procedure TfrmGLRender.CreateGLWindow;
+begin
+  glMap := TglWindow.Create(Self);
+  
+  glMap.OnClick := glMapClick;
+  glMap.OnMouseDown := glMapMouseDown;
+  glMap.OnMouseMove := glMapMouseMove;
+  glMap.OnResize := glMapResize;
+  glMap.OnDraw := glMapDraw;
+  glMap.OnInit := glMapInit;
+
+  glMap.Parent := pnlMap;
+  glMap.Align := alClient;
+  glMap.ColorDepth := c16bits;
+  glMap.DepthBufferEnabled := False;
+  glMap.WindowFlags := [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer];
+
+  glMap.Initialize;
 end;
 
 end.

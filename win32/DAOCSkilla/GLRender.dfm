@@ -32,27 +32,6 @@ object frmGLRender: TfrmGLRender
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    object glMap: TglWindow
-      Left = 0
-      Top = 0
-      Width = 618
-      Height = 592
-      Align = alClient
-      OnClick = glMapClick
-      OnMouseDown = glMapMouseDown
-      OnMouseMove = glMapMouseMove
-      ColorDepth = c16bits
-      DepthBits = c16bits
-      DepthBufferEnabled = False
-      StencBits = c16bits
-      StencBufferEnabled = False
-      AccumBits = c16bits
-      AccumBufferEnabled = False
-      WindowFlags = [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer]
-      OnResize = glMapResize
-      OnDraw = glMapDraw
-      OnInit = glMapInit
-    end
     object slideZoom: TTrackBar
       Left = 0
       Top = 592
@@ -69,7 +48,7 @@ object frmGLRender: TfrmGLRender
       Position = 8000
       SelEnd = 0
       SelStart = 0
-      TabOrder = 1
+      TabOrder = 0
       TickMarks = tmBottomRight
       TickStyle = tsNone
       OnChange = slideZoomChange
