@@ -32,8 +32,6 @@ class exMob;
 
 class exMob : public QListViewItem {
   private:
-    ostream& operator << (ostream& os);
-
     unsigned int id;
     unsigned int infoid;
     QString name;
@@ -107,6 +105,7 @@ class exMob : public QListViewItem {
     static void setFilter( QString );
     bool insideRect(QRect &r);
 
+    friend ostream& operator << (ostream& os, const exMob &p);
 };
 
 #endif

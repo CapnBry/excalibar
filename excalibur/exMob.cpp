@@ -463,11 +463,14 @@ bool exMob::isFiltered()
   return false;
 }
 
-ostream& exMob::operator << (ostream& os)
+ostream& operator << (ostream& os, const exMob &p)
 {
-  return os << "exMob ID: " << id << " InfoID: " << infoid << " = "
-    << (isMob() ? "mob" : (isObj() ? "object" : "player")) << endl
-    << "  Name: [" << name << "] Surname: [" << surname << "] Guild: <" << guild << ">" << endl;
+  return os << "exMob ID: " << p.id << " InfoID: " << p.infoid << " = "
+        << (p.isMob() ? "mob" : (p.isObj() ? "object" : "player")) << endl
+        << "  Name: [" << p.name << "] Surname: [" << p.surname << "] Guild: <" << p.guild << ">" << endl
+        << "  Realm: [" << p.realm << endl
+        << "  X: " << p.x << " Y: " << p.y << " Z: " << p.z << endl
+        << "  Head: " << p.head << " Speed: " << p.speed << endl;
 }
 
 bool exMob::isStealthed() const
