@@ -919,15 +919,15 @@ begin
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then
     with TDAOCMovingObject(pDAOCObject) do begin
-      SpeedWord := pPacket.getShort;
-      Z := pPacket.getShort;
-      pPacket.seek(2);
-      X := pPacket.getLong;
-      Y := pPacket.getLong;
-      HeadWord := pPacket.getShort;
-      pPacket.seek(2);
+      SpeedWord := pPacket.getShort;  //+2
+      Z := pPacket.getShort;  //+4
+      pPacket.seek(2);  //+6
+      X := pPacket.getLong;  //+8
+      Y := pPacket.getLong;  //+c
+      HeadWord := pPacket.getShort;  //+10
+      pPacket.seek(2);  //+12 word and 0xfff
       pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
-      HitPoints := pPacket.getByte;
+      HitPoints := pPacket.getByte; //+15
 
       DoOnDAOCObjectMoved(pDAOCObject);
     end  { if obj found / With }
@@ -1022,14 +1022,14 @@ begin
         end;  { if dest <> 0 }
       end  { protocol }
       else begin
-        X := pPacket.getLong;
-        Y := pPacket.getLong;
-        DestinationX := pPacket.getLong;
-        DestinationY := pPacket.getLong;
-        z := pPacket.getShort;
-        pPacket.seek(2);  // ID again
-        pPacket.seek(2);
-        HitPoints := pPacket.getByte;
+        X := pPacket.getLong;  //+0
+        Y := pPacket.getLong;  //+4
+        DestinationX := pPacket.getLong;  //+8
+        DestinationY := pPacket.getLong;  //+c
+        z := pPacket.getShort;  //+10
+        pPacket.seek(2);  // ID again //+12
+        pPacket.seek(2);  //+14
+        HitPoints := pPacket.getByte; //+15
       end;
     end;  { with TDAOCMovingObject(pDAOCObject) }
 
@@ -1159,17 +1159,20 @@ begin
       begin
         tmpObject := TDAOCMob.Create;
         with TDAOCMob(tmpObject) do begin
-          InfoID := pPacket.getShort;
+          InfoID := pPacket.getShort;  //+0
           PlayerID := InfoID;
-          pPacket.seek(2);
-          HeadWord := pPacket.getShort;
-          Z := pPacket.getShort;
-          X := pPacket.getLong;
-          Y := pPacket.getLong;
-          pPacket.seek(5);
-          Level := pPacket.getByte;
-          pPacket.seek(2);
-          Name := pPacket.getPascalString;
+          pPacket.seek(2);  //+2 converted to float
+          HeadWord := pPacket.getShort; //+4
+          Z := pPacket.getShort;//+6
+          X := pPacket.getLong;//+8
+          Y := pPacket.getLong;//+c
+          pPacket.seek(5);  //+10  sign-extended, stored as float
+                            //+12  and ah 3
+                            //+14  if !0 store 2x value instead of 0x64
+          Level := pPacket.getByte; //+15
+          pPacket.getByte;  //+16  bittest 0, 1, 2, 4, 8, c0
+          pPacket.getByte;  //+17  shl 2
+          Name := pPacket.getPascalString;//+18
           TypeTag := pPacket.getPascalString;
         end;  { with TDAOCMob }
       end;  { ocMob }
