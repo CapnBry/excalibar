@@ -3,8 +3,6 @@ unit NamedPacketHandler;
 (****************************************************************************
 **
 ** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
-** Portions based on code from Excalibur / Odin's Eye
-**   http://excalibar.sourceforge.net
 **
 ** This file may be distributed and/or modified under the terms of the
 ** GNU General Public License version 2 as published by the Free Software
@@ -15,20 +13,18 @@ unit NamedPacketHandler;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, INIFiles, DAOCPackets;
+  Classes, SysUtils, Contnrs, INIFiles, GenericNetPackets;
 
 type
-  TDAOCPacketHandler = procedure (APacket: TDAOCPacket) of object;
-
   TNamedPacketHandler = class(TObject)
   private
     FCommandID: integer;
     FName: string;
-    FHandler: TDAOCPacketHandler;
+    FHandler: TGNPacketHandler;
   public
     property CommandID: integer read FCommandID write FCommandID;
     property Name: string read FName write FName;
-    property Handler: TDAOCPacketHandler read FHandler write FHandler;
+    property Handler: TGNPacketHandler read FHandler write FHandler;
   end;
 
   TNamedPacketHandlerList = class(TObjectList)
@@ -37,7 +33,7 @@ type
   public
     function HandlerByID(ACommandID: integer) : TNamedPacketHandler;
     procedure LoadFromFile(const AFName, ASection: string);
-    
+
     property Items[I: integer]: TNamedPacketHandler read GetItems; default;
   end;
 
