@@ -51,7 +51,9 @@ UncorrelatedStealthInfo::~UncorrelatedStealthInfo()
 
 void UncorrelatedStealthInfo::Merge(void)
 {
-    if(GetCenters().size()==0)
+    const centers_size_type center_size=GetCenters().size();
+    
+    if(center_size==0)
         {
         // done
         return;
@@ -75,7 +77,7 @@ void UncorrelatedStealthInfo::Merge(void)
         } // end for all centers
     
     // average them out and store
-    const float NumAccum=(float)GetCenters().size();
+    const float NumAccum=(const float)center_size;
     SetAverageX(AccumX/NumAccum);
     SetAverageY(AccumY/NumAccum);
     SetAverageZ(AccumZ/NumAccum);
@@ -111,7 +113,7 @@ void UncorrelatedStealthInfo::Merge(void)
         {
         for(int x=0;x<16;++x)
             {
-            if(Accumulator[x][y]==GetCenters().size())
+            if(Accumulator[x][y]==center_size)
                 {
                 ModifyMask().Set(x,y,true);
                 }
