@@ -1,7 +1,7 @@
 /*
  * Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
  *
- * Portions of this software are based on the work of Slicer/Hackersquest.
+ * * Portions of this software are based on the work of Slicer/Hackersquest.
  * Those portions, Copyright 2001 Slicer/Hackersquest <slicer@hackersquest.org)
  * 
  * This file is part of Excalibur.
@@ -69,6 +69,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);
     frm->vaderWarn->setOn(vader_warn);
+    frm->ExpWindow->setOn(exp_window);
     frm->MaxFPS->setOn(maxfps);
     frm->MapPNGs->setOn(map_load_png_maps);
     frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
@@ -101,8 +102,9 @@ void exPrefs::show() {
   dlg->LoadPNGMaps->setChecked(map_load_png_maps);
   dlg->TextureMipMap->setChecked(map_mipmap);
   dlg->TextureFilter->setChecked(map_linear_filter);
-  dlg->AgroCircles->setChecked(agro_circles);
   dlg->FilterCircles->setChecked(filter_circles);
+  dlg->AgroCircles->setChecked(agro_circles);
+  dlg->AgroLines->setChecked(agro_lines);
   dlg->AgroFading->setChecked(agro_fading);
   dlg->AlphaBlendCircles->setChecked(alpha_circles);
   dlg->AlphaSpeed->setChecked(alpha_speed);
@@ -111,6 +113,8 @@ void exPrefs::show() {
 
 
   dlg->MapSimplifyRange->setValue(map_autosimplifyrange);
+  dlg->DepthFadeRange->setValue(map_depthfaderange);
+  dlg->DepthFadeMinPct->setValue(map_depthfademinpct);
   dlg->ShowUnknown->setChecked(dump_unknown_packets);
   dlg->PlayerCircle1->setValue(player_circle_1);
   dlg->PlayerCircle2->setValue(player_circle_2);
@@ -160,6 +164,9 @@ void exPrefs::accept() {
 
   map_autosimplifyrange=dlg->MapSimplifyRange->value();
 
+  map_depthfaderange=dlg->DepthFadeRange->value();
+  map_depthfademinpct=dlg->DepthFadeMinPct->value();
+
   map_fill=dlg->GLMapFill->isOn();
 
   map_rasterize_player_names = dlg->RasterizePlayerNames->isOn();
@@ -172,6 +179,7 @@ void exPrefs::accept() {
 
 
   agro_circles=dlg->AgroCircles->isOn();
+  agro_lines=dlg->AgroLines->isOn();
   filter_circles=dlg->FilterCircles->isOn();
   agro_fading=dlg->AgroFading->isOn();
   alpha_circles=dlg->AlphaBlendCircles->isOn();
@@ -231,6 +239,8 @@ void exPrefs::loadSettings() {
   map_fade=s.readBoolEntry("/Excalibur/GLMapFade", TRUE);
   map_fill=s.readBoolEntry("/Excalibur/GLMapFill", TRUE);
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
+  map_depthfaderange=s.readNumEntry("/Excalibur/DepthFadeRange",500);
+  map_depthfademinpct=s.readNumEntry("/Excalibur/DepthFadeMinPct",40);
   map_rasterize_player_names=s.readBoolEntry("/Excalibur/RasterizePlayerNames", FALSE);
   map_rasterize_merchant_types=s.readBoolEntry("/Excalibur/RasterizeMerchantTypes", TRUE);
   map_load_adjacent_zones=s.readBoolEntry("/Excalibur/LoadAdjacentZones", FALSE);
@@ -244,6 +254,7 @@ void exPrefs::loadSettings() {
   player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 1500);
 
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
+  agro_lines=s.readBoolEntry("/Excalibur/AgroLines", TRUE);
   filter_circles=s.readBoolEntry("/Excalibur/FilterCircles", TRUE);
   agro_fading=s.readBoolEntry("/Excalibur/AgroFading", TRUE);
   alpha_circles=s.readBoolEntry("/Excalibur/AlphaBlendCircles", FALSE);
@@ -257,6 +268,12 @@ void exPrefs::loadSettings() {
   sort_distance=s.readBoolEntry("/Excalibur/SortDistance",FALSE);
 
   vader_warn=s.readBoolEntry("/Excalibur/vaderWarn",FALSE);
+
+  exp_window=s.readBoolEntry("/Excalibur/ExpWindow",FALSE);
+  
+  zoom_close=s.readNumEntry("/Excalibur/ZoomClose", 3000);
+  zoom_default=s.readNumEntry("/Excalibur/ZoomDefault", 7500);
+  zoom_far=s.readNumEntry("/Excalibur/ZoomFar", 75000);
 
   sort_when=(enum SortOptions) s.readNumEntry("/Excalibur/SortWhen",(int) sortNever);
   brightness_alive=s.readNumEntry("/Excalibur/BrightnessAlive", 140);
@@ -296,6 +313,8 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/RasterizePlayerNames", map_rasterize_player_names);
   s.writeEntry("/Excalibur/RasterizeMerchantTypes", map_rasterize_merchant_types);
   s.writeEntry("/Excalibur/MapAutoSimplifyRange", map_autosimplifyrange);
+  s.writeEntry("/Excalibur/DepthFadeRange", map_depthfaderange);
+  s.writeEntry("/Excalibur/DepthFadeMinPct", map_depthfademinpct);
   s.writeEntry("/Excalibur/LoadAdjacentZones", map_load_adjacent_zones);
   s.writeEntry("/Excalibur/LoadPNGMaps", map_load_png_maps);
   s.writeEntry("/Excalibur/TextureMipMap", map_mipmap);
@@ -306,6 +325,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/GroupItems", sort_group_items);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);
   s.writeEntry("/Excalibur/vaderWarn", vader_warn);
+  s.writeEntry("/Excalibur/ExpWindow", exp_window);
   s.writeEntry("/Excalibur/SortWhen", (int) sort_when);
   s.writeEntry("/Excalibur/BrightnessAlive", brightness_alive);
   s.writeEntry("/Excalibur/BrightnessDead", brightness_dead);
@@ -314,6 +334,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/PlayerCircle2", player_circle_2);
 
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
+  s.writeEntry("/Excalibur/AgroLines", agro_lines);
   s.writeEntry("/Excalibur/FilterCircles", filter_circles);
   s.writeEntry("/Excalibur/AgroFading", agro_fading);
   s.writeEntry("/Excalibur/AlphaBlendCircles", alpha_circles);
@@ -332,6 +353,9 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/RenderObjects", render_objects);
   s.writeEntry("/Excalibur/RenderDead", render_dead);
   s.writeEntry("/Excalibur/CraftingAlerts", crafting_alerts);
+  s.writeEntry("/Excalibur/ZoomClose", zoom_close);
+  s.writeEntry("/Excalibur/ZoomDefault", zoom_default);
+  s.writeEntry("/Excalibur/ZoomFar", zoom_far);
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {

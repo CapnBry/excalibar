@@ -53,6 +53,8 @@ public:
   bool map_simple;
   bool map_maintain_aspect;
   bool map_fade;
+  int map_depthfaderange;
+  int map_depthfademinpct;
   int map_autosimplifyrange;
   int player_circle_1;
   int player_circle_2;
@@ -70,6 +72,7 @@ public:
   bool map_compress_textures;
   bool maxfps;
   bool agro_circles;
+  bool agro_lines;
   bool filter_circles;
   bool agro_fading;
   bool alpha_circles;
@@ -87,6 +90,10 @@ public:
   bool render_objects;
   bool render_dead;
   bool crafting_alerts;
+  bool exp_window;
+  int zoom_close;
+  int zoom_default;
+  int zoom_far;
 
   int win_width;
   int win_height;
