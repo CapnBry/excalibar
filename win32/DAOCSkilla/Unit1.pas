@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
-  Buttons, DAOCSkilla_TLB,
-  DAOCObjs, DAOCPlayerAttributes, Recipes, Dialogs, DAOCPackets;
+  Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
+  Recipes;
 
 type
   TSavedCaptureState = record
@@ -29,6 +29,7 @@ type
     chkChatLog: TCheckBox;
     edtChatLogFile: TEdit;
     btnMacroing: TButton;
+    lblServerPing: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -78,6 +79,7 @@ type
     procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCSetGroundTarget(ASender: TObject);
     procedure DAOCChatLog(ASender: TObject; const s: string);
+    procedure DAOCPingReply(ASender: TObject; ATime: integer);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -291,6 +293,7 @@ begin
   FConnection.OnRegionChanged := DAOCRegionChanged;
   FConnection.OnSetGroundTarget := DAOCSetGroundTarget;
   FConnection.OnChatLog := DAOCChatLog;
+  FConnection.OnPingReply := DAOCPingReply;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -494,10 +497,7 @@ end;
 
 procedure TfrmMain.DAOCStopAllActions(Sender: TObject);
 begin
-  if frmPowerskill.Visible then
-    frmPowerskill.KeepBuying := false;
-  if frmSpellcraftHelp.Visible then
-    frmSpellcraftHelp.KeepBuying := false;
+  frmMacroing.DAOCStopAllActions;
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -570,8 +570,7 @@ end;
 procedure TfrmMain.DAOCSkillLevelChanged(ASender: TObject;
   AItem: TDAOCNameValuePair);
 begin
-  if frmPowerskill.Visible then
-    frmPowerskill.SkillLevelChanged(AItem);
+  frmMacroing.DAOCSkillLevelChanged(AItem);
 end;
 
 function TfrmMain.GetConfigFileName: string;
@@ -742,6 +741,11 @@ begin
     frmMacroing.Close
   else
     frmMacroing.Show;
+end;
+
+procedure TfrmMain.DAOCPingReply(ASender: TObject; ATime: integer);
+begin
+  lblServerPing.Caption := 'Server ping ' + IntToStr(ATime) + 'ms';
 end;
 
 end.

@@ -11,7 +11,6 @@ object frmMain: TfrmMain
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -22,26 +21,26 @@ object frmMain: TfrmMain
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
-    Left = 340
+    Left = 344
     Top = 60
-    Width = 159
+    Width = 155
     Height = 13
     Alignment = taRightJustify
     AutoSize = False
-    Caption = 'lblPlayerPos'
+    Caption = '(X, Y, Z)'
   end
   object lblPlayerHeadSpeed: TLabel
-    Left = 340
+    Left = 344
     Top = 76
-    Width = 159
+    Width = 155
     Height = 13
     Alignment = taRightJustify
     AutoSize = False
-    Caption = 'lblPlayerHeadSpeed'
+    Caption = 'Head: 0  Speed: 0'
   end
   object imgAdapter: TImage
-    Left = 284
-    Top = 64
+    Left = 212
+    Top = 60
     Width = 16
     Height = 12
     AutoSize = True
@@ -57,13 +56,20 @@ object frmMain: TfrmMain
     Visible = False
   end
   object lblZone: TLabel
-    Left = 340
+    Left = 344
     Top = 92
-    Width = 159
+    Width = 155
     Height = 13
     Alignment = taRightJustify
     AutoSize = False
-    Caption = 'lblZone'
+    Caption = 'Not zoned in'
+  end
+  object lblServerPing: TLabel
+    Left = 240
+    Top = 88
+    Width = 91
+    Height = 13
+    Caption = 'Server ping: ???ms'
   end
   object lstAdapters: TListBox
     Left = 4
@@ -122,7 +128,7 @@ object frmMain: TfrmMain
   object chkAutolaunchExcal: TCheckBox
     Left = 8
     Top = 56
-    Width = 169
+    Width = 165
     Height = 17
     Caption = 'Autolaunch Excalibur windows'
     Checked = True
