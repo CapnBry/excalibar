@@ -38,6 +38,7 @@
 #include <qmessagebox.h>
 #include <qstatusbar.h>
 #include "exConnection.h"
+#include "quickmath.h"
 
 template <class S>
     ostream & operator<< (ostream & os, const exMobList<S> &p)
@@ -110,7 +111,7 @@ void exConnection::setup()
     connect(ex->ListViewMobs, SIGNAL(selectionChanged(QListViewItem *)), this, SLOT(listSelectionChanged(QListViewItem *)));
 
 
-    msgui = new exMessagesUi;
+    // msgui = new exMessagesUi;
 
     alive = true;
     mobs.setAutoDelete(true);
@@ -146,8 +147,8 @@ exConnection::~exConnection()
     if (link)
 	delete link;
 
-    if (msgui)
-      delete msgui;
+//    if (msgui)
+//      delete msgui;
 
 }
 
@@ -290,8 +291,8 @@ void exConnection::processPacket(exPacket * p)
 	    parseSelfHealthUpdate(p);
 	    break;
           case 0x07:
-            if (prefs.druppy_leak)
-              parseSystemMessage(p);
+//            if (prefs.druppy_leak)
+//              parseSystemMessage(p);
             break;
 	  case 0x09:
 	    parseMobPosUpdate(p);
@@ -389,8 +390,8 @@ void exConnection::processPacket(exPacket * p)
 	    parseSelfHealthUpdate(p);
 	    break;
           case 0x07:
-            if (prefs.druppy_leak)
-              parseSystemMessage(p);
+//            if (prefs.druppy_leak)
+//              parseSystemMessage(p);
             break;
 	  case 0x09:
 	    parseMobPosUpdate(p);
@@ -870,6 +871,7 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
     }
 }
 
+/***
 void exConnection::parseSystemMessage (exPacket *p)
 {
     exMessage *msg;
@@ -902,8 +904,9 @@ void exConnection::parseSystemMessage (exPacket *p)
         }
 
     if (msg != NULL)
-      delete msg;
+        delete msg;
 }
+***/
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)
 {
@@ -1010,15 +1013,21 @@ bool exConnection::checkMap (void)
 
 void exConnection::updateProjectedPlayer(void)
 {
-  double projected_hyp;
-  double player_head_rad;
+  const float head_per_pi = (float)(1.0 / 2048.0);
 
-  projected_hyp = (double)playerspeed * ((double)(exTick - player_last_update) / 1000.0);
+  float projected_mag;
+  float player_head_rad;
+  int mag;
+
+  projected_mag = (float)playerspeed * (float)(exTick - player_last_update) *
+      (float)(1.0 / 1000.0);
   /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
-  player_head_rad = (playerhead / 2048.0) * M_PI;
+  player_head_rad = (float)playerhead * (float)M_PI * head_per_pi;
 
-  playerProjectedX = playerx - (int)(sin(player_head_rad) * projected_hyp);
-  playerProjectedY = playery + (int)(cos(player_head_rad) * projected_hyp);
+  FLOAT_TO_INT((sin(player_head_rad) * projected_mag), mag);
+  playerProjectedX = playerx - mag;
+  FLOAT_TO_INT((cos(player_head_rad) * projected_mag), mag);
+  playerProjectedY = playery + mag;
 
 }
 

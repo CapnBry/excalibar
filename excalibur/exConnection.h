@@ -64,7 +64,7 @@ protected:
   exMobList<exMob> objs;
   exMobList<exMob> players;
   exMobList<exMob> mobinfo;
-  QPtrList<exMessage> messageList;
+  // QPtrList<exMessage> messageList;
   QDict<int> playerregions;
   QDict<Realm> playerrealms;
   QByteArray cryptkey;
@@ -87,7 +87,7 @@ protected:
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);
-  void parseSystemMessage(exPacket *p);
+  // void parseSystemMessage(exPacket *p);
   void parseTouchMob(exPacket *p, unsigned int id_offset); 
   void parseSelfHealthUpdate(exPacket *p);
   void dumpPacket(unsigned int command, exPacket *p);
@@ -101,7 +101,7 @@ public slots:
   bool checkMap  (void);
 public:
   FormExcalibur *ex;
-  exMessagesUi  *msgui;
+  // exMessagesUi  *msgui;
   QString playername;
   int playerx, playery, playerz, playerhead, playerspeed, playerregion, playerlevel;
   int groundtarget_x, groundtarget_y, groundtarget_z;
