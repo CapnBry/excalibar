@@ -17,7 +17,8 @@ uses
   DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
   DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent, 
-  IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns
+  IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns,
+  MapNavigator
 {$IFDEF WINPCAP}
   ,PReader2
 {$ENDIF WINPCAP}
@@ -138,7 +139,7 @@ type
     procedure DAOCCharacterLogin(ASender: TObject);
     procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
     procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
-    procedure DAOCArriveAtGotoDest(ASender: TObject);
+    procedure DAOCArriveAtGotoDest(ASender: TObject; ANode: TMapNode);
     procedure DAOCSelectNPCSuccess(ASender: TObject);
     procedure DAOCSelectNPCFailed(ASender: TObject);
     procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
@@ -1134,27 +1135,37 @@ end;
 
 procedure TfrmMain.tmrUpdateCheckTimer(Sender: TObject);
 var
-  sVer:   string;
+  sVer:     string;
+  FS:       TFileStream;
+  sVerFile: string;
 begin
   tmrUpdateCheck.Enabled := false;
   if not FCheckForUpdates or ((Now - FLastUpdateCheck) < 7) then
     exit;
 
   FLastUpdateCheck := Now;
-  
+
   lblUpdates.Caption := 'Checking for updates...';
   lblUpdates.Visible := true;
   lblUpdates.Update;
 
+  sVerFile := ExtractFilePath(ParamStr(0)) + 'versions.ini';
+  FS := TFileStream.Create(sVerFile, fmCreate);
   try
-    sVer := httpUpdateChecker.Get('http://capnbry.net/daoc/daocskilla.ver');
-    if sVer <> GetVersionString then
-      lblUpdates.Caption := 'Latest version is ' + sVer
-    else
-      lblUpdates.Visible := false;
+    httpUpdateChecker.Get('http://capnbry.net/daoc/versions.php', FS);
   except
-    lblUpdates.Visible := false;
   end;
+  FS.Free;
+
+  with TINIFile.Create(sVerFile) do begin
+    sVer := ReadString('main', 'daocskilla.ver', '');
+    Free;
+  end;
+
+  if sVer <> GetVersionString then
+    lblUpdates.Caption := 'Latest version is ' + sVer
+  else
+    lblUpdates.Visible := false;
 end;
 
 procedure TfrmMain.lblUpdatesClick(Sender: TObject);
@@ -1193,9 +1204,9 @@ begin
     IntToStr(dmdRemoteAdmin.tcpRemoteAdmin.DefaultPort));
 end;
 
-procedure TfrmMain.DAOCArriveAtGotoDest(ASender: TObject);
+procedure TfrmMain.DAOCArriveAtGotoDest(ASender: TObject; ANode: TMapNode);
 begin
-  frmMacroing.DAOCArriveAtGotoDest;
+  frmMacroing.DAOCArriveAtGotoDest(ANode);
 end;
 
 procedure TfrmMain.DAOCSelectNPCSuccess(ASender: TObject);
