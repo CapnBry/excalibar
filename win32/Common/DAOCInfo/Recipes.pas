@@ -393,7 +393,7 @@ begin
   else if AnsiSameText(AMClass, 'LEA8') then
     Result := 'runed '
   else if AnsiSameText(AMClass, 'LEA9') then
-    Result := 'eldrich '
+    Result := 'eldritch '
   else if AnsiSameText(AMClass, 'LE10') then
     Result := 'tempered '
   else if AnsiSameText(AMClass, 'CLO1') then
