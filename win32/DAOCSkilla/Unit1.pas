@@ -379,6 +379,8 @@ begin
   FConnection.OnAttemptNPCRightClickFailed := DAOCAttemptNPCRightClickFailed;
   FConnection.OnLocalHealthUpdate := DAOCLocalHealthUpdate;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
+  FConnection.PacketHandlerDefFile := ExtractFilePath(ParamStr(0)) + 'packethandlers.ini';
+  FConnection.InitPacketHandlers;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
