@@ -32,7 +32,7 @@
 class exPacket {
   public:
     uint8_t    *data;
-    uint16_t    offset;
+    int16_t    offset;
     QByteArray  d;
     bool        from_server;
     bool        is_udp;

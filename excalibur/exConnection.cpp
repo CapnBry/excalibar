@@ -448,6 +448,7 @@ void exConnection::processPacket(exPacket * p)
                   isobj = true;
 BEGIN_EXPERIMENTAL_CODE
                   printf("New Object: %4x\n", infoid);
+                  dumpPacket(0x71,p);
 END_EXPERIMENTAL_CODE
               }
 
