@@ -89,8 +89,9 @@ int WINAPI WinMain
     
     // main loop
     {
-    Central central;
-    result=central.Go(hInstance);
+    Central* central=new Central;
+    result=central->Go(hInstance);
+    delete central;
     }
 
     // exit

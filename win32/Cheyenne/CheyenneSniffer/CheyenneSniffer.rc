@@ -159,6 +159,7 @@ BEGIN
     BEGIN
         MENUITEM "&Activate Script",            ID_SCRIPTS_ACTIVATESCRIPT
         MENUITEM "&Stop Script",                ID_SCRIPTS_STOPSCRIPT
+        MENUITEM "&Reload Scripts",             ID_SCRIPTS_RELOADSCRIPTS
     END
 END
 

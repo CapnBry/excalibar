@@ -360,6 +360,11 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                 );
             break;
             
+        case ID_SCRIPTS_RELOADSCRIPTS:
+            // reload scripts
+            scripthost->ReloadScripts();
+            break;
+            
         default:
             break;
         } // end switch(LOWORD(wParam))
