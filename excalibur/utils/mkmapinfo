@@ -3,7 +3,8 @@
 # this will create both mapinfo.txt and nmapinfo.txt files. nmapinfo.txt is not used yet.
 # but is "friendlier" for other uses
 
-# yet another hard code .... remove -???_clone from map name
+# yet another hard code .... remove -_???_clone from map name
+# Aerus dungeon is not rotated
 
 if [ "$1" = "" ]
 then
@@ -14,6 +15,7 @@ fi
 
 # the sed gets rid of <CR> and mutiple spaces that exsist just to mucky-muck our output
 # if you cat this file, (as oppossed to cat -v) you dont see the <ctrl>-M in the first sed pattern
+# haha, infact you dont see the sed either :P
 sed -e 's///g' -e 's/ *$//' $1 2>/dev/null | awk '
 $1 ~ "^;" { next }	# skip commented lines (begin with a ;)
 $1 ~ "^[[]zone" {	# start of new zone data, init defaults, turn on zon flag
@@ -26,7 +28,7 @@ NF == 0 {	# blank line, process previous info, then turn off zon flag
 		rot = 0
 		if (zone == 26)
 			rot = 90
-		if (zone == 90 || zone == 120 || zone == 209 || proxy_zone[zone] == 90)
+		if (zone == 90 || zone == 120 || zone == 209)
 			rot = 180
 		# now print 2x into a pipe to sort for nice output
 		printf "%3s %3s %3s %s %3s %8d %8d - %8d %8d %s\n", zone, region[zone], proxy_zone[zone], type[zone], rot, region_offset_x[zone], region_offset_y[zone], region_offset_x[zone]+width[zone], region_offset_y[zone]+height[zone], zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
@@ -34,9 +36,9 @@ NF == 0 {	# blank line, process previous info, then turn off zon flag
 		}
 	zon = 0
 	}
-zon == 0 { next }	# short-circuit lines if we are not in the "zone" (zone == 1)
+zon == 0 { next }	# short-circuit lines if we are not in the "zone" (zon == 1)
 $1 ~ "=" { split($0, a, "=");	# reparse on "=" for var=value
-		# could use some fancy asscoiated array here, but since we have special
+		# could use some fancy asscociated array here, but since we have special
 		# processing to do, ie offset multiply and leading 0 strip, just test for each
 		if (a[1] == "type")
 			type[zone] = a[2]
