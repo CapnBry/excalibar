@@ -33,6 +33,8 @@ type
     cbxConnectionList: TComboBox;
     Label3: TLabel;
     lblMacroState: TLabel;
+    cbxUIStyle: TComboBox;
+    Label4: TLabel;
     procedure btnShowMapModesClick(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);
@@ -45,6 +47,7 @@ type
     procedure tmrTimeoutDelayTimer(Sender: TObject);
     procedure btnLowOnStatClick(Sender: TObject);
     procedure cbxConnectionListChange(Sender: TObject);
+    procedure cbxUIStyleChange(Sender: TObject);
   private
     FAutoSell:      boolean;
     FInSellOff:     boolean;
@@ -76,6 +79,8 @@ type
     procedure SetCurrentConnection(AConn: TDAOCControl);
     procedure UpdateConnCbx;
     procedure ShowMacroState(const s: string);
+    function FindNearestMerchantNodeIdx : integer;
+    procedure UpdateUIStyleCbx;
   protected
     function NoForgeNode : boolean;
   public
@@ -264,7 +269,8 @@ end;
 
 procedure TfrmMacroing.DoAutoBuy;
 var
-  bWasAutoSell:   boolean;
+  bWasAutoSell:  boolean;
+  iIdx:          integer;
 begin
   if not (frmPowerskill.Visible or frmSpellcraftHelp.Visible) then begin
     FInAutoBuy := false;
@@ -290,24 +296,39 @@ begin
       FCurrConn.DoSendKeys('[esc]');
 
     if frmPowerskill.KeepBuying then begin
+        { if we have a list of merchant nodes, find the index of the closest one
+          and try to go to the next one after this }
+      iIdx := FindNearestMerchantNodeIdx;
+      if (iIdx <> -1) and
+        (iIdx < (FPSItemList.MerchantNodeCount - 1)) then begin
+        FPSItemList.MerchantNodeIndex := FPSItemList.MerchantNodeIndex + 1;
+        ShowMacroState('Heading to merchant node ' + FPSItemList.MerchantNodeName);
+        FCurrConn.PathToNodeName(FPSItemList.MerchantNodeName);
+      end
+
+        { otherwise, return to the forge }
+      else begin
+        if FPSItemList.MerchantNodeCount > 0 then
+          FPSItemList.MerchantNodeIndex := 0;
         ShowMacroState('Heading to forge');
-        
-//      if frmPowerskill.HasMaterialsForItem then
-        FCurrConn.PathToNodeName(FPSItemList.ForgeNodeName)
-//      else
-//        Log('Do not have all materials to create the item.');
-    end
-    else
+        FCurrConn.PathToNodeName(FPSItemList.ForgeNodeName);
+      end;
+    end  { if keepbuying }
+    else begin
       Log('User aborted buying via STOP command.');
+      ShowMacroState('');
+    end;
   end  // if frmPowerskill
 
   else if frmSpellcraftHelp.Visible then
-    frmSpellcraftHelp.ExecutePurchases;
+    frmSpellcraftHelp.ExecutePurchases
+
+  else
+    ShowMacroState('');
 
   FAutoSell := bWasAutoSell;
   FInAutoBuy := false;
   FSellingBeforeBuying := false;
-  ShowMacroState('');
   Log('Purchase complete');
 end;
 
@@ -348,8 +369,11 @@ begin
       exit;
 
     if IsAtForgeNode then begin
-      ShowMacroState('No materials, going from forge to merchant');
+        { reset the merchant index because we're just starting out }
+      if FPSItemList.MerchantNodeCount > 0 then
+        FPSItemList.MerchantNodeIndex := 0;
 
+      ShowMacroState('No materials, going to merchant node ' + FPSItemList.MerchantNodeName);
       FCurrConn.PathToNodeName(FPSItemList.MerchantNodeName);
       Result := true;
     end
@@ -416,7 +440,13 @@ begin
     exit;
 
   ShowMacroState('');
+
+  FInSellOff := false;
+  FSellingBeforeBuying := false;
+  FSelectingNPC := false;
   
+  if FPSItemList.MerchantNodeCount > 0 then
+    FPSItemList.MerchantNodeIndex := 0;
   if frmPowerskill.Visible then
     frmPowerskill.KeepBuying := false;
   if frmSpellcraftHelp.Visible then
@@ -456,7 +486,7 @@ procedure TfrmMacroing.ArrivedAtForge(Sender: TObject; AParm: Cardinal);
 begin
   if Sender <> FCurrConn then
     exit;
-    
+
   if frmPowerskill.Visible then begin
     ShowMacroState('At forge');
     Log('I am at the forge');
@@ -473,7 +503,7 @@ begin
 
     if FPSItemList.AutoStartProgression then begin
       ShowMacroState('Crafting...');
-      
+
       OpenMacroTradeSkillWindow;
       frmMacroTradeSkills.StartProgression;
      end;
@@ -657,6 +687,9 @@ begin
     btnLowOnStat.Enabled := true;
     btnSpellcraftHlp.Enabled := true;
     chkAutosell.Enabled := true;
+
+    if cbxUIStyle.Text <> '' then
+      FCurrConn.WindowManager.UIStyle := cbxUIStyle.Text;
   end
 
     { no connection.  Clean up }
@@ -689,6 +722,7 @@ procedure TfrmMacroing.DAOCConnect(Sender: TObject);
 begin
   if not Assigned(FCurrConn) then
     AutoSelectConnection;
+  UpdateUIStyleCbx;
   UpdateConnCbx;
 end;
 
@@ -734,6 +768,49 @@ begin
     lblMacroState.Visible := true;
     lblMacroState.Update;
   end;
+end;
+
+function TfrmMacroing.FindNearestMerchantNodeIdx: integer;
+var
+  pNode:    TMapNode;
+  iDist:    integer;
+  iMinDist: integer;
+  I:        integer;
+begin
+  Result := -1;
+  iMinDist := 0;  // to prevent compiler warning
+
+  for I := 0 to FPSItemList.MerchantNodeNames.Count - 1 do begin
+    pNode := FCurrConn.MapNodes.NodeByName(FPSItemList.MerchantNodeNames[I]);
+    if Assigned(pNode) then begin
+      iDist := pNode.Distance2D(FCurrConn.LocalPlayer.X, FCurrConn.LocalPlayer.Y);
+      if (I = 0) or (iDist < iMinDist) then begin
+        iMinDist := iDist;
+        Result := I;
+      end;
+    end;  { if Node }
+  end;  { for I to merchantcount }
+end;
+
+procedure TfrmMacroing.UpdateUIStyleCbx;
+var
+  iIdx:   integer;
+begin
+  if not Assigned(FCurrConn) then
+    exit;
+
+  FCurrConn.WindowManager.GetAvailableUIStyles(cbxUIStyle.Items);
+  iIdx := cbxUIStyle.Items.IndexOf(FCurrConn.WindowManager.UIStyle);
+  if iIdx <> -1 then
+    cbxUIStyle.ItemIndex := iIdx
+  else if cbxUIStyle.Items.Count > 0 then
+    cbxUIStyle.ItemIndex := 0;
+end;
+
+procedure TfrmMacroing.cbxUIStyleChange(Sender: TObject);
+begin
+  if Assigned(FCurrConn) and (cbxUIStyle.Text <> '') then
+    FCurrConn.WindowManager.UIStyle := cbxUIStyle.Text;
 end;
 
 end.

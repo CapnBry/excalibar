@@ -4,7 +4,7 @@ object frmMacroing: TfrmMacroing
   BorderStyle = bsDialog
   Caption = 'Macroing'
   ClientHeight = 117
-  ClientWidth = 492
+  ClientWidth = 488
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -28,7 +28,7 @@ object frmMacroing: TfrmMacroing
   object Label1: TLabel
     Left = 0
     Top = 104
-    Width = 492
+    Width = 488
     Height = 13
     Align = alBottom
     Alignment = taCenter
@@ -70,10 +70,17 @@ object frmMacroing: TfrmMacroing
     Caption = 'lblMacroState'
     Visible = False
   end
+  object Label4: TLabel
+    Left = 132
+    Top = 56
+    Width = 37
+    Height = 13
+    Caption = 'UI Style'
+  end
   object chkAutosell: TCheckBox
-    Left = 128
+    Left = 280
     Top = 52
-    Width = 213
+    Width = 205
     Height = 17
     Caption = 'Autosell all powerskill items and trinkets'
     Enabled = False
@@ -101,8 +108,8 @@ object frmMacroing: TfrmMacroing
     OnClick = btnAFKClick
   end
   object btnTellMacro: TButton
-    Left = 332
-    Top = 76
+    Left = 412
+    Top = 20
     Width = 75
     Height = 25
     Caption = 'MacroScript'
@@ -111,7 +118,7 @@ object frmMacroing: TfrmMacroing
     OnClick = btnTellMacroClick
   end
   object btnSpellcraftHlp: TButton
-    Left = 412
+    Left = 408
     Top = 76
     Width = 75
     Height = 25
@@ -131,8 +138,8 @@ object frmMacroing: TfrmMacroing
     OnClick = btnShowMapModesClick
   end
   object btnLowOnStat: TButton
-    Left = 412
-    Top = 48
+    Left = 328
+    Top = 76
     Width = 75
     Height = 25
     Caption = 'Low On Stat'
@@ -150,10 +157,20 @@ object frmMacroing: TfrmMacroing
     TabOrder = 7
     OnChange = cbxConnectionListChange
   end
+  object cbxUIStyle: TComboBox
+    Left = 176
+    Top = 48
+    Width = 97
+    Height = 21
+    Style = csDropDownList
+    ItemHeight = 13
+    TabOrder = 8
+    OnChange = cbxUIStyleChange
+  end
   object tmrTimeoutDelay: TTimer
     Enabled = False
     OnTimer = tmrTimeoutDelayTimer
-    Left = 344
-    Top = 44
+    Left = 376
+    Top = 20
   end
 end
