@@ -7,7 +7,7 @@ uses
   QTypes, QExtCtrls, QComCtrls, QStdCtrls, QControls, QForms,
 {$ELSE}
   Windows, Messages, Controls, Forms, ExtCtrls, Graphics, Dialogs,
-  StdCtrls,
+  StdCtrls, ComCtrls, 
 {$ENDIF !LINUX}
   SysUtils, Variants, Classes,
   FrameFns, DAOCConnection, DAOCPackets, DAOCObjs, DAOCInventory;

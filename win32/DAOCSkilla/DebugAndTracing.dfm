@@ -1,23 +1,25 @@
 object frmDebugging: TfrmDebugging
   Left = 262
   Top = 212
-  Width = 415
-  Height = 143
+  Width = 425
+  Height = 169
   HorzScrollBar.Range = 415
   VertScrollBar.Range = 141
   ActiveControl = edtPlayback
+  AutoScroll = False
   Caption = 'Tracing and Debugging'
-  Color = clButton
-  Font.Color = clText
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
   Font.Height = 11
   Font.Name = 'MS Sans Serif'
   Font.Pitch = fpVariable
   Font.Style = []
-  Font.Weight = 48
-  ParentFont = False
+  OldCreateOrder = True
   Scaled = False
   OnDestroy = FormDestroy
-  PixelsPerInch = 84
+  PixelsPerInch = 96
+  TextHeight = 13
   object Bevel1: TBevel
     Left = 0
     Top = 60
@@ -28,13 +30,13 @@ object frmDebugging: TfrmDebugging
   object lblFilePos: TLabel
     Left = 244
     Top = 100
-    Width = 60
-    Height = 18
+    Width = 61
+    Height = 13
     Caption = 'File not open'
   end
   object Label1: TLabel
     Left = 324
-    Top = 84
+    Top = 88
     Width = 89
     Height = 13
     Alignment = taCenter
@@ -45,7 +47,7 @@ object frmDebugging: TfrmDebugging
     Left = 0
     Top = 72
     Width = 237
-    Height = 26
+    Height = 21
     TabOrder = 0
     Text = 'savedcap.cap'
   end
@@ -136,12 +138,18 @@ object frmDebugging: TfrmDebugging
     Top = 68
     Width = 89
     Height = 17
-    Frequency = 100
     Max = 500
     Min = 1
+    Orientation = trHorizontal
     PageSize = 100
-    Position = 10
+    Frequency = 100
+    Position = 50
+    SelEnd = 0
+    SelStart = 0
     TabOrder = 10
+    ThumbLength = 12
+    TickMarks = tmBottomRight
+    TickStyle = tsAuto
     OnChange = trackPlaySpeedChange
   end
   object chkRecordDelveseen: TCheckBox
