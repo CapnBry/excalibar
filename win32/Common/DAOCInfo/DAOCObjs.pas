@@ -8,6 +8,7 @@ uses
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
+  TDAOCObjectClasses = set of TDAOCObjectClass;
 
   TDAOCObject = class(TObject)
   private
@@ -826,7 +827,7 @@ end;
 
 function TDAOCUnknownMovingObject.GetName: string;
 begin
-  Result := Format('UnknownObject NFO%4.4x 0x%4.4x', [FInfoID, FPlayerID]);
+  Result := Format('Unknown NFO%4.4x 0x%4.4x', [FInfoID, FPlayerID]);
 end;
 
 function TDAOCUnknownMovingObject.GetObjectClass: TDAOCObjectClass;
