@@ -683,6 +683,7 @@ QString exInventoryItem::getDescription(void)
         case 0x36:  return "staff" + getSlotDesc();
         case 0x3f:  return "hammer" + getSlotDesc();
         case 0x41:  return "axe " + getSlotDesc();
+        case 0xaa:  return "CA " + getSlotDesc();  // cabalist robe
         case 0xb0:  return "AR " + getSlotDesc();  // armsman chest
         case 0xb1:  return "AR " + getSlotDesc();  // leggings
         case 0xb2:  return "AR " + getSlotDesc();  // sleeves
@@ -889,6 +890,7 @@ exMob::playerClass exInventoryItem::getClassRestriction(void)
     case 0x02:
         switch (obj_index)
         {
+        case 0xaa:  return exMob::Cabalist;  // chest
         case 0xb0:  return exMob::Armsman;  // chest
         case 0xb1:  return exMob::Armsman;  // leggings
         case 0xb2:  return exMob::Armsman;  // sleeves
