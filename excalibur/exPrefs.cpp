@@ -90,6 +90,7 @@ void exPrefs::show() {
   dlg->GLSmoothPolygons->setChecked(gl_smooth_polygons);
   dlg->GLMapRotate->setChecked(map_rotate);
   dlg->GLSimpleObjects->setChecked(map_simple);
+  dlg->MaintainAspectRatio->setChecked(map_maintain_aspect);
   dlg->GLMapFill->setChecked(map_fill);
   dlg->RasterizePlayerNames->setChecked(map_rasterize_player_names);
   dlg->RasterizeMerchantTypes->setChecked(map_rasterize_merchant_types);
@@ -135,6 +136,7 @@ void exPrefs::show() {
   dlg->ItemContributor->setText(items_contributor);
 
   dlg->EnableExperimentalCode->setChecked(enable_experimental_code);
+  dlg->DebugOpenGL->setChecked(gl_debug);
 
   dlg->MobListColors->setChecked(MobListColors);
 
@@ -154,6 +156,7 @@ void exPrefs::accept() {
 
   map_rotate=dlg->GLMapRotate->isOn();
   map_simple=dlg->GLSimpleObjects->isOn();
+  map_maintain_aspect=dlg->MaintainAspectRatio->isOn();
 
   map_autosimplifyrange=dlg->MapSimplifyRange->value();
 
@@ -191,6 +194,7 @@ void exPrefs::accept() {
   items_contributor=dlg->ItemContributor->text();
 
   enable_experimental_code=dlg->EnableExperimentalCode->isChecked();
+  gl_debug=dlg->DebugOpenGL->isChecked();
 
   dump_unknown_packets=dlg->ShowUnknown->isChecked();
 
@@ -226,6 +230,7 @@ void exPrefs::loadSettings() {
   vsplit_size2=s.readNumEntry("/Excalibur/SplitV2",450);
 
   map_simple=s.readBoolEntry("/Excalibur/GLSimpleObjects",TRUE);
+  map_maintain_aspect=s.readBoolEntry("/Excalibur/MaintainAspectRatio",FALSE);
   gl_smooth_points=s.readBoolEntry("/Excalibur/GLSmoothPoints",FALSE);
   gl_smooth_lines=s.readBoolEntry("/Excalibur/GLSmoothLines",FALSE);
   gl_smooth_polygons=s.readBoolEntry("/Excalibur/GLSmoothPolygons",FALSE);
@@ -241,6 +246,7 @@ void exPrefs::loadSettings() {
   map_load_png_maps=s.readBoolEntry("/Excalibur/LoadPNGMaps", FALSE);
   map_mipmap=s.readBoolEntry("/Excalibur/TextureMipMap", FALSE);
   map_linear_filter=s.readBoolEntry("/Excalibur/TextureFilter", FALSE);
+  map_compress_textures=s.readBoolEntry("/Excalibur/TextureCompress",FALSE);
 
 
   player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
@@ -269,6 +275,7 @@ void exPrefs::loadSettings() {
 
   dump_unknown_packets=s.readBoolEntry("/Excalibur/ShowUnknown", FALSE);
   enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
+  gl_debug=s.readBoolEntry("/Excalibur/DebugOpenGL", FALSE);
 
   MobListColors=s.readBoolEntry("/Excalibur/MobListColors",TRUE);
   sticky_list=s.readBoolEntry("/Excalibur/StickyList", FALSE);
@@ -284,6 +291,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/SplitV1",vsplit_size1);
   s.writeEntry("/Excalibur/SplitV2",vsplit_size2);
   s.writeEntry("/Excalibur/GLSimpleObjects",map_simple);
+  s.writeEntry("/Excalibur/MaintainAspectRatio",map_maintain_aspect);
   s.writeEntry("/Excalibur/GLSmoothPoints",gl_smooth_points);
   s.writeEntry("/Excalibur/GLSmoothLines",gl_smooth_lines);
   s.writeEntry("/Excalibur/GLSmoothPolygons",gl_smooth_polygons);
@@ -299,6 +307,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/LoadPNGMaps", map_load_png_maps);
   s.writeEntry("/Excalibur/TextureMipMap", map_mipmap);
   s.writeEntry("/Excalibur/TextureFilter", map_linear_filter);
+  s.writeEntry("/Excalibur/TextureCompress", map_compress_textures);
   s.writeEntry("/Excalibur/AutoSelectTarget", select_target);
   s.writeEntry("/Excalibur/GroupPlayers", sort_group_players);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);
@@ -322,6 +331,7 @@ void exPrefs::saveSettings() {
 
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
   s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);
+  s.writeEntry("/Excalibur/DebugOpenGL", gl_debug);
   s.writeEntry("/Excalibur/MobListColors", MobListColors);
   s.writeEntry("/Excalibur/StickyList", sticky_list);
   exItem::save();

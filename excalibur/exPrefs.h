@@ -51,6 +51,7 @@ public:
   bool map_rotate;
   bool map_rulers; 
   bool map_simple;
+  bool map_maintain_aspect;
   bool map_fade;
   int map_autosimplifyrange;
   int player_circle_1;
@@ -58,6 +59,7 @@ public:
   bool gl_smooth_points;
   bool gl_smooth_lines;
   bool gl_smooth_polygons;
+  bool gl_debug;
   bool map_fill;
   bool map_rasterize_player_names;
   bool map_rasterize_merchant_types;
@@ -65,6 +67,7 @@ public:
   bool map_load_png_maps;
   bool map_linear_filter;
   bool map_mipmap;
+  bool map_compress_textures;
   bool agro_circles;
   bool filter_circles;
   bool agro_fading;

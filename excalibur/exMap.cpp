@@ -40,7 +40,7 @@
 exMap::exMap(QWidget *parent, const char *name)
  : QGLWidget(QGLFormat(DoubleBuffer|DepthBuffer|Rgba|DirectRendering),parent,name) {
   objsize = 150; 
-  range = 8000;
+  range = 16000;
   c = NULL; 
   is_dirty = true; 
   map_load = false; 
@@ -227,8 +227,23 @@ void exMap::initializeGL() {
     has_direct   = FALSE;
   }
 
+  if (has_NVdriver || has_direct) {
+    if (glutExtensionSupported("GL_EXT_texture_compression_s3tc"))
+      has_S3TC = TRUE;
+  } else {
+    has_S3TC = FALSE;
+  }
+
   glClearColor(0.0, 0.0, 0.0, 0.0);
+
   glDisable(GL_CULL_FACE);
+
+  glDisable(GL_CLIP_PLANE0);
+  glDisable(GL_CLIP_PLANE1);
+  glDisable(GL_CLIP_PLANE2);
+  glDisable(GL_CLIP_PLANE3);
+  glDisable(GL_CLIP_PLANE4);
+  glDisable(GL_CLIP_PLANE5);
 
   glShadeModel(GL_FLAT);
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -256,6 +271,52 @@ void exMap::initializeGL() {
 
 void exMap::resizeGL(int w, int h) {
   glViewport(0,0,w,h);
+
+  if (! prefs.map_maintain_aspect)
+    return;
+
+
+  // MAINTAIN ASPECT RATIO
+
+  /* Yes, I know this doesn't work right, but I'm tired of this code!!
+     If you have a better idea, by all means, let me know!!! - Andon */
+
+ 
+  GLint minx = (c->playerx - range + edit_xofs);
+  GLint maxx = (c->playerx + range + edit_xofs);
+  GLint miny = (c->playery - range + edit_yofs);
+  GLint maxy = (c->playery + range + edit_yofs);
+
+/*  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  GLdouble aspect = (GLdouble) w / h;
+
+  if ( aspect < 1.0 ) { // Taller
+    miny /= aspect;
+    maxy /= aspect;
+  } else {
+    minx *= aspect;
+    maxx *= aspect;
+  }
+
+  glOrtho(minx, maxx, miny, maxy, 0, 25000);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity(); */
+  
+  GLdouble AspectRatio = (GLdouble)((maxx - minx) / (maxy - miny));
+
+  if (AspectRatio > (w / h)) {            // Taller
+    int iTemp = (int)(h - (w / AspectRatio));
+    w += iTemp;
+    h += iTemp;
+    glViewport(0,0,  w,(int)w / AspectRatio);
+  } if (AspectRatio < (w / h)) {          // Wider
+    int iTemp = (int)(w - (h * AspectRatio));
+    h += iTemp;
+    w += iTemp;
+    glViewport(0,0,  (int)h * AspectRatio, h);
+  }
 }
 
 void exMap::paintGL() {
@@ -552,9 +613,7 @@ void exMap::paintGL() {
 ->isMob() && ! m->isObj() && prefs.map_rasterize_player_names)) {
 
         glPushAttrib (GL_ENABLE_BIT);
- //       glEnable     (GL_DEPTH_TEST);
         glDisable    (GL_LIGHTING);
-//        glDepthFunc  (GL_ALWAYS);
 
         glColor3f  (1.0, 1.0, 1.0);
 
@@ -589,8 +648,6 @@ void exMap::paintGL() {
 
         glPopAttrib();
       }
-      glPopMatrix();
-
 
       glPopAttrib();
       glPopMatrix();
@@ -615,8 +672,6 @@ void exMap::paintGL() {
   glFlush();
 
   if (_instant_fps->elapsed() > 0) {
-//  printf("Instant Framerate [%d] :\t%d frames per second (based on this frame ONLY)\n", exTick, (int)(1000/_instant_fps->elapsed()));
-     
     fps    += (1000/_instant_fps->elapsed());
     frames += 1;
   }
@@ -629,13 +684,19 @@ void exMap::paintGL() {
        else
          c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
     }
-        
-//  printf("Average Framerate [%d] :\t%d frames per second (derived from the past 1 second(s) worth of frames)\n", exTick, (int)(fps / frames));
-     
+
     fps    = 0;
     frames = 0;
 
     _last_fps=exTick;
+  }
+
+  if (prefs.gl_debug) {
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+      qWarning("Houston, we have a problem..\tGL Error:\t%s (%d)",
+                gluErrorString(error), error);
+    }
   }
 }
 
@@ -871,24 +932,36 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
   if (map->has_direct || map->has_NVdriver) {
+    GLuint  min_filter      = GL_NEAREST;
+    GLuint  mag_filter      = GL_NEAREST;
+    GLuint  tex_compression = GL_RGB16;
+
     if (prefs.map_linear_filter) {
+      mag_filter = GL_LINEAR;
       if (prefs.map_mipmap)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        min_filter = GL_LINEAR_MIPMAP_LINEAR;
       else
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        min_filter = GL_LINEAR;
     } else {
+      mag_filter = GL_NEAREST;
       if (prefs.map_mipmap)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        min_filter = GL_NEAREST_MIPMAP_NEAREST;
       else
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        min_filter = GL_NEAREST;
     }
 
-    if (prefs.map_mipmap)
-      gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB16, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    if (map->has_S3TC && prefs.map_compress_textures)
+      tex_compression = 0x83F0; // DXT1 (4x4 64-bit RGB - NO Alpha Channel)
     else
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+      tex_compression = GL_RGB16;
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+    if (prefs.map_mipmap)
+      gluBuild2DMipmaps(GL_TEXTURE_2D, tex_compression, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    else
+      glTexImage2D(GL_TEXTURE_2D, 0, tex_compression, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
 
   } else {
 

@@ -192,6 +192,7 @@ public:
   bool ignore_fill;
   bool has_direct;
   bool has_NVdriver;
+  bool has_S3TC;
   
   exMap(QWidget *parent, const char *name);
   ~exMap();

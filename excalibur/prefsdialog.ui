@@ -350,9 +350,52 @@
                 <property name="title">
                     <string>AutoSimplify</string>
                 </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>GLSimpleObjects</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>15</x>
+                            <y>25</y>
+                            <width>75</width>
+                            <height>16</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Simplify</string>
+                    </property>
+                </widget>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>MapSimplifyRangeLabel</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>5</x>
+                            <y>45</y>
+                            <width>95</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="font">
+                        <font>
+                            <pointsize>9</pointsize>
+                        </font>
+                    </property>
+                    <property name="text">
+                        <string>TextLabel1</string>
+                    </property>
+                </widget>
                 <widget class="QSlider">
                     <property name="name">
                         <cstring>MapSimplifyRange</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
                     </property>
                     <property name="geometry">
                         <rect>
@@ -381,41 +424,40 @@
                         <enum>Horizontal</enum>
                     </property>
                 </widget>
-                <widget class="QLabel">
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>AspectRatioLabel</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>495</x>
+                        <y>105</y>
+                        <width>105</width>
+                        <height>45</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Aspect Ratio</string>
+                </property>
+                <widget class="QCheckBox">
                     <property name="name">
-                        <cstring>MapSimplifyRangeLabel</cstring>
+                        <cstring>MaintainAspectRatio</cstring>
                     </property>
                     <property name="geometry">
                         <rect>
-                            <x>5</x>
-                            <y>45</y>
-                            <width>95</width>
+                            <x>15</x>
+                            <y>20</y>
+                            <width>85</width>
                             <height>20</height>
                         </rect>
                     </property>
                     <property name="font">
                         <font>
-                            <pointsize>9</pointsize>
                         </font>
                     </property>
                     <property name="text">
-                        <string>TextLabel1</string>
-                    </property>
-                </widget>
-                <widget class="QCheckBox">
-                    <property name="name">
-                        <cstring>GLSimpleObjects</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>15</x>
-                            <y>25</y>
-                            <width>75</width>
-                            <height>16</height>
-                        </rect>
-                    </property>
-                    <property name="text">
-                        <string>Simplify</string>
+                        <string>Maintain</string>
                     </property>
                 </widget>
             </widget>
@@ -1110,13 +1152,13 @@
                         </widget>
                         <widget class="QCheckBox">
                             <property name="name">
-                                <cstring>SaveUnkown</cstring>
+                                <cstring>DebugOpenGL</cstring>
                             </property>
                             <property name="enabled">
-                                <bool>false</bool>
+                                <bool>true</bool>
                             </property>
                             <property name="text">
-                                <string>Save unknown packets</string>
+                                <string>Debug OpenGL API Calls</string>
                             </property>
                         </widget>
                         <widget class="QCheckBox">
@@ -1283,12 +1325,12 @@
     <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
 </includes>
 <slots>
-    <slot>SliderAliveColor_valueChanged( int v )</slot>
-    <slot>SliderDeadColor_valueChanged( int v )</slot>
-    <slot>ItemAutoUpload_toggled( bool )</slot>
-    <slot>MapSimplifyRange_valueChanged( int val )</slot>
-    <slot>PrefsDialog_destroyed( QObject * )</slot>
-    <slot>TextLabel1_3_destroyed( QObject * )</slot>
+    <slot>SliderAliveColor_valueChanged(int v)</slot>
+    <slot>SliderDeadColor_valueChanged(int v)</slot>
+    <slot>ItemAutoUpload_toggled(bool)</slot>
+    <slot>MapSimplifyRange_valueChanged(int val)</slot>
+    <slot>PrefsDialog_destroyed(QObject *)</slot>
+    <slot>TextLabel1_3_destroyed(QObject *)</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

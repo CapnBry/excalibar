@@ -1,4 +1,28 @@
-Andon (03/Mar/03)
+Andon (03/Mar/02)
+-----------------
+Changes:
+ + The zoom slider now has a MUCH larger range.
+
+Additions:
+ + OpenGL API Call Debugging is now in the exp-
+   erimental code section of the preferences...
+   If you notice something strange going on at
+   render-time, turn this on and send any stderr
+   output to us on the forums.
+ + Ghetto Aspect Ratio Maintenence (TM) has been
+   added.. It's not the prettiest method for
+   doing this, but it works (sort of). I'll put
+   more time into it in the future.
+
+Bug Fixes:
+ + Fixed more OpenGL matrix stack buffer issues
+   both underflows and overflows. Thanks to the
+   new OpenGL API Call Debugging I added :)
+
+ * Version bumped to 1.2.2
+
+
+Andon (03/Mar/02)
 -----------------
 Changes:
  + Map elements that fail to pass the sanity
