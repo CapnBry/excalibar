@@ -326,152 +326,158 @@ function TCraftRecipeCollection.MaterialClassToString(const AMClass: string): st
 begin
   Result := '';
 
-  case FRealm of
-    crAlbion,
-    crMidgard:
-      begin
-        if AnsiSameText(AMClass, 'BRON') then
-          Result := 'bronze '
-        else if AnsiSameText(AMClass, 'IRON') then
-          Result := 'iron '
-        else if AnsiSameText(AMClass, 'STEE') then
-          Result := 'steel '
-        else if AnsiSameText(AMClass, 'ALLO') then
-          Result := 'alloy '
-        else if AnsiSameText(AMClass, 'FALL') then
-          Result := 'fine alloy '
-        else if AnsiSameText(AMClass, 'MITH') then
-          Result := 'mithril '
-        else if AnsiSameText(AMClass, 'ADAM') then
-          Result := 'adamantium '
-        else if AnsiSameText(AMClass, 'ASTE') then
-          Result := 'asterite '
-        else if AnsiSameText(AMClass, 'MET9') then
-          Result := 'netherium '
-        else if AnsiSameText(AMClass, 'ME10') then
-          Result := 'arcanium '
-        else if AnsiSameText(AMClass, 'GEM0') then
-          Result := 'raw '
-        else if AnsiSameText(AMClass, 'GEM1') then
-          Result := 'uncut '
-        else if AnsiSameText(AMClass, 'GEM2') then
-          Result := 'rough '
-        else if AnsiSameText(AMClass, 'GEM3') then
-          Result := 'flawed '
-        else if AnsiSameText(AMClass, 'GEM4') then
-          Result := 'imperfect '
-        else if AnsiSameText(AMClass, 'GEM5') then
-          Result := 'polished '
-        else if AnsiSameText(AMClass, 'GEM6') then
-          Result := 'faceted '
-        else if AnsiSameText(AMClass, 'GEM7') then
-          Result := 'precious '
-        else if AnsiSameText(AMClass, 'GEM8') then
-          Result := 'flawless '
-        else if AnsiSameText(AMClass, 'GEM9') then
-          Result := 'perfect '
-        else if AnsiSameText(AMClass, 'LEA1') then
-          Result := 'rawhide '
-        else if AnsiSameText(AMClass, 'LEA2') then
-          Result := 'tanned '
-        else if AnsiSameText(AMClass, 'LEA3') then
-          Result := 'cured '
-        else if AnsiSameText(AMClass, 'LEA4') then
-          Result := 'hard '
-        else if AnsiSameText(AMClass, 'LEA5') then
-          Result := 'rigid '
-        else if AnsiSameText(AMClass, 'LEA6') then
-          Result := 'embossed '
-        else if AnsiSameText(AMClass, 'LEA7') then
-          Result := 'imbued '
-        else if AnsiSameText(AMClass, 'LEA8') then
-          Result := 'runed '
-        else if AnsiSameText(AMClass, 'LEA9') then
-          Result := 'eldrich '
-        else if AnsiSameText(AMClass, 'LE10') then
-          Result := 'tempered '
-        else if AnsiSameText(AMClass, 'CLO1') then
-          Result := 'woolen '
-        else if AnsiSameText(AMClass, 'CLO2') then
-          Result := 'linen '
-        else if AnsiSameText(AMClass, 'CLO3') then
-          Result := 'brocade '
-        else if AnsiSameText(AMClass, 'CLO4') then
-          Result := 'silk '
-        else if AnsiSameText(AMClass, 'CLO5') then
-          Result := 'gossamer '
-        else if AnsiSameText(AMClass, 'CLO6') then
-          Result := 'sylvan '
-        else if AnsiSameText(AMClass, 'CLO7') then
-          Result := 'seamist '
-        else if AnsiSameText(AMClass, 'CLO8') then
-          Result := 'nightshade '
-        else if AnsiSameText(AMClass, 'CLO9') then
-          Result := 'wyvernskin '
-        else if AnsiSameText(AMClass, 'CL10') then
-          Result := 'silksteel '
-        else if AnsiSameText(AMClass, 'WOO1') then
-          Result := 'rowan '
-        else if AnsiSameText(AMClass, 'WOO2') then
-          Result := 'elm '
-        else if AnsiSameText(AMClass, 'WOO3') then
-          Result := 'oaken '
-        else if AnsiSameText(AMClass, 'WOO4') then
-          Result := 'ironwood '
-        else if AnsiSameText(AMClass, 'WOO5') then
-          Result := 'heartwood '
-        else if AnsiSameText(AMClass, 'WOO6') then
-          Result := 'runewood '
-        else if AnsiSameText(AMClass, 'WOO7') then
-          Result := 'stonewood '
-        else if AnsiSameText(AMClass, 'WOO8') then
-          Result := 'ebonwood '
-        else if AnsiSameText(AMClass, 'WOO9') then
-          Result := 'dyrwood '
-        else if AnsiSameText(AMClass, 'WO10') then
-          Result := 'duskwood '
-        else if AnsiSameText(AMClass, 'ARO1') then
-          Result := 'rough clout '
-        else if AnsiSameText(AMClass, 'ARO2') then
-          Result := 'rough '
-        else if AnsiSameText(AMClass, 'ARO3') then
-          Result := 'clout '
-        else if AnsiSameText(AMClass, 'ARO4') then
-          Result := 'rough flight '
-        else if AnsiSameText(AMClass, 'ARO5') then
-          Result := 'standard '
-        else if AnsiSameText(AMClass, 'ARO6') then
-          Result := 'footed clout '
-        else if AnsiSameText(AMClass, 'ARO7') then
-          Result := 'flight '
-        else if AnsiSameText(AMClass, 'ARO8') then
-          Result := 'footed '
-        else if AnsiSameText(AMClass, 'ARO9') then
-          Result := 'footed flight '
-        else if AnsiSameText(AMClass, 'AR10') then
-          Result := 'keen footed flight '
-        else if AnsiSameText(AMClass, 'AR11') then
-          Result := 'blunt footed flight '
-        else if AnsiSameText(AMClass, 'AR12') then
-          Result := 'barbed footed flight '
-        else if AnsiSameText(AMClass, 'GENE') then
-          Result := ''
-        else
-          Result := AMClass + ' ';
-      end;  { Albion, Midgard }
-
-    crHibernia:
-      begin
-        if AnsiSameText(AMClass, 'GENE') then
-          Result := ''
-        else
-          Result := AMClass + ' ';
-      end;  { Hibernia }
-  end;  { case FRealm }
+  if AnsiSameText(AMClass, 'BRON') then
+    Result := 'bronze '
+  else if AnsiSameText(AMClass, 'IRON') then
+    Result := 'iron '
+  else if AnsiSameText(AMClass, 'STEE') then
+    Result := 'steel '
+  else if AnsiSameText(AMClass, 'ALLO') then
+    Result := 'alloy '
+  else if AnsiSameText(AMClass, 'FALL') then
+    Result := 'fine alloy '
+  else if AnsiSameText(AMClass, 'MITH') then
+    Result := 'mithril '
+  else if AnsiSameText(AMClass, 'ADAM') then
+    Result := 'adamantium '
+  else if AnsiSameText(AMClass, 'ASTE') then
+    Result := 'asterite '
+  else if AnsiSameText(AMClass, 'MET9') then
+    Result := 'netherium '
+  else if AnsiSameText(AMClass, 'ME10') then
+    Result := 'arcanium '
+  else if AnsiSameText(AMClass, 'GEM0') then
+    Result := 'raw '
+  else if AnsiSameText(AMClass, 'GEM1') then
+    Result := 'uncut '
+  else if AnsiSameText(AMClass, 'GEM2') then
+    Result := 'rough '
+  else if AnsiSameText(AMClass, 'GEM3') then
+    Result := 'flawed '
+  else if AnsiSameText(AMClass, 'GEM4') then
+    Result := 'imperfect '
+  else if AnsiSameText(AMClass, 'GEM5') then
+    Result := 'polished '
+  else if AnsiSameText(AMClass, 'GEM6') then
+    Result := 'faceted '
+  else if AnsiSameText(AMClass, 'GEM7') then
+    Result := 'precious '
+  else if AnsiSameText(AMClass, 'GEM8') then
+    Result := 'flawless '
+  else if AnsiSameText(AMClass, 'GEM9') then
+    Result := 'perfect '
+  else if AnsiSameText(AMClass, 'LEA1') then
+    Result := 'rawhide '
+  else if AnsiSameText(AMClass, 'LEA2') then
+    Result := 'tanned '
+  else if AnsiSameText(AMClass, 'LEA3') then
+    Result := 'cured '
+  else if AnsiSameText(AMClass, 'LEA4') then
+    Result := 'hard '
+  else if AnsiSameText(AMClass, 'LEA5') then
+    Result := 'rigid '
+  else if AnsiSameText(AMClass, 'LEA6') then
+    Result := 'embossed '
+  else if AnsiSameText(AMClass, 'LEA7') then
+    Result := 'imbued '
+  else if AnsiSameText(AMClass, 'LEA8') then
+    Result := 'runed '
+  else if AnsiSameText(AMClass, 'LEA9') then
+    Result := 'eldrich '
+  else if AnsiSameText(AMClass, 'LE10') then
+    Result := 'tempered '
+  else if AnsiSameText(AMClass, 'CLO1') then
+    Result := 'woolen '
+  else if AnsiSameText(AMClass, 'CLO2') then
+    Result := 'linen '
+  else if AnsiSameText(AMClass, 'CLO3') then
+    Result := 'brocade '
+  else if AnsiSameText(AMClass, 'CLO4') then
+    Result := 'silk '
+  else if AnsiSameText(AMClass, 'CLO5') then
+    Result := 'gossamer '
+  else if AnsiSameText(AMClass, 'CLO6') then
+    Result := 'sylvan '
+  else if AnsiSameText(AMClass, 'CLO7') then
+    Result := 'seamist '
+  else if AnsiSameText(AMClass, 'CLO8') then
+    Result := 'nightshade '
+  else if AnsiSameText(AMClass, 'CLO9') then
+    Result := 'wyvernskin '
+  else if AnsiSameText(AMClass, 'CL10') then
+    Result := 'silksteel '
+  else if AnsiSameText(AMClass, 'WOO1') then
+    Result := 'rowan '
+  else if AnsiSameText(AMClass, 'WOO2') then
+    Result := 'elm '
+  else if AnsiSameText(AMClass, 'WOO3') then
+    Result := 'oaken '
+  else if AnsiSameText(AMClass, 'WOO4') then
+    Result := 'ironwood '
+  else if AnsiSameText(AMClass, 'WOO5') then
+    Result := 'heartwood '
+  else if AnsiSameText(AMClass, 'WOO6') then
+    Result := 'runewood '
+  else if AnsiSameText(AMClass, 'WOO7') then
+    Result := 'stonewood '
+  else if AnsiSameText(AMClass, 'WOO8') then
+    Result := 'ebonwood '
+  else if AnsiSameText(AMClass, 'WOO9') then
+    Result := 'dyrwood '
+  else if AnsiSameText(AMClass, 'WO10') then
+    Result := 'duskwood '
+  else if AnsiSameText(AMClass, 'ARO1') then
+    Result := 'rough clout '
+  else if AnsiSameText(AMClass, 'ARO2') then
+    Result := 'rough '
+  else if AnsiSameText(AMClass, 'ARO3') then
+    Result := 'clout '
+  else if AnsiSameText(AMClass, 'ARO4') then
+    Result := 'rough flight '
+  else if AnsiSameText(AMClass, 'ARO5') then
+    Result := 'standard '
+  else if AnsiSameText(AMClass, 'ARO6') then
+    Result := 'footed clout '
+  else if AnsiSameText(AMClass, 'ARO7') then
+    Result := 'flight '
+  else if AnsiSameText(AMClass, 'ARO8') then
+    Result := 'footed '
+  else if AnsiSameText(AMClass, 'ARO9') then
+    Result := 'footed flight '
+  else if AnsiSameText(AMClass, 'AR10') then
+    Result := 'keen footed flight '
+  else if AnsiSameText(AMClass, 'AR11') then
+    Result := 'blunt footed flight '
+  else if AnsiSameText(AMClass, 'AR12') then
+    Result := 'barbed footed flight '
+  else if AnsiSameText(AMClass, 'ORE1') then
+    Result := 'copper '
+  else if AnsiSameText(AMClass, 'ORE2') then
+    Result := 'ferrite '
+  else if AnsiSameText(AMClass, 'ORE3') then
+    Result := 'quartz '
+  else if AnsiSameText(AMClass, 'ORE4') then
+    Result := 'dolomite '
+  else if AnsiSameText(AMClass, 'ORE5') then
+    Result := 'cobalt '
+  else if AnsiSameText(AMClass, 'ORE6') then
+    Result := 'carbide '
+  else if AnsiSameText(AMClass, 'ORE7') then
+    Result := 'sapphire '
+  else if AnsiSameText(AMClass, 'ORE8') then
+    Result := 'diamond '
+  else if AnsiSameText(AMClass, 'ORE9') then
+    Result := 'netherite '
+  else if AnsiSameText(AMClass, 'OR10') then
+    Result := 'arcanite '
+  else if AnsiSameText(AMClass, 'GENE') then
+    Result := ''
+  else
+    Result := AMClass + ' ';
 end;
 
 function TCraftRecipeCollection.MaterialFixupName(const AMaterial: string): string;
-(*** Just a function to fixup some of Mythic's inconsistancies between what the
+(*** Just a function to fixup some of Mythic's inconsistencies between what the
   vendor sells and what the recipies call for ***)
 begin
   if AnsiSameText(AMaterial, 'wood boards') then
