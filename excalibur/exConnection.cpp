@@ -293,7 +293,7 @@ END_EXPERIMENTAL_CODE
                      .arg((mi) ? playerx - mi->getBaseX() : playerx)
                      .arg((mi) ? playery - mi->getBaseY() : playery)
                      .arg(playerz));
-              ex->Zone->setText((mi) ? mi->getZoneName() : "UNKNOWN");
+              ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
