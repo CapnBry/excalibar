@@ -70,9 +70,16 @@ packages from your distro CDs to build Excalibur:
   libpcap
   libpcap-devel
   Mesa
+  libMesaGL1
+  libMesaGLU1
+  libMesaGLU1-devel
+  libMesaglut3
+  libMesaglut3-devel
+  XFree86-devel
+
+Under Mandrake 8.1, the libMesa* rpms are called:
   Mesa-common
   Mesa-common-devel
-  XFree86-devel
   
 In addition, if you want to skip building qt 3, grab the qt3 packages from
 ftp://ftp.kde.org/pub/kde/stable/3.0/Mandrake/8.2/RPMS/i586/ or your 
