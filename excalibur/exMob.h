@@ -50,6 +50,7 @@ class exMob : public QListViewItem {
     bool obj;
     bool current;
     bool isKnown;
+    bool stealth;
     exTimeType _lasttick;
     exTimeType _lastdist;
     double lastdist;
@@ -78,6 +79,7 @@ class exMob : public QListViewItem {
     bool isInvader() const;
     bool isDead() const;
     bool isCurrent() const;
+    bool isStealthed() const;
     unsigned int getX() const;
     unsigned int getY() const;
     unsigned int getZ() const;
@@ -98,6 +100,7 @@ class exMob : public QListViewItem {
     void setHP(unsigned int hp);
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
+    void setStealth(bool stealth);
     bool isFiltered();
     static void setFilter( QString );
 

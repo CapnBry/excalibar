@@ -51,6 +51,7 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   obj=newobj;
   head=0x800;
   speed=0;
+  stealth = 0;
   c=con;
   isKnown=false;
   
@@ -395,7 +396,7 @@ double exMob::playerDist() {
   ydist = y - c->playery;
   zdist = z - c->playerz;
 
-  lastdist=sqrt(xdist*xdist+ydist*ydist+zdist*zdist);
+  lastdist=sqrt(xdist*xdist+ydist*ydist); // zdist*zdist
 
   _lastdist=exTick;
   return lastdist;
@@ -423,7 +424,8 @@ void exMob::checkStale() {
 //  else
 //    maxtime=10000;
 
-    if ((playerDist() > 15000.0) ||
+      /* mobs get updated to around 7000-7500 */
+    if ((playerDist() > 7500.0) ||
         (!obj && ((exTick - _lasttick) > maxtime))
         ) {
     current = false;
@@ -448,3 +450,13 @@ ostream& exMob::operator << (ostream& os)
     << "  Name: [" << name << "] Surname: [" << surname << "] Guild: <" << guild << ">" << endl;
 }
 
+bool exMob::isStealthed() const
+{
+    return stealth;
+}
+
+void exMob::setStealth(bool bstealth)
+{
+    stealth = bstealth;
+    touch();
+}

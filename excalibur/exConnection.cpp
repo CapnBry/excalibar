@@ -568,6 +568,14 @@ END_EXPERIMENTAL_CODE
 	      }
               break;
 
+        case 0x49:
+            infoid = id = p->getShort();
+            mob = mobinfo.find((void *) ((unsigned int) infoid));
+            if (mob) {
+                mob->setStealth(TRUE);
+            }
+            break;
+
     /***************************************************************/
     /* OpCodes with known purpose but unknown structure, or no use */
     /***************************************************************/
