@@ -56,6 +56,7 @@ type
   TDAOCConnection = class(TObject)
 {$ENDIF}
   private
+
     FClientAddr: DWORD;
     FServerAddr: DWORD;
     FUDPServerAddr: DWORD;
@@ -67,6 +68,7 @@ type
     FCryptKeySet: boolean;
     FLargestDAOCPacketSeen:   integer;
     FAccountCharacters:  TAccountCharInfoList;
+    FServerProtocol:  byte;
 
     FTCPFromClient:   TDAOCTCPPacketAssembler;
     FTCPFromServer:   TDAOCTCPPacketAssembler;
@@ -169,6 +171,7 @@ type
     procedure ParseSetGroundTarget(pPacket: TDAOCPacket);
     procedure ParseCharacterStealthed(pPacket: TDAOCPacket);
     procedure ParseCharacterActivationRequest(pPacket: TDAOCPacket);
+    procedure ParseServerProcotolInit(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -595,7 +598,8 @@ begin
   pPacket.HandlerName := 'SetEncryptionKey';
 
     { version w x.yz }
-  pPacket.seek(2);  
+  pPacket.seek(1);
+  FServerProtocol := pPacket.getByte; // actually encryption scheme?
   FVersionMajor := pPacket.getByte;  // bigver  (x)
   FVersionMinor := pPacket.getByte;  // minver  (y)
   FVersionRelease := pPacket.getByte;// release (z)
@@ -691,6 +695,7 @@ begin
     $71:  ParseNewObject(pPacket, ocObject);
     $72:  ParseNewObject(pPacket, ocMob);
     $7c:  ParseNewObject(pPacket, ocPlayer);
+    $82:  ParseServerProcotolInit(pPacket);
     $8a:  ParseSetEncryptionKey(pPacket);
     $88:  ParseCharacterLoginInit(pPacket);
     $aa:  ParseInventoryList(pPacket);
@@ -923,11 +928,11 @@ var
 begin
   pPacket.HandlerName := 'MobUpdate';
 
-  V162OrGreater := pPacket.Size = 27;
+  V162OrGreater := FServerProtocol = $01;
   if V162OrGreater then
-    iIDOffset := 22
+    iIDOffset := 16
   else
-    iIDOffset := 16;
+    iIDOffset := 22;
   pPacket.seek(iIDOffset);
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
@@ -967,12 +972,14 @@ begin
         end;
 
           { adjust DestX, DestY to global coords }
-        iZoneBase := pPacket.getByte;
-        SetZoneBase;
-        if Assigned(pZoneBase) then begin
-          DestinationX := pZoneBase.ZoneConvertX(X);
-          DestinationY := pZoneBase.ZoneConvertY(Y);
-        end;
+        if (DestinationX <> 0) and (DestinationY <> 0) then begin
+          iZoneBase := pPacket.getByte;
+          SetZoneBase;
+          if Assigned(pZoneBase) then begin
+            DestinationX := pZoneBase.ZoneConvertX(DestinationX);
+            DestinationY := pZoneBase.ZoneConvertY(DestinationY);
+          end;
+        end;  { if dest <> 0 }
       end  { protocol }
       else begin
         X := pPacket.getLong;
@@ -1820,6 +1827,11 @@ begin
   FLocalPlayer.Realm := Result.Realm;
   FLocalPlayer.Name := Result.Name;
   DoSetRegionID(Result.RegionID);
+end;
+
+procedure TDAOCConnection.ParseServerProcotolInit(pPacket: TDAOCPacket);
+begin
+  FServerProtocol := pPacket.GetByte;
 end;
 
 end.
