@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabFilter
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 2
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -958,7 +958,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 181
         Height = 17
         Caption = 'Adjust size with range scale'
-        TabOrder = 3
+        TabOrder = 4
         OnClick = chkScaleMobTriangleClick
       end
       object edtMobTriangleMin: TSpinEdit
@@ -969,7 +969,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Increment = 5
         MaxValue = 10000
         MinValue = 1
-        TabOrder = 4
+        TabOrder = 5
         Value = 25
         OnChange = edtMobTriangleMinChange
       end
@@ -981,7 +981,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Increment = 5
         MaxValue = 10000
         MinValue = 1
-        TabOrder = 5
+        TabOrder = 6
         Value = 150
         OnChange = edtMobTriangleNomChange
       end
@@ -993,7 +993,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Increment = 5
         MaxValue = 10000
         MinValue = 1
-        TabOrder = 6
+        TabOrder = 7
         Value = 300
         OnChange = edtMobTriangleMaxChange
       end
@@ -1003,7 +1003,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 237
         Height = 17
         Caption = 'Easy map mouse-overs'
-        TabOrder = 7
+        TabOrder = 8
         OnClick = chkEasyMouseOversClick
       end
       object chkAttemptMapDownloads: TCheckBox
@@ -1012,7 +1012,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 313
         Height = 17
         Caption = 'Attempt to download texture and vector maps as needed'
-        TabOrder = 8
+        TabOrder = 9
         OnClick = chkAttemptMapDownloadsClick
       end
       object chkRedrawOnAdd: TCheckBox
@@ -1021,7 +1021,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 49
         Height = 17
         Caption = 'Add'
-        TabOrder = 9
+        TabOrder = 10
         OnClick = chkRedrawOnAddClick
       end
       object chkRedrawOnUpdate: TCheckBox
@@ -1030,7 +1030,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 61
         Height = 17
         Caption = 'Update'
-        TabOrder = 10
+        TabOrder = 11
         OnClick = chkRedrawOnUpdateClick
       end
       object chkRedrawOnDelete: TCheckBox
@@ -1039,7 +1039,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 61
         Height = 17
         Caption = 'Delete'
-        TabOrder = 11
+        TabOrder = 12
         OnClick = chkRedrawOnDeleteClick
       end
       object chkRedrawOnTimer: TCheckBox
@@ -1048,7 +1048,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 89
         Height = 17
         Caption = 'Min FPS timer'
-        TabOrder = 12
+        TabOrder = 13
         OnClick = chkRedrawOnTimerClick
       end
       object trackMinFPS: TTrackBar
@@ -1063,11 +1063,20 @@ object frmRenderPrefs: TfrmRenderPrefs
         Position = 2
         SelEnd = 0
         SelStart = 0
-        TabOrder = 13
+        TabOrder = 14
         ThumbLength = 10
         TickMarks = tmBottomRight
         TickStyle = tsAuto
         OnChange = trackMinFPSChange
+      end
+      object chkAutoMakeCurrent: TCheckBox
+        Left = 196
+        Top = 8
+        Width = 205
+        Height = 17
+        Caption = 'Force context current before drawing'
+        TabOrder = 3
+        OnClick = chkAutoMakeCurrentClick
       end
     end
   end

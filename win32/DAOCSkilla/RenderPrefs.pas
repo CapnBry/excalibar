@@ -262,6 +262,7 @@ type
     chkMobHighlight: TCheckBox;
     chkSwapTriangleRingShade: TCheckBox;
     chkDrawHighlightRing: TCheckBox;
+    chkAutoMakeCurrent: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -320,6 +321,7 @@ type
     procedure chkMobHighlightClick(Sender: TObject);
     procedure chkSwapTriangleRingShadeClick(Sender: TObject);
     procedure chkDrawHighlightRingClick(Sender: TObject);
+    procedure chkAutoMakeCurrentClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -508,6 +510,7 @@ begin
     SmoothLines := ReadBool('RenderPrefs', 'SmoothLines', false);
     SmoothPolygons := ReadBool('RenderPrefs', 'SmoothPolygons', false);
     SmoothPoints := ReadBool('RenderPrefs', 'SmoothPoints', false);
+    AutoMakeCurrent := ReadBool('RenderPrefs', 'AutoMakeCurrent', false);
     MobTriangleMin := ReadInteger('RenderPrefs', 'MobTriangleMin', 25);
     MobTriangleMax := ReadInteger('RenderPrefs', 'MobTriangleMax', 300);
     MobTriangleNom := ReadInteger('RenderPrefs', 'MobTriangleNom', 150);
@@ -572,6 +575,7 @@ begin
     WriteBool('RenderPrefs', 'SmoothLines', SmoothLines);
     WriteBool('RenderPrefs', 'SmoothPolygons', SmoothPolygons);
     WriteBool('RenderPrefs', 'SmoothPoints', SmoothPoints);
+    WriteBool('RenderPrefs', 'AutoMakeCurrent', AutoMakeCurrent);
     WriteInteger('RenderPrefs', 'MobTriangleMin', MobTriangleMin);
     WriteInteger('RenderPrefs', 'MobTriangleMax', MobTriangleMax);
     WriteInteger('RenderPrefs', 'MobTriangleNom', MobTriangleNom);
@@ -832,6 +836,7 @@ begin
   chkSmoothLines.Checked := FRenderPrefs.SmoothLines;
   chkSmoothPolys.Checked := FRenderPrefs.SmoothPolygons;
   chkSmoothPoints.Checked := FRenderPrefs.SmoothPoints;
+  chkAutoMakeCurrent.Checked := FRenderPrefs.AutoMakeCurrent;
   edtMobTriangleMin.Value := FRenderPrefs.MobTriangleMin;
   edtMobTriangleMax.Value := FRenderPrefs.MobTriangleMax;
   edtMobTriangleNom.Value := FRenderPrefs.MobTriangleNom;
@@ -1103,17 +1108,20 @@ end;
 
 procedure TfrmRenderPrefs.edtMobTriangleMinChange(Sender: TObject);
 begin
-  FRenderPrefs.MobTriangleMin := edtMobTriangleMin.Value;
+  if edtMobTriangleMin.Text <> '' then
+    FRenderPrefs.MobTriangleMin := edtMobTriangleMin.Value;
 end;
 
 procedure TfrmRenderPrefs.edtMobTriangleNomChange(Sender: TObject);
 begin
-  FRenderPrefs.MobTriangleNom := edtMobTriangleNom.Value;
+  if edtMobTriangleNom.Text <> '' then
+    FRenderPrefs.MobTriangleNom := edtMobTriangleNom.Value;
 end;
 
 procedure TfrmRenderPrefs.edtMobTriangleMaxChange(Sender: TObject);
 begin
-  FRenderPrefs.MobTriangleMax := edtMobTriangleMax.Value;
+  if edtMobTriangleMax.Text <> '' then
+    FRenderPrefs.MobTriangleMax := edtMobTriangleMax.Value;
 end;
 
 procedure TfrmRenderPrefs.chkDrawInfoPointsClick(Sender: TObject);
@@ -1192,6 +1200,11 @@ end;
 procedure TfrmRenderPrefs.chkDrawHighlightRingClick(Sender: TObject);
 begin
   FRenderPrefs.DrawPlayerHighlightRing := chkDrawHighlightRing.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkAutoMakeCurrentClick(Sender: TObject);
+begin
+  FRenderPrefs.AutoMakeCurrent := chkAutoMakeCurrent.Checked;
 end;
 
 end.
