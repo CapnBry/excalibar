@@ -26,14 +26,16 @@ class exFilter;
 #include <qstring.h>
 #include "excalibur.h"
 
-class exFilter {	
+class exFilter
+{
   private:
     QString FilterStr;
 
   public:
 	exFilter() { FilterStr = ""; }
-	QString& getFilter()          { return FilterStr; }
-	void    setFilter(QString s) { FilterStr = s; }
+	QString getFilter() { return FilterStr; }
+        void setFilter(QString s) { FilterStr = s; }
+        bool isFilterSet(void) { return (FilterStr.length()); }
 };
 
 #endif
