@@ -160,7 +160,7 @@ implementation
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
   SpellcraftHelp, DebugAndTracing, Macroing, LowOnStat,
-  ConnectionConfig, VCLMemStrms, RemoteAdmin
+  ConnectionConfig, VCLMemStrms, RemoteAdmin, StringParseHlprs
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -502,6 +502,8 @@ begin
     frmLowOnStat.LowManaEnabled := ReadBool('LowOnStat', 'LowManaEnabled', frmLowOnStat.LowManaEnabled);
     frmLowOnStat.LowManaPct := ReadInteger('LowOnStat', 'LowManaPct', frmLowOnStat.LowManaPct);
     frmLowOnStat.LowManaMessage := ReadString('LowOnStat', 'LowManaMessage', frmLowOnStat.LowManaMessage);
+
+    dmdRemoteAdmin.PS1 := Dequote(ReadString('RemoteAdmin', 'PS1', dmdRemoteAdmin.PS1));
     Free;
   end;  { with INI }
 
@@ -581,6 +583,8 @@ begin
 
     WriteInteger('Macroing', 'Left', frmMacroing.Left);
     WriteInteger('Macroing', 'Top', frmMacroing.Top);
+
+    WriteString('RemoteAdmin', 'PS1', Quote(dmdRemoteAdmin.PS1));
     Free;
   end;  { with INI }
 end;
@@ -800,14 +804,17 @@ procedure TfrmMain.DAOCChatLog(ASender: TObject; const s: string);
 var
   sChatLogLine:   string;
 begin
+  sChatLogLine := FormatDateTime('[hh:nn:ss] ', Now) + s + #13#10;
+
   if chkChatLog.Checked then begin
     if not Assigned(FChatLog) then
       CreateChatLog;
-    if Assigned(FChatLog) then begin
-      sChatLogLine := FormatDateTime('[hh:nn:ss] ', Now) + s + #13#10;
+
+    if Assigned(FChatLog) then
       FChatLog.Write(sChatLogLine[1], Length(sChatLogLine))
-    end;
   end;
+
+  dmdRemoteAdmin.DAOCChatLog(sChatLogLine);
 end;
 
 procedure TfrmMain.btnMacroingClick(Sender: TObject);
