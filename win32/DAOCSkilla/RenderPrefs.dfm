@@ -3,7 +3,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   Top = 257
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
-  ClientHeight = 426
+  ClientHeight = 444
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Left = 4
     Top = 144
     Width = 457
-    Height = 277
+    Height = 293
     Caption = ' Include this extra information '
     TabOrder = 1
     object Label1: TLabel
@@ -155,9 +155,18 @@ object frmRenderPrefs: TfrmRenderPrefs
       Top = 240
       Width = 241
       Height = 17
-      Caption = 'Invader warning sound'
+      Caption = 'Invader warning sound (A)'
       TabOrder = 7
       OnClick = chkInvaderWarnClick
+    end
+    object chkDrawGrid: TCheckBox
+      Left = 8
+      Top = 272
+      Width = 241
+      Height = 17
+      Caption = 'Draw location grid over background (G)'
+      TabOrder = 8
+      OnClick = chkDrawGridClick
     end
   end
   object grpObjects: TGroupBox
@@ -175,12 +184,12 @@ object frmRenderPrefs: TfrmRenderPrefs
       Height = 17
       Caption = 'Players (P)'
       TabOrder = 0
-      OnClick = ObjectFilterClick
+      OnClick = chkRenderPlayersClick
     end
     object chkRenderMobs: TCheckBox
       Tag = 2
       Left = 8
-      Top = 40
+      Top = 56
       Width = 141
       Height = 17
       Caption = 'Monsters and NPCs (M)'
@@ -190,7 +199,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderObjects: TCheckBox
       Tag = 1
       Left = 8
-      Top = 64
+      Top = 76
       Width = 141
       Height = 17
       Caption = 'Graves and objects (O)'
@@ -199,7 +208,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     end
     object chkRenderUnknown: TCheckBox
       Left = 8
-      Top = 88
+      Top = 96
       Width = 141
       Height = 17
       Caption = 'Unknown (U)'
@@ -209,12 +218,21 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderVehicles: TCheckBox
       Tag = 4
       Left = 8
-      Top = 112
+      Top = 116
       Width = 141
       Height = 17
       Caption = 'Vehicles'
       TabOrder = 4
       OnClick = ObjectFilterClick
+    end
+    object chkRenderFriendlies: TCheckBox
+      Left = 24
+      Top = 36
+      Width = 121
+      Height = 17
+      Caption = 'Friendly Players (F)'
+      TabOrder = 5
+      OnClick = chkRenderFriendliesClick
     end
   end
   object btnOK: TBitBtn
@@ -265,7 +283,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       Top = 56
       Width = 153
       Height = 17
-      Caption = 'Overlay NPC type tag (Y)'
+      Caption = 'Show NPC type tag (Y)'
       TabOrder = 2
       OnClick = chkTypeTagClick
     end

@@ -4,15 +4,21 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, INIFiles, DAOCObjs, StdCtrls, Buttons;
+  Dialogs, INIFiles, DAOCObjs, DAOCRegion, StdCtrls, Buttons;
 
 type
   TRenderPreferences = class(TObject)
   private
-    FObjectFilter: TDAOCObjectClasses;
+    FObjectClassFilter: TDAOCObjectClasses;
     FOnObjectFilterChanged: TNotifyEvent;
-    procedure SetObjectFilter(const Value: TDAOCObjectClasses);
+    FHasOpenGL13: boolean;
+    FHasGLUT: boolean;
+    FDrawFriendlyPlayers:  boolean;
+    procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
+    procedure SetHasGLUT(const Value: boolean);
+    procedure SetHasOpenGL13(const Value: boolean);
+    procedure SetDrawFriendlyPlayers(const Value: boolean);
   public
     Left:   integer;
     Top:    integer;
@@ -42,7 +48,9 @@ type
     MapBaseURL:       string;
     InvaderWarning:   boolean;
     InvaderWarnMinTicks:  DWORD;
-    HasOpenGL13:      boolean;
+    GroupByRealm:     boolean;
+    PlayerRealm:      TDAOCRealm;
+    DrawGrid:         boolean;
 
     constructor Create;
 
@@ -50,9 +58,12 @@ type
     procedure SaveSettings(const AFileName: string);
     function Clone : TRenderPreferences;
     function IsObjectInFilter(AObj: TDAOCObject) : boolean;
-    procedure XORObjectFilter(AObjectClass: TDAOCObjectClass);
+    procedure XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
 
-    property ObjectFilter: TDAOCObjectClasses read FObjectFilter write SetObjectFilter;
+    property HasOpenGL13: boolean read FHasOpenGL13 write SetHasOpenGL13;
+    property HasGLUT: boolean read FHasGLUT write SetHasGLUT;
+    property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
+    property ObjectClassFilter: TDAOCObjectClasses read FObjectClassFilter write SetObjectClassFilter;
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
   end;
 
@@ -89,6 +100,8 @@ type
     chkRenderVehicles: TCheckBox;
     chkInvaderWarn: TCheckBox;
     Label8: TLabel;
+    chkRenderFriendlies: TCheckBox;
+    chkDrawGrid: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -104,6 +117,9 @@ type
     procedure chkAdjacentZonesClick(Sender: TObject);
     procedure chkViewFrustumClick(Sender: TObject);
     procedure chkInvaderWarnClick(Sender: TObject);
+    procedure chkRenderFriendliesClick(Sender: TObject);
+    procedure chkRenderPlayersClick(Sender: TObject);
+    procedure chkDrawGridClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -127,7 +143,7 @@ begin
   Result.Width := Width;
   Result.Height := Height;
   Result.Range := Range;
-  Result.ObjectFilter := ObjectFilter;
+  Result.ObjectClassFilter := ObjectClassFilter;
   Result.DrawHUD := DrawHUD;
   Result.DrawMapVector := DrawMapVector;
   Result.DrawMapTexture := DrawMapTexture;
@@ -151,12 +167,16 @@ begin
   Result.MapBaseURL := MapBaseURL;
   Result.InvaderWarning := InvaderWarning;
   Result.InvaderWarnMinTicks := InvaderWarnMinTicks;
-  Result.HasOpenGL13 := HasOpenGL13; 
+  Result.HasOpenGL13 := HasOpenGL13;
+  Result.GroupByRealm := GroupByRealm;
+  Result.HasGLUT := HasGLUT;
+  Result.DrawFriendlyPlayers := DrawFriendlyPlayers;
+  Result.DrawGrid := DrawGrid; 
 end;
 
 constructor TRenderPreferences.Create;
 begin
-  ObjectFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
+  ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
 end;
 
 procedure TRenderPreferences.DoOnObjectFilterChanged;
@@ -166,8 +186,13 @@ begin
 end;
 
 function TRenderPreferences.IsObjectInFilter(AObj: TDAOCObject): boolean;
+var
+  oc:   TDAOCObjectClass;
 begin
-  Result := AObj.ObjectClass in ObjectFilter;
+  oc := AObj.ObjectClass;
+  Result := (oc in ObjectClassFilter) and (
+    (oc <> ocPlayer) or FDrawFriendlyPlayers or (AObj.Realm <> PlayerRealm)
+    );
 end;
 
 procedure TRenderPreferences.LoadSettings(const AFileName: string);
@@ -202,6 +227,9 @@ begin
     MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%d');
     InvaderWarning := ReadBool('RenderPrefs', 'InvaderWarning', true);
     InvaderWarnMinTicks := ReadInteger('RenderPrefs', 'InvaderWarnMinTicks', 5000);
+    GroupByRealm := ReadBool('RenderPrefs', 'GroupByRealm', true);
+    DrawFriendlyPlayers := ReadBool('RenderPrefs', 'DrawFriendlyPlayers', true);
+    DrawGrid := ReadBool('RenderPrefs', 'DrawGrid', false);
   end;
 end;
 
@@ -237,21 +265,42 @@ begin
     DeleteKey('RenderPrefs', 'MapBaseURL');  // WriteString('RenderPrefs', 'MapBaseURL', MapBaseURL);
     WriteBool('RenderPrefs', 'InvaderWarning', InvaderWarning);
     WriteInteger('RenderPrefs', 'InvaderWarnMinTicks', InvaderWarnMinTicks);
+    WriteBool('RenderPrefs', 'GroupByRealm', GroupByRealm);
+    WriteBool('RenderPrefs', 'DrawFriendlyPlayers', DrawFriendlyPlayers);
+    WriteBool('RenderPrefs', 'DrawGrid', DrawGrid);
   end;
 end;
 
-procedure TRenderPreferences.SetObjectFilter(const Value: TDAOCObjectClasses);
+procedure TRenderPreferences.SetDrawFriendlyPlayers(const Value: boolean);
 begin
-  FObjectFilter := Value;
+  FDrawFriendlyPlayers := Value;
   DoOnObjectFilterChanged;
 end;
 
-procedure TRenderPreferences.XORObjectFilter(AObjectClass: TDAOCObjectClass);
+procedure TRenderPreferences.SetHasGLUT(const Value: boolean);
 begin
-  if AObjectClass in FObjectFilter then
-    Exclude(FObjectFilter, AObjectClass)
+  FHasGLUT := Value;
+  DrawHUD := FHasGLUT and DrawHUD;
+end;
+
+procedure TRenderPreferences.SetHasOpenGL13(const Value: boolean);
+begin
+  FHasOpenGL13 := Value;
+  DrawMapTexture := FHasOpenGL13 and DrawMapTexture;
+end;
+
+procedure TRenderPreferences.SetObjectClassFilter(const Value: TDAOCObjectClasses);
+begin
+  FObjectClassFilter := Value;
+  DoOnObjectFilterChanged;
+end;
+
+procedure TRenderPreferences.XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
+begin
+  if AObjectClass in FObjectClassFilter then
+    Exclude(FObjectClassFilter, AObjectClass)
   else
-    Include(FObjectFilter, AObjectClass);
+    Include(FObjectClassFilter, AObjectClass);
 
   DoOnObjectFilterChanged;
 end;
@@ -283,14 +332,14 @@ procedure TfrmRenderPrefs.ObjectFilterClick(Sender: TObject);
 var
   objFilter: TDAOCObjectClasses;
 begin
-  objFilter := FRenderPrefs.ObjectFilter;
+  objFilter := FRenderPrefs.ObjectClassFilter;
   with TCheckbox(Sender) do
     if Checked then
       Include(objFilter, TDAOCObjectClass(Tag))
     else
       Exclude(objFilter, TDAOCObjectClass(Tag));
-      
-  FRenderPrefs.ObjectFilter := objFilter;
+
+  FRenderPrefs.ObjectClassFilter := objFilter;
 end;
 
 procedure TfrmRenderPrefs.chkVectorMapsClick(Sender: TObject);
@@ -325,24 +374,29 @@ end;
 
 procedure TfrmRenderPrefs.SyncFormToPrefs;
 begin
-  chkRenderPlayers.Checked := ocPlayer in FRenderPrefs.ObjectFilter;
-  chkRenderMobs.Checked := ocMob in FRenderPrefs.ObjectFilter;
-  chkRenderObjects.Checked := ocObject in FRenderPrefs.ObjectFilter;
-  chkRenderUnknown.Checked := ocUnknown in FRenderPrefs.ObjectFilter;
-  chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectFilter;
+  chkRenderPlayers.Checked := ocPlayer in FRenderPrefs.ObjectClassFilter;
+  chkRenderFriendlies.Checked := FRenderPrefs.DrawFriendlyPlayers;
+  chkRenderMobs.Checked := ocMob in FRenderPrefs.ObjectClassFilter;
+  chkRenderObjects.Checked := ocObject in FRenderPrefs.ObjectClassFilter;
+  chkRenderUnknown.Checked := ocUnknown in FRenderPrefs.ObjectClassFilter;
+  chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectClassFilter;
+  chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
   chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
   chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
   chkRangeCircles.Checked := FRenderPrefs.DrawRangeCircles;
   chkRulers.Checked := FRenderPrefs.DrawRulers;
-  chkHUD.Checked := FRenderPrefs.DrawHUD;
+  chkHUD.Enabled := FRenderPrefs.HasGLUT;
+  chkHUD.Checked := FRenderPrefs.HasGLUT and FRenderPrefs.DrawHUD;
   chkDestination.Checked := FRenderPrefs.DrawAIDestination;
   chkViewFrustum.Checked := FRenderPrefs.ViewFrustum;
   chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
+  chkDrawGrid.Checked := FRenderPrefs.DrawGrid;
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
   chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
+//  chkTypeTag.Enabled := FRenderPrefs.HasGLUT;
   chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
   chkStayOnTop.Checked := FRenderPrefs.StayOnTop;
   chkRotateMap.Checked := FRenderPrefs.RotateMapWithPlayer;
@@ -387,6 +441,22 @@ end;
 procedure TfrmRenderPrefs.chkInvaderWarnClick(Sender: TObject);
 begin
   FRenderPrefs.InvaderWarning := chkInvaderWarn.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRenderFriendliesClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawFriendlyPlayers := chkRenderFriendlies.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRenderPlayersClick(Sender: TObject);
+begin
+  chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
+  ObjectFilterClick(Sender);
+end;
+
+procedure TfrmRenderPrefs.chkDrawGridClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawGrid := chkDrawGrid.Checked;
 end;
 
 end.
