@@ -647,8 +647,6 @@ void exMap::mapRead() {
   ignore_fill = false;
 
   if (PNGLoader.running()) {
-    PNGLoader.cleanup();
-    if (PNGLoader.running())
       qWarning("Poor Man's Mutex Error:\tUnable to ABORT PNG Loading Engine..  Multiple threads may occur!!!!!!!!!!");
 BEGIN_EXPERIMENTAL_CODE
       QMessageBox::information(0,"PNG Loading Engine", "***WARNING*** Polly needs a THREAD MUTEX! (and a cracker) ***WARNING***");
@@ -1073,6 +1071,8 @@ void exMapPNGLoader::run (void)
       w=img.width();
       h=img.height();
       parent->ignore_fill = true;
+      if (! empldProgress.running())
+         empldProgress.start();
       for(y=0;y<8;y++) {
         for(x=0;x<8;x++) {
           qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
@@ -1092,7 +1092,6 @@ void exMapPNGLoader::run (void)
     }
   }
   qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
-  cleanup();
 }
 
 bool exMap::event (QEvent *e)
@@ -1131,13 +1130,15 @@ exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
 
 exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 {
-  cleanup();
   pdProgress->reset();
 }
 
 void exMapPNGLoaderDialog::run (void)
 {
   pdProgress->reset();
+
+  while (1)
+    sleep(360);
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
