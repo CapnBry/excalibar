@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, DAOCControl, PowerSkill, ExtCtrls, DAOCPlayerAttributes;
+  Dialogs, StdCtrls, Buttons, DAOCControl, PowerSkill, ExtCtrls, DAOCPlayerAttributes,
+  MapNavigator;
 
 type
   TfrmMacroing = class(TForm)
@@ -192,6 +193,7 @@ end;
 procedure TfrmMacroing.DoAutoBuy;
 var
   bWasAutoSell:   boolean;
+  pNearestNode:   TMapNode;
 begin
   bWasAutoSell := FAutoSell;
   FAutoSell := false;
@@ -199,8 +201,9 @@ begin
   if frmPowerskill.Visible then begin
     frmPowerskill.ExecutePurchases;
 
-    if frmPowerskill.KeepBuying and
-      AnsiSameText(FDControl.NodeClosestToPlayerPos.Name, FPSItemList.MerchantNodeName) then
+    pNearestNode := FDControl.NodeClosestToPlayerPos;
+    if frmPowerskill.KeepBuying and Assigned(pNearestNode) and
+      AnsiSameText(pNearestNode.Name, FPSItemList.MerchantNodeName) then
       FDControl.PathToNodeName(FPSItemList.ForgeNodeName);
   end
 
@@ -238,9 +241,12 @@ begin
 end;
 
 procedure TfrmMacroing.CheckNeedMorePSMaterials;
+var
+  pNearestNode:   TMapNode;
 begin
   if frmPowerskill.Visible then begin
-    if not AnsiSameText(FDControl.NodeClosestToPlayerPos.Name, FPSItemList.ForgeNodeName) then
+    pNearestNode := FDControl.NodeClosestToPlayerPos;
+    if not (Assigned(pNearestNode) and AnsiSameText(pNearestNode.Name, FPSItemList.ForgeNodeName)) then
       exit;
 
     if not frmPowerskill.HasMaterialsForItem then
