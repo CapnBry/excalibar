@@ -2,6 +2,12 @@ Teerex (29/Oct/02)
 ------------------
  + Preferences are now saved when you turn them on and off via the menus
    and hotkeys, without using the preferences dialog.
+ + Moved Invader Warning to trigger when the invader is added to the list
+   rather than when the list is painted.  Should fire reliably now.
+ + Changed filter code to return faster if no mob filter is in place,
+   increases display speed of both map and moblist.
+ + Fixed the compiler warning under gcc-3.2 about the deprecated 
+   iostream.h header.
 
 Teerex (28/Oct/02)
 ------------------
