@@ -1,3 +1,14 @@
+Teerex (13/Feb/02)
+-----------------
+
+Additions:
+ + Decreased vertex count on pyramid object.
+
+Bug fixes:
+ + Fixed a bug where range circles were missing their last segment,
+   at least on my machine.
+ + Fixed normals on pyramid object for better lighing.
+
 Andon (12/Feb/02)
 -----------------
 
