@@ -34,6 +34,7 @@ type
     RedrawOnUpdate:   boolean;
     RedrawOnTimer:    boolean;
     StayOnTop:        boolean;
+    RotateMapToPlayer:  boolean;
 
     constructor Create;
 
@@ -123,6 +124,7 @@ begin
   Result.RedrawOnUpdate := RedrawOnUpdate;
   Result.RedrawOnTimer := RedrawOnTimer;
   Result.StayOnTop := StayOnTop;
+  Result.RotateMapToPlayer := RotateMapToPlayer;
 end;
 
 constructor TRenderPreferences.Create;
@@ -165,6 +167,7 @@ begin
     RedrawOnUpdate := ReadBool('RenderPrefs', 'RedrawOnUpdate', true);
     RedrawOnTimer := ReadBool('RenderPrefs', 'RedrawOnTimer', true);
     StayOnTop := ReadBool('RenderPrefs', 'StayOnTop', false);
+    RotateMapToPlayer := ReadBool('RenderPrefs', 'RotateMapToPlayer', false);
   end;
 end;
 
@@ -192,6 +195,7 @@ begin
     WriteBool('RenderPrefs', 'RedrawOnUpdate', RedrawOnUpdate);
     WriteBool('RenderPrefs', 'RedrawOnTimer', RedrawOnTimer);
     WriteBool('RenderPrefs', 'StayOnTop', StayOnTop);
+    WriteBool('RenderPrefs', 'RotateMapToPlayer', RotateMapToPlayer);
   end;
 end;
 
