@@ -15,6 +15,7 @@ object frmSpellcraftHelp: TfrmSpellcraftHelp
   Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   DesignSize = (
     340
     315)

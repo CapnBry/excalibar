@@ -62,7 +62,7 @@ procedure TfrmAFK.SetDControl(const Value: TDAOCControl);
 begin
   if Assigned(Value) then
     Value.AFKMessage := AFKMessage
-  else
+  else if Assigned(FDControl) then
     FDControl.AFKMessage := '';
     
   FDControl := Value;

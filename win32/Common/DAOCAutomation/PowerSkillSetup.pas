@@ -126,8 +126,11 @@ begin
 
       s := s + IntToStr(pItem.Materials[I].Count) + ' ' + pItem.Materials[I].Name;
 
-      pVendorItems := FDControl.MasterVendorList.FindNearestItemVendor(
-        pItem.Materials[I].Name, FDControl.LocalPlayer);
+      if Assigned(FDControl) then
+        pVendorItems := FDControl.MasterVendorList.FindNearestItemVendor(
+          pItem.Materials[I].Name, FDControl.LocalPlayer)
+      else
+        pVendorItems := nil;
       if Assigned(pVendorItems) then begin
         iCost := pVendorItems.CostOfItemQ1(pItem.Materials[I].Name);
         iCost := iCost * pItem.Materials[I].Count;

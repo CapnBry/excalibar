@@ -69,6 +69,7 @@ type
     procedure mniSaveToFileClick(Sender: TObject);
     procedure mniLoadFromFileClick(Sender: TObject);
     procedure chkQuantityClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FGemEffects:  TStringList;
     FSCGems:      array[1..4] of TSCHelpGemInfo;
@@ -96,7 +97,7 @@ type
     procedure Log(const s: string);
   public
     procedure ExecutePurchases;
-    
+
     property DAOCControl: TDAOCControl read FDControl write FDControl;
     property CraftRealm: TCraftRealm read GetCraftRealm write SetCraftRealm;
     property KeepBuying: boolean read FKeepBuying write FKeepBuying;
@@ -700,6 +701,12 @@ end;
 procedure TfrmSpellcraftHelp.chkQuantityClick(Sender: TObject);
 begin
   UpdateTotalMaterials;
+end;
+
+procedure TfrmSpellcraftHelp.FormShow(Sender: TObject);
+begin
+  if Assigned(FDControl) then
+    cbxRealm.ItemIndex := ord(FDControl.LocalPlayer.Realm) - 1;
 end;
 
 end.
