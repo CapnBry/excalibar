@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -26,7 +26,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Menu
 //
 
-IDR_MAIN_MENU MENU DISCARDABLE 
+IDR_MAIN_MENU MENU 
 BEGIN
     POPUP "&System"
     BEGIN
@@ -53,18 +53,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -78,8 +78,8 @@ END
 // Dialog
 //
 
-IDD_SET_CAMERA_FOLLOW DIALOG DISCARDABLE  0, 0, 183, 60
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SET_CAMERA_FOLLOW DIALOG  0, 0, 183, 60
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Choose Actor to Follow"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -91,8 +91,8 @@ BEGIN
     LTEXT           "Available Actors:",IDC_STATIC,7,9,54,8
 END
 
-IDD_SETCONFIG DIALOG DISCARDABLE  0, 0, 119, 54
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SETCONFIG DIALOG  0, 0, 119, 54
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure Cheyenne"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -104,10 +104,10 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,20,87,10
 END
 
-IDD_DISPLAYCONFIG DIALOG DISCARDABLE  0, 0, 299, 146
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_DISPLAYCONFIG DIALOGEX 0, 0, 299, 146
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure Display"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     CONTROL         "Render text in PPI",IDC_TEXTPPI,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,20,85,10
@@ -122,7 +122,7 @@ BEGIN
     CONTROL         "Render dead in PPI",IDC_PPIDEAD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,105,85,10
     CONTROL         "Use textures in PPI",IDC_TEXTURESINPPI,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,18,61,16
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,16,61,16
     CONTROL         "Use vector maps in PPI",IDC_VECTORMAPINPPI,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,34,61,16
     CONTROL         "Update actors when rendered",IDC_UPDATEWHENRENDERED,
@@ -145,14 +145,14 @@ BEGIN
     GROUPBOX        "Self Display",IDC_STATIC,187,82,105,40
     CONTROL         "Use vector maps only in followed zone",
                     IDC_VECTORONLYINFOLLOWED,"Button",BS_AUTOCHECKBOX | 
-                    BS_MULTILINE | WS_TABSTOP,109,48,61,30
+                    BS_MULTILINE | WS_TABSTOP,109,51,61,27
     CONTROL         "Automatically hook target",IDC_AUTOHOOKTARGET,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,100,63,
                     18
 END
 
-IDD_SETRANGERINGS DIALOG DISCARDABLE  0, 0, 128, 151
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SETRANGERINGS DIALOG  0, 0, 128, 151
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Define Range Rings"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -184,8 +184,8 @@ BEGIN
     LTEXT           "Radius:",IDC_STATIC,7,112,25,8
 END
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 186, 57
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUT DIALOG  0, 0, 186, 57
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Cheyenne"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -194,8 +194,8 @@ BEGIN
                     IDC_STATIC,7,7,172,30
 END
 
-IDD_SETSOUNDS DIALOG DISCARDABLE  0, 0, 144, 129
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SETSOUNDS DIALOG  0, 0, 144, 129
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure Sounds"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -225,7 +225,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_SET_CAMERA_FOLLOW, DIALOG
     BEGIN
@@ -278,15 +278,14 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,1,6
- PRODUCTVERSION 1,1,1,6
+ FILEVERSION 1,1,1,7
+ PRODUCTVERSION 1,1,1,7
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -301,18 +300,15 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Real-time sniffer/analyzer for Dark Age of Camelot\0"
-            VALUE "CompanyName", "Cheyenne Developers\0"
-            VALUE "FileDescription", "Cheyenne\0"
-            VALUE "FileVersion", "1, 1, 1, 6\0"
-            VALUE "InternalName", "Cheyenne\0"
-            VALUE "LegalCopyright", "2003, Cheyenne Developers\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "Cheyenne.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "Cheyenne\0"
-            VALUE "ProductVersion", "1, 1, 1, 6\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "Comments", "Real-time sniffer/analyzer for Dark Age of Camelot"
+            VALUE "CompanyName", "Cheyenne Developers"
+            VALUE "FileDescription", "Cheyenne"
+            VALUE "FileVersion", "1, 1, 1, 7"
+            VALUE "InternalName", "Cheyenne"
+            VALUE "LegalCopyright", "2003, Cheyenne Developers"
+            VALUE "OriginalFilename", "Cheyenne.exe"
+            VALUE "ProductName", "Cheyenne"
+            VALUE "ProductVersion", "1, 1, 1, 7"
         END
     END
     BLOCK "VarFileInfo"
@@ -320,8 +316,6 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -331,7 +325,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_A                   ICON    DISCARDABLE     "icon1.ico"
+IDI_A                   ICON                    "icon1.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
