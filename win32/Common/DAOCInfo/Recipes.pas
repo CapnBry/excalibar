@@ -90,6 +90,7 @@ type
 
     procedure SaveToWriter(AWriter: TWriter);
     procedure LoadFromReader(AReader: TReader);
+    function AsString(AForSkill: integer = -1) : string;
 
     function FindDisplayName(const AName: string) : TTradeSkillRecipe;
     function MaterialClassToString(const AMClass: string) : string;
@@ -226,7 +227,7 @@ var
 begin
     { things in the next tier are not available just like purples }
   iAtTier := AAtSkill div 100;
-  if iAtTier > FTier then
+  if iAtTier < FTier then
     Result := rccPurple
   else
     Result := RecipeCraftCon(FSkillLevel, AAtSkill);
@@ -291,6 +292,25 @@ begin
 end;
 
 { TCraftRecipeCollection }
+
+function TCraftRecipeCollection.AsString(AForSkill: integer): string;
+var
+  I:    integer;
+  iLastGroup:   integer;
+begin
+  Result := '';
+  iLastGroup := -1;
+
+  for I := 0 to Count - 1 do begin
+    if Items[I].Group <> iLastGroup then begin
+      Result := Result + '+ Item Group ' + IntToStr(Items[I].Group) + #13#10;
+      iLastGroup := Items[I].Group;
+    end;
+
+    if (AForSkill = -1) or (Items[I].CraftCon(AForSkill) <> rccPurple) then
+      Result := Result + Format('  %03d %s'#13#10, [Items[I].SkillLevel, Items[I].DisplayName]);
+  end;  { for I }
+end;
 
 procedure TCraftRecipeCollection.Clear;
 begin
