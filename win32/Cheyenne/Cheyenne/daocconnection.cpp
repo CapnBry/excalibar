@@ -1827,7 +1827,7 @@ daocmessages::stealth* DAOCConnection::ParseStealth
     daocmessages::stealth* msg=new daocmessages::stealth;
 
     // get id
-    GetData(msg->id,ndx,buffer);
+    GetData(msg->info_id,ndx,buffer);
 
     // done
     return(msg);

@@ -353,7 +353,7 @@ struct stealth : public daocmessages::SniffedMessage
     stealth(){opcode=opcodes::stealth;};
     ~stealth(){};
 
-    unsigned short id;
+    unsigned short info_id;
     }; // end stealth
 
 }; // end namespace daocmessages

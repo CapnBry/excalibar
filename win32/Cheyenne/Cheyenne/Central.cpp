@@ -1996,7 +1996,7 @@ void Central::RenderActor(const Actor& ThisActor)const
         // then set the hooked actor equal to the targeted actor
         if(Config.GetAutoHookTarget() && HookedActor==0)
             {
-            HookedActor=ThisActor.GetId();
+            HookedActor=ThisActor.GetInfoId();
             }
         }
 
