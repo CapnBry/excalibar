@@ -168,3 +168,18 @@ protected:
 private:
     Central& central;
 }; // end class MaintenanceIntervalDoneFunctor
+
+class SharenetMessageFunctor : public DatabaseFunctor
+{
+public:
+    SharenetMessageFunctor(Central& s):central(s){};
+    explicit SharenetMessageFunctor(Central& c,const SharenetMessageFunctor& s) : central(c),DatabaseFunctor(s){};
+    virtual ~SharenetMessageFunctor(){};
+
+
+protected:
+    virtual void DoIt(const void* p,const unsigned int len){central.OnSharenetMessage(p,len);};
+
+private:
+    Central& central;
+}; // end class MaintenanceIntervalDoneFunctor

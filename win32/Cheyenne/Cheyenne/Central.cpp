@@ -259,6 +259,18 @@ void Central::OnMaintenanceIntervalDone(void)
     return;
 } // end OnMaintenanceIntervalDone
 
+void Central::OnSharenetMessage(const void* p,const unsigned int len)
+{
+    // send to sharenet
+    ShareNet.QueueOutputMessage(p,len);
+    
+    // log
+    //:: Logger << "[Central::OnSharenetMessage] sending " << len << " bytes\n";
+    
+    // done
+    return;
+} // end OnSharenetMessage
+
 bool Central::Init(void)
 {
     // register window class
@@ -708,7 +720,7 @@ void Central::DrawDataWindow(HDC hFront)const
 
     oss << "Global Database Statistics:\n"
         << "Current Time=" << CurrentTime.Seconds() << "\n"
-        << "Frame Rate=" << Frames / (CurrentTime-FrameMeasureStart).Seconds() << "\n"
+        << "Frame Rate=" << (unsigned int)(Frames / (CurrentTime-FrameMeasureStart).Seconds()) << "\n"
         << "Albs=" << stats.GetNumAlbs() << "\n"
         << "Hibs=" << stats.GetNumHibs() << "\n"
         << "Mids=" << stats.GetNumMids() << "\n"
@@ -1192,10 +1204,8 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             
             if(res==IDOK)
                 {
-                // make sure its closed
-                ShareNet.Close();
-                // open with new parameters
-                ShareNet.Open(Config.GetShareNetAddress(),Config.GetShareNetPort());
+                // open sharenet
+                OpenShareNet();
                 }
             }
             break;
@@ -1308,6 +1318,21 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     // done
     return;
 } // end HandleCommand
+
+void Central::OpenShareNet(void)
+{
+    // make sure its closed
+    ShareNet.Close();
+    
+    // open with new parameters
+    ShareNet.Open(Config.GetShareNetAddress(),Config.GetShareNetPort());
+
+    // tell database to request a full update
+    db.RequestFullUpdate();
+    
+    // done
+    return;
+} // end OpenShareNet
 
 void Central::HandleKeyDown(HWND hWnd,WPARAM wParam,LPARAM lParam)
 {
@@ -1676,12 +1701,14 @@ void Central::InitActorEvents(void)
     std::auto_ptr<DatabaseFunctor> delete_actor(new DeleteActorFunctor(*this));
     std::auto_ptr<DatabaseFunctor> reassign_actor(new ReassignActorFunctor(*this));
     std::auto_ptr<DatabaseFunctor> maintenance_done(new MaintenanceIntervalDoneFunctor(*this));
+    std::auto_ptr<DatabaseFunctor> sharenet_message(new SharenetMessageFunctor(*this));
 
     db.InstallFunctor(Database::DatabaseEvents::MaintenanceUpdate,maint);
     db.InstallFunctor(Database::DatabaseEvents::ActorCreated,new_actor);
     db.InstallFunctor(Database::DatabaseEvents::ActorDeleted,delete_actor);
     db.InstallFunctor(Database::DatabaseEvents::ActorReassigned,reassign_actor);
     db.InstallFunctor(Database::DatabaseEvents::MaintenanceIntervalDone,maintenance_done);
+    db.InstallFunctor(Database::DatabaseEvents::SharenetMessage,sharenet_message);
 
     // done
     return;

@@ -34,7 +34,7 @@ Database::Database() :
     OldActorThreshold(15.0),
     bGroundTargetSet(false),
     bFullUpdateRequest(false),
-    DeadReconingThreshold(300.0f),
+    DeadReconingThreshold(500.0f),
     MinNetworkTime(2.0f),
     NetworkHeartbeat(10.0f)
 {
@@ -138,18 +138,20 @@ DWORD Database::Run(const bool& bContinue)
         
     while(bContinue)
         {
+        CheyenneTime CurrentTime=::Clock.Current();
+        
         // see if its time to do maintenance
-        if(::Clock.Current() >= LastMaintenanceTime + MaintenanceInterval)
+        if(CurrentTime >= LastMaintenanceTime + MaintenanceInterval)
             {
             // save time
-            LastMaintenanceTime=::Clock.Current();
+            LastMaintenanceTime=CurrentTime;
 
             // do maintenance
             DoMaintenance();
             } // end if time to do maintenance
 
         // set wait amount to the amount of time before the next maintenance cycle
-        WaitAmount=static_cast<unsigned int>(((LastMaintenanceTime + MaintenanceInterval - ::Clock.Current()).Seconds() * 1000.0));
+        WaitAmount=static_cast<unsigned int>(((LastMaintenanceTime + MaintenanceInterval - CurrentTime).Seconds() * 1000.0));
 
         // when data arrives, process it
         WaitForData(WaitAmount);
@@ -310,21 +312,28 @@ void Database::DoMaintenance(void)
             // actor to the network here
             if(DRError > DeadReconingThreshold && CurrentAge > MinNetworkTime)
                 {
-                // store temp network back to actor
-                ThisActor.SetNet(Net);
+                //Logger << "[Database::DoMaintanance] threshold update:\n";
+                /*
+                std::ostringstream oss;
+                ThisActor.Print(oss);
+                Net.Print(oss);
+                Logger << oss.str().c_str() << "\n";
+                */
+                // store current pos back to actor's net
+                ThisActor.SetNet(ThisActor.GetMotion());
                 
                 // send threshold update to network
                 SendNetworkUpdate(ThisActor,share_opcodes::threshold_update);
                 } // end if DR threshold is violated
             else if(bFullUpdateRequest)
                 {
-                // store temp network back to actor
-                ThisActor.SetNet(Net);
+                // store current pos back to actor's net
+                ThisActor.SetNet(ThisActor.GetMotion());
 
                 // send full update to network
                 SendNetworkUpdate(ThisActor,share_opcodes::full_update);
                 } // end else full update requested
-            else if(CurrentAge > NetworkHeartbeat)
+            else if(CurrentAge > NetworkHeartbeat && ::Clock.Current() - ThisActor.GetLastLocalTime() < NetworkHeartbeat)
                 {
                 // store temp network back to actor
                 ThisActor.SetNet(Net);
@@ -589,11 +598,127 @@ void Database::SendNetworkUpdate
     (
     const Actor& ThisActor,
     share_opcodes::c_opcode_t opcode
-    )const
+    )
 {
+    // build and send appropriate message
+    switch(opcode)
+        {
+        case share_opcodes::full_update:
+            {
+            ::Logger << "[Database::SendNetworkUpdate] full_update on " << ThisActor.GetName().c_str() << "\n";
+            sharemessages::full_update msg;
+            msg.data.id=ThisActor.GetId();
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.x=ThisActor.GetMotion().GetXPos();
+            msg.data.y=ThisActor.GetMotion().GetYPos();
+            msg.data.z=ThisActor.GetMotion().GetZPos();
+            msg.data.heading=ThisActor.GetMotion().GetHeading();
+            msg.data.speed=ThisActor.GetMotion().GetSpeed();
+            msg.data.health=ThisActor.GetHealth();
+            msg.data.level=ThisActor.GetLevel();
+            msg.data.realm=ThisActor.GetRealm();
+            msg.data.type=ThisActor.GetActorType();
+            msg.data.region=ThisActor.GetRegion();
+            msg.data.stealth=ThisActor.GetStealth() ? 1:0;
+            memcpy
+                (
+                msg.data.name,
+                ThisActor.GetName().c_str(),
+                min(32,ThisActor.GetName().size())
+                );
+            msg.data.name[min(32,ThisActor.GetName().size())]=0;
+            memcpy
+                (
+                msg.data.surname,
+                ThisActor.GetSurname().c_str(),
+                min(32,ThisActor.GetSurname().size())
+                );
+            msg.data.surname[min(32,ThisActor.GetSurname().size())]=0;
+            memcpy
+                (
+                msg.data.guild,
+                ThisActor.GetGuild().c_str(),
+                min(32,ThisActor.GetGuild().size())
+                );
+            msg.data.guild[min(32,ThisActor.GetGuild().size())]=0;
+            TransmitMessage(msg);
+            }
+            break;
+            
+        case share_opcodes::threshold_update:
+            {
+            ::Logger << "[Database::SendNetworkUpdate] threshold_update on " << ThisActor.GetName().c_str() << "\n";
+            sharemessages::threshold_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.heading=ThisActor.GetMotion().GetHeading();
+            msg.data.speed=ThisActor.GetMotion().GetSpeed();
+            msg.data.x=ThisActor.GetMotion().GetXPos();
+            msg.data.y=ThisActor.GetMotion().GetYPos();
+            msg.data.z=ThisActor.GetMotion().GetZPos();
+            msg.data.health=ThisActor.GetHealth();
+            msg.data.level=ThisActor.GetLevel();
+            TransmitMessage(msg);
+            }
+            break;
+        
+        case share_opcodes::visibility_update:
+            {
+            ::Logger << "[Database::SendNetworkUpdate] visibility_update on " << ThisActor.GetName().c_str() << "\n";
+            sharemessages::visibility_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.visibility=0;//init to 0
+            
+            if(ThisActor.GetStealth())
+                {
+                msg.data.visibility |= sharemessages::visibility_update::impl_t::stealth;
+                }
+            TransmitMessage(msg);
+            }
+            break;
+        
+        case share_opcodes::heartbeat_update:
+            {
+            ::Logger << "[Database::SendNetworkUpdate] heartbeat_update on " << ThisActor.GetName().c_str() << "\n";
+            sharemessages::heartbeat_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.health=ThisActor.GetHealth();
+            msg.data.level=ThisActor.GetLevel();
+            TransmitMessage(msg);
+            }
+            break;
+            
+        case share_opcodes::request_full_update:
+            ::Logger << "[Database::SendNetworkUpdate] request_full_update\n";
+            // request full update from the network
+            RequestFullUpdate();
+            break;
+        
+        default:
+            // hmm...
+            ::Logger << "[Database::SendNetworkUpdate] unknown opcode: "
+                     << unsigned int(opcode) << "\n";
+            break;
+        } // end switch opcode
     // done
     return;
 } // end SendNetworkUpdate
+
+void Database::RequestFullUpdate(void)
+{
+    // send full update request
+    TransmitMessage(sharemessages::request_full_update());
+
+    // set flag: we will do a full update as well
+    {
+    // lock database: this makes sure we are not in the maintainance
+    // functions when the flag is set (maintenance clears the flag)
+    AutoLock al(DBMutex);
+    bFullUpdateRequest=true;
+    }
+    
+    // done
+    return;
+} // end RequestFullUpdate
 
 void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 {
@@ -608,6 +733,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
         {
         case share_opcodes::request_full_update:
             {
+            //::Logger << "[share_opcodes::request_full_update]\n";
             const sharemessages::request_full_update* p=static_cast<const sharemessages::request_full_update*>(msg);
             
             // no data in this message, but we set the full update flag
@@ -618,6 +744,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
         case share_opcodes::full_update:
             {
+            //::Logger << "[share_opcodes::full_update]\n";
             const sharemessages::full_update* p=static_cast<const sharemessages::full_update*>(msg);
             
             // first, see if we have this actor. The infoid
@@ -664,6 +791,9 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                 // save update time
                 ThisActor.SetLastUpdateTime(::Clock.Current());
                 
+                // clear old flag
+                ThisActor.SetOld(false);
+                
                 // save net data to be = to the motion data
                 // we just got
                 ThisActor.SetNet(ThisActor.GetMotion());
@@ -697,6 +827,9 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                     // save update time
                     pa->SetLastUpdateTime(::Clock.Current());
 
+                    // clear old flag
+                    pa->SetOld(false);
+
                     // save net data to be = to the motion data
                     // we just got
                     pa->SetNet(pa->GetMotion());
@@ -707,6 +840,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
         case share_opcodes::heartbeat_update:
             {
+            //::Logger << "[share_opcodes::heartbeat_update]\n";
             const sharemessages::heartbeat_update* p=static_cast<const sharemessages::heartbeat_update*>(msg);
             
             // find the actor
@@ -714,11 +848,25 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
             if(pa)
                 {
-                // save update time, somebody out there still sees this actor
-                // if the dead reckoning threshold has been violated, we would
-                // have gotten threshold_update instead to update the position.
-                pa->SetLastUpdateTime(::Clock.Current());
-                }
+                // if we do not have recent data, then store the info
+                if(::Clock.Current() - pa->GetLastUpdateTime() > MinNetworkTime)
+                    {
+                    // save update time, somebody out there still sees this actor
+                    // if the dead reckoning threshold has been violated, we would
+                    // have gotten threshold_update instead to update the position.
+                    pa->SetLastUpdateTime(::Clock.Current());
+                    
+                    // clear old flag
+                    pa->SetOld(false);
+
+                    // save other data from message
+                    pa->SetLevel(p->data.level);
+                    pa->SetHealth(p->data.health);
+                    
+                    // set net=maintenance
+                    pa->SetNet(pa->GetMotion());
+                    } // end if we don't have any other recent data
+                } // end if actor exists
             else
                 {
                 // got heartbeat on an actor we don't hold! Hmmm.
@@ -729,6 +877,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
         case share_opcodes::threshold_update:
             {
+            //::Logger << "[share_opcodes::threshold_update]\n";
             const sharemessages::threshold_update* p=static_cast<const sharemessages::threshold_update*>(msg);
             
             // we get this message when the sender determines that 
@@ -750,6 +899,9 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
                 // save update time
                 pa->SetLastUpdateTime(::Clock.Current());
                 
+                // clear old flag
+                pa->SetOld(false);
+
                 // set net to be = to the motion stuff we just got
                 pa->SetNet(pa->GetMotion());
                 }
@@ -763,6 +915,7 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             
         case share_opcodes::visibility_update:
             {
+            //::Logger << "[share_opcodes::visibility_update]\n";
             const sharemessages::visibility_update* p=static_cast<const sharemessages::visibility_update*>(msg);
             
             // we get this message when someone needs to update the visibility on this actor
@@ -771,13 +924,16 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             if(pa)
                 {
                 // save visiblity info
-                if(p->data.visibility & 0x01)
+                if(p->data.visibility & sharemessages::visibility_update::impl_t::stealth)
                     {
                     pa->SetStealth(true);
                     }
 
                 // save update time
                 pa->SetLastUpdateTime(::Clock.Current());
+
+                // clear old flag
+                pa->SetOld(false);
                 }
             else
                 {
@@ -855,6 +1011,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             /*
             if(ThisActor.GetId() == ThisActor.GetInfoId())
@@ -905,6 +1062,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             //ThisActor.Print(os);
             //os << '\0'; // put null terminator in its place
@@ -951,6 +1109,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save update time
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             //ThisActor.Print(os);
             //os << '\0'; // put null terminator in its place
@@ -1077,6 +1236,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             //ThisActor.Print(os);
             //os << '\0'; // put null terminator in its place
@@ -1160,6 +1320,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             if(bInserted)
                 {
@@ -1175,6 +1336,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.Print(os);
             Logger << "selfid_pos: " << os.str().c_str() << "\n";
             os.str(""); // put null terminator in its place
+            
+            // send full update to the network
+            //SendNetworkUpdate(ThisActor,share_opcodes::full_update);
             /*
             Logger << "[Database::HandleSniffedMessage] self id position (" << p->self_id << "):\n"
                    << "<" << p->x << "," << p->y <<">\n";
@@ -1230,6 +1394,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             if(bye==NULL)
                 {
@@ -1241,6 +1406,10 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 // already existed! fire event
                 ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
                 }
+
+            // send full update to the network
+            SendNetworkUpdate(ThisActor,share_opcodes::full_update);
+
             /*
             ThisActor.Print(os);
             Logger << "object_id: " << os.str().c_str() << "\n";
@@ -1304,6 +1473,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             if(bye!=NULL)
                 {
@@ -1315,6 +1485,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 // already existed! fire event
                 ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
                 }
+
+            // send full update to the network
+            SendNetworkUpdate(ThisActor,share_opcodes::full_update);
 
             /*
             ThisActor.Print(os);
@@ -1402,6 +1575,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             if(bInserted)
                 {
@@ -1413,6 +1587,9 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 // already existed! fire event
                 ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
                 }
+
+            // send full update to network
+            SendNetworkUpdate(ThisActor,share_opcodes::full_update);
 
             /*
             ThisActor.Print(os);
@@ -1459,6 +1636,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetOld(false);
 
             ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
 
             //ThisActor.Print(os);
             //os << '\0'; // put null terminator in its place
@@ -1580,9 +1758,13 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             pa->SetOld(false);
 
             pa->SetLastUpdateTime(::Clock.Current());
+            pa->SetLastLocalTime(pa->GetLastUpdateTime());
 
             // fire event -- we may be renaming a toon here
             ActorEvents[DatabaseEvents::ActorReassigned](*pa);
+           
+            // send full update to the network
+            SendNetworkUpdate(*pa,share_opcodes::full_update);
 
             pa->Print(os);
             Logger << "player_level_name: " << os.str().c_str() << "\n";
@@ -1611,6 +1793,8 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             
             ThisActor.SetStealth(true);
             
+            ThisActor.SetLastLocalTime(::Clock.Current());
+
             // if this is an old actor, we want to keep it "alive" since we are
             // still seeing packets for it
             if(ThisActor.GetOld())
@@ -1620,7 +1804,12 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 // database will never delete it -- unless we stop receiving
                 // packets for it.
                 ThisActor.SetLastUpdateTime(::Clock.Current());
+                ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
                 }
+
+            // send visibility update to the network
+            SendNetworkUpdate(ThisActor,share_opcodes::visibility_update);
+
             }
             break;
 

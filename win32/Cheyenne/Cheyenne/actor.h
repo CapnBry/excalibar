@@ -356,6 +356,7 @@ public:
            << "Guild=" << GetGuild() << "\n"
            << "LastUpdateTime=" << GetLastUpdateTime().Seconds() << "\n"
            << "NetTime=" << GetNetTime().Seconds() << "\n"
+           << "LastLocalTime=" << GetLastLocalTime().Seconds() << "\n"
            << "TargetId=" << GetTargetId() << "\n"
            << "InRegion=" << (int)GetRegion() << "\n"
            << "ActorType=" << GetActorType() << "\n"
@@ -391,6 +392,7 @@ private:
         MEMBER_ASSIGN(StealthCycleC);
         MEMBER_ASSIGN(Net);
         MEMBER_ASSIGN(NetTime);
+        MEMBER_ASSIGN(LastLocalTime);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -416,4 +418,5 @@ private:
                                      // goes from 0 to 1 to 0 every 2 seconds
     DECL_MEMBER(Motion,Net); // network motion data
     DECL_MEMBER(CheyenneTime,NetTime); // time this actor was last seen on the shared network
+    DECL_MEMBER(CheyenneTime,LastLocalTime); // time this actor was last seen locally (via sniffer)
 }; // end class Actor

@@ -16,10 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef SNIFFER_H
-#define SNIFFER_H
 #pragma once
-
 
 #include <winsock2.h>
 #include <windows.h>
@@ -50,7 +47,7 @@ public:
 
     bool Go(tsfifo<CheyenneMessage*>* p);
     void Stop(void);
-    bool IsDAOCConnection(const struct tuple4& connection,bool bIgnorePort)const;
+    static bool IsDAOCConnection(const struct tuple4& connection,bool bIgnorePort);
     void PrintConnections(void);
 
 protected:
@@ -89,5 +86,106 @@ private:
     tsfifo<CheyenneMessage*>* MessageOutputFifo;
 }; // end class DAOCConnection
 
+template<typename STORAGE_T> class PktLoadSniffer : public Thread
+{
+public:
+    PktLoadSniffer() : Storage(std::string("daoc.pkt")){};
+    virtual ~PktLoadSniffer(){};
 
-#endif //SNIFFER_H
+    bool IsDAOCConnection(const struct tuple4& connection,bool bIgnorePort)
+    {
+        // use static member in Sniffer class
+        return(Sniffer::IsDAOCConnection(connection,bIgnorePort));
+    }
+    void PrintConnections(void){};
+protected:
+private:
+    void ProcessPacket(const typename STORAGE_T::PACKET_T& pkt)
+    {
+        //::Logger << "[PktLoadSniffer::ProcessPacket] Processing packet, len=" << pkt.GetLen()
+                    //<< " time=" << pkt.GetTime() << "\n";
+
+        if(pkt.GetTCP())
+            {
+            if(pkt.GetFromServer())
+                {
+                FakeConnection.FromTCPServer(pkt.GetData(),pkt.GetLen());
+                } // end if TCP from server
+            else
+                {
+                FakeConnection.FromTCPClient(pkt.GetData(),pkt.GetLen());
+                } // end else TCP from client
+            } // end if TCP
+        else
+            {
+            if(pkt.GetFromServer())
+                {
+                FakeConnection.FromUDPServer(pkt.GetData(),pkt.GetLen());
+                } // end if UDP from server
+            else
+                {
+                FakeConnection.FromUDPClient(pkt.GetData(),pkt.GetLen());
+                } // end else UDP from client
+            } // end else UDP
+    } // end ProcessPacket
+    
+    virtual DWORD Run(const bool& bContinue)
+    {
+        // if the file failed to load, then stop here
+        if(!Storage.good())
+            {
+            return(-1);
+            }
+        
+        // sleep a little bit to let the system init (this is for debugging ;)
+        Sleep(10000);
+        
+        // recover the parameter passed to us
+        tsfifo<CheyenneMessage*>* MessageOutputFifo=static_cast<tsfifo<CheyenneMessage*>*>(GoParam);
+        
+        // start connection
+        FakeConnection.Go(MessageOutputFifo);
+        
+        typename STORAGE_T::PACKET_T pkt;
+        
+        // get first packet
+        Storage >> pkt;
+        // difference in time between
+        // ::Clock when we started and
+        // the timestamp in the first packetdouble TimeDiff; 
+        const double TimeDiff = ::Clock.Current().Seconds() - pkt.GetTime();
+        
+        // process first packet immediately
+        ProcessPacket(pkt);
+        
+        while(bContinue && !Storage.eof())
+            {
+            // get next packet
+            Storage >> pkt;
+            
+            // see when to process it
+            double SleepTime=pkt.GetTime() + TimeDiff - ::Clock.Current().Seconds();
+            
+            if(SleepTime > 0.010)
+                {
+                //::Logger << "[PktLoadSniffer::Run] Sleeping " << SleepTime << " seconds for next packet\n";
+                Sleep((DWORD)(1000*SleepTime));
+                }
+            
+            // process it
+            ProcessPacket(pkt);
+            } // end forever
+        
+        ::Logger << "[PktLoadSniffer::Run] exiting, Storage.eof()=" << Storage.eof() << "\n";
+        // stop connection
+        FakeConnection.Stop();
+        
+        return(0);
+    } // end Run
+
+    PktLoadSniffer(const PktLoadSniffer& s); // disallow
+    PktLoadSniffer& operator=(const PktLoadSniffer& s); // disallow
+
+    STORAGE_T Storage;
+    DAOCConnection FakeConnection;
+}; // end class PktLoadSniffer

@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
 #pragma once
 
+#pragma pack(push,b1,1)
+
 class CheyenneMessage
 {
 public:
@@ -393,8 +395,19 @@ public:
     ShareMessage(){bSniffed=false;};
     virtual ~ShareMessage(){};
     share_opcodes::opcode_t GetOpcode(void)const{return(opcode);};
+    virtual unsigned short GetTransmissionSize(void)const=0;
+    virtual void* const CreateTransmissionBuffer(void)const=0;
+    virtual void FreeTransmissionBuffer(void* buf)const=0;
 
 protected:
+    template<class IMPL_T>void* const PopulateTransmissionBuffer(const IMPL_T& data)const
+    {
+        unsigned char* buf=new unsigned char[GetTransmissionSize()];
+        buf[0]=GetOpcode();
+        IMPL_T& impl=*reinterpret_cast<IMPL_T*>(&buf[1]);
+        impl=data;
+        return(buf);
+    }
     share_opcodes::opcode_t opcode;
 private:
 }; // end ShareMessage
@@ -409,6 +422,26 @@ struct request_full_update : public sharemessages::ShareMessage
     
     typedef request_full_update_data impl_t;
     
+    // this message does not have an implementation (implementation size==0)
+    virtual unsigned short GetTransmissionSize(void)const
+    {
+        return(sizeof(opcode));
+    }
+
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        // since impl_t is really 0 bytes, but sizeof() will
+        // always give at least 1 byte, we must implement
+        // PopulateTransmissionBuffer ourselves
+        unsigned char* buf=new unsigned char[GetTransmissionSize()];
+        buf[0]=GetOpcode();
+        return(buf);
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
     impl_t data;
     }; // end request_full_update
 
@@ -417,6 +450,8 @@ struct full_update_data
     char name[33];
     char surname[33];
     char guild[33];
+    unsigned int id;
+    unsigned int infoid;
     float x;
     float y;
     float z;
@@ -425,8 +460,6 @@ struct full_update_data
     unsigned char health;
     unsigned char level;
     unsigned char realm;
-    unsigned int id;
-    unsigned int infoid;
     int type; // actor type (player, mob, object)
     unsigned char region;
     unsigned char stealth;
@@ -438,12 +471,24 @@ struct full_update : public sharemessages::ShareMessage
     
     typedef full_update_data impl_t;
     
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
     impl_t data;
     }; // end full_update
     
 struct heartbeat_update_data
     {
     unsigned int infoid;
+    unsigned char health;
+    unsigned char level;
     }; // end struct heartbeat_update_data;
 struct heartbeat_update : public sharemessages::ShareMessage
     {
@@ -452,6 +497,16 @@ struct heartbeat_update : public sharemessages::ShareMessage
     
     typedef heartbeat_update_data impl_t;
     
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
     impl_t data;
     }; // end heartbeat_update
     
@@ -463,6 +518,8 @@ struct threshold_update_data
     float heading;
     float speed;
     unsigned int infoid;
+    unsigned char health;
+    unsigned char level;
     }; // end threshold_update_data
     
 struct threshold_update : public sharemessages::ShareMessage
@@ -472,11 +529,25 @@ struct threshold_update : public sharemessages::ShareMessage
     
     typedef threshold_update_data impl_t;
     
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
     impl_t data;
     }; // end threshold_update
     
 struct visibility_update_data
     {
+    enum VISIBILITY_BITS
+    {
+        stealth=0x01 // stealth bit
+    };
     unsigned char visibility; // bits:
                               // 1 is stealth
     unsigned int infoid;
@@ -488,6 +559,18 @@ struct visibility_update : public sharemessages::ShareMessage
     
     typedef visibility_update_data impl_t;
     
+    virtual unsigned short GetTransmissionSize(void)const{return(sizeof(share_opcodes::opcode_t)+sizeof(data));};
+    virtual void* const CreateTransmissionBuffer(void)const
+    {
+        return(PopulateTransmissionBuffer(data));
+    }
+    virtual void FreeTransmissionBuffer(void* buf)const
+    {
+        delete[] buf;
+    }
+
     impl_t data;
     }; // end visibility_update
 }; // end namespace sharemessages
+
+#pragma pack(pop,b1)

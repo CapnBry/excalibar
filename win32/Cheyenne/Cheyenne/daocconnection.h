@@ -16,9 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef DAOC_CONNECTION_H
-#define DAOC_CONNECTION_H
-
 #pragma once
 
 #include <list>
@@ -51,7 +48,7 @@ void GetPascalString(char** unallocated_string,int& start,const unsigned char* b
 void GetZeroString(char** unallocated_string,int& start,const unsigned char* buf,const unsigned int& minlen);
 } // end pre-define for buffer_space namespace
 
-const connection_buffer_size=0xFFFF; // 64k
+//const connection_buffer_size=0xFFFF; // 64k
 
 class DAOCConnection
 {
@@ -66,11 +63,12 @@ public:
     bool Go(tsfifo<CheyenneMessage*>* p);
     void Stop(void);
 
-    void FromTCPServer(const char* bytes,const unsigned int& length);
-    void FromTCPClient(const char* bytes,const unsigned int& length);
-    void FromUDPServer(const char* bytes,const unsigned int& length);
-    void FromUDPClient(const char* bytes,const unsigned int& length);
-    void FromUDPUnknown(const char* bytes,const unsigned int& length);
+    // sniffing api
+    virtual void FromTCPServer(const char* bytes,const unsigned int& length);
+    virtual void FromTCPClient(const char* bytes,const unsigned int& length);
+    virtual void FromUDPServer(const char* bytes,const unsigned int& length);
+    virtual void FromUDPClient(const char* bytes,const unsigned int& length);
+    virtual void FromUDPUnknown(const char* bytes,const unsigned int& length);
 
     // crypto
     void Decrypt(unsigned char* data,int data_size);
@@ -157,5 +155,41 @@ private:
 
 }; // end class DAOCConnection
 
+template<typename STORAGE_T> class StoringDAOCConnection : public DAOCConnection
+{
+public:
+    StoringDAOCConnection() : Storage(std::string("daoc.pkt")){};
+    StoringDAOCConnection(const StoringDAOCConnection& s) : DAOCConnection(s),Storage(std::string("daoc.pkt")){};
+    virtual ~StoringDAOCConnection(){};
 
-#endif //DAOC_CONNECTION_H
+    StoringDAOCConnection& operator=(const StoringDAOCConnection& s)
+    {
+        DAOCConnection::operator =(s);
+        return(*this);
+    }
+
+    // sniffing api
+    virtual void FromTCPServer(const char* bytes,const unsigned int& length)
+    {
+        Storage << typename STORAGE_T::PACKET_T(true,true,::Clock.Current().Seconds(),bytes,length);
+        DAOCConnection::FromTCPServer(bytes,length);
+    }
+    virtual void FromTCPClient(const char* bytes,const unsigned int& length)
+    {
+        Storage << typename STORAGE_T::PACKET_T(true,false,::Clock.Current().Seconds(),bytes,length);
+        DAOCConnection::FromTCPClient(bytes,length);
+    }
+    virtual void FromUDPServer(const char* bytes,const unsigned int& length)
+    {
+        Storage << typename STORAGE_T::PACKET_T(false,true,::Clock.Current().Seconds(),bytes,length);
+        DAOCConnection::FromUDPServer(bytes,length);
+    }
+    virtual void FromUDPClient(const char* bytes,const unsigned int& length)
+    {
+        Storage << typename STORAGE_T::PACKET_T(false,false,::Clock.Current().Seconds(),bytes,length);
+        DAOCConnection::FromUDPClient(bytes,length);
+    }
+protected:
+private:
+    STORAGE_T Storage;
+}; // end StoringDAOCConnection

@@ -42,11 +42,13 @@ public:
     virtual ~DatabaseFunctor(){};
 
     void operator()(const Actor& a){DoIt(a);};
+    void operator()(const void* p,const unsigned int len){DoIt(p,len);};
     void operator()(void){DoIt();};
 
 protected:
     virtual void DoIt(const Actor& a){};
     virtual void DoIt(void){};
+    virtual void DoIt(const void* p,const unsigned int len){};
 
 private:
     DatabaseFunctor& operator=(const DatabaseFunctor& s);
@@ -72,6 +74,14 @@ public:
         if(wrapped.get() != NULL)
             {
             (*wrapped)();
+            }
+    };
+
+    void operator()(const void* p,const unsigned short l)
+    {
+        if(wrapped.get() != NULL)
+            {
+            (*wrapped)(p,l);
             }
     };
 
@@ -185,6 +195,7 @@ public:
         ActorDeleted,
         ActorReassigned,
         MaintenanceIntervalDone,
+        SharenetMessage,
         _LastEvent
     };
 
@@ -213,6 +224,8 @@ public:
     unsigned char GetGroundTargetRegion(void)const{return(GroundTargetRegion);};
     
     static Database::id_type GetUniqueId(const unsigned short region,const Database::id_type id_or_infoid);
+    
+    void RequestFullUpdate(void);
 
 protected:
 private:
@@ -225,7 +238,19 @@ private:
     void HandleShareMessage(const sharemessages::ShareMessage* msg);
     void DoMaintenance(void);
     void IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor);
-    void SendNetworkUpdate(const Actor& ThisActor,share_opcodes::c_opcode_t opcode)const;
+    void SendNetworkUpdate(const Actor& ThisActor,share_opcodes::c_opcode_t opcode);
+    
+    template<class MSG_T> void TransmitMessage(const MSG_T& msg)
+    {
+        // make buffer
+        void* const transmission=msg.CreateTransmissionBuffer();
+        
+        // send buffer
+        ActorEvents[Database::SharenetMessage](transmission,msg.GetTransmissionSize());
+        
+        // free buffer
+        msg.FreeTransmissionBuffer(transmission);
+    }
 
     void ResetDatabase(void);
 

@@ -16,16 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef CENTRAL_H
-#define CENTRAL_H
-
 #pragma once
-
-#pragma warning(push)
-
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
 
 #include "global.h"
 #include <map>
@@ -37,6 +28,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "soundspool.h"
 #include "sharenet.h"
 #include "..\..\Common\MobsightParse\MobsightParseAPI.h" // for mobfinder stuff
+#include "..\..\Common\PacketStore\PacketStore.h" // include for offline packet storage
+
+//typedef Sniffer SNIFFER_T; // use this for 'normal' sniffing operation
+typedef PktLoadSniffer<PacketStore<std::ifstream> > SNIFFER_T; // use this for loading saved packet files
 
 class Central
 {
@@ -46,6 +41,7 @@ friend class NewActorFunctor;
 friend class DeleteActorFunctor;
 friend class ReassignActorFunctor;
 friend class MaintenanceIntervalDoneFunctor;
+friend class SharenetMessageFunctor;
 friend class VectorMapItem;
 public:
     Central();
@@ -143,7 +139,7 @@ public:
     typedef GeneralTextureMapType::iterator GeneralTextureMapIteratorType;
     typedef GeneralTextureMapType::const_iterator GeneralTextureMapConstIteratorType;
     typedef GeneralTextureMapType::value_type GeneralTextureMapValueType;
-
+    
     class TargetPair
     {
     public:
@@ -193,6 +189,9 @@ private:
     void OnDeleteActor(const Actor& ThisActor);
     void OnReassignActor(const Actor& ThisActor);
     void OnMaintenanceIntervalDone(void);
+    void OnSharenetMessage(const void* p,const unsigned int len);
+    
+    void OpenShareNet(void);
 
     static LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
     void HandleMainWindowSizing(RECT* r);
@@ -307,7 +306,7 @@ private:
     
     tsfifo<CheyenneMessage*> MessageInputFifo;
 
-    Sniffer sniffer;
+    SNIFFER_T sniffer;
     Database db;
     HINSTANCE hInstance;
     HWND hMainWnd;
@@ -385,7 +384,3 @@ private:
     mutable CheyenneTime FrameMeasureStart;
 
 }; // end Central
-
-#pragma warning(pop)
-
-#endif // CENTRAL_H

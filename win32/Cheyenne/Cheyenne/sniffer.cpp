@@ -30,6 +30,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "netinet\in_systm.h"
 #include "netinet\ip.h"
 
+#include "..\..\Common\PacketStore\PacketStore.h" // include for offline packet storage
+
+//typedef DAOCConnection DAOC_CONNECTION;
+typedef StoringDAOCConnection<PacketStore<std::ofstream> > DAOC_CONNECTION;
+
 Sniffer::Sniffer()
 {
     hThread=NULL;
@@ -37,7 +42,7 @@ Sniffer::Sniffer()
     bContinue=false;
     bRunning=false;
     MessageOutputFifo=NULL;
-    DefaultUDPConnection=new DAOCConnection;
+    DefaultUDPConnection=new DAOCConnection; // this must always be a 'real' connection
 
 } // end Sniffer
 
@@ -367,7 +372,7 @@ DWORD Sniffer::Run(void)
     while(bContinue)
         {
         tv.tv_sec = 0;
-        tv.tv_usec = 5000;
+        tv.tv_usec = 500000; // 500ms
         FD_ZERO (&rset);
         FD_SET (fd, &rset);
         // add any other fd we need to take care of
@@ -395,7 +400,7 @@ DWORD Sniffer::Run(void)
     return(0);
 } // end Run
 
-bool Sniffer::IsDAOCConnection(const struct tuple4& connection,bool bIgnorePort)const
+bool Sniffer::IsDAOCConnection(const struct tuple4& connection,bool bIgnorePort)
 {
     in_addr mask[3];
     mask[0].S_un.S_un_b.s_b1=208;
@@ -488,7 +493,7 @@ void Sniffer::PrintConnections(void)
 void Sniffer::NewConnection(const tuple4& key)
 {
     // create a new value
-    DAOCConnection* conn=new DAOCConnection;
+    DAOCConnection* conn=new DAOC_CONNECTION;
     sniff_map_value value(key,conn);
     // add it to map
     sniff_map_insert_result result=sniff_map.insert(value);
@@ -595,3 +600,4 @@ DAOCConnection* Sniffer::GetUDPConnectionByClient(const tuple4& key,SOURCE_TYPE&
     src=SourceNotFound;
     return(DefaultUDPConnection);
 } // end GetConnection(key,src,dst)
+

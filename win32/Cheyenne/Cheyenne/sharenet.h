@@ -67,7 +67,7 @@ public:
             }
     }
 
-    bool QueueOutputMessage(const void* data,const unsigned int length);
+    bool QueueOutputMessage(const void* data,const unsigned short length);
 
     bool Open(const std::string& remote_addr,const std::string& remote_port);
     void Close(void);
@@ -102,7 +102,7 @@ private:
     {
         unsigned short sz;
         sz=sizeof(sz);
-        QueueOutputMessage(&sz,sz);
+        ModifyOutputBuffer().Insert(&sz,sz);
     } // end SendPing
     
     void BuildShareMessage(const unsigned char* buf, const unsigned short len);

@@ -338,6 +338,7 @@ void DAOCConnection::set(const DAOCConnection& s)
     serverprotocol=s.serverprotocol;
     memcpy(&crypt_key[0],&s.crypt_key[0],sizeof(crypt_key));
     self_id=s.self_id;
+    self_region=s.self_region;
     fifo=s.fifo;
 
     // done

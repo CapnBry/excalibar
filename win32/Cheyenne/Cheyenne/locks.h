@@ -31,7 +31,7 @@ public:
     Lock(){};
     virtual ~Lock(){};
 
-    virtual bool lock(unsigned int timeout_ms=1000)=0;
+    virtual bool lock(unsigned int timeout_ms=10000)=0;
     virtual bool unlock(void)=0;
 
 protected:
@@ -63,7 +63,7 @@ public:
 
     virtual ~MutexLock(){CloseHandle(hMutex);};
 
-    virtual bool lock(unsigned int timeout_ms=1000)
+    virtual bool lock(unsigned int timeout_ms=10000)
     {
         switch(WaitForSingleObject(hMutex,timeout_ms))
             {
@@ -100,7 +100,7 @@ public:
     NoLock(const NoLock& s){};
     virtual ~NoLock(){};
 
-    virtual bool lock(unsigned int timeout_ms=1000)
+    virtual bool lock(unsigned int timeout_ms=10000)
     {
     return(true);
     } // end lock
@@ -133,7 +133,7 @@ public:
         DeleteCriticalSection(&cs);
     }
 
-    virtual bool lock(unsigned int timeout_ms=1000)
+    virtual bool lock(unsigned int timeout_ms=10000)
     {
         EnterCriticalSection(&cs);
         return(true);
@@ -155,13 +155,13 @@ private:
 class AutoLock
 {
 public:
-    AutoLock(Lock* l=NULL,unsigned int timeout_ms=1000)
+    AutoLock(Lock* l=NULL,unsigned int timeout_ms=10000)
     {
         my_lock=l;
         my_lock->lock(timeout_ms);
     }
 
-    AutoLock(Lock& l,unsigned int timeout_ms=1000)
+    AutoLock(Lock& l,unsigned int timeout_ms=10000)
     {
         my_lock=&l;
         my_lock->lock(timeout_ms);

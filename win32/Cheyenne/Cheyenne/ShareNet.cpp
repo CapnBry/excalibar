@@ -36,7 +36,7 @@ template <typename MSG_T> CheyenneMessage* ShareMsgPopulate
     const unsigned char* opcode_msg_ptr // points to the opcode in the message
     )
 {
-    // make new message
+    // make new message, constructor fills in the opcode
     MSG_T* msg=new MSG_T;
     // alias into message implementation
     const typename MSG_T::impl_t* data=reinterpret_cast<const typename MSG_T::impl_t*>(&opcode_msg_ptr[sizeof(share_opcodes::opcode_t)]);
@@ -59,12 +59,12 @@ VOID CALLBACK ShareNetClientData::ReadCompletionRoutine
     // "context" parameter.
     ShareNetClientData* pMe=(ShareNetClientData*)lpOverlapped->hEvent;
     
-    //Logger << "[ShareNetClientData::ReadCompletionRoutine] size=" << dwNumberOfBytesTransfered << "\n";
+    //::Logger << "[ShareNetClientData::ReadCompletionRoutine] got " << dwNumberOfBytesTransfered << " bytes\n";
     
     // if we get here and there's no data, assume something bad happened
     if(dwNumberOfBytesTransfered == 0)
         {
-        Logger << "[ShareNetClientData::ReadCompletionRoutine] closing!" << "\n";
+        Logger << "[ShareNetClientData::ReadCompletionRoutine] closing! " << WSAGetLastError() << "\n";
         pMe->Close();
         return;
         }
@@ -104,6 +104,8 @@ bool ShareNetClientData::DoOutputMaintenance(void)
         ModifyOutputBuffer().Extract(&buf[0],err);
         }
     
+    //::Logger << "[ShareNetClientData::DoOutputMaintenance] sent " << err << " bytes\n";
+    
     // done, return true to indicate that there is 
     // something else to do, false to indicate
     // that the output queue is empty
@@ -112,9 +114,16 @@ bool ShareNetClientData::DoOutputMaintenance(void)
 
 bool ShareNetClientData::DoInputMaintenance(void)
 {
+    // lock input buffer -- this is to prevent us from looping
+    // in the while loop if we receive a partial message: 
+    // the while loop resets the data signal if it needs more
+    // data. The signal will be set again when more data
+    // arrives
+    ModifyInputBuffer().Lock();
+    
     // build messages from the input buffer
     unsigned short sz;
-    if(ModifyInputBuffer().Peek(&sz,sizeof(sz)))
+    while(ModifyInputBuffer().Peek(&sz,sizeof(sz)))
         {
         unsigned char data[TempBufferSize];
         if(ModifyInputBuffer().Extract(&data[0],sz))
@@ -129,10 +138,24 @@ bool ShareNetClientData::DoInputMaintenance(void)
             else
                 {
                 // handle a sharemessage
+                //::Logger << "[ShareNetClientData::DoInputMaintenance] message size=" << sz << ":\n";
+                //for(int i=0;i<sz;++i)
+                    //{
+                    //::Logger << unsigned int(data[i]) << "\n";
+                    //}
                 BuildShareMessage(&data[0],sz);
                 }
             } // end if we have an entire message available 
-        } // end if we got a size 
+        else
+            {
+            // reset data signal
+            ModifyInputBuffer().GetSignalReference().reset();
+            break;
+            } // end else not enough data was available
+        } // end while we got a size 
+    
+    // unlock input buffer
+    ModifyInputBuffer().Unlock();
     
     // grab in 2k chunks
     
@@ -258,6 +281,7 @@ bool ShareNetClientData::Open
 {
     if(IsInUse())
         {
+        ::Logger << "[ShareNetClientData::Open] already in use!\n";
         return(false);
         }
 
@@ -355,24 +379,48 @@ bool ShareNetClientData::Open(SOCKET s)
     return(true);
 } // end Open w/SOCKET
 
-bool ShareNetClientData::QueueOutputMessage(const void* data,const unsigned int length)
+bool ShareNetClientData::QueueOutputMessage(const void* data,const unsigned short length)
 {
     // this function can block the calling thread!
     
+    // length MUST NOT include the prepended size (that is a function of ShareNet, not any client of ShareNet)!
+    
     if(!IsInUse())
         {
+        ::Logger << "[ShareNetClientData::QueueOutputMessage] not connected!\n";
         return(false);
         }
     
-    // the buffer provides its own thread safety
+    // the buffer provides its own thread safety, but
+    // since it is important the the size immediately
+    // precede the data it references, we lock the buffer
+    // ourselves
+
+    // insert size
+    unsigned short sz=length+sizeof(sz);
+    
+    ModifyOutputBuffer().Lock();
+    if(!ModifyOutputBuffer().Insert(&sz,sizeof(sz)))
+        {
+        // woops
+        ModifyOutputBuffer().Unlock();
+        ::Logger << "[ShareNetClientData::QueueOutputMessage] can't add size!\n";
+        return(false);
+        }
+    
     if(ModifyOutputBuffer().Insert(data,length))
         {
         // attempt to send immediately
         //DoOutputMaintenance();
+        ModifyOutputBuffer().Unlock();
         return(true);
         }
     else
         {
+        ::Logger << "[ShareNetClientData::QueueOutputMessage] can't add message!\n";
+        // remove the size we already added to the buffer
+        ModifyOutputBuffer().Extract(&sz,sizeof(sz));
+        ModifyOutputBuffer().Unlock();
         return(false);
         }
 } // end QueueOutputMessage
@@ -462,7 +510,7 @@ void ShareNetClientData::BuildShareMessage
     // third byte is the opcode
     // alias pointer to opcode and go from there
     const unsigned char* message=&buf[sizeof(unsigned short)];
-    share_opcodes::c_opcode_t opcode=message[1];
+    share_opcodes::c_opcode_t opcode=message[0];
     
     switch(opcode)
         {
