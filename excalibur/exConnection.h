@@ -124,6 +124,7 @@ public:
   void updateProjectedPlayer(void);
   void updateObjectTypeCounts(void);
   void mobWentStale(exMob *m);
+  void parseCharacterInfoList(exPacket *p);
 };
 
 #endif

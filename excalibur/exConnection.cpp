@@ -376,7 +376,7 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;
-	  case 0xbd:
+	  case 0xbd:               
 	    parseObjectStopped(p);
 	    break;
 	  case 0x8a:
@@ -387,25 +387,7 @@ void exConnection::processPacket(exPacket * p)
 	      cryptkey = p->getBytes(12);
 	      break;
 	  case 0x55:
-	      p->seek(24);
-	      do {
-		  name = p->getZeroString(48);
-		  p->seek(74);
-                  mobrealm = (Realm) p->getByte();
-                  p->seek(3);
-		  zone = p->getByte();
-		  p->seek(57);
-		  if ((name.length() > 0) && (zone != 0)) {
-		      intptr = new int;
-
-		      *intptr = zone;
-		      playerzones.replace(name, intptr);
-                      rptr = new Realm;
-                      *rptr = mobrealm;
-                      playerrealms.replace(name, rptr);
-		  }
-	      } while (name.length() > 0);
-              updateObjectTypeCounts();
+              parseCharacterInfoList(p);
               break;
 	  case 0x88:
 	      selfid = id = p->getShort();
@@ -534,7 +516,7 @@ END_EXPERIMENTAL_CODE
 	      }
 	      break;
 	  case 0x1f:
-	      playerzone = p->getShort();
+              playerzone = p->getShort();
 	      intptr = playerzones.find(playername);
 	      if (intptr) {
 		*intptr = playerzone;
@@ -563,7 +545,7 @@ END_EXPERIMENTAL_CODE
                   title = QString("Excalibur -- ").append(playername);
                   if (link)
                     title = title.append("  ").append(link->descr());
-		  ex->setCaption(title);
+                  ex->setCaption(title);
 		  if (playerzone == 0) {
 		      intptr = playerzones.find(playername);
 		      if (intptr) {
@@ -911,5 +893,41 @@ void exConnection::mobWentStale(exMob *m)
 {
     ex->ListViewMobs->takeItem(m);
     updateObjectTypeCounts();
+}
+
+void exConnection::parseCharacterInfoList(exPacket *p)
+{
+    QString name;
+    Realm character_realm;
+    int zone;
+    int characters_left;
+    int *intptr;
+    Realm *rptr;
+
+    /*
+     Mythic said "No account shall ever have more than 4 characters
+     because it's too hard to change".  So they make our lives easy
+     */
+    characters_left = 4;
+
+    p->seek(24);
+    while (characters_left) {
+        name = p->getZeroString(48);
+        p->seek(74);
+        character_realm = (Realm) p->getByte();
+        p->seek(3);
+        zone = p->getByte();
+        p->seek(57);
+        if ((name.length() > 0) && (zone != 0)) {
+            intptr = new int;
+            *intptr = zone;
+            playerzones.replace(name, intptr);
+            rptr = new Realm;
+            *rptr = character_realm;
+            playerrealms.replace(name, rptr);
+        }
+
+        characters_left--;
+    } // while chars left
 }
 
