@@ -6,7 +6,7 @@ uses
 {$IFDEF LINUX}
 {$ELSE}
   Windows, Messages, Graphics, Controls, Forms, Dialogs, ColorGrd, Spin,
-  StdCtrls, 
+  StdCtrls,
 {$ENDIF !LINUX}
   SysUtils, Classes, INIFiles, DAOCObjs, DAOCRegion, DAOCConSystem,
   GLRenderObjects, ExtCtrls, ComCtrls, Buttons;
