@@ -355,10 +355,8 @@ void exMap::paintGL() {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  if (mi)
-    glRotatef(0.0,0.0,0.0,1.0);
   if (prefs.map_rotate)
-    glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
+      glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
   glRotatef(180.0,1.0,0.0,0.0);
 
   minx=c->playerProjectedX - range + edit_xofs;
@@ -440,119 +438,18 @@ void exMap::paintGL() {
   for(;mobi.current();++mobi) {
     m=mobi.current();
 
-    glPushMatrix();
-    if (m->isCurrent()) {
-      /* if it is filtered draw a yellow circle around it */
-
-      if (m->getZ() >= 0.01f)
-        glTranslatef(m->getProjectedX(), m->getProjectedY(), 0.01f);
-      else
-        glTranslatef(m->getProjectedX(), m->getProjectedY(), m->getZ() - 0.01f);
-
-
+    if (m->isCurrent() && m->insideRect(bounds)) {
       glPushMatrix();
-      if( m->isFiltered() && prefs.filter_circles ) {
-
-        if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
-          glEnable     (GL_BLEND);
-          glEnable     (GL_DEPTH_TEST);
-          glDisable    (GL_LIGHTING);
-          glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-          glDepthFunc  (GL_LEQUAL);
-
-
-          if (prefs.alpha_borders) {
-            glColor3f  (1.0f, 0.0f, 0.0f);
-            drawCircle (0, 0, 500, 18);
-          }
-
-          glColor4f  (1.0f, 1.0f, 0.0f, 0.25f);
-
-          GLUquadricObj *qoCircle;
-          qoCircle = gluNewQuadric();
-
-          if (prefs.alpha_speed)
-            gluDisk   (qoCircle, 0, 500, 18, 18);
-
-          else
-            gluSphere (qoCircle, 500, 32, 32);
-          glPopAttrib();
-        }
-
-        else {
-          glPushAttrib (GL_ENABLE_BIT);
-          glDisable    (GL_LIGHTING);
-
-          glLineWidth  (1.0);
-          glColor3f    (1.0f, 1.0f, 0.0f);
-          drawCircle   (0, 0, 500, 18);
-          glPopAttrib  ();
-        }
-      }
-
-      /* if the mob is within range, draw an agro circle around it */
-      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
-
-        if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
-          glEnable     (GL_BLEND);
-          glEnable     (GL_DEPTH_TEST);
-          glDisable    (GL_LIGHTING);
-          glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glDepthFunc  (GL_LEQUAL);
-
-
-          if (prefs.alpha_borders) {
-            glColor3f  (1.0f, 1.0f, 0.0f);
-            drawCircle (0, 0, 500, 18);
-          }
-
-          if (prefs.agro_fading) {
-            glColor4f ((1.0f - (m->playerDist() / 1500.0f)),
-                        0.0f, 0.0f, 0.25f );
-
-          } else {
-           glColor4f ( 1.0f, 0.0f, 0.0f, 0.25f );
-          }
-          
-          GLUquadricObj *qoCircle;
-          qoCircle = gluNewQuadric();
-
-          if (prefs.alpha_speed)
-            gluDisk   (qoCircle, 0, 500, 18, 18);
-
-          else
-            gluSphere (qoCircle, 500, 32, 32);
-          glPopAttrib();
-        }
-
-        else {
-          glPushAttrib (GL_ENABLE_BIT);
-          glDisable    (GL_LIGHTING);
-
-          glLineWidth(1.0f);
-
-          if (prefs.agro_fading) {
-            glColor3f ((1.0f - (m->playerDist() / 2000.0f)),
-                        0.0f, 0.0f );
-          } else {
-            glColor3f (1.0f, 0.0f, 0.0f);
-          }
-
-          drawCircle  (0, 0, 500, 18);
-          glPopAttrib ();
-        }
-      }
-      glPopMatrix();
-
-      glPopMatrix();
-
-      glPushMatrix();
-      glPushAttrib (GL_DEPTH_BUFFER_BIT);
-      glDepthFunc  (GL_LESS);
       glTranslatef (m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
+
+      /* if it is filtered draw a yellow circle around it */
+      if (prefs.filter_circles && m->isFiltered())
+          drawAggroCircle(m->getZ(), 1.0, 1.0, 0.0);
+
+      /* if the mob is within range, draw an agro circle around it */
+      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
+          drawAggroCircle(m->getZ(), 1.0, 1.0, 0);
 
         /* if this is a player */
       if (!m->isMobOrObj()) {
@@ -575,56 +472,14 @@ void exMap::paintGL() {
         glCallList(listTriangle);
       }  // if !obj
 
-      glPushMatrix();
-      if ((m->isMob() && m->getGuild().length() > 0 && prefs.map_rasterize_merchant_types) || (! m
-->isMob() && ! m->isObj() && prefs.map_rasterize_player_names)) {
+      if ((prefs.map_rasterize_merchant_types && m->isMob()) ||
+          (prefs.map_rasterize_player_names && !m->isMobOrObj()))
+          drawMobName(m);
 
-        glPushAttrib (GL_ENABLE_BIT);
-        glDisable    (GL_LIGHTING);
-
-        glColor3f  (1.0, 1.0, 1.0);
-
-        glBegin    (GL_POINTS);
-        glVertex3f (0.0, 0.0, m->getZ() + (float)(2.5 * objsize));
-        glEnd();
-
-        QString qsPlayerName;
-        QString qsFormattedName;
-
-        if (m->isMob())
-          qsFormattedName = m->getGuild();
-
-        else {
-          if (m->getSurname().length() > 0)
-             qsPlayerName.sprintf("%s %s", m->getName().latin1(), m->getSurname().latin1())
-;
-          else
-            qsPlayerName.sprintf("%s", m->getName().latin1());
-
-          if (m->getGuild().length() > 0)
-            qsFormattedName.sprintf("%s <%s>",qsPlayerName.latin1(), m->getGuild().latin1()
-);
-          else
-            qsFormattedName = qsPlayerName;
-        }
-
-        glRasterPos3i(20, 20, m->getZ() + (3 * objsize));
-        for (unsigned int i = 0; i < qsFormattedName.length(); i++) {
-          glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName.at(i).latin1());
-        }
-
-        glPopAttrib();
-      }
-
-      glPopAttrib();
+      m->checkStale();
       glPopMatrix();
-    }
-
-    m->checkStale();
-    glPopMatrix();
-  }
-
-  glColor3f(1.0,1.0,1.0);
+    }  // if isCurrent
+  }  // for mobs
 
   m=mobs.find((void *)c->selectedid);
   if (m && m->isCurrent()) {
@@ -655,6 +510,91 @@ void exMap::paintGL() {
                 gluErrorString(error), error);
     }
   }
+}
+
+void exMap::drawMobName(exMob *m)
+{
+    QString qsFormattedName;
+
+    if (m->isMob())
+        qsFormattedName = m->getGuild();
+    else {
+        if (m->getSurname().length() > 0)
+            qsFormattedName = m->getName() + " " + m->getSurname();
+        else
+            qsFormattedName = m->getName();
+
+        if (m->getGuild().length() > 0)
+            qsFormattedName.append(" <" + m->getGuild() + ">");
+    }
+
+    if (qsFormattedName.length() <= 0)
+        return;
+
+    glPushAttrib (GL_ENABLE_BIT);
+    glDisable    (GL_LIGHTING);
+
+    glColor3f  (1.0, 1.0, 1.0);
+
+    glBegin    (GL_POINTS);
+    glVertex3f (0.0, 0.0, m->getZ() + (float)(2.5 * objsize));
+    glEnd();
+
+    glRasterPos3i(20, 20, m->getZ() + (3 * objsize));
+    for (unsigned int i = 0; i < qsFormattedName.length(); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName[i].latin1());
+    }
+
+    glPopAttrib();
+}
+
+void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B)
+{
+    /* This function assumes that the X, Y, and Z coordinates are
+       already in the translation matrix set for the circle */
+    glPushMatrix();
+    if (Z <= 0.01f)
+        glTranslatef(0.0f, 0.0f, 0.01f);
+    else
+        glTranslatef(0.0f, 0.0f, Z - 0.01f);
+
+    if (prefs.alpha_circles && ! prefs.map_simple) {
+        glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+        glEnable     (GL_BLEND);
+        glEnable     (GL_DEPTH_TEST);
+        glDisable    (GL_LIGHTING);
+        glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc  (GL_LEQUAL);
+
+
+        if (prefs.alpha_borders) {
+            glColor3f  (1.0f, 0.0f, 0.0f);
+            drawCircle (0, 0, 500, 18);
+        }
+
+        glColor4f  (R, G, B, 0.25f);
+
+        GLUquadricObj *qoCircle;
+        qoCircle = gluNewQuadric();
+
+        if (prefs.alpha_speed)
+            gluDisk   (qoCircle, 0, 500, 18, 18);
+        else
+            gluSphere (qoCircle, 500, 32, 32);
+        glPopAttrib();
+    }
+
+    else {
+        glPushAttrib (GL_ENABLE_BIT);
+        glDisable    (GL_LIGHTING);
+
+        glLineWidth  (1.0);
+        glColor3f    (R, G, B);
+        drawCircle   (0, 0, 500, 18);
+        glPopAttrib  ();
+    }
+
+    glPopMatrix();
 }
 
 void exMap::drawCircle(int center_x, int center_y, int radius, uint8_t segments)

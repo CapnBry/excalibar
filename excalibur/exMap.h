@@ -169,7 +169,10 @@ protected:
   unsigned int  frames;
   exTimeType    _last_fps;
   
-  
+  void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
+  void drawMobName(exMob *m);
+  void drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B);
+
 public:
   exConnection *c;
   int range;
@@ -201,8 +204,6 @@ public:
   int stringInt(QStringList *sl, unsigned int sec);
   exMapInfo *getMap();
   void makeObjects(bool simple);
-
-  void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
 
   virtual bool event (QEvent *e);
 };
