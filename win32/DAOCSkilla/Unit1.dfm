@@ -244,7 +244,6 @@ object frmMain: TfrmMain
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
-    MaxLineAction = maException
     OnDisconnected = tcpCollectorClientDisconnected
     Host = '127.0.0.1'
     Port = 9867
@@ -254,16 +253,10 @@ object frmMain: TfrmMain
   object tcpCollectorServer: TIdTCPServer
     OnStatus = tcpCollectorServerStatus
     Bindings = <>
-    CommandHandlers = <>
     DefaultPort = 9867
-    Greeting.NumericCode = 0
-    MaxConnectionReply.NumericCode = 0
     OnConnect = tcpCollectorServerConnect
     OnExecute = tcpCollectorServerExecute
     OnDisconnect = tcpCollectorServerDisconnect
-    ReplyExceptionCode = 0
-    ReplyTexts = <>
-    ReplyUnknownCommand.NumericCode = 0
     Left = 224
     Top = 104
   end
@@ -280,17 +273,12 @@ object frmMain: TfrmMain
     Top = 72
   end
   object httpUpdateChecker: TIdHTTP
-    MaxLineAction = maException
-    AllowCookies = True
-    ProxyParams.BasicAuthentication = False
-    ProxyParams.ProxyPort = 0
+    Request.Accept = 'text/html, */*'
     Request.ContentLength = -1
     Request.ContentRangeEnd = 0
     Request.ContentRangeStart = 0
-    Request.Accept = 'text/html, */*'
-    Request.BasicAuthentication = False
+    Request.ProxyPort = 0
     Request.UserAgent = 'Mozilla/3.0 (compatible; DaocSkilla)'
-    HTTPOptions = [hoForceEncodeParams]
     Left = 284
     Top = 104
   end
