@@ -27,6 +27,9 @@
                 <height>1</height>
             </rect>
         </property>
+        <property name="alignment">
+            <set>AlignTop</set>
+        </property>
     </widget>
     <widget class="QLabel">
         <property name="name">
@@ -43,6 +46,9 @@
         <property name="textFormat">
             <enum>AutoText</enum>
         </property>
+        <property name="alignment">
+            <set>AlignTop</set>
+        </property>
     </widget>
     <widget class="QLabel">
         <property name="name">
@@ -55,6 +61,9 @@
                 <width>1</width>
                 <height>1</height>
             </rect>
+        </property>
+        <property name="alignment">
+            <set>AlignTop</set>
         </property>
     </widget>
     <widget class="QSplitter">
@@ -166,11 +175,14 @@
                     <number>0</number>
                 </property>
                 <property name="spacing">
-                    <number>6</number>
+                    <number>2</number>
                 </property>
                 <widget class="QLineEdit">
                     <property name="name">
                         <cstring>MobFilter</cstring>
+                    </property>
+                    <property name="lineWidth">
+                        <number>1</number>
                     </property>
                 </widget>
                 <widget class="exMap">
@@ -184,6 +196,12 @@
                 <widget class="QSlider">
                     <property name="name">
                         <cstring>MapSlider</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>32767</width>
+                            <height>18</height>
+                        </size>
                     </property>
                     <property name="minValue">
                         <number>25</number>
@@ -213,11 +231,8 @@
                 <height>1</height>
             </rect>
         </property>
-        <property name="frameShadow">
-            <enum>Sunken</enum>
-        </property>
         <property name="alignment">
-            <set>AlignCenter</set>
+            <set>AlignTop</set>
         </property>
     </widget>
     <widget class="QProgressBar">
@@ -285,10 +300,9 @@
         <action name="GroupItems"/>
         <action name="SortDistance"/>
         <separator/>
+        <action name="MaxFPS"/>
         <action name="vaderWarn"/>
-        <separator/>
         <action name="ShowMsgs"/>
-        <separator/>
         <action name="EditorSpawn"/>
         <separator/>
         <action name="Preferences"/>
@@ -337,7 +351,7 @@
             <bool>true</bool>
         </property>
         <property name="on">
-            <bool>true</bool>
+            <bool>false</bool>
         </property>
         <property name="text">
             <string>Select Ingame Target</string>
@@ -629,6 +643,20 @@
             <number>73</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>MaxFPS</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="enabled">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Maximum FPS</string>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -744,6 +772,12 @@
         <receiver>FormExcalibur</receiver>
         <slot>GroupItems_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>MaxFPS</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>MaxFPS_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -772,6 +806,7 @@
     <slot>showMsgs()</slot>
     <slot>MapCancel_pressed()</slot>
     <slot>GroupItems_toggled( bool ena )</slot>
+    <slot>MaxFPS_toggled( bool ena )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

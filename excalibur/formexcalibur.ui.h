@@ -62,15 +62,20 @@ void FormExcalibur::init()
     MapCancel   = new QPushButton( "Cancel", statusBar(), "MapCancel" );
 
     xyzstatus->setMinimumWidth(125);
-    xyzstatus->setAlignment(AlignHCenter | AlignVCenter);
+    xyzstatus->setAlignment(AlignHCenter | AlignTop);
     Zone->setMinimumWidth(110);
-    Zone->setAlignment(AlignHCenter | AlignVCenter);
+    Zone->setAlignment(AlignHCenter | AlignTop);
     FPS->setMinimumWidth(60);
-    FPS->setAlignment(AlignHCenter | AlignVCenter);
+    FPS->setAlignment(AlignHCenter | AlignTop);
     MapStatus->setMinimumWidth(150);
-    MapStatus->setAlignment(AlignHCenter | AlignVCenter);
+    MapStatus->setAlignment(AlignHCenter | AlignTop);
     MapProgress->setMinimumWidth(100);
     MapCancel->setMinimumWidth(40);
+
+      /* Set the height of the status bar to the height of the contained font */
+    QFontMetrics bar_font_metrics(statusBar()->font());
+      /* we add a little fudge factor for the bevels */
+    statusBar()->setMaximumHeight(bar_font_metrics.height() + 4);
     
     connect(MapCancel, SIGNAL(pressed()), this, SLOT(MapCancel_pressed()));
 
@@ -227,4 +232,10 @@ void FormExcalibur::GroupItems_toggled( bool ena )
 {
   prefs.sort_group_items=ena;
   prefs.activate();
+}
+
+
+void FormExcalibur::MaxFPS_toggled( bool ena )
+{
+    prefs.maxfps = ena;
 }
