@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <qstring.h>
 #include <qregexp.h>
-#include <qstatusbar.h>
 #include "exMob.h"
 #include "exPrefs.h"
 
@@ -55,8 +54,7 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   speed=0;
   stealth = 0;
   c=con;
-  isKnown=false;
-  
+
   current = true;
   
   realm = rFriend;

@@ -61,7 +61,6 @@ private:
     bool mob;
     bool obj;
     bool current;
-    bool isKnown;
     bool stealth;
     exTimeType _lasttick;
     exTimeType _lastdist;
