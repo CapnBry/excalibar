@@ -746,7 +746,7 @@ QString exInventoryItem::getDescription(void)
         case 0xec:  return "NI " + getSlotDesc();  // sleeves
         case 0xed:  return "NI " + getSlotDesc();  // gloves
         case 0xee:  return "NI " + getSlotDesc();  // boots
-        case 0xef:  return "BZ " + getSlotDesc();  // Beserker chest
+        case 0xef:  return "BZ " + getSlotDesc();  // Berserker chest
         case 0xf0:  return "BZ " + getSlotDesc();  // leggings
         case 0xf1:  return "BZ " + getSlotDesc();  // sleeves
         case 0xf2:  return "BZ " + getSlotDesc();  // gloves
@@ -952,6 +952,11 @@ exMob::playerClass exInventoryItem::getClassRestriction(void)
         case 0xec:  return exMob::Nightshade;  // sleeves
         case 0xed:  return exMob::Nightshade;  // gloves
         case 0xee:  return exMob::Nightshade;  // boots
+        case 0xef:  return exMob::Berserker;  // chest
+        case 0xf0:  return exMob::Berserker;  // leggings
+        case 0xf1:  return exMob::Berserker;  // sleeves
+        case 0xf2:  return exMob::Berserker;  // gloves
+        case 0xf3:  return exMob::Berserker;  // boots
         case 0xf4:  return exMob::Hunter;  // chest
         case 0xf5:  return exMob::Hunter;  // leggings
         case 0xf6:  return exMob::Hunter;  // sleeves
