@@ -24,6 +24,8 @@ type
     procedure SetHeadWord(const Value: WORD);
     function GetHead: integer;
     procedure SetStealthed(const Value: boolean);
+    function GetIsStale: boolean;
+    function GetLiveDataConfidencePct: single;
   protected
     FInfoID:WORD;
     FPlayerID: WORD;
@@ -39,14 +41,13 @@ type
     FRealm: TDAOCRealm;
     FHeadWord:    WORD;
     FStealthed:   boolean;
-    FStale:       boolean;
+    FLiveDataConfidence:  integer;
     FIsInUpdateRange: boolean;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
     function GetObjectClass : TDAOCObjectClass; virtual;
     function GetName : string; virtual;
-    function TicksSinceUpdate : DWORD;
   public
     constructor Create; virtual;
 
@@ -64,10 +65,11 @@ type
     function DistanceSqr3D(X, Y, Z: DWORD) : double; overload;
     function GetConColor(AToLevel: integer) : TColor;
     procedure LoadFromReader(AReader: TReader); virtual;
-    procedure MarkStaleAtDestination; virtual;
+    procedure AssumeAtDestination; virtual;
     function SameLoc(AObject: TDAOCObject) : boolean;
     procedure SaveToWriter(AWriter: TWriter); virtual;
     procedure Touch;
+    function TicksSinceUpdate : DWORD;
 
     property InfoID: WORD read FInfoID write FInfoID;
     property PlayerID: WORD read FPlayerID write FPlayerID;
@@ -80,9 +82,11 @@ type
     property DestinationZ: WORD read FDestinationZ write SetDestinationZ;
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
+    property IsStale: boolean read GetIsStale;
     property Level: integer read FLevel write SetLevel;
     property Realm: TDAOCRealm read FRealm write SetRealm;
-    property Stale: boolean read FStale;
+    property LiveDataConfidence: integer read FLiveDataConfidence;
+    property LiveDataConfidencePct: single read GetLiveDataConfidencePct;
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
@@ -101,6 +105,7 @@ type
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
     function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
     function FindNearest2D(X, Y: DWORD) : TDAOCObject;
+    function Take(I: integer) : TDAOCObject;
 
     property Items[I: integer]: TDAOCObject read GetItems; default;
   end;
@@ -134,7 +139,7 @@ type
     procedure CheckStale; override;
     function DestinationAhead : boolean;
     procedure InventoryChanged; virtual;
-    procedure MarkStaleAtDestination; override;
+    procedure AssumeAtDestination; override;
 
     property XProjected: DWORD read GetXProjected;
     property YProjected: DWORD read GetYProjected;
@@ -162,6 +167,7 @@ type
     function GetObjectClass : TDAOCObjectClass; override;
   public
     procedure Assign(ASrc: TDAOCMob);
+    procedure CheckStale; override;
 
     property Target: TDAOCMovingObject read FTarget write FTarget;
     property TypeTag: string read FTypeTag write FTypeTag;
@@ -261,6 +267,9 @@ function DAOCObjectClassToStr(AClass: TDAOCObjectClass) : string;
 function CopperToStr(ACopper: integer) : string;
 function DWORDDelta(A, B: DWORD) : DWORD;
 
+const
+    LIVE_DATA_CONFIDENCE_MAX = 100;
+
 implementation
 
 {$IFDEF GLOBAL_TICK_COUNTER}
@@ -277,6 +286,14 @@ begin
     Result := A - B
   else
     Result := B - A;
+end;
+
+function max(a, b: integer) : integer;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
 end;
 
 function DAOCObjectClassToStr(AClass: TDAOCObjectClass) : string;
@@ -342,11 +359,11 @@ end;
 
 procedure TDAOCMovingObject.CheckStale;
 begin
-  if FStale then
+  if IsStale then
     exit;
 
   if not DestinationAhead then
-    MarkStaleAtDestination;
+    AssumeAtDestination;
 end;
 
 procedure TDAOCMovingObject.Clear;
@@ -461,7 +478,7 @@ procedure TDAOCMovingObject.InventoryChanged;
 begin
 end;
 
-procedure TDAOCMovingObject.MarkStaleAtDestination;
+procedure TDAOCMovingObject.AssumeAtDestination;
 begin
   inherited;
   FSpeedWord := 0;
@@ -677,7 +694,7 @@ end;
 procedure TDAOCObject.Touch;
 begin
   FLastUpdate := LocalTickCount;
-  FStale := false;
+  FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX;
 end;
 
 function TDAOCObject.Distance2D(X, Y: DWORD): double;
@@ -741,9 +758,9 @@ begin
   Result := X * X + Y * Y + Z * Z;
 end;
 
-procedure TDAOCObject.MarkStaleAtDestination;
+procedure TDAOCObject.AssumeAtDestination;
 begin
-  FStale := true;
+  FLiveDataConfidence := 60;
   if (FDestinationX <> 0) and (FDestinationY <> 0) then begin
     FX := FDestinationX;
     FY := FDestinationY;
@@ -759,6 +776,16 @@ end;
 function TDAOCObject.TicksSinceUpdate: DWORD;
 begin
   Result := LocalTickCount - FLastUpdate;
+end;
+
+function TDAOCObject.GetIsStale: boolean;
+begin
+  Result := FLiveDataConfidence = 0;
+end;
+
+function TDAOCObject.GetLiveDataConfidencePct: single;
+begin
+  Result := FLiveDataConfidence * (1 / LIVE_DATA_CONFIDENCE_MAX);
 end;
 
 { TDAOCLocalPlayer }
@@ -834,13 +861,28 @@ procedure TDAOCPlayer.CheckStale;
 var
   dwLastUpdateDelta:  DWORD;
 begin
-  if FStale then
+  if IsStale then
     exit;
 
   dwLastUpdateDelta := TicksSinceUpdate;
-  FStale := (Speed <> 0) and (dwLastUpdateDelta > 15000);
+    { for players that aren't moving, they start going stale at
+      20s and time out after 90s }
+  if Speed = 0 then
+    if dwLastUpdateDelta < 20000 then
+      FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
+    else
+      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 20000)
+        div 700, 0)
 
-  if FStale then
+    { players who are moving, stale period 7.5-15s }
+  else
+    if dwLastUpdateDelta < 7500 then
+      FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
+    else
+      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 7500)
+        div 75, 0);
+
+  if FLiveDataConfidence = 0 then
     FSpeedWord := 0;
 end;
 
@@ -898,6 +940,21 @@ procedure TDAOCMob.Assign(ASrc: TDAOCMob);
 begin
   inherited Assign(ASrc);
   FTypeTag := ASrc.TypeTag;
+end;
+
+procedure TDAOCMob.CheckStale;
+var
+  dwTicksSinceUpdate:   DWORD;
+begin
+  inherited;
+  if IsStale then
+    exit;
+    
+  dwTicksSinceUpdate := TicksSinceUpdate;
+    { live mobs are stale from 60s-90s }
+  if dwTicksSinceUpdate > 60000 then
+    FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX -
+      max((dwTicksSinceUpdate - 60000) div 300, 0);
 end;
 
 function TDAOCMob.GetObjectClass: TDAOCObjectClass;
@@ -1027,6 +1084,13 @@ begin
     if Items[Result].InfoID = AInfoID then
       exit;
   Result := -1;
+end;
+
+function TDAOCObjectList.Take(I: integer): TDAOCObject;
+begin
+  Result := Items[I];
+  inherited Items[I] := nil;  // prevent free on delete
+  Delete(I);
 end;
 
 { TDAOCUnknownMovingObject }
