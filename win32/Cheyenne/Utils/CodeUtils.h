@@ -73,13 +73,13 @@ void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& std_list);
 
 // intercept template functions
-template<typename T> bool is_near(const T& a,const T&b)
+template<typename T> bool is_near(const T& a,const T&b,const T& threshold=T(0.00001))
 {
-    return(fabs(a-b) < T(0.00001));
+    return(fabs(a-b) < threshold);
 }
-template<typename T> bool not_near(const T& a,const T&b)
+template<typename T> bool not_near(const T& a,const T&b,const T& threshold=T(0.00001))
 {
-    return(!is_near(a,b));
+    return(!is_near(a,b,threshold));
 }
 
 template<typename T> struct INTERCEPT_PARAMS
@@ -97,6 +97,8 @@ template<typename T> struct INTERCEPT_DATA
 {
     INTERCEPT_PARAMS<T> params; // parameters for intercept
     T TimeToIntercept; // Time until intercept (only valid if intercept algorithm succeeds)
+    T XIntercept; // X intercept in TimeToIntercept time (only valid if intercept algorithm succeeds)
+    T YIntercept; // Y intercept in TimeToIntercept time (only valid if intercept algorithm succeeds)
     T XDotToIntercept; // X velocity of reference to intercept in TimeToIntercept time (only valid if intercept algorithm succeeds)
     T YDotToIntercept; // Y velocity of reference to intercept in TimeToIntercept time (only valid if intercept algorithm succeeds)
     T HeadingRadiansToIntercept; // heading in radians for reference to intercept in TimeToIntercept time (only valid if intercept algorithm succeeds)
@@ -425,11 +427,11 @@ template<typename T> bool FindIntercept(INTERCEPT_DATA<T>& intercept_data)
         {
         // we have a viable solution, get x and y intercept
         // points then convert to speed
-        const T x_intercept=intercept_data.params.t0x+(intercept_data.TimeToIntercept*intercept_data.params.tvx);
-        const T y_intercept=intercept_data.params.t0y+(intercept_data.TimeToIntercept*intercept_data.params.tvy);
+        intercept_data.XIntercept=intercept_data.params.t0x+(intercept_data.TimeToIntercept*intercept_data.params.tvx);
+        intercept_data.YIntercept=intercept_data.params.t0y+(intercept_data.TimeToIntercept*intercept_data.params.tvy);
         
-        intercept_data.XDotToIntercept=(x_intercept - intercept_data.params.a0x)/intercept_data.TimeToIntercept;
-        intercept_data.YDotToIntercept=(y_intercept - intercept_data.params.a0y)/intercept_data.TimeToIntercept;
+        intercept_data.XDotToIntercept=(intercept_data.XIntercept - intercept_data.params.a0x)/intercept_data.TimeToIntercept;
+        intercept_data.YDotToIntercept=(intercept_data.YIntercept - intercept_data.params.a0y)/intercept_data.TimeToIntercept;
 
         // get angle
         intercept_data.HeadingRadiansToIntercept=atan2(intercept_data.XDotToIntercept,intercept_data.YDotToIntercept);
