@@ -1,9 +1,10 @@
 object frmMacroTradeSkills: TfrmMacroTradeSkills
   Left = 511
   Top = 193
-  Width = 274
-  Height = 142
+  BorderStyle = bsDialog
   Caption = 'Macro Tradeskills'
+  ClientHeight = 115
+  ClientWidth = 266
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
