@@ -3,7 +3,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   Top = 292
   BorderStyle = bsDialog
   Caption = 'Connection Configuration'
-  ClientHeight = 341
+  ClientHeight = 353
   ClientWidth = 518
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -155,8 +155,8 @@ object frmConnectionConfig: TfrmConnectionConfig
     end
   end
   object btnOK: TBitBtn
-    Left = 432
-    Top = 312
+    Left = 436
+    Top = 324
     Width = 75
     Height = 25
     Caption = '&OK'
@@ -210,5 +210,13 @@ object frmConnectionConfig: TfrmConnectionConfig
       Text = '192.168.100.0'
       OnKeyPress = edtServerSubnetKeyPress
     end
+  end
+  object chkRemoteAdmin: TCheckBox
+    Left = 12
+    Top = 316
+    Width = 241
+    Height = 17
+    Caption = 'Enable remote control telnet server'
+    TabOrder = 4
   end
 end

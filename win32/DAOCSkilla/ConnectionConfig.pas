@@ -32,6 +32,7 @@ type
     rbnEUServers: TRadioButton;
     rbnCustomServers: TRadioButton;
     edtServerSubnet: TEdit;
+    chkRemoteAdmin: TCheckBox;
     procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure edtLocalPortKeyPress(Sender: TObject; var Key: Char);
@@ -55,6 +56,8 @@ type
     procedure SetServerSubnet(const Value: TServerSubnet);
     function GetCustomServerSubnet: string;
     procedure SetCustomServerSubnet(const Value: string);
+    function GetRemoteAdminEnabled: boolean;
+    procedure SetRemoteAdminEnabled(const Value: boolean);
   public
     procedure AssignAdapterList(ASrc: TStrings);
 
@@ -65,7 +68,8 @@ type
     property LocalCollectorPort: integer read GetLocalCollectorPort write SetLocalCollectorPort;
     property ProcessLocally: boolean read GetProcessLocally write SetProcessLocally;
     property ServerSubnet: TServerSubnet read GetServerSubnet write SetServerSubnet;
-    property CustomServerSubnet: string read GetCustomServerSubnet write SetCustomServerSubnet; 
+    property CustomServerSubnet: string read GetCustomServerSubnet write SetCustomServerSubnet;
+    property RemoteAdminEnabled: boolean read GetRemoteAdminEnabled write SetRemoteAdminEnabled; 
   end;
 
 var
@@ -236,6 +240,16 @@ end;
 procedure TfrmConnectionConfig.SetCustomServerSubnet(const Value: string);
 begin
   edtServerSubnet.Text := Value;
+end;
+
+function TfrmConnectionConfig.GetRemoteAdminEnabled: boolean;
+begin
+  Result := chkRemoteAdmin.Checked;
+end;
+
+procedure TfrmConnectionConfig.SetRemoteAdminEnabled(const Value: boolean);
+begin
+  chkRemoteAdmin.Checked := Value;
 end;
 
 end.
