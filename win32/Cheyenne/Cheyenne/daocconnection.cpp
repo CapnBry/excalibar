@@ -642,6 +642,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
                    << "> speed=" << msg->speed 
                    << " heading=" << ((msg->heading&0x0FFF) * 360.0f/4096.0f) << "\n";
             */
+            
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for the database
             fifo->Push(msg);
@@ -651,6 +654,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case self_health_update:
             {
             daocmessages::self_health_update* msg=ParseSelfHealthUpdate(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for the database
             fifo->Push(msg);
@@ -673,6 +679,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
                    << " health=" << (unsigned int)msg->health << "\n";
             */
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // put on fifo for the database
             fifo->Push(msg);
             }
@@ -682,6 +691,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
             {
             daocmessages::player_head_update* msg=ParsePlayerHeadUpdate(ndx,buffer);
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // put on fifo for server
             fifo->Push(msg);
             }
@@ -690,6 +702,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case object_equipment:
             {
             daocmessages::object_equipment* msg=ParseObjectEquipment(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for server
             fifo->Push(msg);
@@ -743,8 +758,6 @@ void DAOCConnection::BuildMessagesFromTCPServer
 
             // save my realm
             msg->realm=player_realm;
-
-            
             
             Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
                    << (unsigned short)opcode 
@@ -761,6 +774,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case delete_object:
             {
             daocmessages::delete_object* msg=ParseDeleteObject(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // object id is an infoid
             // if this is our "self_id" then ignore it --
@@ -845,6 +861,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
             {
             daocmessages::set_hp* msg=ParseSetHP(ndx,buffer);
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // push it onto fifo for database
             fifo->Push(msg);
             }
@@ -857,6 +876,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
             // save id for server
             msg->id=self_id;
 
+            // save region this was detected in
+            msg->detected_region=unsigned char(self_region);
+            
             // save my region
             self_region=msg->region;
 
@@ -874,6 +896,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case player_level_name:
             {
             daocmessages::player_level_name* msg=ParsePlayerLevelName(ndx,buffer);
+            
+            // save this
+            const unsigned char original_self_region=unsigned char(self_region);
 
             if(msg->what == 3 && msg->tp == 0)
                 {
@@ -898,6 +923,12 @@ void DAOCConnection::BuildMessagesFromTCPServer
             
             // save region
             msg->region=unsigned char(self_region);
+            
+            // save original region: this is used to adjust
+            // the player region we extracted in the selfid_pos
+            // message: the database now has the wrong region
+            // for the local player! We need to correct this here.
+            msg->original_self_region=original_self_region;
 
             Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
                    << (unsigned short)opcode 
@@ -917,6 +948,12 @@ void DAOCConnection::BuildMessagesFromTCPServer
             Logger << "old stealth opcode " << unsigned int(opcode) << ":\n";
             PrintPacket(true,true,buffer);
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
+            // save the id of the player that detected it
+            msg->detector_id=self_id;
+            
             // push it on fifo for database
             fifo->Push(msg);
             }
@@ -1001,6 +1038,9 @@ void DAOCConnection::BuildMessagesFromTCPClient
             // we will overwrite what the parse has retrieved
             msg->player_id=self_id;
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             /*
             PrintPacket(true,false,buffer);
             Logger << "player id " << msg->player_id << "\n"
@@ -1027,6 +1067,9 @@ void DAOCConnection::BuildMessagesFromTCPClient
 
             msg->player_id=self_id;
             
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // put on fifo for server
             fifo->Push(msg);
             }
@@ -1035,6 +1078,9 @@ void DAOCConnection::BuildMessagesFromTCPClient
         case player_target:
             {
             daocmessages::player_target* msg=ParsePlayerTarget(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for server
             fifo->Push(msg);
@@ -1119,6 +1165,9 @@ void DAOCConnection::BuildMessagesFromUDPServer
                    << " heading=" << ((msg->heading&0x0FFF) * 360.0f/4096.0f) << "\n";
             */
 
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // put on fifo for the database
             fifo->Push(msg);
             }
@@ -1127,6 +1176,9 @@ void DAOCConnection::BuildMessagesFromUDPServer
         case self_health_update:
             {
             daocmessages::self_health_update* msg=ParseSelfHealthUpdate(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for the database
             fifo->Push(msg);
@@ -1149,6 +1201,9 @@ void DAOCConnection::BuildMessagesFromUDPServer
                    << " health=" << (unsigned int)msg->health << "\n";
 
             */
+            // save my region
+            msg->detected_region=unsigned char(self_region);
+
             // put on fifo for the database
             fifo->Push(msg);
             }
@@ -1157,6 +1212,9 @@ void DAOCConnection::BuildMessagesFromUDPServer
         case player_head_update:
             {
             daocmessages::player_head_update* msg=ParsePlayerHeadUpdate(ndx,buffer);
+
+            // save my region
+            msg->detected_region=unsigned char(self_region);
 
             // put on fifo for server
             fifo->Push(msg);

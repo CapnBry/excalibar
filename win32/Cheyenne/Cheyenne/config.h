@@ -121,6 +121,9 @@ private:
         MEMBER_ASSIGN(RenderGrayMobs);
         MEMBER_ASSIGN(ShareNetAddress);
         MEMBER_ASSIGN(ShareNetPort);
+        MEMBER_ASSIGN(NamedMobCreateSoundFile);
+        MEMBER_ASSIGN(PlaySoundOnNamedMobCreate);
+        MEMBER_ASSIGN(NamedMob);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -152,5 +155,8 @@ private:
     DECL_MEMBER(bool,RenderGrayMobs);
     DECL_MEMBER(std::string,ShareNetAddress);
     DECL_MEMBER(std::string,ShareNetPort);
+    DECL_MEMBER(std::string,NamedMobCreateSoundFile);
+    DECL_MEMBER(bool,PlaySoundOnNamedMobCreate);
+    DECL_MEMBER(std::string,NamedMob);
 
 }; // end class CheyenneConfig

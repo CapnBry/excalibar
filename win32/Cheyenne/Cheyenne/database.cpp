@@ -240,7 +240,7 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
 
 void Database::DoMaintenance(void)
 {
-    std::list<unsigned int> IdToDelete;
+    std::list<Database::id_type> IdToDelete;
     CheyenneTime MaxAge;
     CheyenneTime CurrentAge;
 
@@ -257,19 +257,19 @@ void Database::DoMaintenance(void)
         switch(ThisActor.GetActorType())
             {
             case Actor::Player:
-                // 45 seconds
-                MaxAge=CheyenneTime(45.0);
+                // 90 seconds
+                MaxAge=CheyenneTime(90.0);
                 break;
 
             case Actor::Object:
-                // 300 seconds
-                MaxAge=CheyenneTime(300.0);
+                // 600 seconds
+                MaxAge=CheyenneTime(600.0);
                 break;
 
             case Actor::Mob:
             default:
-                // 60 seconds
-                MaxAge=CheyenneTime(60.0);
+                // 120 seconds
+                MaxAge=CheyenneTime(120.0);
                 break;
             } // end switch actor type
 
@@ -335,7 +335,7 @@ void Database::IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor
     return;
 } // end IntegrateActorToCurrentTime
 
-Actor* Database::GetActorById(const unsigned int& info_id)
+Actor* Database::GetActorById(const Database::id_type& info_id)
 {
     // find it (this works by INFO ID)
     actor_iterator it=Actors.find(info_id);
@@ -398,7 +398,7 @@ void Database::GetDatabaseStatistics(DatabaseStatistics& stats)const
     return;
 } // end GetDatabaseStatistics
 
-unsigned int Database::GetActorInfoIdFromId(const unsigned int& id)
+Database::id_type Database::GetActorInfoIdFromId(const Database::id_type& id)
 {
     // find it
     infoid_iterator it=InfoIdMap.find(id);
@@ -414,14 +414,14 @@ unsigned int Database::GetActorInfoIdFromId(const unsigned int& id)
         }
 } // end GetActorInfoIdFromId
 
-Database::actor_iterator Database::GetActorIteratorById(const unsigned int& id)
+Database::actor_iterator Database::GetActorIteratorById(const Database::id_type& id)
 {
     actor_iterator it=Actors.find(id);
 
     return(it);
 } // end GetActorIteratorById
 
-Actor Database::CopyActorById(const unsigned int& info_id)const
+Actor Database::CopyActorById(const Database::id_type& info_id)const
 {
     // make sure we are locked: this is a PUBLIC function
     AutoLock al(DBMutex);
@@ -443,7 +443,7 @@ Actor Database::CopyActorById(const unsigned int& info_id)const
 
 } // end CopyActorById
 
-Actor& Database::InsertActorById(const unsigned int& id,bool& bInserted)
+Actor& Database::InsertActorById(const Database::id_type& id,bool& bInserted)
 {
     actor_map_insert_result result=Actors.insert(actor_map_value(id,Actor()));
     
@@ -452,7 +452,7 @@ Actor& Database::InsertActorById(const unsigned int& id,bool& bInserted)
     return((*result.first).second);
 } // end InsertActorById
 
-void Database::DeleteActor(const unsigned int& info_id)
+void Database::DeleteActor(const Database::id_type& info_id)
 {
     // get actor
     actor_iterator it=GetActorIteratorById(info_id);
@@ -531,8 +531,27 @@ void Database::ResetDatabase(void)
     return;
 } // end ResetDatabase
 
+Database::id_type Database::GetUniqueId
+    (
+    const unsigned short region,
+    const Database::id_type id_or_infoid
+    )
+{
+    // smush region and id_or_infoid together to make an id that 
+    // will be unique across all regions on the current server
+    // this is necessary for ShareNet when players participating
+    // in the net are in different regions
+    word_builder wb;
+    
+    wb.word[0]=unsigned short(id_or_infoid);
+    wb.word[1]=region;
+    
+    return(Database::id_type(wb.dword));
+} // end GetUniqueId
+
 void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 {
+    // the string stream is here for debug/info reasons ;)
     static std::ostringstream os;
     os.seekp(0);
 
@@ -547,7 +566,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::player_pos_update* p=static_cast<const daocmessages::player_pos_update*>(msg);
 
             // get actor
-            Actor* pa=GetActorById(GetActorInfoIdFromId(p->player_id));
+            Actor* pa=GetActorById(GetActorInfoIdFromId(GetUniqueId(p->detected_region,p->player_id)));
 
             if(!pa)
                 {
@@ -603,7 +622,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             {
             const daocmessages::mob_pos_update* p=static_cast<const daocmessages::mob_pos_update*>(msg);
 
-            Actor* pa=GetActorById(p->mob_id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->mob_id));
 
             if(!pa)
                 {
@@ -648,8 +667,8 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             {
             const daocmessages::player_head_update* p=static_cast<const daocmessages::player_head_update*>(msg);
 
-            const unsigned int info_id=GetActorInfoIdFromId(p->player_id);
-            Actor* pa=GetActorById(info_id);
+            const Database::id_type info_id=GetActorInfoIdFromId(GetUniqueId(p->detected_region,p->player_id));
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,info_id));
 
             if(!pa)
                 {
@@ -697,7 +716,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // look up by infoid
                         
-            Actor* pa=GetActorById(p->info_id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->info_id));
 
             if(!pa)
                 {
@@ -782,7 +801,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::self_health_update* p=static_cast<const daocmessages::self_health_update*>(msg);
 
             // get actor
-            Actor* pa=GetActorById(p->player_id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->player_id));
 
             if(!pa)
                 {
@@ -836,7 +855,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::delete_object* p=static_cast<const daocmessages::delete_object*>(msg);
 
             // delete the actor
-            DeleteActor(p->object_id);
+            DeleteActor(GetUniqueId(p->detected_region,p->object_id));
 
             Logger << "[Database::HandleSniffedMessage] delete object(" << p->object_id << ")\n";
 
@@ -848,7 +867,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::self_id_position* p=static_cast<const daocmessages::self_id_position*>(msg);
 
             // check for duplication of ID
-            Actor* bye=GetActorById(p->self_id);
+            Actor* bye=GetActorById(GetUniqueId(p->detected_region,p->self_id));
 
             if(bye)
                 {
@@ -859,7 +878,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // get actor
             bool bInserted;
-            Actor& ThisActor=InsertActorById(p->self_id,bInserted);
+            Actor& ThisActor=InsertActorById(GetUniqueId(p->detected_region,p->self_id),bInserted);
 
             // save motion info
             ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
@@ -870,10 +889,10 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetActorType(Actor::Player);
 
             // save id
-            ThisActor.SetId(p->self_id);
+            ThisActor.SetId(GetUniqueId(p->detected_region,p->self_id));
 
             // for self, id=infoid
-            ThisActor.SetInfoId(p->self_id);
+            ThisActor.SetInfoId(GetUniqueId(p->detected_region,p->self_id));
 
             // save region
             ThisActor.SetRegion(p->detected_region);
@@ -913,7 +932,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::object_identity* p=static_cast<const daocmessages::object_identity*>(msg);
 
             // check for duplication of ID
-            Actor* bye=GetActorById(p->object_id);
+            Actor* bye=GetActorById(GetUniqueId(p->detected_region,p->object_id));
 
             if(bye)
                 {
@@ -927,7 +946,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // get actor
             bool bInserted;
-            Actor& ThisActor=InsertActorById(p->object_id,bInserted);
+            Actor& ThisActor=InsertActorById(GetUniqueId(p->detected_region,p->object_id),bInserted);
 
             // save motion info
             ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
@@ -943,10 +962,10 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetActorType(Actor::Object);
 
             // save id
-            ThisActor.SetId(p->object_id);
+            ThisActor.SetId(GetUniqueId(p->detected_region,p->object_id));
 
             // for objects, id=info_id
-            ThisActor.SetInfoId(p->object_id);
+            ThisActor.SetInfoId(GetUniqueId(p->detected_region,p->object_id));
 
             // save region
             ThisActor.SetRegion(p->detected_region);
@@ -985,7 +1004,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::mob_identity* p=static_cast<const daocmessages::mob_identity*>(msg);
 
             // check for duplication of ID
-            Actor* bye=GetActorById(p->mob_id);
+            Actor* bye=GetActorById(GetUniqueId(p->detected_region,p->mob_id));
 
             if(bye)
                 {
@@ -999,7 +1018,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // get actor
             bool bInserted;
-            Actor& ThisActor=InsertActorById(p->mob_id,bInserted);
+            Actor& ThisActor=InsertActorById(GetUniqueId(p->detected_region,p->mob_id),bInserted);
 
             // save motion info
             ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
@@ -1017,10 +1036,10 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetActorType(Actor::Mob);
 
             // save id
-            ThisActor.SetId(p->mob_id);
+            ThisActor.SetId(GetUniqueId(p->detected_region,p->mob_id));
 
             // for mobs, id=info_id
-            ThisActor.SetInfoId(p->mob_id);
+            ThisActor.SetInfoId(GetUniqueId(p->detected_region,p->mob_id));
 
             // save region
             ThisActor.SetRegion(p->detected_region);
@@ -1063,7 +1082,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::player_identity* p=static_cast<const daocmessages::player_identity*>(msg);
 
             // check for duplication of ID
-            Actor* bye=GetActorById(p->info_id);
+            Actor* bye=GetActorById(GetUniqueId(p->detected_region,p->info_id));
 
             if(bye)
                 {
@@ -1077,7 +1096,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // get actor
             bool bInserted;
-            Actor& ThisActor=InsertActorById(p->info_id,bInserted);
+            Actor& ThisActor=InsertActorById(GetUniqueId(p->detected_region,p->info_id),bInserted);
 
             // save motion info
             ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
@@ -1097,8 +1116,8 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.SetActorType(Actor::Player);
 
             // save id
-            ThisActor.SetId(p->player_id);
-            ThisActor.SetInfoId(p->info_id);
+            ThisActor.SetId(GetUniqueId(p->detected_region,p->player_id));
+            ThisActor.SetInfoId(GetUniqueId(p->detected_region,p->info_id));
 
             // save region
             ThisActor.SetRegion(p->detected_region);
@@ -1164,7 +1183,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             Actor* pa;
 
             // get actor by id
-            pa=GetActorById(p->id);
+            pa=GetActorById(GetUniqueId(p->detected_region,p->id));
 
             if(!pa)
                 {
@@ -1196,7 +1215,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::self_zone_change* p=static_cast<const daocmessages::self_zone_change*>(msg);
 
             // get actor
-            Actor* pa=GetActorById(p->id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->id));
 
             if(!pa)
                 {
@@ -1240,44 +1259,76 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
         case opcodes::player_level_name:
             {
             const daocmessages::player_level_name* p=static_cast<const daocmessages::player_level_name*>(msg);
+            // temporary actor storage
+            Actor SelfActor;
 
             // get actor
-            Actor* pa=GetActorById(p->player_id);
+            Actor* pa=GetActorById(GetUniqueId(p->region,p->player_id));
 
             if(!pa)
                 {
-                break;
-                }
-
-            Actor& ThisActor=*pa;
+                // see if this is a reassignment: see the player_level_name
+                // case in daocconnection
+                
+                pa=GetActorById(GetUniqueId(p->original_self_region,p->player_id));
+                
+                if(!pa)
+                    {
+                    // oh boy, now what's happened??
+                    Logger << "[Database::HandleSniffedMessage] (player_level_name) can't find local actor even on second lookup!\n";
+                    break;
+                    } // end second if !pa
+                else
+                    {
+                    // we found it!
+                    Logger << "[Database::HandleSniffedMessage] (player_level_name) found local actor on second try!\n";
+                    
+                    // copy and delete
+                    SelfActor=*pa;
+                    DeleteActor(pa->GetInfoId());
+                    
+                    // now reinsert
+                    bool bInserted;
+                    Actor& ThisActor=InsertActorById(GetUniqueId(p->region,p->player_id),bInserted);
+                    
+                    // save IDs
+                    SelfActor.SetId(GetUniqueId(p->region,p->player_id));
+                    SelfActor.SetInfoId(GetUniqueId(p->region,p->player_id));
+                    
+                    // restore everything else
+                    ThisActor=SelfActor;
+                    
+                    // reassign pointer
+                    pa=&ThisActor;
+                    } // end else second pa
+                } // end first if !pa
 
             // set actor info
-            
             if(p->level <= 100)
                 {
-                ThisActor.SetLevel(p->level);
+                pa->SetLevel(p->level);
                 }
             
             if(p->name != NULL)
                 {
-                ThisActor.SetName(std::string(p->name));
+                pa->SetName(std::string(p->name));
                 }
 
             // make sure its marked as a player
-            ThisActor.SetActorType(Actor::Player);
+            pa->SetActorType(Actor::Player);
 
             // save region
-            ThisActor.SetRegion(p->region);
+            pa->SetRegion(p->region);
 
             // make sure the flag is cleared
-            ThisActor.SetOld(false);
+            pa->SetOld(false);
 
-            ThisActor.SetLastUpdateTime(::Clock.Current());
+            pa->SetLastUpdateTime(::Clock.Current());
 
             // fire event -- we may be renaming a toon here
-            ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
+            ActorEvents[DatabaseEvents::ActorReassigned](*pa);
 
-            ThisActor.Print(os);
+            pa->Print(os);
             Logger << "player_level_name: " << os.str().c_str() << "\n";
             os.str(""); // put null terminator in its place
             }
@@ -1288,11 +1339,15 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::stealth* p=static_cast<const daocmessages::stealth*>(msg);
             
             // get actor
-            Actor* pa=GetActorById(p->info_id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->info_id));
             
             if(!pa)
                 {
-                Logger << "[Database::HandleSniffedMessage] (stealth) unable to find id " << p->info_id << "\n";
+                //Logger << "[Database::HandleSniffedMessage] (stealth) unable to find id " << p->info_id << "\n";
+                // save uncorrelated stealth time
+                UncorrelatedStealthTime=::Clock.Current();
+                // save center point for uncorrelated stealth
+                UncorrelatedStealthCenter=CopyActorById(GetUniqueId(p->detected_region,p->detector_id));
                 break;
                 }
 
@@ -1300,8 +1355,16 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             
             ThisActor.SetStealth(true);
             
-            // clear flag
-            ThisActor.SetOld(false);
+            // if this is an old actor, we want to keep it "alive" since we are
+            // still seeing packets for it
+            if(ThisActor.GetOld())
+                {
+                // save update time, but do not clear old flag. This
+                // will cause the PPI to show it as old, but the 
+                // database will never delete it -- unless we stop receiving
+                // packets for it.
+                ThisActor.SetLastUpdateTime(::Clock.Current());
+                }
             }
             break;
 
@@ -1315,7 +1378,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             const daocmessages::player_target* p=static_cast<const daocmessages::player_target*>(msg);
 
             // get actor
-            Actor* pa=GetActorById(p->player_id);
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->player_id));
 
             if(!pa)
                 {
@@ -1333,7 +1396,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 }
 
             // set actor's target (this is done by INFOID!!)
-            ThisActor.SetTargetId(p->target_id);
+            ThisActor.SetTargetId(GetUniqueId(p->detected_region,p->target_id));
 
             Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
                    << "target=" << p->target_id << "\n";

@@ -16,16 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef DATABASE_H
-#define DATABASE_H
-
 #pragma once
-
-#pragma warning(push)
-
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
 
 #include "globaloperators.h"
 // include here for struct defs
@@ -147,14 +138,14 @@ public:
     virtual ~Database();
 
     typedef unsigned int id_type;
-    typedef std::map<id_type,Actor> actor_type;
-    typedef std::map<id_type,Actor>::iterator actor_iterator;
-    typedef std::map<id_type,Actor>::const_iterator const_actor_iterator;
-    typedef std::map<id_type,Actor>::value_type actor_map_value;
+    typedef std::map<Database::id_type,Actor> actor_type;
+    typedef std::map<Database::id_type,Actor>::iterator actor_iterator;
+    typedef std::map<Database::id_type,Actor>::const_iterator const_actor_iterator;
+    typedef std::map<Database::id_type,Actor>::value_type actor_map_value;
     typedef std::pair<actor_iterator,bool> actor_map_insert_result;
 
-    typedef std::map<unsigned int,unsigned int>::iterator infoid_iterator;
-    typedef std::map<unsigned int,unsigned int>::value_type infoid_map_value;
+    typedef std::map<Database::id_type,Database::id_type>::iterator infoid_iterator;
+    typedef std::map<Database::id_type,Database::id_type>::value_type infoid_map_value;
     typedef std::pair<infoid_iterator,bool> infoid_map_insert_result;
     template<class F> F IterateActors(F func)const
     {
@@ -207,11 +198,21 @@ public:
         return;
     };
 
-    Actor CopyActorById(const unsigned int& info_id)const;
+    Actor CopyActorById(const Database::id_type& info_id)const;
     void GetDatabaseStatistics(DatabaseStatistics& stats)const;
     bool IsGroundTargetSet(void)const{return(bGroundTargetSet);};
+    bool IsUncorrelatedStealth(void)const
+    {
+        return((::Clock.Current() - UncorrelatedStealthTime).Seconds() <= 15.0f);
+    }
+    Actor GetUncorrelatedStealthCenter(void)const
+    {
+        return(Actor(UncorrelatedStealthCenter));
+    }
     Motion GetGroundTarget(void)const{return(GroundTarget);};
     unsigned char GetGroundTargetRegion(void)const{return(GroundTargetRegion);};
+    
+    static Database::id_type GetUniqueId(const unsigned short region,const Database::id_type id_or_infoid);
 
 protected:
 private:
@@ -226,18 +227,18 @@ private:
 
     void ResetDatabase(void);
 
-    Actor* GetActorById(const unsigned int& info_id);
-    unsigned int GetActorInfoIdFromId(const unsigned int& id);
-    actor_iterator GetActorIteratorById(const unsigned int& id);
-    Actor& InsertActorById(const unsigned int& id,bool& bInserted);
+    Actor* GetActorById(const Database::id_type& info_id);
+    Database::id_type GetActorInfoIdFromId(const Database::id_type& id);
+    actor_iterator GetActorIteratorById(const Database::id_type& id);
+    Actor& InsertActorById(const Database::id_type& id,bool& bInserted);
 
-    void DeleteActor(const unsigned int& info_id);
+    void DeleteActor(const Database::id_type& info_id);
 
     void UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge);
 
     actor_type Actors; // the map of all actors
     
-    std::map<unsigned int,unsigned int> InfoIdMap; // map between id -> infoid. only used for player actors
+    std::map<Database::id_type,Database::id_type> InfoIdMap; // map between id -> infoid. only used for player actors
 
     mutable MutexLock DBMutex;
     tsfifo<CheyenneMessage*>* MessageInputFifo; // input fifo
@@ -251,9 +252,7 @@ private:
     Motion GroundTarget;
     unsigned char GroundTargetRegion;
     bool bGroundTargetSet;
+    CheyenneTime UncorrelatedStealthTime;
+    Actor UncorrelatedStealthCenter;
 
 }; // end class Database
-
-#pragma warning(pop)
-
-#endif //DATABASE_H

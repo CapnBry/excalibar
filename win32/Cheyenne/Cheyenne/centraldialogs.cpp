@@ -53,7 +53,8 @@ bool GetOpenFileName
     (
     HWND hWndOwner,
     std::string& file_name,
-    const char* filters
+    const char* filters,
+    const char* def_ext="wav"
     )
 {
     OPENFILENAME ofn;
@@ -69,7 +70,7 @@ bool GetOpenFileName
     ofn.nMaxFile=MAX_PATH;
     ofn.lpstrTitle="Select File";
     ofn.Flags=OFN_EXPLORER|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
-    ofn.lpstrDefExt="wav";
+    ofn.lpstrDefExt=def_ext;
     
     if(GetOpenFileName(&ofn))
         {
@@ -454,6 +455,10 @@ BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 
             SET_CHECK_BOOL(hWnd,IDC_PLAYMIDCREATESOUND,param->GetPlaySoundOnMidCreate());
             SET_EDIT_STRING(hWnd,IDC_MIDCREATESOUND,param->GetMidSoundFile());
+
+            SET_CHECK_BOOL(hWnd,IDC_PLAYMOBCREATESOUND,param->GetPlaySoundOnNamedMobCreate());
+            SET_EDIT_STRING(hWnd,IDC_MOBCREATESOUND,param->GetNamedMobCreateSoundFile());
+            SET_EDIT_STRING(hWnd,IDC_MOBNAME,param->GetNamedMob());
             }
             break;
 
@@ -470,6 +475,11 @@ BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 
                     param->ModifyPlaySoundOnMidCreate() = GET_CHECK_BOOL(hWnd,IDC_PLAYMIDCREATESOUND);
                     GET_EDIT_STRING(hWnd,IDC_MIDCREATESOUND,param->ModifyMidSoundFile());
+                    
+                    param->ModifyPlaySoundOnNamedMobCreate() = GET_CHECK_BOOL(hWnd,IDC_PLAYMOBCREATESOUND);
+                    GET_EDIT_STRING(hWnd,IDC_MOBCREATESOUND,param->ModifyNamedMobCreateSoundFile());
+                    GET_EDIT_STRING(hWnd,IDC_MOBNAME,param->ModifyNamedMob());
+                    
 
                     EndDialog(hWnd,IDOK);
                     break;
@@ -510,6 +520,18 @@ BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                         }
                     }
                     break;
+
+                case MAKEWPARAM(IDC_BROWSE_MOB_SOUND,BN_CLICKED):
+                    {
+                    std::string file_name;
+                    GET_EDIT_STRING(hWnd,IDC_MOBCREATESOUND,file_name);
+                    if(GetOpenFileName(hWnd,file_name,"Wave Files (*.wav)\0*.wav\0\0"))
+                        {
+                        SET_EDIT_STRING(hWnd,IDC_MOBCREATESOUND,file_name);
+                        }
+                    }
+                    break;
+
                 default:
                     return(FALSE);
                     break;

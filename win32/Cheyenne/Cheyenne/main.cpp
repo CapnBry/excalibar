@@ -50,6 +50,21 @@ int WINAPI WinMain
     )
 {
     WPARAM result=-1;
+    
+    {
+    // save initial directory
+    TCHAR* cd=new TCHAR[MAX_PATH+1];
+    GetCurrentDirectory(MAX_PATH,cd);
+    ::InitialDir=cd;
+    
+    delete cd;
+
+    // make sure theres a trailing '\' in there
+    if(::InitialDir.at(::InitialDir.length()-1) != '\\')
+        {
+        ::InitialDir+='\\';
+        }
+    }
 
     // allocate a console for debug output
     #ifdef CHEYENNE_DEBUG
@@ -84,9 +99,11 @@ int WINAPI WinMain
 
     // enter main loop
     {
-    Central CheyenneCentral;
+    Central* CheyenneCentral=new Central;
 
-    result=CheyenneCentral.Go(hInstance);
+    result=CheyenneCentral->Go(hInstance);
+    
+    delete CheyenneCentral;
     }
 
     // stop the clock

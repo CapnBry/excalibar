@@ -79,6 +79,10 @@ DWORD SoundSpool::Run(const bool& bContinue)
                     PlaySound(Config.GetMidSoundFile().c_str(),NULL,SND_FILENAME|SND_ASYNC);
                     break;
 
+                case SoundSpool::NamedMobCreate:
+                    // play the named mob create sound
+                    break;
+                    
                 default:
                     break;
                 } // end switch signal #

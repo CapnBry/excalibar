@@ -62,19 +62,22 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             {
             // open the .map file
             std::stringstream filename;
-            filename << "maps\\" << Zones.GetZone(map_cnt).ZoneFile;
+            filename << ::InitialDir << "maps\\" << Zones.GetZone(map_cnt).ZoneFile;
             
             // clear mapfile status and pointers
             map_file.seekg(0);
             map_file.seekp(0);
             map_file.clear();
 
-            map_file.open(filename.str().c_str(),std::ios::in);
+            map_file.open(filename.str().c_str(),std::ios_base::in);
 
             // make sure it opened
             if(!map_file.is_open())// || filename.str()=="maps\\Tir_na_Nog.map")
                 {
                 map_file.close();
+                Logger << "[VectorMapLoader::Run] map file \"" << filename.str().c_str() << "\" is not present\n";
+                Logger << "[VectorMapLoader::Run] last error was " << GetLastError() << "\n";
+                
                 // go to next one
                 continue;
                 } // end if open

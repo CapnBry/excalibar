@@ -13,8 +13,6 @@ very tough one :(
 - Move png map load to a background thread like the vector map load. Texture generation must be done with an active
 render context, so that will still have to be done in the GUI thread.
 
-- Add stealther detected "bubble" since we can potentially know when a stealther is around even though we can't see them
-
 - Figure out why Cheyenne is so damn slow on my laptop after the screensaver exits
 
 - Add play sound on <mobname> create option.

@@ -52,6 +52,14 @@ public:
         
         // get azimuth
         az=atan2(x,-y);
+        
+        // make sure its positive, nobody wants to try and
+        // turn -90° into "go west, 270°" in their head.
+        if(az < 0.0f)
+            {
+            az+=3.1415926535897932384626433832795f;
+            }
+        
         //az+=3.1415926535897932384626433832795f;
         //az=fmod(az,6.283185307179586476925286766559f);
         

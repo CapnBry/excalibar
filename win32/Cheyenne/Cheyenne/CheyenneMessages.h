@@ -16,9 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#ifndef CHEYENNE_MESSAGES_H
-#define CHEYENNE_MESSAGES_H
-
 #pragma once
 
 class CheyenneMessage
@@ -37,7 +34,10 @@ union word_builder
 {
     public:
     word_builder(){dword=0;};
+    word_builder(const word_builder& s){dword=s.dword;};
     ~word_builder(){};
+    
+    word_builder& operator=(const word_builder& s){dword=s.dword;return(*this);};
 
     unsigned int dword;
     unsigned short word[2];
@@ -74,8 +74,13 @@ namespace opcodes
     c_opcode_t inventory_change=0xAA;       // 170
     c_opcode_t object_equipment=0xBD;       // 189
     c_opcode_t player_level_name=0xBE;      // 190
-
 }; // end namespace opcodes
+
+namespace share_opcodes
+{
+    typedef const unsigned char c_opcode_t;
+    typedef unsigned char opcode_t;
+} // end namespace share_opcodes
 
 namespace daocmessages
 {
@@ -104,6 +109,7 @@ struct player_pos_update : public daocmessages::SniffedMessage
     unsigned short heading;
     unsigned char hp;
     unsigned char visibility;
+    unsigned char detected_region;
     }; // end player_pos_update
 
 struct self_health_update : public daocmessages::SniffedMessage
@@ -115,6 +121,7 @@ struct self_health_update : public daocmessages::SniffedMessage
     unsigned char mana;
     unsigned char endurance;
     unsigned short player_id;
+    unsigned char detected_region;
     }; // end self_help_update
 
 struct system_message : public daocmessages::SniffedMessage
@@ -140,6 +147,7 @@ struct mob_pos_update : public daocmessages::SniffedMessage
     unsigned short z;
     unsigned short mob_id;
     unsigned char health;
+    unsigned char detected_region;
     }; // end mob_pos_update
 
 struct player_head_update : public daocmessages::SniffedMessage
@@ -153,6 +161,7 @@ struct player_head_update : public daocmessages::SniffedMessage
                           // not be used. in this case, it should be set to -1 (255)
                           // to indicate that it is not valid
     unsigned char visibility;
+    unsigned char detected_region;
     }; // end player_head_update
 
 struct equipment_item
@@ -185,6 +194,7 @@ struct object_equipment : public daocmessages::SniffedMessage
     ~object_equipment(){};
 
     unsigned short info_id;
+    unsigned char detected_region;
 
     equipment_item items[12];
     }; // end object_equipment
@@ -196,6 +206,7 @@ struct player_target : public daocmessages::SniffedMessage
 
     unsigned short player_id;
     unsigned short target_id;
+    unsigned char detected_region;
     }; // end player_target
 
 struct player_ground_target : public daocmessages::SniffedMessage
@@ -257,6 +268,7 @@ struct delete_object : public daocmessages::SniffedMessage
     ~delete_object(){};
 
     unsigned short object_id;
+    unsigned char detected_region;
     }; // end delete_object
 
 struct object_identity : public daocmessages::SniffedMessage
@@ -315,6 +327,7 @@ struct set_hp : public daocmessages::SniffedMessage
 
     unsigned short id;
     unsigned char hp;
+    unsigned char detected_region;
     }; // end set hp
 
 struct self_zone_change : public daocmessages::SniffedMessage
@@ -323,6 +336,7 @@ struct self_zone_change : public daocmessages::SniffedMessage
     ~self_zone_change(){};
 
     unsigned short region;
+    unsigned char detected_region;
     unsigned short id;
     }; // end self zone change
 
@@ -350,6 +364,7 @@ struct player_level_name : public daocmessages::SniffedMessage
     char* name;
     unsigned short player_id;
     unsigned char region;
+    unsigned char original_self_region;
     }; // end player_level_name
 
 struct stealth : public daocmessages::SniffedMessage
@@ -357,9 +372,25 @@ struct stealth : public daocmessages::SniffedMessage
     stealth(){opcode=opcodes::stealth;};
     ~stealth(){};
 
-    unsigned short info_id;
+    unsigned short info_id; // stealther infoid
+    unsigned short detector_id; // id of the player that detected this stealther
+    unsigned char detected_region;
     }; // end stealth
 
 }; // end namespace daocmessages
 
-#endif // CHEYENNE_MESSAGES_H
+namespace sharemessages
+{
+class ShareMessage : public CheyenneMessage
+{
+public:
+    ShareMessage(){bSniffed=false;};
+    virtual ~ShareMessage(){};
+    share_opcodes::opcode_t GetOpcode(void)const{return(opcode);};
+
+protected:
+    share_opcodes::opcode_t opcode;
+private:
+}; // end ShareMessage
+
+}; // end namespace sharemessages

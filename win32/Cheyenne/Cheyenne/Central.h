@@ -218,6 +218,18 @@ private:
         glPopMatrix();
     }
 
+    void DrawDisc(float radius)const
+    {
+        // draw it
+        glPushMatrix();
+
+        // scale
+        glScalef(radius*0.01f,radius*0.01f,radius*0.01f);
+        // draw
+        glCallList(DiscList);
+
+        glPopMatrix();
+    }
 
     void InitCheyenne(void);
     void InitOpenGL(void);
@@ -234,6 +246,7 @@ private:
     void RenderActor(const Actor& ThisActor)const;
     void RenderWorld(void)const;
     void RenderCloseControl(void)const;
+    void RenderUncorrelatedStealth(void)const;
     void HandleKeyDown(HWND hWnd,WPARAM wParam,LPARAM lParam);
     
     void RecenterDisplay(void);
@@ -319,6 +332,7 @@ private:
     float PanIncrement;
     unsigned int VectorMapListBase;
     unsigned int CircleList;
+    unsigned int DiscList;
 
     unsigned int IDToFollow;
     mutable unsigned int HookedActor;     // this can be modified from RenderActor() -- which

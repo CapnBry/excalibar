@@ -116,3 +116,30 @@ std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a)
     str << a.sin_addr << ":" << ntohs(a.sin_port);
     return(str);
 } // end operator<< (std::ostream& str,const SOCKADDR_IN& a)
+
+std::istream& GetLine(std::istream& is,std::string& str)
+{
+    std::istream::char_type ch;
+    
+    // get first char
+    is.read(&ch,1);
+    while(ch!=0x0D && ch!=0x0A)
+        {
+        if(is.eof() || !is.good())
+            {
+            // end of stream
+            break;
+            }
+
+        // store in string
+        str += ch;
+        
+        // get next char
+        is.read(&ch,1);
+        }
+
+    // skip remainder of line (CR/LF)
+    is >> std::ws;
+    
+    return(is);
+} // end GetLine(istream,string)

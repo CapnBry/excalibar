@@ -52,6 +52,8 @@ EXTERN MapInfo Zones;
 EXTERN CheyenneClock Clock;
 // the config
 EXTERN CheyenneConfig Config;
+// the initial working directory (doesn't need to be thread safe ;))
+EXTERN std::string InitialDir;
 
 // global functions
 // the imlpementations of the global graphics functions are in 
@@ -97,5 +99,7 @@ template<class container> typename container::value_type::second_type PngBindCon
     // done
     return(id);
 }; // end PngBindContainer
+
+std::istream& GetLine(std::istream& is,std::string& str);
 
 #endif // GLOBAL_H

@@ -69,65 +69,87 @@ CheyenneConfig::CheyenneConfig() : m_ConfigFileName("cheyenne.cfg")
     
     SetShareNetAddress("127.0.0.1");
     SetShareNetPort("10001");
+    
+    SetNamedMobCreateSoundFile(std::string(""));
+    SetPlaySoundOnNamedMobCreate(false);
+    SetNamedMob(std::string(""));
 
 } // end CheyenneConfig
 
 bool CheyenneConfig::Load(void)
 {
-    std::fstream file(GetConfigFileName().c_str(),std::ios::in);
+    std::fstream file;
+    
+    
+    std::string file_name(::InitialDir);
+    file_name+=GetConfigFileName();
+    
+    file.open(file_name.c_str(),std::ios_base::in);
 
     if(!file.is_open())
         {
+        Logger << "[CheyenneConfig::Load] unable to open config file!\n";
         return(false);
         }
 
-    file.seekg(0,std::ios::beg);
+    //file.seekg(0,std::ios::beg);
 
     // this must be in the same order as Save()
 
-    file >> ModifyPPIText();
-    file >> ModifySurnameInPPI();
-    file >> ModifyGuildInPPI();
-    file >> ModifyLevelInPPI();
-    file >> ModifyAutoFollowFirstActor();
-    file >> ModifyRenderMOBs();
-    file >> ModifyRenderPlayers();
-    file >> ModifyRenderObjects();
-    file >> ModifyRaisePriority();
-    file >> ModifyMatchFollowedHeading();
-    file >> ModifyHealthInPPI();
+    file >> ModifyPPIText() >> std::ws;
+    file >> ModifySurnameInPPI() >> std::ws;
+    file >> ModifyGuildInPPI() >> std::ws;
+    file >> ModifyLevelInPPI() >> std::ws;
+    file >> ModifyAutoFollowFirstActor() >> std::ws;
+    file >> ModifyRenderMOBs() >> std::ws;
+    file >> ModifyRenderPlayers() >> std::ws;
+    file >> ModifyRenderObjects() >> std::ws;
+    file >> ModifyRaisePriority() >> std::ws;
+    file >> ModifyMatchFollowedHeading() >> std::ws;
+    file >> ModifyHealthInPPI() >> std::ws;
 
     for(int i=0;i<6;++i)
         {
-        file >> ModifyRangeRings().Rings[i].bEnabled;
-        file >> ModifyRangeRings().Rings[i].Radius;
+        file >> ModifyRangeRings().Rings[i].bEnabled >> std::ws;
+        file >> ModifyRangeRings().Rings[i].Radius >> std::ws;
         }
 
-    file >> ModifyPlaySoundOnAlbCreate();
-    file >> ModifyAlbSoundFile();
+    file >> ModifyPlaySoundOnAlbCreate() >> std::ws;
+    ::GetLine(file,ModifyAlbSoundFile());
+    //file >> ModifyAlbSoundFile();
 
-    file >> ModifyPlaySoundOnHibCreate();
-    file >> ModifyHibSoundFile();
+    file >> ModifyPlaySoundOnHibCreate() >> std::ws;
+    ::GetLine(file,ModifyHibSoundFile());
+    //file >> ModifyHibSoundFile();
 
-    file >> ModifyPlaySoundOnMidCreate();
-    file >> ModifyMidSoundFile();
+    file >> ModifyPlaySoundOnMidCreate() >> std::ws;
+    ::GetLine(file,ModifyMidSoundFile());
+    //file >> ModifyMidSoundFile();
 
-    file >> ModifyDrawDeadActors();
+    file >> ModifyDrawDeadActors() >> std::ws;
 
-    file >> ModifyUpdateWhenRendered();
+    file >> ModifyUpdateWhenRendered() >> std::ws;
 
-    file >> ModifyTexturesInPPI();
-    file >> ModifyVectorMapInPPI();
-    file >> ModifyVectorMapOnlyInFollowedZone();
+    file >> ModifyTexturesInPPI() >> std::ws;
+    file >> ModifyVectorMapInPPI() >> std::ws;
+    file >> ModifyVectorMapOnlyInFollowedZone() >> std::ws;
 
-    file >> ModifyAutoHookTarget();
+    file >> ModifyAutoHookTarget() >> std::ws;
     
-    file >> ModifyRenderGrayMobs();
+    file >> ModifyRenderGrayMobs() >> std::ws;
     
-    file >> ModifyShareNetAddress();
-    file >> ModifyShareNetPort();
+    file >> ModifyShareNetAddress() >> std::ws;
+    file >> ModifyShareNetPort() >> std::ws;
+    
+    file >> ModifyPlaySoundOnNamedMobCreate() >> std::ws;
+    ::GetLine(file,ModifyNamedMobCreateSoundFile());
+    //file >> ModifyNamedMobCreateSoundFile();
+    ::GetLine(file,ModifyNamedMob());
+    //file >> ModifyNamedMob();
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
+    
+    file.close();
 
     // done
     return(true);
@@ -135,14 +157,21 @@ bool CheyenneConfig::Load(void)
 
 bool CheyenneConfig::Save(void)const
 {
-    std::fstream file(GetConfigFileName().c_str(),std::ios::out);
+    std::fstream file;
+    
+    std::string file_name(::InitialDir);
+    file_name+=GetConfigFileName();
+    
+    SetLastError(ERROR_SUCCESS);
+    file.open(file_name.c_str(),std::ios_base::out);
 
     if(!file.is_open())
         {
+        Logger << "[CheyenneConfig::Save] unable to save config file (" << GetLastError() << ")!\n";
         return(false);
         }
 
-    file.seekp(0,std::ios::beg);
+    //file.seekp(0,std::ios::beg);
 
     // this must be in the same order as Load
 
@@ -208,9 +237,37 @@ bool CheyenneConfig::Save(void)const
     
     file << GetShareNetAddress() << std::endl;
     file << GetShareNetPort() << std::endl;
-
+    
+    file << GetPlaySoundOnNamedMobCreate() << std::endl;
+    if(GetNamedMobCreateSoundFile().length())
+        {
+        file << GetNamedMobCreateSoundFile() << std::endl;
+        }
+    else
+        {
+        file << "no_sound" << std::endl;
+        }
+    
+    if(GetNamedMob().length())
+        {
+        file << GetNamedMob() << std::endl;
+        }
+    else
+        {
+        file << "no_mob" << std::endl;
+        }
+    
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
-
+    
+    if(file.bad() || !file.good() || file.fail())
+        {
+        Logger << "[CheyenneConfig::Save] config saved, but the file is no good!\n";
+        }
+    
+    file.close();
+    
+    Logger << "[CheyenneConfig::Save] config saved\n";
+    
     // done
     return(true);
 } // end Save

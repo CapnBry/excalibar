@@ -30,6 +30,7 @@ public:
     AlbCreate,
     HibCreate,
     MidCreate,
+    NamedMobCreate,
     _SoundTypeLast
     };
 

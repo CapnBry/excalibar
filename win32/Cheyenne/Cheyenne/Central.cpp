@@ -51,7 +51,8 @@ Central::Central() :
     ActorXScale(0.01f),ActorYScale(0.0149f),
     //ActorXScale(0.0135f),ActorYScale(0.0135f),
     GroundTargetXScale(0.018f),GroundTargetYScale(0.018f),
-    WindowPosFileName("windowpos.txt")
+    WindowPosFileName("windowpos.txt"),
+    DiscList(0)
 {
     hMainWnd=NULL;
     hDataWnd=NULL;
@@ -201,7 +202,11 @@ void Central::OnNewActor(const Actor& ThisActor)
         // queue the sound to be played
         Sounds.QueueSound(SoundSpool::MidCreate);
         }
-
+    else if(ThisActor.GetName() == Config.GetNamedMob() && Config.GetPlaySoundOnNamedMobCreate())
+        {
+        // queue sound to be played
+        Sounds.QueueSound(SoundSpool::NamedMobCreate);
+        }
 
     // done
     return;
@@ -385,13 +390,18 @@ bool Central::Init(void)
     ShowWindow(hPPIWnd,SW_SHOW);
     UpdateWindow(hPPIWnd);
     GetClientRect(hPPIWnd,&rPPIClient);
+    
+    MoveWindow(hMainWnd,rMain.left,rMain.top,800,600,TRUE);
+    MoveWindow(hMainWnd,rMain.left,rMain.top,rMain.right-rMain.left,rMain.bottom-rMain.top,TRUE);
 
     return(true);
 } // end Init
 
 void Central::InitWindowPosition(RECT& r)const
 {
-    std::fstream pos_file(WindowPosFileName.c_str(),std::ios::in);
+    std::fstream pos_file;
+    
+    pos_file.open(WindowPosFileName.c_str(),std::ios_base::in);
     
     if(!pos_file.is_open())
         {
@@ -494,7 +504,9 @@ void Central::StoreWindowPosition(void)const
     GetWindowRect(hMainWnd,&r);
     
     // save
-    std::fstream pos_file(WindowPosFileName.c_str(),std::ios::out);
+    std::string pos_file_name(::InitialDir);
+    pos_file_name+=WindowPosFileName;
+    std::fstream pos_file(pos_file_name.c_str(),std::ios_base::out);
     
     pos_file << r.left << std::endl
              << r.top << std::endl
@@ -1705,6 +1717,32 @@ void Central::InitDisplayLists(void)
     glEnd();
     glEndList();
 
+    // make disc radius 100, 36 slices (every 10°)
+    DiscList=glGenLists(1);
+    glNewList(DiscList,GL_COMPILE);
+    glBegin(GL_TRIANGLE_FAN);
+
+    glVertex3d
+        (
+        0.0,
+        0.0,
+        0.0
+        );
+
+    // use <= to complete the disc
+    for(int i=0;i<=36;++i)
+        {
+        glVertex3d
+            (
+            100.0*cos(float(i)*slice),
+            100.0*sin(float(i)*slice),
+            0.0
+            );
+        }
+
+    glEnd();
+    glEndList();
+
     // flag
     bDisplayListsCreated=true;
 
@@ -1724,6 +1762,9 @@ void Central::DestroyDisplayLists(void)
 
     // destroy the circle list
     glDeleteLists(CircleList,1);
+    
+    // destroy the disc list
+    glDeleteLists(DiscList,1);
 
     bDisplayListsCreated=false;
     // done
@@ -2555,10 +2596,10 @@ void Central::RenderCloseControl(void)const
     // draw -- the 2.5 and 32.0 are the number of lines we want to be able to 
     // draw and the number of characters on each line respectively
     glBegin(GL_QUADS);
-    glVertex3f(0.0f,ProjectionWidthY,0.0f);
-    glVertex3f(0.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*2.5f),0.0f);
-    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),ProjectionWidthY - (ProjectionWidthY*fractional_line_height*2.5f),0.0f);
-    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),ProjectionWidthY,0.0f);
+    glVertex3f(0.0f,(ProjectionWidthY*fractional_line_height*2.5f),0.0f);
+    glVertex3f(0.0f,0.0f,0.0f);
+    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),0.0f,0.0f);
+    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),(ProjectionWidthY*fractional_line_height*2.5f),0.0f);
     glEnd();
     
     // set to 1/4 transparent con color
@@ -2595,8 +2636,9 @@ void Central::RenderCloseControl(void)const
     oss << FollowedTargetPair.GetTarget().GetName() << " " << FollowedTargetPair.GetTarget().GetSurname();
     glRasterPos3f
         (
-        ProjectionWidthX - (ProjectionWidthX*fractional_line_width),
-        ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),
+        (ProjectionWidthX*fractional_line_width),
+        (ProjectionWidthY*fractional_line_height*0.75f),
+        //ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),
         0.0f
         );
     DrawGLFontString(oss.str());
@@ -2610,8 +2652,9 @@ void Central::RenderCloseControl(void)const
     oss << RadToDeg(rng_az.second) << "°>";
     glRasterPos3f
         (
-        ProjectionWidthX - (ProjectionWidthX*fractional_line_width),
-        ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),
+        (ProjectionWidthX*fractional_line_width),
+        (ProjectionWidthY*fractional_line_height*2.0f),
+        //ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),
         0.0f
         );
     DrawGLFontString(oss.str());
@@ -2624,6 +2667,38 @@ void Central::RenderCloseControl(void)const
     // done
     return;
 } // end RenderCloseControl
+
+void Central::RenderUncorrelatedStealth(void)const
+{
+    if(db.IsUncorrelatedStealth())
+        {
+        // draw stealth disc
+        glPushMatrix();
+        
+        // render with no depth test so it will definately be displayed
+        glDisable(GL_DEPTH_TEST);
+
+        // get followed actor render position
+        Actor CenterActor=db.GetUncorrelatedStealthCenter();
+        Motion Position;
+        GetRenderPosition(CenterActor,Position);
+        // translate to position
+        glTranslatef(Position.GetXPos(),Position.GetYPos(),0.0f);
+        
+        // draw disc
+        glEnable(GL_BLEND);
+        glColor4f(1.0f,0.0f,0.0f,0.25f);
+        DrawDisc(3000.0f);
+        //DrawCircle(3000.0f);
+        
+        // cleanup and done
+        glDisable(GL_BLEND);
+        glPopMatrix();
+        }
+    
+    // done
+    return;
+} // end RenderUncorrelatedStealth
 
 void Central::DrawPPI(void)
 {
@@ -2752,6 +2827,9 @@ void Central::DrawPPI(void)
 
     // render the close control
     RenderCloseControl();
+    
+    // render uncorrelated stealth disc
+    RenderUncorrelatedStealth();
     
     glPopMatrix();
 
