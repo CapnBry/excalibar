@@ -383,13 +383,13 @@ Database::actor_iterator Database::GetActorIteratorById(const unsigned int& id)
     return(it);
 } // end GetActorIteratorById
 
-Actor Database::CopyActorById(const unsigned int& id)const
+Actor Database::CopyActorById(const unsigned int& info_id)const
 {
     // make sure we are locked: this is a PUBLIC function
     AutoLock al(DBMutex);
 
     // find it
-    const_actor_iterator it=Actors.find(id);
+    const_actor_iterator it=Actors.find(info_id);
 
     // return NULL if not found
 

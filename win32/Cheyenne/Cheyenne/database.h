@@ -207,7 +207,7 @@ public:
         return;
     };
 
-    Actor CopyActorById(const unsigned int& id)const;
+    Actor CopyActorById(const unsigned int& info_id)const;
     void GetDatabaseStatistics(DatabaseStatistics& stats)const;
 
 protected:

@@ -62,7 +62,7 @@ public:
     void operator()(const Database::actor_map_value& s)
     {
         int ndx=SendMessage(hComboBox,CB_ADDSTRING,0,(LPARAM)s.second.GetName().c_str());
-        SendMessage(hComboBox,CB_SETITEMDATA,(WPARAM)ndx,(LPARAM)s.second.GetId());
+        SendMessage(hComboBox,CB_SETITEMDATA,(WPARAM)ndx,(LPARAM)s.second.GetInfoId());
         // done
         return;
     }
