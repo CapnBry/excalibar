@@ -310,6 +310,9 @@ begin
     FRange := FRenderPrefs.Range;
     slideZoom.Position := FRange;
     UpdateStayOnTop;
+    
+    FMapTexturesListList.AttemptMapDownload := FRenderPrefs.AttemptMapDownload;
+    FMapTexturesListList.MapBaseURL := FRenderPrefs.MapBaseURL;
   end
   else
     slideZoomChange(Self);

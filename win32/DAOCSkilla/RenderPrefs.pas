@@ -38,6 +38,8 @@ type
     AdjacentZones:    boolean;
     ViewFrustum:      boolean;
     AlternateMobListText: boolean;
+    AttemptMapDownload: boolean;
+    MapBaseURL:       string;
 
     constructor Create;
 
@@ -138,6 +140,8 @@ begin
   Result.AdjacentZones := AdjacentZones;
   Result.ViewFrustum := ViewFrustum;
   Result.AlternateMobListText := AlternateMobListText;
+  Result.AttemptMapDownload := AttemptMapDownload;
+  Result.MapBaseURL := MapBaseURL; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -184,6 +188,8 @@ begin
     AdjacentZones := ReadBool('RenderPrefs', 'AdjacentZones', false);
     ViewFrustum := ReadBool('RenderPrefs', 'ViewFrustum', true);
     AlternateMobListText := DrawTypeTag; //ReadBool('RenderPrefs', 'AlternateMobListText', false);
+    AttemptMapDownload := ReadBool('RenderPrefs', 'AttemptMapDownload', true);
+    MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%3d');
   end;
 end;
 
@@ -215,6 +221,8 @@ begin
     WriteBool('RenderPrefs', 'AdjacentZones', AdjacentZones);
     WriteBool('RenderPrefs', 'ViewFrustum', ViewFrustum);
     WriteBool('RenderPrefs', 'AlternateMobListText', AlternateMobListText);
+    WriteBool('RenderPrefs', 'AttemptMapDownload', AttemptMapDownload);
+    WriteString('RenderPrefs', 'MapBaseURL', MapBaseURL);
   end;
 end;
 

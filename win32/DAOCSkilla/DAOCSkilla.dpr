@@ -48,7 +48,8 @@ uses
   GlobalTickCounter in '..\Common\GlobalTickCounter.pas',
   QuickSinCos in '..\Common\QuickSinCos.pas',
   Macroing in 'Macroing.pas' {frmMacroing},
-  Intersections in '..\Common\Intersections.pas';
+  Intersections in '..\Common\Intersections.pas',
+  BackgroundHTTP in 'BackgroundHTTP.pas';
 
 {$R *.TLB}
 

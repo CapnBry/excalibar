@@ -3,8 +3,8 @@ unit MapElementList;
 interface
 
 uses
-  SysUtils, Types, Contnrs, GLRenderObjects, LinedFileStream, CSVLineParser,
-  DDSImage, GL, DAOCRegion;
+  SysUtils, Types, Contnrs, Classes, GLRenderObjects, LinedFileStream,
+  CSVLineParser, DDSImage, GL, DAOCRegion, BackgroundHTTP;
 
 type
   TGLRenderObjectList = class(TObjectList)
@@ -36,7 +36,11 @@ type
   end;
 
   TTextureMapElementList = class(TZoneGLRenderObjectList)
+  private
+    FFileName:  string;
   public
+    procedure ReloadFile;
+    procedure DeleteFile;
     procedure LoadFromSingleDDSFile(const AFileName: string);
     procedure GLRender(const ARenderBounds: TRect); override;
   end;
@@ -74,13 +78,25 @@ type
   TTextureMapElementListList = class(TZoneGLRenderObjectListList)
   private
     FTextureMapDir: string;
+    FHTTPTextureFetch:  TBackgroundHTTPManager;
+    FAttemptMapDownload: boolean;
+    FMapBaseURL: string;
     function GetItems(I: integer): TTextureMapElementList;
     procedure SetTextureMapDir(const Value: string);
   protected
     procedure AddZone(AZone: TDAOCZoneInfo); override;
+    procedure HTTPComplete(ARequest: TBackgroundHTTPRequest);
+    procedure HTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest);
   public
+    constructor Create;
+    destructor Destroy; override;
+
+    function FindZone(AZoneNum: integer) : TTextureMapElementList;
+
     property Items[I: integer]: TTextureMapElementList read GetItems; default;
     property TextureMapDir: string read FTextureMapDir write SetTextureMapDir;
+    property MapBaseURL: string read FMapBaseURL write FMapBaseURL;  
+    property AttemptMapDownload: boolean read FAttemptMapDownload write FAttemptMapDownload;
   end;
 
 implementation
@@ -152,6 +168,12 @@ end;
 
 { TTextureMapElementList }
 
+procedure TTextureMapElementList.DeleteFile;
+begin
+  if FFileName <> '' then
+    SysUtils.DeleteFile(FFileName);
+end;
+
 procedure TTextureMapElementList.GLRender(const ARenderBounds: TRect);
 begin
   glEnable(GL_TEXTURE_2D);
@@ -169,11 +191,17 @@ var
   iScale: integer;
 begin
   Clear;
+  FFileName := AFileName;
   if not FileExists(AFileName) then
     exit;
 
   dds := TDDSImage.Create;
   dds.LoadFromFile(AFileName);
+    { if no pixel data then give up.  fskers tried to trick me }
+  if dds.PixelsSize = 0 then begin
+    dds.Free;
+    exit;
+  end;
 
   iScale := $10000 div dds.Width;
 
@@ -195,6 +223,11 @@ begin
   end;
 
   dds.Free;
+end;
+
+procedure TTextureMapElementList.ReloadFile;
+begin
+  LoadFromSingleDDSFile(FFileName);
 end;
 
 { TGLRenderObjectList }
@@ -340,13 +373,58 @@ end;
 procedure TTextureMapElementListList.AddZone(AZone: TDAOCZoneInfo);
 var
   pTmpZone:   TTextureMapElementList;
+  pHTTPRequest: TBackgroundHTTPRequest;
+  sDestFileName:  string;
 begin
+    { make sure we have the directory the DDS files are in, in case
+      we have to download em }
+  ForceDirectories(FTextureMapDir);
+
   pTmpZone := TTextureMapElementList.Create;
   Add(pTmpZone);
   pTmpZone.ZoneNum := AZone.ZoneNum;
   pTmpZone.OffsetX := AZone.BaseLoc.X;
   pTmpZone.OffsetY := AZone.BaseLoc.Y;
-  pTmpZone.LoadFromSingleDDSFile(Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]));
+  sDestFileName := Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]);
+  pTmpZone.LoadFromSingleDDSFile(sDestFileName);
+
+    { zone didn't load.  Try to get it from the woooooooorld wide web }
+  if FAttemptMapDownload and (pTmpZone.Count = 0) then begin
+    pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
+    pHTTPRequest.URL := Format(FMapBaseURL, [AZone.ZoneNum]);
+    pHTTPRequest.Tag := AZone.ZoneNum;
+    pHTTPRequest.ResponseStream := TFileStream.Create(sDestFileName, fmCreate);
+    FHTTPTextureFetch.Request(pHTTPRequest);
+  end;
+end;
+
+function TTextureMapElementListList.FindZone(AZoneNum: integer) : TTextureMapElementList;
+var
+  I:    integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].ZoneNum = AZoneNum then begin
+      Result := Items[I];
+      exit;
+    end;
+
+  Result := nil;
+end;
+
+constructor TTextureMapElementListList.Create;
+begin
+  inherited;
+  FHTTPTextureFetch := TBackgroundHTTPManager.Create;
+  FHTTPTextureFetch.OnRequestComplete := HTTPComplete;
+  FHTTPTextureFetch.OnHTTPError := HTTPError;
+end;
+
+destructor TTextureMapElementListList.Destroy;
+begin
+  FHTTPTextureFetch.Shutdown;
+  FHTTPTextureFetch.Free;
+  
+  inherited;
 end;
 
 function TTextureMapElementListList.GetItems(I: integer): TTextureMapElementList;
@@ -354,9 +432,38 @@ begin
   Result := TTextureMapElementList(inherited Items[I]);
 end;
 
+procedure TTextureMapElementListList.HTTPComplete(ARequest: TBackgroundHTTPRequest);
+var
+  pZoneTexList:  TTextureMapElementList;
+begin
+  pZoneTexList := FindZone(ARequest.Tag);
+    { request is complete.  Attempt a reload }
+  if Assigned(pZoneTexList) then begin
+      { we have to close the stream to make sure window will share the file }
+    ARequest.ResponseStream.Free;
+    ARequest.ResponseStream := nil;
+    pZoneTexList.ReloadFile;
+  end;
+end;
+
 procedure TTextureMapElementListList.SetTextureMapDir(const Value: string);
 begin
   FTextureMapDir := IncludeTrailingPathDelimiter(Value);
+end;
+
+procedure TTextureMapElementListList.HTTPError(const AErr: string;
+  ARequest: TBackgroundHTTPRequest);
+var
+  pZoneTexList:  TTextureMapElementList;
+begin
+  pZoneTexList := FindZone(ARequest.Tag);
+    { The damn response is the error message from the http server }
+  if Assigned(pZoneTexList) then begin
+      { close the filestream }
+    ARequest.ResponseStream.Free;
+    ARequest.ResponseStream := nil;
+    pZoneTexList.DeleteFile;
+  end;
 end;
 
 end.
