@@ -6,7 +6,8 @@ unit DAOCWorldInfo;
 interface
 
 uses
-  Types, SysUtils, Classes, Contnrs, MPKFile, StreamINI;
+  Types, Windows, Graphics, SysUtils, Classes, Contnrs, MPKFile, StreamINI,
+  DAOCWaterRegions;
 
 type
   TDAOCStaticRegionInfo = class(TObject)
@@ -37,6 +38,12 @@ type
     property ByID[AID: integer]: TDAOCStaticRegionInfo read GetItemsByID;
   end;
 
+  TDAOCFogInfo = record
+    Amount:   integer;
+    Clip:     integer;
+    Color:    TColor;
+  end;
+
   TDAOCStaticZoneInfo = class(TObject)
   private
     FEnabled: boolean;
@@ -48,7 +55,26 @@ type
     FName: string;
     FRegionOffset: TPoint;
     FID: integer;
+    FDetailLoaded: boolean;
+    FSectorSizeX: integer;
+    FSectorSizeY: integer;
+    FTerrainOffset: integer;
+    FTerrainScale: integer;
+    FTerrainHorizon: string;
+    FTerrainClouds: string;
+    FSkyColor: TColor;
+    FFog: TDAOCFogInfo;
+    FWaterRegions: TWaterRegionList;
+    FTerrainFlipY: boolean;
+    FTerrainFlipX: boolean;
+    FTerrainUseTextureZoneID: integer;
   public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure LoadDetails(ASectorDatINI: TStreamINIFile);
+
+      { things from the global world file (zones.mpk/zones.dat) }
     property Enabled: boolean read FEnabled;
     property EntryMusic: integer read FEntryMusic;
     property Height: integer read FHeight;
@@ -58,6 +84,21 @@ type
     property RegionOffset: TPoint read FRegionOffset;
     property Width: integer read FWidth;
     property ZoneType: integer read FZoneType;
+
+      { things from individual zone definition (zoneNNN/datNNN.mpk/sector.dat) }
+    property DetailLoaded: boolean read FDetailLoaded;
+    property SectorSizeX: integer read FSectorSizeX;
+    property SectorSizeY: integer read FSectorSizeY;
+    property Fog: TDAOCFogInfo read FFog;
+    property SkyColor: TColor read FSkyColor;
+    property TerrainHorizon: string read FTerrainHorizon;
+    property TerrainClouds: string read FTerrainClouds;
+    property TerrainScale: integer read FTerrainScale;
+    property TerrainOffset: integer read FTerrainOffset;
+    property TerrainUseTextureZoneID: integer read FTerrainUseTextureZoneID;
+    property TerrainFlipX: boolean read FTerrainFlipX;
+    property TerrainFlipY: boolean read FTerrainFlipY;
+    property WaterRegions: TWaterRegionList read FWaterRegions;
   end;
 
   TDAOCStaticZoneInfoList = class(TObjectList)
@@ -243,6 +284,55 @@ begin
   finally
     pINI.Free;  // INI
   end;
+end;
+
+{ TDAOCStaticZoneInfo }
+
+constructor TDAOCStaticZoneInfo.Create;
+begin
+  FWaterRegions := TWaterRegionList.Create;
+end;
+
+destructor TDAOCStaticZoneInfo.Destroy;
+begin
+  FWaterRegions.Free;
+  
+  inherited;
+end;
+
+procedure TDAOCStaticZoneInfo.LoadDetails(ASectorDatINI: TStreamINIFile);
+var
+  R, G, B:  BYTE;
+begin
+  if FDetailLoaded then
+    exit;
+
+  FDetailLoaded := true;
+  FSectorSizeX := ASectorDatINI.ReadInteger('sectorsize', 'sizex', 8);
+  FSectorSizeY := ASectorDatINI.ReadInteger('sectorsize', 'sizey', 8);
+
+  FTerrainOffset := ASectorDatINI.ReadInteger('terrain', 'offsetfactor', 48);
+  FTerrainScale := ASectorDatINI.ReadInteger('terrain', 'scalefactor', 8);
+  FTerrainHorizon := ASectorDatINI.ReadString('terrain', 'horizon', 'horizon.tga');
+  FTerrainClouds := ASectorDatINI.ReadString('terrain', 'clouds', 'clouds.tga');
+  FTerrainUseTextureZoneID := ASectorDatINI.ReadInteger('terrain', 'use_texture', FID);
+  FTerrainFlipX := ASectorDatINI.ReadBool('terrain', 'flip_x', false);
+  FTerrainFlipY := ASectorDatINI.ReadBool('terrain', 'flip_y', false);
+
+
+  R := ASectorDatINI.ReadInteger('sky', 'red', 128);
+  G := ASectorDatINI.ReadInteger('sky', 'green', 215);
+  B := ASectorDatINI.ReadInteger('sky', 'blue', 255);
+  FSkyColor := RGB(R, G, B);
+
+  FFog.Amount := ASectorDatINI.ReadInteger('fog', 'amount', 0);
+  FFog.Clip := ASectorDatINI.ReadInteger('fog', 'clip', 65000);
+  R := ASectorDatINI.ReadInteger('fog', 'red', 85);
+  G := ASectorDatINI.ReadInteger('fog', 'green', 140);
+  B := ASectorDatINI.ReadInteger('fog', 'blue', 166);
+  FFog.Color := RGB(R, G, B);
+
+  FWaterRegions.LoadFromINI(ASectorDatINI);
 end;
 
 end.
