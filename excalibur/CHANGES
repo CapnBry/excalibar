@@ -1,3 +1,15 @@
+Teerex (26/May/02)
+------------------
+Changes (not actually today, just catching up):
+ + Changed exMob speed to signed int.
+ + Players now move smoothly using projected position.
+ + Changed DRI messages to be more informational and
+   less silly.
+ + Changed pcap sniffer timeout to 200ms, select() 
+   timeout to 200ms to decrease latency between 
+   processing.
+ + Upped version to 1.2.3
+
 Teerex (04/May/02)
 ------------------
 Changes:
