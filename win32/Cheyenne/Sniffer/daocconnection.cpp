@@ -1528,16 +1528,26 @@ daocmessages::player_pos_update* DAOCConnection::ParsePlayerPosUpdate
     GetData(msg->speed,ndx,buffer);
 
     // get z
-    GetData(msg->z,ndx,buffer);
-
-    // skip unused
-    SkipData(ndx,2);
+    unsigned short z;
+    GetData(z,ndx,buffer);
 
     // get x
-    GetData(msg->x,ndx,buffer);
+    unsigned short x;
+    GetData(x,ndx,buffer);
 
     // get y
-    GetData(msg->y,ndx,buffer);
+    unsigned short y;
+    GetData(y,ndx,buffer);
+
+    // get zone
+    unsigned char zone;
+    GetData(zone,ndx,buffer);
+    
+    // have zone-relative <x,y,z>, make regional
+    ::Zones.GetGlobalFromZone(zone,x,y,z,msg->x,msg->y,msg->z);
+    
+    // skip unused 
+    SkipData(ndx,1);
 
     // get heading
     GetData(msg->heading,ndx,buffer);
@@ -1812,13 +1822,26 @@ daocmessages::player_identity* DAOCConnection::ParsePlayerIdentity
     GetData(msg->info_id,ndx,buffer);
 
     // get x
-    GetData(msg->x,ndx,buffer);
+    unsigned short x;
+    GetData(x,ndx,buffer);
 
     // get y
-    GetData(msg->y,ndx,buffer);
+    unsigned short y;
+    GetData(y,ndx,buffer);
 
+    // get zone
+    unsigned char zone;
+    GetData(zone,ndx,buffer);
+    
+    // skip unused
+    SkipData(ndx,1);
+    
     // get z
-    GetData(msg->z,ndx,buffer);
+    unsigned short z;
+    GetData(z,ndx,buffer);
+    
+    // have zone-relative <x,y,z>, make regional
+    ::Zones.GetGlobalFromZone(zone,x,y,z,msg->x,msg->y,msg->z);
 
     // get heading
     GetData(msg->heading,ndx,buffer);
