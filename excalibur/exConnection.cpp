@@ -257,7 +257,6 @@ void exConnection::processPacket(exPacket * p)
     exMapInfo *mi;
     int what;
     int tp;
-    int zone;
     int *intptr;
     Realm *rptr;
 
