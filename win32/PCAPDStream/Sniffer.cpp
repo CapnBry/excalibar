@@ -1,4 +1,6 @@
 #include "pcapserver.h"
+#include <string>
+#include <sstream>
 
 cSniffer::cSniffer()
 {
@@ -78,36 +80,31 @@ void cSniffer::tcp_callback(tcp_stream *a_tcp, void ** this_time_not_needed)
 			a_tcp->client.collect_urg++;	// if we don't increase this value,
 											// we won't be notified of urgent data arrival
 
-			//static 
-			char buf[256];
-			strcpy(buf, int_ntoa(a_tcp->addr.saddr));
-			sprintf(buf + strlen (buf), ",%i --> ", a_tcp->addr.source);
-			strcat(buf, int_ntoa (a_tcp->addr.daddr));
-			sprintf(buf + strlen (buf), ",%i", a_tcp->addr.dest);
-			pMain->StatusUpdate("DAoC connection found: %s\r\n",buf);
+			std::ostringstream ss;
+			ss << int_ntoa(a_tcp->addr.saddr) << ":" << a_tcp->addr.source
+			   << " --> "
+			   << int_ntoa(a_tcp->addr.daddr) << ":" << a_tcp->addr.dest;
+			   
+			pMain->StatusUpdate("DAoC connection found: %s\r\n",ss.str().c_str());
 
 			memcpy((void *)&pDStream->addr,(void *)&a_tcp->addr,sizeof(tuple4));
 
 			pDStream->x05();
 			return;
 		}
-		case NIDS_CLOSE:
-		{
-			pSniffer->connected = false;
-			// connection has been closed normally		
-			pMain->StatusUpdate("DAoC connection has been closed\r\n");
-
-			pDStream->x06();
-			return;
-		}
 		case NIDS_RESET:
+			pMain->StatusUpdate("DAoC connection has been reset\r\n");
+			// fall through to closed...
+		case NIDS_CLOSE:
+			pMain->StatusUpdate("DAoC connection has been closed\r\n");
 		{
+			// clear connected flag
 			pSniffer->connected = false;
-			// connection has been closed by RST
-			pMain->StatusUpdate("DAoC connection has been closed by reset\r\n");
-
+			// reset packet count so we can reconnect to a future game session
+			pDStream->MsgProc.CntPackets=0;
+			// connection has been closed		
 			pDStream->x06();
-			return;
+			break;
 		}
 		case NIDS_DATA:
 		{					
