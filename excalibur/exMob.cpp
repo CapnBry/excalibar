@@ -157,7 +157,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QRegExp rx( c->MobFilter.getFilter());
   QColor clr;
 
-  if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isKnown)
+  if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
 		{
 		this->isKnown = true;
 		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d\n", name.ascii(), getLevel());
