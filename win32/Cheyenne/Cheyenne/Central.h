@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "database.h"
 #include "VectorMapLoader.h"
 #include "soundspool.h"
+#include "sharenet.h"
 
 class Central
 {
@@ -356,6 +357,9 @@ private:
 
     // sound spooler
     SoundSpool Sounds;
+    
+    // sharenet client
+    ShareNetClientData ShareNet;
 
 }; // end Central
 

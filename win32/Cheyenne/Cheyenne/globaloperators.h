@@ -37,6 +37,8 @@ bool operator>=(const tuple4& a,const tuple4& b);
 *                    std::ostream operators                         *
 *********************************************************************/
 std::ostream& operator<< (std::ostream& str,const tuple4& a);
+std::ostream& operator<< (std::ostream& str,const struct in_addr& a);
+std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a);
 /********************************************************************
 *                   CheyenneLogger operators                        *
 *********************************************************************/

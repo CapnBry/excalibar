@@ -101,3 +101,18 @@ std::ostream& operator<< (std::ostream& str,const tuple4& a)
 
     return(str);
 } // end operator<< (tuple4)
+
+std::ostream& operator<< (std::ostream& str,const struct in_addr& a)
+{
+    str << unsigned int(a.S_un.S_un_b.s_b1) << "."
+        << unsigned int(a.S_un.S_un_b.s_b2) << "."
+        << unsigned int(a.S_un.S_un_b.s_b3) << "."
+        << unsigned int(a.S_un.S_un_b.s_b4);
+        
+    return(str);
+} // end operator<< (std::ostream& str,const struct in_addr& a)
+std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a)
+{
+    str << a.sin_addr << ":" << ntohs(a.sin_port);
+    return(str);
+} // end operator<< (std::ostream& str,const SOCKADDR_IN& a)

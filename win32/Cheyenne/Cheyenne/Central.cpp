@@ -82,6 +82,7 @@ Central::~Central()
     sniffer.Stop();
     db.Stop();
     Sounds.Stop();
+    ShareNet.Stop();
 
     // delete everything on the message fifo
     while(MessageInputFifo.size() != 0)
@@ -365,7 +366,7 @@ bool Central::Init(void)
         WS_EX_WINDOWEDGE,
         "CheyennePPIClass",
         "",
-        WS_CHILD|WS_VISIBLE|WS_BORDER,
+        WS_CHILD|WS_VISIBLE|WS_BORDER|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
         w*1/4,
         0,
         w*3/4,
@@ -565,7 +566,6 @@ void Central::DrawDataWindow(HDC hFront)const
 
     if(HookedActor != 0)
         {
-
         Actor Hooked=GetDatabase().CopyActorById(HookedActor);
 
         // we want to draw:
@@ -575,8 +575,6 @@ void Central::DrawDataWindow(HDC hFront)const
         Realm=get realm name
         Level=%level%
         Health=%health&
-        Endurance=%endurance%
-        Mana=%mana%
         Zone=get zone name
         Loc=%<x,y,z>%  <-- this shoud be in zone-relative coords
         Heading=heading degrees
@@ -624,8 +622,6 @@ void Central::DrawDataWindow(HDC hFront)const
             << RealmName.c_str() << "\n"
             << "Level=" << unsigned int(Hooked.GetLevel()) << "\n"
             << "Health=" << unsigned int(Hooked.GetHealth()) << "%\n"
-            << "Endurance=" << "%\n"
-            << "Mana=" << "%\n"
             << "Zone=" << HookedZone.ZoneFile.c_str() << "\n"
             << "Loc=<" << x << "," << y << "," << z << ">\n"
             << "Heading=" << RadToDeg(Hooked.GetMotion().GetHeading()) << "°\n"
@@ -683,8 +679,6 @@ void Central::DrawDataWindow(HDC hFront)const
             << RealmName.c_str() << "\n"
             << "Level=" << unsigned int(Followed.GetLevel()) << "\n"
             << "Health=" << unsigned int(Followed.GetHealth()) << "%\n"
-            << "Endurance=" << "%\n"
-            << "Mana=" << "%\n"
             << "Zone=" << FollowedZone.ZoneFile.c_str() << "\n"
             << "Loc=<" << x << "," << y << "," << z << ">\n"
             << "Heading=" << Followed.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
@@ -703,7 +697,9 @@ void Central::DrawDataWindow(HDC hFront)const
         << "Hibs=" << stats.GetNumHibs() << "\n"
         << "Mids=" << stats.GetNumMids() << "\n"
         << "Mobs=" << stats.GetNumMobs() << "\n"
-        << "InfoId Mappings=" << stats.GetInfoIdSize() << "\n";
+        << "InfoId Mappings=" << stats.GetInfoIdSize() << "\n"
+        << "ShareNet Status=" << ShareNet.GetStatusString() << "\n"
+        << "ShareNet=" << ShareNet.GetRemoteAddr();
 
     // draw double buffered to prevent flickering
     HDC hBack=CreateCompatibleDC(hFront);
@@ -1162,6 +1158,33 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                 );
             break;
 
+        case ID_SHARENET_CONNECT:
+            // do dialog
+            {
+            LRESULT res=DialogBoxParam
+                (
+                hInstance,
+                MAKEINTRESOURCE(IDD_SHARENETCONFIG),
+                hWnd,
+                (DLGPROC)ConfigShareNetDlgProc,
+                (LPARAM)(&Config)
+                );
+            
+            if(res==IDOK)
+                {
+                // make sure its closed
+                ShareNet.Close();
+                // open with new parameters
+                ShareNet.Open(Config.GetShareNetAddress(),Config.GetShareNetPort());
+                }
+            }
+            break;
+            
+        case ID_SYSTEM_REINITIALIZEOPENGL:
+            // reinitialize opengl
+            InitOpenGL();
+            break;
+            
         default:
             break;
         }
@@ -1473,8 +1496,13 @@ void Central::InitPixelFormat(void)
     pfd.nSize=sizeof(pfd);
     pfd.nVersion=1;
     
+    SetLastError(0);
     int iPF=GetPixelFormat(hPPIDC);
     //iPF=GetLastError();
+    if(iPF==0)
+        {
+        Logger << "[Central::InitPixelFormat] GetPixelFormat() returned error " << GetLastError() << "\n";
+        }
 
     DescribePixelFormat(hPPIDC,iPF,sizeof(PIXELFORMATDESCRIPTOR),&pfd);
 
@@ -1486,6 +1514,16 @@ void Central::InitPixelFormat(void)
     pfd.iLayerType=PFD_MAIN_PLANE;
 
     iPF=ChoosePixelFormat(hPPIDC,&pfd);
+    
+    DescribePixelFormat(hPPIDC,iPF,sizeof(PIXELFORMATDESCRIPTOR),&pfd);
+    
+    Logger << "[Central::InitPixelFormat] closest match pixel format:\n"
+           << "\tpfd.dwFlags=" << pfd.dwFlags << "\n"
+           << "\tpfd.iPixelType=" << (int)pfd.iPixelType << "\n"
+           << "\tpfd.cColorBits=" << (int)pfd.cColorBits << "\n"
+           << "\tpfd.cAlphaBits=" << (int)pfd.cAlphaBits << "\n"
+           << "\tpfd.cDepthBits=" << (int)pfd.cDepthBits << "\n"
+           << "\tpfd.iLayerType=" << (int)pfd.iLayerType << "\n";
 
     SetPixelFormat(hPPIDC,iPF,&pfd);
 
@@ -1507,6 +1545,9 @@ void Central::InitCheyenne(void)
 
     // start sniffer
     sniffer.Go(&MessageInputFifo);
+    
+    // start sharenet (connection will be made later)
+    ShareNet.Go(&MessageInputFifo);
     
     // done
     return;

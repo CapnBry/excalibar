@@ -524,3 +524,51 @@ BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     
     return(TRUE); // TRUE for processed message
 } // end SetSoundsDlgProc
+
+BOOL WINAPI ConfigShareNetDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
+{
+    CheyenneConfig* param=(CheyenneConfig*)GetWindowLong(hWnd,GWL_USERDATA);
+
+    switch(uMsg)
+        {
+        case WM_INITDIALOG:
+            {
+            SetWindowLong(hWnd,GWL_USERDATA,(LONG)lParam);
+            
+            param=(CheyenneConfig*)lParam;
+
+            SET_EDIT_STRING(hWnd,IDC_SHARENET_ADDRESS,param->GetShareNetAddress());
+            SET_EDIT_STRING(hWnd,IDC_SHARENET_PORT,param->GetShareNetPort());
+            }
+            break;
+
+        case WM_COMMAND:
+            {
+            switch(LOWORD(wParam))
+                {
+                case IDOK:
+                    {
+                    GET_EDIT_STRING(hWnd,IDC_SHARENET_ADDRESS,param->ModifyShareNetAddress());
+                    GET_EDIT_STRING(hWnd,IDC_SHARENET_PORT,param->ModifyShareNetPort());
+                    }
+                    EndDialog(hWnd,IDOK);
+                    break;
+
+                case IDCANCEL:
+                    EndDialog(hWnd,IDCANCEL);
+                    break;
+                        
+                default:
+                    return(FALSE);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            return(FALSE); // did not process message
+            break;
+        } // end switch message
+    
+    return(TRUE); // TRUE for processed message
+} // end ConfigShareNetDlgProc

@@ -119,6 +119,8 @@ private:
         MEMBER_ASSIGN(VectorMapOnlyInFollowedZone);
         MEMBER_ASSIGN(AutoHookTarget);
         MEMBER_ASSIGN(RenderGrayMobs);
+        MEMBER_ASSIGN(ShareNetAddress);
+        MEMBER_ASSIGN(ShareNetPort);
     }
 
     DECL_MEMBER(bool,PPIText);
@@ -148,5 +150,7 @@ private:
     DECL_MEMBER(bool,VectorMapOnlyInFollowedZone);
     DECL_MEMBER(bool,AutoHookTarget);
     DECL_MEMBER(bool,RenderGrayMobs);
+    DECL_MEMBER(std::string,ShareNetAddress);
+    DECL_MEMBER(std::string,ShareNetPort);
 
 }; // end class CheyenneConfig

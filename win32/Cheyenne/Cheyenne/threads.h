@@ -38,6 +38,8 @@ public:
 
     virtual ~Thread(){Stop();};
 
+    bool IsRunning(void){return(bRunning);};
+
     bool Go(void* p=NULL)
     {
         if(bRunning)

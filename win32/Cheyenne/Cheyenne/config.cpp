@@ -66,6 +66,9 @@ CheyenneConfig::CheyenneConfig() : m_ConfigFileName("cheyenne.cfg")
     SetVectorMapOnlyInFollowedZone(false);
     SetAutoHookTarget(true);
     SetRenderGrayMobs(true);
+    
+    SetShareNetAddress("127.0.0.1");
+    SetShareNetPort("10001");
 
 } // end CheyenneConfig
 
@@ -120,6 +123,9 @@ bool CheyenneConfig::Load(void)
     file >> ModifyAutoHookTarget();
     
     file >> ModifyRenderGrayMobs();
+    
+    file >> ModifyShareNetAddress();
+    file >> ModifyShareNetPort();
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 
@@ -199,6 +205,9 @@ bool CheyenneConfig::Save(void)const
     file << GetAutoHookTarget() << std::endl;
     
     file << GetRenderGrayMobs() << std::endl;
+    
+    file << GetShareNetAddress() << std::endl;
+    file << GetShareNetPort() << std::endl;
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 

@@ -24,3 +24,4 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
 BOOL WINAPI ConfigRangeRingsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI AboutDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+BOOL WINAPI ConfigShareNetDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
