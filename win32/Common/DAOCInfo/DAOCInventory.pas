@@ -38,6 +38,8 @@ type
     function GetIsInBag: boolean;
     function SlotAsVaultPage: integer;
     function SlotAsVaultPos: integer;
+    function SlotAsMerchantPage: integer;
+    function SlotAsMerchantPos: integer;
     procedure SetDelveInfo(const Value: TStrings);
   public
     constructor Create;
@@ -109,6 +111,8 @@ const
   INV_BAGPOS_LAST = $4F;
   INV_VAULTPOS_FIRST = $6E;
   INV_VAULTPOS_LAST = $95;
+  INV_MERCHANTPOS_FIRST = $96;
+  INV_MERCHANTPOS_LAST = $FA;  //??
 
 function TDAOCInventoryItem.AsString(AVerbose: boolean) : string;
 var
@@ -314,6 +318,8 @@ begin
       IntToStr(SlotAsBag) + ' pos ' + IntToStr(SlotAsBagPos);
     INV_VAULTPOS_FIRST..INV_VAULTPOS_LAST:  Result := 'Vault page ' +
       IntToStr(SlotAsVaultPage) + ' pos ' + IntToStr(SlotAsVaultPos);
+    INV_MERCHANTPOS_FIRST..INV_MERCHANTPOS_LAST:  Result := 'Consignment page ' +
+      IntToStr(SlotAsMerchantPage) + ' pos ' + IntToStr(SlotAsMerchantPos);
     else
       Result := 'slot 0x' + IntToHex(FSlot, 2);
   end;
@@ -347,6 +353,22 @@ function TDAOCInventoryItem.SlotAsBagPos: integer;
 begin
   if FSlot in [INV_BAGPOS_FIRST..INV_BAGPOS_LAST] then
     Result := (FSlot - INV_BAGPOS_FIRST) mod 8
+  else
+    Result := -1;
+end;
+
+function TDAOCInventoryItem.SlotAsMerchantPage: integer;
+begin
+  if FSlot in [INV_MERCHANTPOS_FIRST..INV_MERCHANTPOS_LAST] then
+    Result := (FSlot - INV_MERCHANTPOS_FIRST) div 20
+  else
+    Result := -1;
+end;
+
+function TDAOCInventoryItem.SlotAsMerchantPos: integer;
+begin
+  if FSlot in [INV_MERCHANTPOS_FIRST..INV_MERCHANTPOS_LAST] then
+    Result := (FSlot - INV_MERCHANTPOS_FIRST) mod 20
   else
     Result := -1;
 end;
