@@ -1,0 +1,11 @@
+*.dcu
+*.~pas
+*~
+*.~dpr
+*.dsk
+*.~dsk
+*.~dfm
+*.map
+*.bkm
+*.~tlb
+*.exe

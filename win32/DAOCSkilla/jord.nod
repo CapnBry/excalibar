@@ -1,0 +1,776 @@
+"Aaric",101,29571,35318,8005,0,75
+"Aaric1",101,29588,35270,8005,203,75
+    NWMerchantArea
+"Aase",101,31819,32195,8272,0,75
+"AlchemForge",101,34538,34134,8003,189,75
+    Building08
+"Alleca Gunderson",101,29728,36266,8012,0,75
+"Alleca Gunderson1",101,29715,36233,8012,157,75
+    Building27
+"Amma1",101,35059,33589,8008,208,75
+    Building10Outside
+"Ander",101,35630,32284,8012,0,75
+"Anrid",101,33286,35018,8027,0,75
+"Anrid1",101,33284,34977,8027,179,75
+    Building03
+"Anya Vinsdottir",101,35025,30826,8307,0,75
+"Anya1",101,34926,30831,8307,88,75
+    Magna1
+    Building14
+    Nanna1
+"Aric",101,35449,30399,8335,0,75
+"Arve",101,32402,35463,8008,0,75
+"Arve1",101,32443,35462,8008,272,75
+    Building01
+"Asina1",101,34154,30658,8301,30,75
+    InWestTent
+"Asra",101,34017,30619,8302,0,75
+"Audun",101,33248,35305,8027,0,75
+"Barkeep Banak",101,33119,34867,8027,0,75
+"Barkeep Banak1",101,33159,34867,8027,269,75
+    Building03ToBarkeeps
+"Barkeep Prugar",101,33230,34802,8027,0,75
+"Barkeep Prugar1",101,33233,34855,8027,0,75
+    Building03ToBarkeeps
+"Bera",101,34074,35597,8234,0,75
+"Bera1",101,34090,35564,8234,244,75
+    Building06StairsTop
+"Borg",101,29981,34539,8005,0,75
+"Borg1",101,30011,34549,8005,297,75
+    MerchantAreaW
+    Building25OutsideNE
+"Brit",101,31420,28135,8776,0,75
+"Building01",101,32484,35461,8008,185,75
+    Arve1
+"Building01Outside",101,32486,35270,8004,180,75
+    Building02Outside
+    WoodPath19
+    WoodPath18
+    WoodPath19_1
+    WoodPath19_2
+    Building04Outside
+    Ottar1
+"Building02",101,32011,34963,8027,0,75
+    Building02OutsideGothiE
+    Building02OutsideGothiW
+    Building02ToRoyd
+    Building02Outside
+"Building02Outside",101,32006,35255,8001,359,75
+    WoodPath20
+    WoodPath21
+    Building01Outside
+    NWMerchantArea
+    Building02
+"Building02OutsideGothiE",101,31934,34568,8030,3,75
+    Building02
+    Gythja of Eir1
+    Gothi of Thor1
+    Gythja of Bragi1
+"Building02OutsideGothiW",101,32091,34572,8030,0,75
+    Building02
+    Gothi of Modi1
+    Gothi of Tyr1
+    Gythja of Odin1
+"Building02ToRoyd",101,31652,34459,8031,0,75
+    Building02
+    Royd1
+"Building03",101,33279,34583,8027,179,75
+    Building03Outside
+    Building03ToBarkeeps
+    Anrid1
+"Building03Outside",101,33276,34254,8003,178,75
+    WoodPath19_2
+    Building03
+"Building03ToBarkeeps",101,33320,34861,8027,277,75
+    Building03
+    Barkeep Banak1
+    Barkeep Prugar1
+"Building04Outside",101,33114,33729,7999,92,75
+    Gris1
+    WoodPath19
+    WoodPath19_1
+    WoodPath19_2
+    Building01Outside
+    Morlin Caan1
+"Building05",101,35020,35422,8028,135,75
+    Building05Outside
+    Darg1
+    Building05ToBack
+"Building05Outside",101,34774,35174,8004,135,75
+    WoodPath13
+    WoodPath14
+    WoodPath12
+    Building05
+"Building05ToBack",101,34931,35484,8049,136,75
+    Building05
+    Dala1
+"Building06",101,34198,35463,8021,177,75
+    Building06Outside
+    Dyre
+    Signa1
+"Building06Outside",101,34199,35327,8005,179,75
+    WoodPath14
+    WoodPath13
+    WoodPath12
+    WoodPath11
+    WoodPath10
+    WoodPath09
+    WoodPath08
+    Building06
+"Building06StairsBottom",101,34363,36038,8022,2,75
+    Building06StairsTop
+    Signa1
+"Building06StairsTop",101,34361,35528,8234,0,75
+    Building06StairsBottom
+    Bera1
+    Building06ToGaln_1
+"Building06ToGaln_1",101,34196,35568,8234,185,75
+    Building06StairsTop
+    Building06ToGaln_2
+"Building06ToGaln_2",101,34203,35844,8234,180,75
+    Building06ToGaln_1
+    Galn1
+"Building07Inside",101,35573,34837,8003,214,75
+    Building07Outside
+    Hreidar1
+    Building07ToSingrid
+"Building07Outside",101,35350,34626,8003,133,75
+    WoodPath10
+    WoodPath12
+    Building07Inside
+"Building07StairsBottom",101,36134,35089,8003,288,75
+    Singrid1
+    Building07StairsTop
+"Building07StairsTop",101,35811,34766,8218,342,75
+    Building07StairsBottom
+    Elin1
+"Building07ToSingrid",101,35640,34749,8003,146,75
+    Building07Inside
+    Singrid1
+"Building08",101,34646,34078,8003,181,50
+    Building08Outside
+    Building08ToKvasir
+    Kkor Borson1
+    Jorun1
+    Building08ToHaylei
+    AlchemForge
+"Building08Outside",101,34951,34080,8004,270,50
+    Building08
+    WoodPath09
+    WoodPath10
+    WoodPath11
+    WoodPath12
+"Building08ToHaylei",101,34433,33974,8003,269,75
+    Building08
+    Jorun1
+    Kkor Borson1
+    Haylei1
+"Building08ToKvasir",101,34634,34206,8003,90,75
+    Building08
+    Kvasir1
+"Building09",101,35557,34051,8012,91,75
+    Building09Outside
+    Ozur Johannsson1
+    Uli Johannsson1
+    Ella Johannsson1
+"Building09Outside",101,35339,34054,8005,91,75
+    WoodPath10
+    Building09
+"Building10Outside",101,35080,33408,8005,185,75
+    Amma1
+    Ingirun1
+    WoodPath07
+    WoodPath06
+    WoodPath05
+    WoodPath08
+"Building11",101,35089,32818,8027,269,75
+    WoodPath05
+    WoodPath06
+    Building11S
+    Building11OutsideGothiS
+    Building11OutsideGothiN
+"Building11OutsideGothiN",101,34684,32904,8030,271,75
+    Building11
+    Gothi of Hel1
+    Gythja of Loki1
+    Gothi of Ymir1
+"Building11OutsideGothiS",101,34689,32742,8030,272,75
+    Building11
+    Gythja of Skadi1
+    Gothi of Ymir1
+    Gythja of Loki1
+"Building11S",101,34446,32409,8031,359,75
+    Building11
+    Elli1
+"Building14",101,34819,30880,8307,91,75
+    Building14Outside
+    Magna1
+    Anya1
+    Nanna1
+"Building14Outside",101,34531,30883,8300,90,75
+    CornerStairsMerchant
+    WestStairsTop
+    Building14
+"Building17",101,32553,32694,8305,357,75
+    Om1
+    Holsvi1
+    Ereck1
+    Om_Holsvi
+    Building17Outside
+"Building17Outside",101,32547,32962,8278,0,75
+    Forge1
+    ForgeWest
+    Building17
+"Building18",101,31722,32454,8272,0,75
+    WeapMaster
+    Building18Outside
+"Building18Outside",101,31727,32658,8261,359,75
+    Building18
+    Forge1
+"Building25OutsideNE",101,30198,34965,8005,220,75
+    Hrapp1
+    Leif1
+    Haaken1
+    MerchantAreaN
+    Building27Far
+    Borg1
+    MerchantAreaW
+"Building25OutsideSE",101,30241,34073,8005,315,75
+    DiasHillBottomE
+    MerchantAreaW
+    MerchantTentSW
+"Building27",101,29691,36171,8012,180,75
+    Alleca Gunderson1
+    Torrad Gunderson1
+    Gro Gunderson1
+    Hyndla Gunderson1
+"Building27Far",101,29794,35555,8005,191,75
+    NWMerchantArea
+    Thordia1
+    Building27Outside
+    Building25OutsideNE
+"Building27Outside",101,29701,35948,8005,179,75
+    Torrad Gunderson1
+    Building27Far
+"Building28Outside",101,29490,35232,8005,225,75
+    MerchantTentNE
+"Building29",101,28797,34885,8021,48,75
+    Building29Outside
+    Sven1
+    Osten1
+"Building29Outside",101,29009,34683,8005,226,75
+    MerchantTentNE
+    Building29
+    Eskil1
+    Im1
+    MerchantAreaE
+"Building29StairsBottom",101,28640,35259,8021,45,75
+    Osten1
+    Building29StairsTop
+"Building29StairsTop",101,28950,34965,8234,45,75
+    Building29StairsBottom
+    Katla1
+    Hodr1
+"Canute",101,29497,34844,8005,0,75
+"Canute1",101,29452,34838,8005,100,75
+    MerchantAreaE
+    Saga1
+"CornerStairsMerchant",101,34411,31132,8283,24,75
+    Building14Outside
+    WestStairsTop
+    WestUpperDiasTurn
+"Dala",101,35275,35734,8028,0,75
+"Dala1",101,35198,35667,8028,132,75
+    Building05ToBack
+    Gils1
+"Darg1",101,35058,35379,8028,43,75
+    Building05
+"DiasHillBottomE",101,30585,33815,8005,271,75
+    DiasHillTop
+    Keki1
+    Building25OutsideSE
+    DiasHillBottomW
+"DiasHillBottomW",101,30901,33960,8005,359,75
+    NWMerchantArea
+    DiasHillTop
+    DiasHillBottomE
+"DiasHillMiddle",101,30773,33609,8096,342,75
+"DiasHillTop",101,30798,33280,8278,1,100
+    DiasHillBottomW
+    DiasHillBottomE
+    Forge1
+    Building18Outside
+"Digby",101,29783,34722,8005,0,75
+"Digby1",101,29820,34731,8005,272,75
+    Synna1
+    Thir1
+    Gymir1
+"Dyre",101,34012,35806,8022,0,75
+    Building06
+"Elin1",101,35648,35009,8218,279,75
+    Building07StairsTop
+    Hauk1
+"Ella Johannsson",101,35589,33901,8012,205,75
+"Ella Johannsson1",101,35576,33927,8012,32,75
+    Building09
+"Elli",101,33884,32459,8029,0,75
+"Elli1",101,33945,32452,8029,267,75
+    Building11S
+"Ema",101,35458,30073,8335,0,75
+"Ereck1",101,32625,32042,8305,93,75
+    Building17
+"Eskil",101,28918,34608,8005,0,75
+"Eskil1",101,28971,34603,8005,266,75
+    Building29Outside
+    MerchantTentNE
+"Falla Hemingir",101,30753,31636,8305,0,75
+"Fiora",101,35344,30393,8335,0,75
+"Flosi",101,35072,30102,8335,0,75
+"Forge1",101,31664,33083,8279,207,100
+    ForgeWest
+    Building17Outside
+    Building18Outside
+    DiasHillTop
+"ForgeWest",101,32833,33041,8308,259,125
+    Building17Outside
+    Forge1
+    ForgeWestCorner
+"ForgeWestCorner",101,33118,32682,8272,7,175
+    ForgeWest
+    WestUpperDias
+"Frode",101,29811,34936,8005,0,75
+"Frode1",101,29804,34990,8005,11,75
+    MerchantAreaN
+"Galn",101,34296,35951,8234,0,75
+"Galn1",101,34240,35957,8234,90,75
+    Building06ToGaln_2
+"Gerd",101,29589,34586,8005,0,75
+"Gerd1",101,29579,34553,8005,172,75
+    MerchantAreaS
+"Gest",101,31862,32408,8272,0,75
+"Gils1",101,35224,35510,8028,78,75
+    Dala1
+"Gothi of Hel1",101,34553,32975,8031,111,75
+    Building11OutsideGothiN
+    Gythja of Loki1
+    Gothi of Ymir1
+    Gythja of Skadi1
+"Gothi of Modi",101,32107,34378,8031,0,75
+"Gothi of Modi1",101,32082,34349,8031,145,75
+    Building02OutsideGothiW
+"Gothi of Thor",101,31875,34227,8031,0,75
+"Gothi of Thor1",101,31913,34227,8031,272,75
+    Building02OutsideGothiE
+"Gothi of Tyr",101,32138,34224,8031,0,75
+"Gothi of Tyr1",101,32102,34228,8031,90,75
+    Building02OutsideGothiW
+"Gothi of Ymir1",101,34107,32685,8030,319,75
+    Building11OutsideGothiN
+    Building11OutsideGothiS
+    Gothi of Hel1
+    Gythja of Loki1
+    Gythja of Skadi1
+"Greip",101,32421,32715,8305,0,75
+"Grimma",101,30952,32154,8305,0,75
+"Gris1",101,33260,33774,8023,101,75
+    Building04Outside
+"Gro",101,29554,36145,8021,0,75
+"Gro Gunderson1",101,29587,36170,8012,307,75
+    Building27
+"Gungir",101,31803,31750,8273,0,75
+"Gymir",101,29725,34784,8005,0,75
+"Gymir1",101,29730,34808,8005,352,75
+    Digby1
+"Gythja of Bragi",101,31901,34044,8030,0,75
+"Gythja of Bragi1",101,31923,34062,8031,312,75
+    Building02OutsideGothiE
+"Gythja of Eir",101,31895,34417,8031,0,75
+"Gythja of Eir1",101,31905,34400,8031,212,75
+    Building02OutsideGothiE
+"Gythja of Loki1",101,34096,32980,8030,229,75
+    Building11OutsideGothiN
+    Building11OutsideGothiS
+    Gothi of Hel1
+    Gothi of Ymir1
+    Gythja of Skadi1
+"Gythja of Odin",101,32131,34042,8030,0,75
+"Gythja of Odin1",101,32109,34071,8031,36,75
+    Building02OutsideGothiW
+"Gythja of Skadi",101,34611,32654,8031,0,75
+"Gythja of Skadi1",101,34571,32694,8031,48,75
+    Building11OutsideGothiS
+    Gothi of Hel1
+    Gythja of Loki1
+    Gothi of Ymir1
+"Haaken",101,30327,35598,8002,0,75
+"Haaken1",101,30290,35562,8003,135,75
+    NWMerchantArea
+    Building25OutsideNE
+    MerchantAreaW
+"Hakan",101,35190,30411,8335,0,75
+"Harry",101,33962,30746,8302,0,75
+"Hauk1",101,35788,34982,8218,97,75
+    Elin1
+"Haylei",101,34072,34028,8003,102,75
+"Haylei1",101,34119,34025,8003,270,75
+    Building08ToHaylei
+"Hedin",101,35304,30326,8335,0,75
+"Hodern",101,29565,34985,8005,0,75
+"Hodern1",101,29596,35033,8005,329,75
+    MerchantAreaN
+"Hodr",101,28695,35093,8234,0,75
+"Hodr1",101,28651,35033,8234,147,75
+    Building29StairsTop
+"Holsvi1",101,32459,31231,8305,358,75
+    Building17
+    Om_Holsvi
+"Hrapp",101,29903,34814,8005,0,75
+"Hrapp1",101,29948,34816,8005,268,75
+    MerchantAreaW
+    Building25OutsideNE
+"Hreidar1",101,35491,34949,8003,188,75
+    Building07Inside
+"Hyndla",101,29803,36164,8012,0,75
+"Hyndla Gunderson1",101,29766,36169,8012,94,75
+    Building27
+"Im",101,29628,34074,8005,0,75
+"Im1",101,29658,34103,8005,314,75
+    Keki1
+    Njal1
+    Building29Outside
+    MerchantAreaE
+"Ingirun1",101,35104,33599,8008,161,75
+    Building10Outside
+"InWestTent",101,34068,30811,8300,28,75
+    WestUpperDiasTurn
+    Asina1
+"Jarl Uffenlong",101,32075,28017,8776,0,75
+"Jarl Yuliwyf",101,31929,28279,8819,0,75
+"Jorun",101,34440,33874,8003,175,75
+"Jorun1",101,34442,33913,8003,2,75
+    Building08
+    Building08ToHaylei
+"Kalf",101,34211,30946,8300,0,75
+"Katla",101,28654,34826,8234,0,75
+"Katla1",101,28700,34824,8234,272,75
+    Building29StairsTop
+"Keki",101,29868,33911,8005,0,75
+"Keki1",101,29877,33946,8005,353,75
+    DiasHillBottomE
+    Njal1
+    Im1
+    MerchantAreaE
+"Kiarr",101,31782,33162,8279,0,75
+    Forge1
+    Building17Outside
+"Kkor Borson",101,34700,33861,8003,173,75
+"Kkor Borson1",101,34703,33919,8003,1,75
+    Building08
+    Building08ToHaylei
+"Kvasir",101,34793,34209,8003,272,75
+"Kvasir1",101,34716,34207,8003,90,75
+    Building08ToKvasir
+"Leif",101,30395,34943,8005,0,75
+"Leif1",101,30398,35008,8005,358,75
+    NWMerchantArea
+    Building25OutsideNE
+"Magna",101,34844,30717,8307,0,75
+"Magna1",101,34855,30764,8307,345,75
+    Building14
+    Anya1
+    Nanna1
+"MerchantAreaE",101,29173,34582,8005,101,75
+    Im1
+    Keki1
+    MerchantTentNE
+    Building29Outside
+    Canute1
+"MerchantAreaN",101,29744,35227,8005,356,75
+    NWMerchantArea
+    Hodern1
+    Frode1
+    MerchantTentNE
+    Building25OutsideNE
+"MerchantAreaS",101,29639,34407,8005,166,75
+    MerchantTentSW
+    Gerd1
+"MerchantAreaW",101,30143,34730,8005,263,75
+    Building25OutsideSE
+    Hrapp1
+    Borg1
+    MerchantTentSW
+    Haaken1
+    Building25OutsideNE
+"MerchantTentNE",101,29419,35051,8005,305,75
+    Building28Outside
+    MerchantAreaN
+    NWMerchantArea
+    Building29Outside
+    Eskil1
+    MerchantAreaE
+"MerchantTentSW",101,30052,34332,8005,47,75
+    Building25OutsideSE
+    MerchantAreaS
+    MerchantAreaW
+"Miri",101,30641,32093,8305,0,75
+"Morgen",101,34248,30705,8300,0,75
+"Morlin Caan1",101,33378,33585,8023,151,75
+    Building04Outside
+"MularnGateCommon",101,31980,36054,8005,90,75
+    WoodPath20
+    MularnGateE
+    MularnGateW
+"MularnGateE",101,31106,36016,7999,261,75
+    MularnGateCommon
+"MularnGateW",101,32863,36031,8002,88,75
+    MularnGateCommon
+"Nanna",101,34807,30969,8307,0,75
+"Nanna1",101,34806,30928,8307,179,75
+    Building14
+    Magna1
+    Anya1
+"Njal",101,29938,34005,8005,0,75
+"Njal1",101,29907,34050,8005,34,75
+    Keki1
+    Im1
+"NWMerchantArea",101,30846,35202,8005,267,75
+    WoodPath21
+    DiasHillBottomW
+    Building02Outside
+    Haaken1
+    Leif1
+    Aaric1
+    MerchantAreaN
+    Building27Far
+    MerchantTentNE
+"Oilibhear",101,35459,32346,8012,0,75
+"Ole",101,35594,30393,8335,0,75
+"Om",101,32599,31618,8305,0,75
+"Om_Holsvi",101,32440,31584,8305,5,75
+    Om1
+    Holsvi1
+    Building17
+"Om1",101,32594,31671,8305,359,75
+    Building17
+    Om_Holsvi
+"Osten",101,28448,35409,8021,0,75
+"Osten1",101,28474,35357,8021,205,75
+    Sven1
+    Building29
+    Building29StairsBottom
+"Ottar",101,32466,35554,8008,0,75
+"Ottar1",101,32472,35517,8008,192,75
+    Building01Outside
+"Ozur Johannsson",101,35498,34189,8012,33,75
+"Ozur Johannsson1",101,35514,34151,8012,211,75
+    Building09
+"Per",101,30611,32666,8305,0,75
+"Rana",101,32419,32111,8305,0,75
+"Royd",101,31632,33741,8029,0,75
+"Royd1",101,31637,33791,8029,356,75
+    Building02ToRoyd
+"Saga",101,29586,34799,8005,0,75
+"Saga1",101,29538,34805,8005,85,75
+    Canute1
+"Signa",101,34234,36183,8022,0,75
+"Signa1",101,34233,36146,8022,180,75
+    Building06
+    Building06StairsBottom
+"Signy",101,35573,30094,8335,0,75
+"Singrid1",101,35832,35030,8003,42,75
+    Building07StairsBottom
+    Building07ToSingrid
+"Solveig",101,30914,32734,8305,0,75
+"Sven",101,28507,34940,8021,0,75
+"Sven1",101,28539,34974,8021,317,75
+    Building29
+    Osten1
+"Synna",101,29738,34638,8005,0,75
+"Synna1",101,29771,34624,8005,247,75
+    Digby1
+"Tait",101,35030,30373,8340,0,75
+"Thir",101,29765,34769,8005,0,75
+"Thir1",101,29774,34800,8005,346,75
+    Digby1
+"Thordia",101,29902,35916,8005,0,75
+"Thordia1",101,29910,35861,8005,191,75
+    Building27Far
+"Tora",101,32310,27422,8776,0,75
+"Torrad",101,29663,36377,8012,0,75
+"Torrad Gunderson1",101,29666,36289,8012,180,75
+    Building27Outside
+    Building27
+"Tove",101,34341,30800,8300,0,75
+"TurnToStairs",101,35571,31860,8005,188,75
+    WestStairsBottom
+    WoodPath01
+"Uli Johannsson",101,35630,34026,8012,250,75
+"Uli Johannsson1",101,35605,34016,8012,119,75
+    Building09
+"VasudGateCommon",101,36032,32760,8005,256,75
+    WoodPath06
+    VasudGateS
+    VasudGateN
+    WoodPath07
+"VasudGateN",101,36006,33655,8002,166,75
+    VasudGateCommon
+"VasudGateS",101,36010,31917,8005,0,75
+    VasudGateCommon
+"WeapMaster",101,31819,32282,8272,1,75
+    Building18
+"WestStairsBottom",101,35534,31335,7976,272,75
+    WestStairsTop
+    TurnToStairs
+"WestStairsTop",101,34592,31378,8328,89,100
+    WestStairsBottom
+    CornerStairsMerchant
+    WestUpperDiasTurn
+    WestStairsTopRight
+"WestStairsTopRight",101,34587,31640,8414,85,75
+    WestStairsTop
+    WestUpperDiasTurn
+    TurnToStairs
+"WestUpperDias",101,33259,31704,8279,32,75
+    ForgeWestCorner
+    CornerStairsMerchant
+    InWestTent
+    WestUpperDiasTurn
+"WestUpperDiasTurn",101,33374,31623,8279,45,75
+    WestUpperDias
+    CornerStairsMerchant
+    WestStairsTop
+    WestStairsTopRight
+"WoodPath01",101,35516,31850,8011,251,75
+    TurnToStairs
+    WoodPath02
+"WoodPath02",101,35279,31940,8011,224,75
+    WoodPath01
+    WoodPath03
+"WoodPath03",101,35182,32162,8011,196,75
+    WoodPath02
+    WoodPath04
+"WoodPath04",101,35188,32438,8011,156,75
+    WoodPath03
+    WoodPath05
+    WoodPath08
+    WoodPath07
+"WoodPath05",101,35346,32659,8011,146,75
+    WoodPath04
+    WoodPath06
+    WoodPath07
+    Building11
+    Building10Outside
+"WoodPath06",101,35557,32796,8011,158,75
+    WoodPath05
+    WoodPath07
+    VasudGateCommon
+    Building11
+    Building10Outside
+"WoodPath07",101,35656,33061,8012,185,75
+    WoodPath06
+    WoodPath08
+    VasudGateCommon
+    WoodPath05
+    WoodPath04
+    Building10Outside
+"WoodPath08",101,35617,33287,8010,194,75
+    WoodPath07
+    WoodPath09
+    WoodPath04
+    Building10Outside
+    Building06Outside
+"WoodPath09",101,35246,33885,8009,213,75
+    WoodPath08
+    WoodPath10
+    WoodPath13
+    Building08Outside
+    Building06Outside
+"WoodPath10",101,35077,34179,8009,182,75
+    WoodPath09
+    WoodPath11
+    WoodPath12
+    Building08Outside
+    Building09Outside
+    Building06Outside
+    Building07Outside
+"WoodPath11",101,35072,34487,8009,182,75
+    WoodPath10
+    WoodPath12
+    Building08Outside
+    Building06Outside
+"WoodPath12",101,34821,34693,8009,229,75
+    WoodPath10
+    WoodPath11
+    WoodPath13
+    Building08Outside
+    Building05Outside
+    Building06Outside
+    Building07Outside
+"WoodPath13",101,34616,34947,8009,230,75
+    WoodPath12
+    WoodPath14
+    WoodPath09
+    WoodPath15
+    Building05Outside
+    Building06Outside
+"WoodPath14",101,34378,35092,8009,253,75
+    WoodPath13
+    WoodPath15
+    Building05Outside
+    Building06Outside
+"WoodPath15",101,33836,35225,8009,259,75
+    WoodPath14
+    WoodPath16
+    WoodPath13
+"WoodPath16",101,33496,35585,8002,274,75
+    WoodPath15
+    WoodPath17
+    WoodPath17CutCorner
+"WoodPath17",101,32870,35576,8006,315,75
+    WoodPath16
+    WoodPath18
+    WoodPath19_1
+    WoodPath19_2
+    WoodPath17CutCorner
+"WoodPath17CutCorner",101,33086,35585,8005,274,75
+    WoodPath16
+    WoodPath17
+    WoodPath18
+"WoodPath18",101,32821,35261,8009,321,75
+    WoodPath17
+    WoodPath19
+    WoodPath19_1
+    WoodPath19_2
+    Building01Outside
+    WoodPath17CutCorner
+"WoodPath19",101,32626,35071,8009,309,75
+    WoodPath18
+    WoodPath20
+    Building01Outside
+    WoodPath19_1
+    WoodPath19_2
+    Building04Outside
+"WoodPath19_1",101,32708,34724,8009,24,75
+    WoodPath19
+    WoodPath19_2
+    WoodPath18
+    WoodPath17
+    Building04Outside
+    Building01Outside
+"WoodPath19_2",101,32874,34518,8009,16,75
+    WoodPath19_1
+    WoodPath19
+    WoodPath18
+    WoodPath17
+    Building01Outside
+    Building04Outside
+    Building03Outside
+"WoodPath20",101,32011,35407,8009,241,75
+    WoodPath19
+    WoodPath21
+    MularnGateCommon
+    Building02Outside
+"WoodPath21",101,31385,35118,8009,301,75
+    WoodPath20
+    NWMerchantArea
+    Building02Outside
