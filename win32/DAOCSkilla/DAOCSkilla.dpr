@@ -46,7 +46,8 @@ uses
   zlib2 in '..\Components\ZLib\zlib2.pas',
   QuickLaunchChars in 'QuickLaunchChars.pas',
   glWindow in '..\Common\glWindow.pas',
-  LowOnStat in '..\Common\DAOCAutomation\LowOnStat.pas' {frmLowOnStat};
+  LowOnStat in '..\Common\DAOCAutomation\LowOnStat.pas' {frmLowOnStat},
+  geScale in 'geScale.pas';
 
 {$R *.TLB}
 
@@ -67,5 +68,18 @@ begin
   Application.CreateForm(TdmdRemoteAdmin, dmdRemoteAdmin);
   Application.CreateForm(TfrmLowOnStat, frmLowOnStat);
   CreateOptionalForms;
+  if Screen.PixelsPerInch <> 96 then begin
+    frmMain.Log('Font not at normal (96) dpi, attempting to resize for font');
+    geAutoScale(frmMain);
+    geAutoScale(frmPowerskill);
+    geAutoScale(frmShowMapNodes);
+    geAutoScale(frmMacroTradeSkills);
+    geAutoScale(frmAFK);
+    geAutoScale(frmSpellcraftHelp);
+    geAutoScale(frmDebugging);
+    geAutoScale(frmMacroing);
+    geAutoScale(frmConnectionConfig);
+    geAutoScale(frmLowOnStat);
+  end;
   Application.Run;
 end.
