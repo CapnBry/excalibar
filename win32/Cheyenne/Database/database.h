@@ -269,6 +269,7 @@ public:
         Database::id_type& original_id_or_infoid
         );
     void SaveDAoCMessages(const bool bSave){bSaveDAoCMessages=bSave;};
+    bool IsSaveDAoCMessages(void)const{return(bSaveDAoCMessages);};
 
     void RequestFullUpdate(void);
 
