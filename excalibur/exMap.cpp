@@ -533,7 +533,7 @@ void exMap::drawEXMob(exMob *m)
         drawAggroCircle(1.0, 1.0, 0.0, 0.0);
 
     /* if the mob is within range, draw an agro circle around it */
-    else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist2DL1() < 14200)))
+    else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist2DL1() < 1400)))
         drawAggroCircle(1.0, 0.0, 0.0,
                         (prefs.agro_fading) ? m->playerDist() * (1.0f / 1500.0f) : 0.0f);
 
