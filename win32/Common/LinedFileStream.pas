@@ -17,6 +17,7 @@ type
     FBuffPos:   integer;
     FBuffCount: integer;
     FPrevLineBuffer:  string;
+    FLastCharWasCR:    boolean;
     FEOFAction: TEOFAction;
 
     procedure ResetState;
@@ -87,17 +88,30 @@ begin
     FBuffPos := 0;
   end;
 
+    { the idea here is we're looking for LF to end the line.  However, since
+        Windows = CRLF
+        Linux = LF
+        Max = CR
+      What I do is look for either CR or LF to end a line.  If the line ends
+      with CR, then check the next char for LF.  If it is, discard it }
   iStartPos := FBuffPos;
   while (FBuffPos < FBuffCount) and (cIn <> #13) do begin
     cIn := FBuffer[FBuffPos];
     inc(FBuffPos);
 
     if cIn = #10 then
-      iStartPos := FBuffPos;
+      if FLastCharWasCR then
+        iStartPos := FBuffPos
+      else
+        break;
+
+    FLastCharWasCR := false;
   end;  { while pos < size }
 
   iOldLen := Length(FPrevLineBuffer);
-  if (cIn = #13) or ((FEOFAction = eofReturnLine) and EOF) then begin
+  if (cIn in [#10, #13]) or ((FEOFAction = eofReturnLine) and EOF) then begin
+    FLastCharWasCR := true;
+     
     SetLength(Result, iOldLen + FBuffPos - iStartPos - 1);
     Move(Pointer(FPrevLineBuffer)^, Pointer(Result)^, iOldLen);
     Move(FBuffer[iStartPos], Pointer(Integer(Result) + iOldLen)^,
