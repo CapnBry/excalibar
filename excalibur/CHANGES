@@ -12,6 +12,16 @@ Changes:
    Loader.
  + Pressing the cancel button while the PNG Loader is
    running will now IMMEDIATELY halt the thread.
+ + Zone specific "rotation" has been completely removed.
+   This never should have been in Odin's Eye to begin
+   with, its TRUE value is actually zone type.
+
+Bug Fixes:
+ + Fixed some lingering issues with thread state checking.
+ + Added the progress dialog's sleep timer back... Turns
+   out we still need it after all :)
+
+ + Version bumped to 1.1.2a
 
 
 Andon (20/Feb/02)

@@ -56,6 +56,8 @@ exMap::exMap(QWidget *parent, const char *name)
 }
 
 exMap::~exMap() {
+  PNGLoader.abort();
+  
   if (mi)
     delete mi;
 }
@@ -299,7 +301,7 @@ void exMap::paintGL() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   if (mi)
-    glRotatef(mi->getRotate() * 1.0,0.0,0.0,1.0);
+    glRotatef(1.0,0.0,0.0,1.0);
   if (prefs.map_rotate)
     glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
   glRotatef(180.0,1.0,0.0,0.0);
@@ -563,8 +565,6 @@ void exMap::keyPressEvent(QKeyEvent *e) {
       return;
       break;
   }
-  if (mi)
-    angle = (mi->getRotate() / 90.0 ) + angle;
   angle = angle * M_PI / 2.0;
   edit_xofs += (int)(cos(angle)*dist / 2.0);
   edit_yofs -= (int)(sin(angle)*dist / 2.0);
@@ -1046,7 +1046,7 @@ void exMapElementLine::draw(exMap *map) {
 }
 
 exMapPNGLoader::exMapPNGLoader  (void) {m_bGhettoMutex = true;}
-exMapPNGLoader::~exMapPNGLoader (void) {m_bGhettoMutex = false;}
+exMapPNGLoader::~exMapPNGLoader (void) { abort();  cleanup(); }
 
 void exMapPNGLoader::setParent ( exMap *parent )
 {
@@ -1116,13 +1116,14 @@ END_EXPERIMENTAL_CODE
         if (! empldProgress.running())
            empldProgress.start();
 
-        
-        qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi));
+        if (empldProgress.running())
+          qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_INFO, mi));
  
         for(   int y = 0; y < 8 && m_bGhettoMutex; y++ ) {
           for( int x = 0; x < 8 && m_bGhettoMutex; x++ ) {
 
-            qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
+            if (empldProgress.running())
+              qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
 
             struct PNGCallback *pc;
             pc = new struct PNGCallback;
@@ -1136,7 +1137,8 @@ END_EXPERIMENTAL_CODE
             pc->img = QGLWidget::convertToGLFormat(img.copy( w * x / 8, h * y /
                                                              8, w / 8, h / 8 ));
 
-            qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
+            if (parent != NULL)
+              qApp->postEvent(parent, new QCustomEvent(CALLBACK_PNG_DATA, (void*)pc));
 
             if ( empldProgress.pdProgress != NULL && 
                  empldProgress.pdProgress->wasCancelled() )
@@ -1147,7 +1149,8 @@ END_EXPERIMENTAL_CODE
       }
     }
 
-    qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
+    if (empldProgress.running())
+      qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
 
   }
 
@@ -1207,9 +1210,6 @@ void exMapPNGLoaderDialog::run (void)
 {
   while (true)
     msleep(10);
-
-/*  pdProgress->reset();
-  cleanup(); */
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)

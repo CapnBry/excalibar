@@ -25,13 +25,13 @@
 
 QPtrDict<exMapInfoList> exMapInfo::maps;
 
-exMapInfo::exMapInfo(int nregion, int bx, int by, int mx, int my, int rots, QString fname, int nzone) {
+exMapInfo::exMapInfo(int nregion, int bx, int by, int mx, int my, int type, QString fname, int nzone) {
   region=nregion;
   basex=bx;
   basey=by;
   maxx=mx;
   maxy=my;
-  rotations=rots;
+  zonetype=type;
   fileName=fname;
   zone=nzone;
 }
@@ -45,16 +45,15 @@ bool exMapInfo::adjoin(int nregion, int xbase, int ybase, int xmax, int ymax) {
   if (nregion != region)
     return false;
    
- 
-   if (xmax == basex || xbase == maxx) /* Adjacent to the right */
+   if (xmax == basex || xbase == maxx)
     if (ybase <= maxy && ymax >= basey)
       return true;
 
-  if (xbase == basex || xmax == maxx) /* Adjacent ABOVE OR BELOW */
+  if (xbase == basex || xmax == maxx)
     if (ybase == maxy || ymax == basey)
       return true;
 
-  if (ymax == basey || ybase == maxy) /* Above or below */
+  if (ymax == basey || ybase == maxy) 
     if (xbase <= maxx && xmax >= basex)
       return true;
 
@@ -62,8 +61,13 @@ bool exMapInfo::adjoin(int nregion, int xbase, int ybase, int xmax, int ymax) {
     if (xbase == maxx || xmax == basex)
       return true;
    
+
+  /* If the following is ALL true, then the this map is not adjacent to  your
+     primary map, it IS our primary map */
+
   if (ymax == maxy && ybase == basey && xmax == maxx && xbase == basex)
     return true;
+
 
   return (false);
 }
@@ -80,12 +84,11 @@ int exMapInfo::getBaseY() const {
   return basey;
 }
 
-int exMapInfo::getRotate() const {
-  return rotations * 90;
+int exMapInfo::getZoneType() const {
+  return zonetype;
 }
 
 int exMapInfo::getZoneNum() const {
-
   return zone;
 }
 
@@ -124,7 +127,7 @@ void exMapInfo::setup(QString infofile) {
   int by;
   int mx;
   int my;
-  int r;
+  int zt;
   QString fname;
   int zn;
 
@@ -165,9 +168,9 @@ void exMapInfo::setup(QString infofile) {
       qWarning("Error in mapinfo reading max y in line %s",(const char *)line);
       continue;
     }
-    r=line.section(" ",6,6).toInt(&ok, 10);
+    zt=line.section(" ",6,6).toInt(&ok, 10);
     if (!ok) {
-      qWarning("Error in mapinfo reading rotation in line %s",(const char *)line);
+      qWarning("Error in mapinfo reading zone type in line %s",(const char *)line);
       continue;
     }
     fname=line.section(" ",7,7);
@@ -181,7 +184,7 @@ void exMapInfo::setup(QString infofile) {
       continue;
     }
 
-    mi=new exMapInfo(nregion,bx,by,mx,my,r,fname,zn);    
+    mi=new exMapInfo(nregion,bx,by,mx,my,zt,fname,zn);    
 
     mil=maps.find((void *)nregion);
     if (! mil) {
