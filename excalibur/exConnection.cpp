@@ -250,8 +250,6 @@ void exConnection::processPacket(exPacket * p)
     unsigned int id;
     unsigned int infoid;
     unsigned int srcid, destid;
-    unsigned char bigver;
-    unsigned char minver;
     unsigned int head;
     unsigned int linenum;
     QString name;
@@ -402,12 +400,11 @@ void exConnection::processPacket(exPacket * p)
 	  case 0xbd:
             parseObjectEquipment(p);
 	    break;
-	  case 0x8a:
-	      p->seek(2);
-	      bigver = p->getByte();
-	      minver = p->getByte();
-	      p->seek(1);
-	      cryptkey = p->getBytes(12);
+          case 0x8a:
+              p->seek(1);
+              serverprotocol = p->getByte();
+              p->seek(3);  // x.yz version
+              cryptkey = p->getBytes(12);
 	      break;
 	  case 0x55:
               parseCharacterInfoList(p);
@@ -540,7 +537,20 @@ END_EXPERIMENTAL_CODE
 	      mobinfo.insert((void *) ((unsigned int) infoid), mob);
               updateObjectTypeCounts();
 	      ex->Map->dirty();
-	      break;
+              break;
+          case 0x82:
+              serverprotocol = p->getByte();
+              // x.yz version follows
+              break;
+/*
+          case 0x84:
+          case 0x8b:
+          case 0x8c:
+              p->seek(1);
+              serverversion = p->getLong();
+              printf("Server version set to %x\n", serverversion);
+              break;
+*/
 	  case 0x14:
 	      p->seek(2);
 	      infoid = p->getShort();
@@ -800,31 +810,36 @@ void exConnection::parseMobPosUpdate(exPacket *p)
 {
     unsigned int speed = p->getShort();
     unsigned int head = p->getShort();
-    /* pre 1.62
-    unsigned int x = p->getLong();
-    unsigned int y = p->getLong();
-    p->seek(8);
-    unsigned int z = p->getShort();
-    unsigned int id = p->getShort();
-    p->seek(2);
-    unsigned int hp = p->getByte();
-    */
+    unsigned int x;
+    unsigned int y;
+    unsigned int z;
+    unsigned int id;
+    unsigned int hp;
 
-    unsigned int x = p->getShort();
-    p->seek(2);  // destinationX
-    unsigned int y = p->getShort();
-    p->seek(2);  // destinationY
-    unsigned int z = p->getShort();
-    p->seek(2);  // destinationZ
-    unsigned int id = p->getShort();
-    p->seek(2);  // ??
-    unsigned int hp = p->getByte();
-    p->seek(1);  // ??
-    int zone = p->getByte();
-    // p->seek(2);  // destinationZone
+      /* pre 1.62 */
+    if (serverprotocol == 0x31) {
+        x = p->getLong();
+        y = p->getLong();
+        p->seek(8);
+        z = p->getShort();
+        id = p->getShort();
+        p->seek(2);
+        hp = p->getByte();
+    }
+    else {  // protocol 0x01
+        x = p->getShort();
+        p->seek(2);  // destinationX
+        y = p->getShort();
+        p->seek(2);  // destinationY
+        z = p->getShort();
+        p->seek(2);  // destinationZ
+        id = p->getShort();
+        p->seek(2);  // ??
+        hp = p->getByte();
+        p->seek(1);  // ??
+        int zone = p->getByte();
+        // p->seek(2);  // destinationZone
 
-    exMob *mob = mobs.find((void *)id);
-    if (mob) {
         exMapInfo *mi;
           /* I'm guessing that most the time, the mob we'll be
              updating is in our zone, so skip the exhaustive search */
@@ -834,16 +849,22 @@ void exConnection::parseMobPosUpdate(exPacket *p)
           mi = exMapInfo::getZone(playerregion, zone);
 
         if (mi)  {
-            mob->setPosition(x + mi->getBaseX(), y + mi->getBaseY(), z);
-            mob->setHead(head);
-            mob->setSpeed(speed);
-            mob->setHP(hp);
+            x += mi->getBaseX();
+            y += mi->getBaseY();
+        }
+    }  /* if protocol ver >= 1.62 */
 
-            ex->Map->dirty();
+    exMob *mob = mobs.find((void *)id);
+    if (mob) {
+        mob->setPosition(x, y, z);
+        mob->setHead(head);
+        mob->setSpeed(speed);
+        mob->setHP(hp);
 
-            if (prefs.sort_when == exPrefs::sortAlways)
-                ex->ListViewMobs->sort();
-        }  /* if zone found */
+        ex->Map->dirty();
+
+        if (prefs.sort_when == exPrefs::sortAlways)
+            ex->ListViewMobs->sort();
     }  /* if mob */
 }
 

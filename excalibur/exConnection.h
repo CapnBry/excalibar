@@ -77,6 +77,7 @@ protected:
   exLink *link;
   bool writecapture;
   bool m_bMapCancel;
+  unsigned char serverprotocol;
 
   void parseCraftingTimer(exPacket *p);
   void parseSetGroundTarget(exPacket *p);
