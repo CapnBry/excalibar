@@ -9,7 +9,7 @@ uses
   StdCtrls,
 {$ENDIF !LINUX}
   SysUtils, Classes, INIFiles, DAOCObjs, DAOCRegion, DAOCConSystem,
-  GLRenderObjects, ExtCtrls, ComCtrls, Buttons;
+  GLRenderObjects, ExtCtrls, ComCtrls, Buttons, MobFilterListFrame;
 
 type
   TMobListSortOrder = (msoName, msoDistance);
@@ -34,6 +34,7 @@ type
     FMobTriangleMin: integer;
     FMinFPS: integer;
     FOnMinFPSChanged: TNotifyEvent;
+    FMobFilterList: TMobFilterList;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
@@ -90,13 +91,18 @@ type
     SmoothPolygons:   boolean;
     SmoothPoints:     boolean;
     EasyMouseOvers:   boolean;
+    PlayAlert:        boolean;
+    UseMobFilter:     boolean;
+    AlertInterval:    DWORD;
 
     constructor Create;
+    destructor Destroy; override;
 
     procedure LoadSettings(const AFileName: string);
     procedure SaveSettings(const AFileName: string);
     function Clone : TRenderPreferences;
     function IsObjectInFilter(AObj: TDAOCObject) : boolean;
+    function AlertForObject(AObj: TDAOCObject): boolean;
     procedure XORObjectClassFilter(AObjectClass: TDAOCObjectClass);
     procedure XORObjectConFilter(AObjectCon: TDAOCConColor);
 
@@ -114,11 +120,12 @@ type
     property MobTriangleNom: integer read FMobTriangleNom write SetMobTriangleNom;
     property MinFPS: integer read FMinFPS write SetMinFPS;
     property ScaleMobTriangle: boolean read FScaleMobTriangle write SetScaleMobTriangle;
+    property MobFilterList: TMobFilterList read FMobFilterList;
 
     property OnObjectFilterChanged: TNotifyEvent read FOnObjectFilterChanged write FOnObjectFilterChanged;
     property OnMinFPSChanged: TNotifyEvent read FOnMinFPSChanged write FOnMinFPSChanged;
     property OnMobListOptionsChanged: TNotifyEvent read FOnMobListOptionsChanged write FOnMobListOptionsChanged;
-    property OnMobTriangleSizeChanged: TNotifyEvent read FOnMobTriangleSizeChanged write FOnMobTriangleSizeChanged; 
+    property OnMobTriangleSizeChanged: TNotifyEvent read FOnMobTriangleSizeChanged write FOnMobTriangleSizeChanged;
   end;
 
   TfrmRenderPrefs = class(TForm)
@@ -218,6 +225,16 @@ type
     chkRedrawOnDelete: TCheckBox;
     chkRedrawOnTimer: TCheckBox;
     trackMinFPS: TTrackBar;
+    chkUseMobFilter: TCheckBox;
+    frmMobFilerList1: TfrmMobFilerList;
+    edtAlertInterval: TEdit;
+    Label29: TLabel;
+    Label30: TLabel;
+    chkPlayAlert: TCheckBox;
+    rbnFilterSubstring: TRadioButton;
+    rbnFilterWildcard: TRadioButton;
+    rbnFilterRegex: TRadioButton;
+    Label31: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -266,6 +283,11 @@ type
     procedure chkRedrawOnDeleteClick(Sender: TObject);
     procedure chkRedrawOnTimerClick(Sender: TObject);
     procedure trackMinFPSChange(Sender: TObject);
+    procedure chkUseMobFilterClick(Sender: TObject);
+    procedure edtAlertIntervalKeyPress(Sender: TObject; var Key: Char);
+    procedure edtAlertIntervalExit(Sender: TObject);
+    procedure chkPlayAlertClick(Sender: TObject);
+    procedure rbnFilterSubstringClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -276,6 +298,7 @@ type
     procedure SelectFirstRangeCircle;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
+    procedure FILTERListModified(Sender: TObject);
   public
     class function Execute(AOwner: TComponent; ARenderPrefs: TRenderPreferences;
       ARangeCircles: TRangeCircleList) : boolean;
@@ -327,9 +350,11 @@ begin
   Result.ObjectConFilter := ObjectConFilter;
   Result.MobListSortOrder := MobListSortOrder;
   Result.GroupByClass := GroupByClass;
+  Result.UseMobFilter := UseMobFilter;
+  Result.PlayAlert := PlayAlert;
   Result.DrawPushPins := DrawPushPins;
   Result.AnonymousStealthers := AnonymousStealthers;
-  Result.SmoothLines := SmoothLines; 
+  Result.SmoothLines := SmoothLines;
   Result.SmoothPolygons := SmoothPolygons;
   Result.SmoothPoints := SmoothPoints;
   Result.MobTriangleMin := MobTriangleMin;
@@ -339,12 +364,21 @@ begin
   Result.DrawInfoPoints := DrawInfoPoints;
   Result.EasyMouseOvers := EasyMouseOvers;
   Result.MinFPS := MinFPS;
+  Result.MobFilterList.CopyFrom(MobFilterList);
+  Result.AlertInterval := AlertInterval;
 end;
 
 constructor TRenderPreferences.Create;
 begin
   ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
   ObjectConFilter := [ccGray, ccGreen, ccBlue, ccYellow, ccOrange, ccRed, ccPurple];
+  FMobFilterList := TMobFilterList.Create(true);
+end;
+
+destructor TRenderPreferences.Destroy;
+begin
+  FreeAndNil(FMobFilterList);
+  inherited Destroy;
 end;
 
 procedure TRenderPreferences.DoOnMinFPSChanged;
@@ -378,13 +412,21 @@ var
 begin
   ocl := AObj.ObjectClass;
   ocn := GetConColor(PlayerLevel, AObj.Level);
-   
+
   Result := (ocl in ObjectClassFilter) and (ocn in ObjectConFilter) and
-    ((ocl <> ocPlayer) or FDrawFriendlyPlayers or (AObj.Realm <> PlayerRealm));
+    ((ocl <> ocPlayer) or FDrawFriendlyPlayers or (AObj.Realm <> PlayerRealm)) and
+    (not UseMobFilter or MobFilterList.Matches(AObj.Name, AObj.Level));
+end;
+
+function TRenderPreferences.AlertForObject(AObj: TDAOCObject): boolean;
+begin
+  Result := MobFilterList.AlertAvailable(AObj.Name);
 end;
 
 procedure TRenderPreferences.LoadSettings(const AFileName: string);
 begin
+  MobFilterList.LoadFromINI(AFileName);
+
   with TINIFile.Create(AFileName) do begin
     Left := ReadInteger('RenderPrefs', 'Left', 0);
     Top := ReadInteger('RenderPrefs', 'Top', 0);
@@ -418,6 +460,9 @@ begin
     InvaderWarnMinTicks := ReadInteger('RenderPrefs', 'InvaderWarnMinTicks', 5000);
     GroupByRealm := ReadBool('RenderPrefs', 'GroupByRealm', true);
     DrawFriendlyPlayers := ReadBool('RenderPrefs', 'DrawFriendlyPlayers', true);
+    UseMobFilter := ReadBool('RenderPrefs', 'UseMobFilter', false);
+    PlayAlert := ReadBool('RenderPrefs', 'PlayAlert', false);
+    AlertInterval := ReadInteger('RenderPrefs', 'AlertInterval', 10000);
     DrawGrid := ReadBool('RenderPrefs', 'DrawGrid', false);
     MobListSortOrder := TMobListSortOrder(ReadInteger('RenderPrefs', 'MobListSortOrder', 0));
     GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
@@ -438,6 +483,8 @@ end;
 
 procedure TRenderPreferences.SaveSettings(const AFileName: string);
 begin
+  MobFilterList.SaveToINI(AFileName);
+  
   with TINIFile.Create(AFileName) do begin
     WriteInteger('RenderPrefs', 'Left', Left);
     WriteInteger('RenderPrefs', 'Top', Top);
@@ -471,6 +518,9 @@ begin
     WriteInteger('RenderPrefs', 'InvaderWarnMinTicks', InvaderWarnMinTicks);
     WriteBool('RenderPrefs', 'GroupByRealm', GroupByRealm);
     WriteBool('RenderPrefs', 'DrawFriendlyPlayers', DrawFriendlyPlayers);
+    WriteBool('RenderPrefs', 'UseMobFilter', UseMobFilter);
+    WriteBool('RenderPrefs', 'PlayAlert', PlayAlert);
+    WriteInteger('RenderPrefs', 'AlertInterval', AlertInterval);
     WriteBool('RenderPrefs', 'DrawGrid', DrawGrid);
     WriteInteger('RenderPrefs', 'MobListSortOrder', ord(MobListSortOrder));
     WriteBool('RenderPrefs', 'GroupByClass', GroupByClass);
@@ -707,6 +757,15 @@ begin
   chkGroupByRealm.Checked := FRenderPrefs.GroupByRealm;
   chkGroupByClass.Checked := FRenderPrefs.GroupByClass;
   grpListSort.ItemIndex := ord(FRenderPrefs.MobListSortOrder);
+  chkUseMobFilter.Checked := FRenderPrefs.UseMobFilter;
+  chkPlayAlert.Checked := FRenderPrefs.PlayAlert;
+  edtAlertInterval.Text := IntToStr(FRenderPrefs.AlertInterval div 1000);
+  frmMobFilerList1.MobFilterList := FRenderPrefs.MobFilterList;
+  case FRenderPrefs.MobFilterList.FilterMode of
+    mfmSubstring:   rbnFilterSubstring.Checked := true;
+    mfmWildcard:    rbnFilterWildcard.Checked := true;
+    mfmRegex:       rbnFilterRegex.Checked := true;
+  end;
 
   RefreshRangeCircleList;
   SelectFirstRangeCircle;
@@ -727,6 +786,7 @@ begin
   chkRedrawOnTimer.Checked := FRenderPrefs.RedrawOnTimer;
   chkRedrawOnTimerClick(nil);
   trackMinFPS.Position := FRenderPrefs.MinFPS;
+
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -803,6 +863,7 @@ end;
 procedure TfrmRenderPrefs.FormCreate(Sender: TObject);
 begin
   pagePrefs.ActivePageIndex := 0;
+  frmMobFilerList1.OnListModified := FILTERListModified;
 end;
 
 procedure TfrmRenderPrefs.RefreshRangeCircleList;
@@ -917,6 +978,29 @@ begin
   FRenderPrefs.GroupByClass := chkGroupByClass.Checked;
 end;
 
+procedure TfrmRenderPrefs.chkUseMobFilterClick(Sender: TObject);
+begin
+  FRenderPrefs.UseMobFilter := chkUseMobFilter.Checked;
+  FRenderPrefs.DoOnMobListOptionsChanged;
+end;
+
+procedure TfrmRenderPrefs.chkPlayAlertClick(Sender: TObject);
+begin
+  FRenderPrefs.PlayAlert := chkPlayAlert.Checked;
+end;
+
+procedure TfrmRenderPrefs.edtAlertIntervalKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if not (Key in [#8, '0'..'9']) then
+    Key := #0;
+end;
+
+procedure TfrmRenderPrefs.edtAlertIntervalExit(Sender: TObject);
+begin
+  FRenderPrefs.AlertInterval := StrToIntDef(edtAlertInterval.Text,0) * 1000;
+end;
+
 procedure TfrmRenderPrefs.edtInvaderWarnTicksExit(Sender: TObject);
 begin
   FRenderPrefs.InvaderWarnMinTicks := StrToInt(edtInvaderWarnTicks.Text) * 1000;
@@ -1016,6 +1100,17 @@ end;
 procedure TfrmRenderPrefs.trackMinFPSChange(Sender: TObject);
 begin
   FRenderPrefs.MinFPS := trackMinFPS.Position;
+end;
+
+procedure TfrmRenderPrefs.rbnFilterSubstringClick(Sender: TObject);
+begin
+  FRenderPrefs.MobFilterList.FilterMode := TMobFilterMode(TRadioButton(Sender).Tag);
+  FRenderPrefs.DoOnMobListOptionsChanged;
+end;
+
+procedure TfrmRenderPrefs.FILTERListModified(Sender: TObject);
+begin
+  FRenderPrefs.DoOnMobListOptionsChanged;
 end;
 
 end.

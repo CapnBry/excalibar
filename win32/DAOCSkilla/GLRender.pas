@@ -91,6 +91,7 @@ type
     FInvalidateCount: integer;
     FZoneName:      string;
     FLastInvaderWarningTicks:   Cardinal;
+    FLastAlertIntervalTicks:    Cardinal;
     FBoat:    TGLBoat;
     FTargetHUDWidth:  integer;
     FMouseLocX:   Cardinal;
@@ -564,6 +565,13 @@ begin
       Dirty;
 
 {$IFDEF MSWINDOWS}
+    if FRenderPrefs.PlayAlert and
+      (GlobalTickCount - FLastAlertIntervalTicks >= FRenderPrefs.AlertInterval) and
+      FRenderPrefs.AlertForObject(AObj) then begin
+        FRenderPrefs.MobFilterList.DoAlert(AObj.Name);
+        FLastAlertIntervalTicks := GlobalTickCount;
+      end;
+
     if FRenderPrefs.InvaderWarning and
       (AObj.ObjectClass = ocPlayer) and
       (AObj.Realm <> FCurrConn.LocalPlayer.Realm) and AObj.IsAlive then
@@ -618,6 +626,15 @@ end;
 procedure TfrmGLRender.DAOCUpdateObject(Sender: TObject; AObj: TDAOCObject);
 begin
   if Sender <> FCurrConn then exit;
+
+{$IFDEF MSWINDOWS}
+    if FRenderPrefs.PlayAlert and
+      (GlobalTickCount - FLastAlertIntervalTicks >= FRenderPrefs.AlertInterval) and
+      FRenderPrefs.AlertForObject(AObj) then begin
+        FRenderPrefs.MobFilterList.DoAlert(AObj.Name);
+        FLastAlertIntervalTicks := GlobalTickCount;
+      end;
+{$ENDIF MSWINDOWS}
 
   if AObj.HitPoints <> AObj.HitPointsLast then
     InvalidateListObject(AObj);

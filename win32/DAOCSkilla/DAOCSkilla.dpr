@@ -54,7 +54,9 @@ uses
   DebugAndLoggingFns in 'DebugAndLoggingFns.pas',
   SkillaLog in 'SkillaLog.pas' {frmSkillaLog},
   StreamINI in '..\Common\StreamINI.pas',
-  DateTimeFormats in '..\Common\DateTimeFormats.pas';
+  DateTimeFormats in '..\Common\DateTimeFormats.pas',
+  MobFilterListFrame in 'MobFilterListFrame.pas' {frmMobFilerList: TFrame},
+  MobFilterEntry in 'MobFilterEntry.pas' {frmMobFilterEntry};
 
 {$R *.TLB}
 

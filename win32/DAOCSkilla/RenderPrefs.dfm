@@ -1,6 +1,6 @@
 object frmRenderPrefs: TfrmRenderPrefs
-  Left = 350
-  Top = 201
+  Left = 518
+  Top = 244
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
   ClientHeight = 342
@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabMobList
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 4
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -653,29 +653,51 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'Mob list'
       ImageIndex = 4
       object Label21: TLabel
-        Left = 12
-        Top = 144
-        Width = 328
-        Height = 13
+        Left = 216
+        Top = 8
+        Width = 179
+        Height = 26
         Caption = 
           '-- The mob list can be undocked from the map window by dragging ' +
           'it. '
+        WordWrap = True
       end
       object Label22: TLabel
-        Left = 12
-        Top = 164
-        Width = 393
-        Height = 29
+        Left = 212
+        Top = 44
+        Width = 197
+        Height = 37
         AutoSize = False
         Caption = 
           '-- Press F2 to toggle the mob list on and off, or to show it if ' +
           'you'#39've undocked and closed it.'
         WordWrap = True
       end
+      object Label29: TLabel
+        Left = 382
+        Top = 137
+        Width = 5
+        Height = 13
+        Caption = 's'
+      end
+      object Label30: TLabel
+        Left = 278
+        Top = 136
+        Width = 61
+        Height = 13
+        Caption = 'Alert interval:'
+      end
+      object Label31: TLabel
+        Left = 144
+        Top = 115
+        Width = 30
+        Height = 13
+        Caption = 'Mode:'
+      end
       object chkGroupByRealm: TCheckBox
         Left = 8
         Top = 8
-        Width = 241
+        Width = 193
         Height = 17
         Caption = 'Group list by realm'
         TabOrder = 0
@@ -684,7 +706,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       object chkGroupByClass: TCheckBox
         Left = 8
         Top = 32
-        Width = 241
+        Width = 193
         Height = 17
         Caption = 'Group list by object class'
         TabOrder = 1
@@ -692,15 +714,81 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object grpListSort: TRadioGroup
         Left = 8
-        Top = 60
+        Top = 52
         Width = 197
-        Height = 73
+        Height = 53
         Caption = '  Sorting method  '
         Items.Strings = (
           'Sort by name'
           'Sort by distance')
         TabOrder = 2
         OnClick = grpListSortClick
+      end
+      object chkUseMobFilter: TCheckBox
+        Left = 12
+        Top = 114
+        Width = 105
+        Height = 17
+        Caption = 'Use mob filter list'
+        TabOrder = 3
+        OnClick = chkUseMobFilterClick
+      end
+      inline frmMobFilerList1: TfrmMobFilerList
+        Left = 6
+        Top = 152
+        Width = 384
+        Height = 124
+        TabOrder = 4
+        inherited pnlBottom: TPanel
+          Height = 35
+        end
+      end
+      object edtAlertInterval: TEdit
+        Left = 345
+        Top = 130
+        Width = 33
+        Height = 21
+        TabOrder = 5
+        OnExit = edtAlertIntervalExit
+        OnKeyPress = edtAlertIntervalKeyPress
+      end
+      object chkPlayAlert: TCheckBox
+        Left = 12
+        Top = 134
+        Width = 249
+        Height = 17
+        Caption = 'Play alerts (can be used w/o Use mob filter list)'
+        TabOrder = 6
+        OnClick = chkPlayAlertClick
+      end
+      object rbnFilterSubstring: TRadioButton
+        Left = 184
+        Top = 114
+        Width = 81
+        Height = 17
+        Caption = 'Substring'
+        TabOrder = 7
+        OnClick = rbnFilterSubstringClick
+      end
+      object rbnFilterWildcard: TRadioButton
+        Tag = 1
+        Left = 260
+        Top = 114
+        Width = 73
+        Height = 17
+        Caption = 'Wildcard'
+        TabOrder = 8
+        OnClick = rbnFilterSubstringClick
+      end
+      object rbnFilterRegex: TRadioButton
+        Tag = 2
+        Left = 336
+        Top = 114
+        Width = 69
+        Height = 17
+        Caption = 'Regex'
+        TabOrder = 9
+        OnClick = rbnFilterSubstringClick
       end
     end
     object tabGraphics: TTabSheet
