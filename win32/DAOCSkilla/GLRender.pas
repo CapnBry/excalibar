@@ -1349,9 +1349,10 @@ end;
 procedure TfrmGLRender.DrawMobTypeTag(AMob: TDAOCMob);
 begin
   if AMob.TypeTag <> '' then begin
+    glPushAttrib(GL_LIGHTING_BIT);
     glDisable(GL_LIGHTING);
     WriteGLUTTextH10(30, 30, AMob.TypeTag);
-    glEnable(GL_LIGHTING);
+    glPopAttrib();
   end;
 end;
 
