@@ -64,7 +64,7 @@ INT_PTR CALLBACK ConnectServerDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARA
             switch(LOWORD(wParam))
                 {
                 case IDCANCEL:
-                    EndDialog(hWnd,IDOK);
+                    EndDialog(hWnd,IDCANCEL);
                     break;
                 
                 case IDOK:

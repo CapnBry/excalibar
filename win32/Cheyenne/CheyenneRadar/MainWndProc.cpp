@@ -1010,6 +1010,10 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
                     {
                     // open connection
                     data->dstream.Open(server.first.c_str(),server.second);
+                    
+                    // save
+                    ::RadarConfig.SetDStreamServer(server.first);
+                    ::RadarConfig.SetDStreamServerPort(server.second);
                     }
                 } // end else not connected
             break;
@@ -1046,6 +1050,10 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
                     {
                     // open connection
                     data->sharenet.Open(server.first.c_str(),server.second);
+                    
+                    // save
+                    ::RadarConfig.SetSharenetServer(server.first);
+                    ::RadarConfig.SetSharenetServerPort(server.second);
                     }
                 } // end else not connected
             break;

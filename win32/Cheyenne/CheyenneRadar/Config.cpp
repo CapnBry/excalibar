@@ -98,19 +98,25 @@ bool Config::Load(const std::string& filename)
          >> ModifyShowAlbs() >> std::ws
          >> ModifyShowHibs() >> std::ws
          >> ModifyShowMids() >> std::ws
-         >> ModifyShowMobs() >> std::ws
-         >> ModifyDStreamServer() >> std::ws
-         >> ModifyDStreamServerPort() >> std::ws
-         >> ModifySharenetServer() >> std::ws
-         >> ModifySharenetServerPort() >> std::ws
-         >> ModifyNewAlbSound() >> std::ws
-         >> ModifyPlayAlbSound() >> std::ws
-         >> ModifyNewHibSound() >> std::ws
-         >> ModifyPlayHibSound() >> std::ws
-         >> ModifyNewMidSound() >> std::ws
-         >> ModifyPlayMidSound() >> std::ws
-         >> ModifyNamedMobSound() >> std::ws
-         >> ModifyPlayNamedMobSound() >> std::ws;
+         >> ModifyShowMobs() >> std::ws;
+
+    std::getline(file,ModifyDStreamServer());
+    file >> ModifyDStreamServerPort() >> std::ws;
+    
+    std::getline(file,ModifySharenetServer());
+    file >> ModifySharenetServerPort() >> std::ws;
+    
+    std::getline(file,ModifyNewAlbSound());
+    file >> ModifyPlayAlbSound() >> std::ws;
+    
+    std::getline(file,ModifyNewHibSound());
+    file >> ModifyPlayHibSound() >> std::ws;
+    
+    std::getline(file,ModifyNewMidSound());
+    file >> ModifyPlayMidSound() >> std::ws;
+    
+    std::getline(file,ModifyNamedMobSound());
+    file >> ModifyPlayNamedMobSound() >> std::ws;
     
     // done
     return(true);
