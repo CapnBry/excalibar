@@ -82,7 +82,7 @@ class exMob : public QListViewItem {
     static QColor getColor(Realm r);
 
     void touch();
-    void stale();
+    void checkStale();
     void setPosition(unsigned int nx, unsigned int ny, unsigned int nz);
     void setHead(unsigned int head);
     void setHP(unsigned int hp);

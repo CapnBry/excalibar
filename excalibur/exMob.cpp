@@ -374,7 +374,7 @@ void exMob::touch() {
   c->ex->ListViewMobs->insertItem(this);
 }
 
-void exMob::stale() {
+void exMob::checkStale() {
   int maxtime;
 
   if (! current)
@@ -385,7 +385,9 @@ void exMob::stale() {
 //  else
 //    maxtime=10000;
 
-  if (((exTick - _lasttick) > maxtime) || (playerDist() > 10000.0)) {
+    if ((playerDist() > 10000.0) ||
+        (!obj && ((exTick - _lasttick) > maxtime))
+        ) {
     current = false;
     c->ex->ListViewMobs->takeItem(this);
   }
