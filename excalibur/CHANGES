@@ -5,6 +5,8 @@ Changes:
  + Performance improvment for depthfade:  Fixed depthfaded maps 
    getting recached every frame because the cached lastz was never 
    stored.
+ + Fixed dynamic distance mob stale making every mob stale one 
+   frame after it shows up.
 
 Teerex (03/Jun/02)
 ------------------
