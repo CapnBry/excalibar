@@ -90,6 +90,7 @@ type
     procedure LoadFromReader(AReader: TReader); virtual;
     procedure AssumeAtDestination; virtual;
     function SameLoc(AObject: TDAOCObject) : boolean;
+    function SameLocAndHead(AObject: TDAOCObject) : boolean;
     procedure SaveToWriter(AWriter: TWriter); virtual;
     procedure Touch;
     function TicksSinceUpdate : Cardinal;
@@ -914,6 +915,11 @@ procedure TDAOCObject.SetHitPoints(const Value: BYTE);
 begin
   FHitPointsLast := FHitPoints;
   FHitPoints := Value and $7f;  // bit $80 means *something*
+end;
+
+function TDAOCObject.SameLocAndHead(AObject: TDAOCObject): boolean;
+begin
+  Result := SameLoc(AObject) and (AObject.HeadWord = FHeadWord);
 end;
 
 { TDAOCLocalPlayer }
