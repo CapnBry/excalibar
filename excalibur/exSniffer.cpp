@@ -274,7 +274,7 @@ void exSniffer::run() {
     return;
   }
 
-  f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp)" +
+  f="ip and (net 208.254.16.0/24 or net 193.252.123.0/24 or net 209.225.26.0/28) and ((tcp and port 10622) or udp)" +
       local_ip_filter;
   qWarning(QString("Filter: %1").arg(f));
   if (pcap_compile(pcap, &bpp, (char *)((const char *)f), 1, 0) == -1) {
