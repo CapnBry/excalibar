@@ -610,6 +610,9 @@ begin
     pNearest := FFilteredObjects.FindNearest2D(x, y);
 
   if Assigned(pNearest) then begin
+    if pNearest.DistanceSqr2D(x, y) > FDControl.LocalPlayer.DistanceSqr2D(x, y) then
+      pNearest := FDControl.LocalPlayer;
+
     if FRenderPrefs.TrackInGameSelect then
         { callback will update screen }
       FDControl.SelectedObject := pNearest
@@ -968,13 +971,19 @@ var
   begin
     with TDAOCMovingObject(pMob) do begin
       s := 'Level ' + IntToStr(Level);
-      if (pMob is TDAOCPlayer) and (TDAOCPlayer(pMob).RealmRank <> rrUnknown) then
+      if (pMob.ObjectClass = ocPlayer) and (TDAOCPlayer(pMob).RealmRank <> rrUnknown) then
         s := s + ' ' + TDAOCPlayer(pMob).RealmRankStr;
       if HitPoints <> 100 then
         if IsDead then
           s := s + ' (dead)'
         else
           s := s + ' (' + IntToStr(HitPoints) + '%)';
+      if (pMob.ObjectClass = ocPlayer) and
+        (TDAOCPlayer(pMob).ManaPct <> 0) and (TDAOCPlayer(pMob).ManaPct <> 100) then
+        s := s + ' ' + IntToStr(TDAOCPlayer(pMob).ManaPct) + '%M';
+      if (pMob.ObjectClass = ocLocalPlayer) and
+        (TDAOCLocalPlayer(pMob).ManaPct <> 0) and (TDAOCLocalPlayer(pMob).ManaPct <> 100) then
+        s := s + ' ' + IntToStr(TDAOCLocalPlayer(pMob).ManaPct) + '%M';
       rastery := WriteTXFTextH12(4, rastery, s);
     end;
   end;
@@ -1031,6 +1040,15 @@ begin
           rastery := WriteTXFTextH12(4, rastery, '<' + Guild + '>');
         WriteMobLevelHealth;
       end;  { ocPlayer }
+
+    ocLocalPlayer:
+      with TDAOCLocalPlayer(pMob) do begin
+        WriteMobNameCon(FullName);
+        glColor4fv(@TEXT_COLOR);
+        if Guild <> '' then
+          rastery := WriteTXFTextH12(4, rastery, '<' + Guild + '>');
+        WriteMobLevelHealth;
+      end;  { ocLocalPlayer }
 
     ocVehicle:
       with TDAOCVehicle(pMob) do begin
