@@ -41,6 +41,9 @@ application or its source code.
 4.  A CVS client (Cygwin CVS, CVSGui, etc)
     Just to get the source.
 
+5.  Decent OpenGL units http://www.delphi3d.net/download.php
+    These are needed if you're going to build the OpenGL radar screen.
+
 --------------
     Setup
 --------------
