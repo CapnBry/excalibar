@@ -548,7 +548,6 @@ begin
   if (FGLTexture = 0) and Assigned(FDDSChunk) then
     UploadTexture;
 
-  glColor3f(1, 1, 1);
   glBindTexture(GL_TEXTURE_2D, FGLTexture);
   glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
