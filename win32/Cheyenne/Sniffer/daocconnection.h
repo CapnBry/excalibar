@@ -116,8 +116,8 @@ private:
     bool bCryptSet;
 
     // player character info
-    std::list<std::pair<std::string,unsigned char> > PlayerCharacterList;
-    typedef std::list<std::pair<std::string,unsigned char> >::iterator PlayerCharacterListIterator;
+    std::list<std::pair<std::string,unsigned short> > PlayerCharacterList;
+    typedef std::list<std::pair<std::string,unsigned short> >::iterator PlayerCharacterListIterator;
     unsigned char player_realm;
 
     // opcode/name cross reference

@@ -154,7 +154,7 @@ private:
     typedef std::list<RegionIndexType> ZonesByRegionType;
     typedef ZonesByRegionType::iterator ZonesByRegionIterator;
     typedef ZonesByRegionType::value_type ZonesByRegionValueType;
-    ZonesByRegionType ZonesByRegion[256];
-    RegionLimits RegionLimit[256];
+    ZonesByRegionType ZonesByRegion[65535];
+    RegionLimits RegionLimit[65535];
 
 }; // end class MapInfo
