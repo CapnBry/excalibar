@@ -31,6 +31,8 @@ type
     FChatLogXIEnabled: boolean;
     FChatLogEnabled: boolean;
     FChatLogFileName: string;
+    FAppendMobseen: boolean;
+    FAppendDelveseen: boolean;
 
     procedure CheckWriteAllMobseen(AConn: TDAOCConnection);
     procedure CheckWriteMobseen(AConn: TDAOCConnection; ADAOCObject: TDAOCObject);
@@ -57,6 +59,8 @@ type
 
     procedure DumpMobsToLog(AConn: TDAOCConnection);
 
+    property AppendMobseen: boolean read FAppendMobseen write FAppendMobseen;
+    property AppendDelveseen: boolean read FAppendDelveseen write FAppendDelveseen;
     property ChatLogEnabled: boolean read FChatLogEnabled write SetChatLogEnabled;
     property ChatLogFileName: string read FChatLogFileName write SetChatLogFileName;
     property ChatLogXIEnabled: boolean read FChatLogXIEnabled write FChatLogXIEnabled;
@@ -233,7 +237,14 @@ procedure TDebugLoggingState.DumpMobsToLog(AConn: TDAOCConnection);
 var
   pObj:   TDAOCObject;
 begin
+  Log('===== LIVE =====');
   pObj := AConn.DAOCObjects.Head;
+  while Assigned(pObj) do begin
+    Log(pObj.AsString);
+    pObj := pObj.Next;
+  end;
+  Log('===== STALE =====');
+  pObj := AConn.DAOCObjsStale.Head;
   while Assigned(pObj) do begin
     Log(pObj.AsString);
     pObj := pObj.Next;
@@ -291,9 +302,13 @@ begin
   if FRecordDelveseen then begin
       { make sure the file exists and is blank before we start, we do this
         because Delphi doesn't respect the ShareMode on fmCreate }
-    FDelveseenFile := TFileStream.Create(GetDelveseenFileName, fmCreate);
-    FDelveseenFile.Free;
+    if not FAppendDelveseen or not FileExists(GetDelveseenFileName) then begin
+      FDelveseenFile := TFileStream.Create(GetDelveseenFileName, fmCreate);
+      FDelveseenFile.Free;
+    end;
+
     FDelveseenFile := TFileStream.Create(GetDelveseenFileName, fmOpenWrite or fmShareDenyWrite);
+    FDelveseenFile.Seek(0, soEnd);
     // BRY2: Does not know which connection to spool for
     // CheckWriteAllDelveseen;
   end
@@ -310,9 +325,13 @@ begin
   if FRecordMobseen then begin
       { make sure the file exists and is blank before we start, we do this
         because Delphi doesn't respect the ShareMode on fmCreate }
-    FMobseenFile := TFileStream.Create(GetMobseenFileName, fmCreate);
-    FMobseenFile.Free;
+    if not FAppendMobseen or not FileExists(GetMobseenFileName) then begin
+      FMobseenFile := TFileStream.Create(GetMobseenFileName, fmCreate);
+      FMobseenFile.Free;
+    end;
+
     FMobseenFile := TFileStream.Create(GetMobseenFileName, fmOpenWrite or fmShareDenyWrite);
+    FMobseenFile.Seek(0, soEnd);
     // BRY2: Does not know which connection to spool for
     // CheckWriteAllMobseen;
   end
