@@ -8,7 +8,7 @@
 {*******************************************************}
 
 { Modified for zlib 1.1.3 by Davide Moretti <dave@rimini.com }
-{ Added better support for decompressing multiple zlib streams by Bryan Mayland } 
+{ Added better support for decompressing multiple zlib streams by Bryan Mayland }
 
 unit zlib2;
 
@@ -118,6 +118,9 @@ type
   public
     constructor Create(Source: TStream);
     destructor Destroy; override;
+
+    procedure ResetInflateState;
+
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -478,7 +481,7 @@ function TDecompressionStream.Read(var Buffer; Count: Longint): Longint;
 begin
   FZRec.next_out := @Buffer;
   FZRec.avail_out := Count;
-  if FStrm.Position <> FStrmPos then FStrm.Position := FStrmPos;
+  //if FStrm.Position <> FStrmPos then FStrm.Position := FStrmPos;
   while (FZRec.avail_out > 0) do
   begin
     if FZRec.avail_in = 0 then
@@ -496,6 +499,7 @@ begin
     if DCheck(inflate(FZRec, 0)) = Z_STREAM_END then begin
       Result := Count - FZRec.avail_out;
       FStrm.Seek(-FZRec.avail_in, soFromCurrent);
+      dec(FStrmPos, FZRec.avail_in);
       exit;
     end;
   end;
@@ -534,6 +538,14 @@ begin
   else
     raise EDecompressionError.Create('Invalid stream operation');
   Result := FZRec.total_out;
+end;
+
+procedure TDecompressionStream.ResetInflateState;
+begin
+  inflateEnd(FZRec);
+  FillChar(FZRec, sizeof(FZRec), 0);
+  FZRec.next_in := FBuffer;
+  DCheck(inflateInit_(FZRec, zlib_version, sizeof(FZRec)));
 end;
 
 end.
