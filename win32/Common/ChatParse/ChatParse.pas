@@ -551,6 +551,38 @@ begin
     Result := sLine;
 end;
 
+function ParseCurrencyList(const ALine: string; var APos: integer) : integer;
+const
+  COPPER_PER_SILVER = 100;
+  COPPER_PER_GOLD = 10000;
+  COPPER_PER_PLATINUM = 10000000;
+  COPPER_PER_MITHRIL = 10000000000;
+var
+  iValue:   integer;
+  sCoin:    string;
+  bRecognizedWord: boolean;
+begin
+  Result := 0;
+  bRecognizedWord := true;
+
+  repeat
+    iValue := ParseInt(ALine, APos);
+    sCoin := ParseWord(ALine, APos);
+    if AnsiSameText(sCoin, 'mithril') then
+      inc(Result, iValue * COPPER_PER_MITHRIL)
+    else if AnsiSameText(sCoin, 'platinum') then
+      inc(Result, iValue * COPPER_PER_PLATINUM)
+    else if AnsiSameText(sCoin, 'gold') then
+      inc(Result, iValue * COPPER_PER_GOLD)
+    else if AnsiSameText(sCoin, 'silver') then
+      inc(Result, iValue * COPPER_PER_SILVER)
+    else if AnsiSameText(sCoin, 'copper') then
+      inc(Result, iValue)
+    else
+      bRecognizedWord := false;
+  until not bRecognizedWord;
+end;
+
 { TDAOCChatParser }
 
 function TDAOCChatParser.LineBeginsWith(const ABegins: string) : boolean;
@@ -1014,9 +1046,8 @@ begin
     exit;
 
   inc(iPos, 11);
-  iValue := ParseInt(FCurrentLine, iPos);
-  if ParseWord(FCurrentLine, iPos) <> 'copper' then
-    exit;
+  iValue := ParseCurrencyList(FCurrentLine, iPos);
+    { ParseCurrencyList will parse up to and including 'pieces' }
   if ParseWord(FCurrentLine, iPos) <> 'for' then
     exit;
   if ParseWord(FCurrentLine, iPos) <> 'the' then
