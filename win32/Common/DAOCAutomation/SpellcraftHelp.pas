@@ -536,6 +536,7 @@ begin
     iQuantity := 10
   else
     iQuantity := 1;
+    
   FMaterialReqList.Clear;
   for I := low(FSCGems) to high(FSCGems) do begin
     pRecipe := FindRecipeForGem(I);
@@ -569,23 +570,18 @@ var
   iCountHeld:   integer;
   pVendorWnd:   TVendorWindow;
   pVendorItem:  TDAOCVendorItem;
-  iQuantity:    integer;
+  iMBuyQuantity:  integer;
 begin
   FKeepBuying := true;
 
   UpdateTotalMaterials;
-
-  if chkQuantity.Checked then
-    iQuantity := 10
-  else
-    iQuantity := 1;
 
   pVendorWnd := TVendorWindow.Create(FDControl.WindowManager);
   for I := 0 to FMaterialReqList.Count - 1 do begin
     pVendorItem := FDControl.VendorItems.Find(FMaterialReqList[I].Name);
 
     if Assigned(pVendorItem) then begin
-      iCountNeeded := FMaterialReqList[I].Count * iQuantity;
+      iCountNeeded := FMaterialReqList[I].Count;
       iCountHeld := FDControl.LocalPlayer.Inventory.TotalCountOfItem(
         FMaterialReqList[I].Name, false);
       dec(iCountNeeded, iCountHeld);
@@ -595,14 +591,21 @@ begin
         sleep(500);
         pVendorWnd.SelectItemIcon(pVendorItem.Position);
         sleep(500);
-          { Adjust for multibuy for stacks }
-        iCountNeeded := (iCountNeeded + pVendorItem.Quantity - 1) div
-          pVendorItem.Quantity;
-        pVendorWnd.BuyMultiple(iCountNeeded);
-        sleep(1000);
-        Application.ProcessMessages;  // This may cause us to be re-entrant
-                                      // Since the packet capture is still running
-        UpdateTotalMaterials;
+
+        while (iCountNeeded > 0) and FKeepBuying do begin
+            { Adjust for multibuy for stacks }
+          iCountNeeded := (iCountNeeded + pVendorItem.Quantity - 1) div
+            pVendorItem.Quantity;
+          iMBuyQuantity := pVendorWnd.MBuyQuantity(iCountNeeded, pVendorItem.Quantity);
+          pVendorWnd.BuyMultiple(iMBuyQuantity);
+          dec(iCountNeeded, iMBuyQuantity * pVendorItem.Quantity);
+
+          sleep(500);
+          UpdateTotalMaterials;
+
+          Application.ProcessMessages;  // This may cause us to be re-entrant
+                                        // Since the packet capture is still running
+        end;  { while countneeded > 0 }
       end;  { if countneeded > 0 }
     end  { if vendor has item }
     else
