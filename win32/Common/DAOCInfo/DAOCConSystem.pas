@@ -4,6 +4,7 @@ interface
 
 type
   TDAOCConColor = (ccGray, ccGreen, ccBlue, ccYellow, ccOrange, ccRed, ccPurple);
+  TDAOCConColors = set of TDAOCConColor;
 
   TDAOCConRangeDefinition = packed record
     GrayMax:    Shortint;
@@ -15,6 +16,8 @@ type
   end;
 
 function GetConColor(AViewerLevel, ATargetLevel: integer) : TDAOCConColor;
+function IntToConColors(AVal: integer) : TDAOCConColors;
+function ConColorsToInt(AVal: TDAOCConColors) : integer;
 
 implementation
 
@@ -95,6 +98,26 @@ begin
       else
         Result := ccPurple;
   end;
+end;
+
+function IntToConColors(AVal: integer) : TDAOCConColors;
+var
+  I:    TDAOCConColor;
+begin
+  Result := [];
+  for I := low(TDAOCConColor) to high(TDAOCConColor) do
+    if (AVal and (1 shl ord(I))) <> 0 then
+      Include(Result, I);
+end;
+
+function ConColorsToInt(AVal: TDAOCConColors) : integer;
+var
+  I:    TDAOCConColor;
+begin
+  Result := 0;
+  for I := low(TDAOCConColor) to high(TDAOCConColor) do
+    if I in AVal then
+      Result := Result or (1 shl ord(I));
 end;
 
 end.
