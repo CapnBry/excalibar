@@ -50,6 +50,7 @@ int nz, int nhp, bool newobj)
   head=0x800;
   speed=0;
   c=con;
+  isKnown=false;
   
   current = true;
   
@@ -155,8 +156,9 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QRegExp rx( c->MobFilter.getFilter());
   QColor clr;
 
-  if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn)
+  if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isKnown)
 		{
+		this->isKnown = true;
 		qWarning( "*** INVADER DETECTED *** Name: %s, Level: %d\n", name.ascii(), getLevel());
 		qApp->beep();
 		}

@@ -44,6 +44,7 @@ class exMob : public QListViewItem {
     bool mob;
     bool obj;
     bool current;
+	bool isKnown;
     exTimeType _lasttick;
     exTimeType _lastdist;
     double lastdist;
