@@ -149,7 +149,7 @@ begin
         pTmpItem.Account := ReadString('QuickLaunch', 'Account' + IntToStr(I), '');
         pTmpItem.Password := ReadString('QuickLaunch', 'Password' + IntToStr(I), '');
         pTmpItem.Realm := ReadInteger('QuickLaunch', 'Realm' + IntToStr(I), 1);
-        pTmpItem.FServerAddr := ReadInteger('QuickLaunch', 'ServerAddr' + IntToStr(I), 0);
+        pTmpItem.FServerAddr := Cardinal(ReadInteger('QuickLaunch', 'ServerAddr' + IntToStr(I), 0));
       end;  { if name }
     end;  { for I }
 
