@@ -254,6 +254,7 @@ type
     FCharacterClass:  TDAOCCharacterClass;
     FRealmRank: TRealmRank;
     FRealmRankStr:  string;
+    FManaPct:   BYTE;
     procedure UpdateFullName;
     procedure UpdateRealmRankStr;
     procedure SetName(const Value: string); override;
@@ -266,12 +267,13 @@ type
     procedure CheckStale; override;
     procedure InventoryChanged; override;
 
+    property CharacterClass: TDAOCCharacterClass read FCharacterClass;
+    property FullName: string read FFullName;
+    property Guild: string read FGuild write FGuild;
     property IsInGuild: boolean read FIsInGuild write FIsInGuild;
     property IsInGroup: boolean read FIsInGroup write FIsInGroup;
-    property Guild: string read FGuild write FGuild;
     property LastName: string read FLastName write SetLastName;
-    property FullName: string read FFullName;
-    property CharacterClass: TDAOCCharacterClass read FCharacterClass;
+    property ManaPct: BYTE read FManaPct write FManaPct;
     property RealmRank: TRealmRank read FRealmRank write SetRealmRank;
     property RealmRankStr: string read FRealmRankStr;
   end;
@@ -289,7 +291,7 @@ type
     procedure Clear;
     function AsText : string;
 
-    property AsCopper: Cardinal read GetAsCopper write SetAsCopper; 
+    property AsCopper: Cardinal read GetAsCopper write SetAsCopper;
     property Copper: integer read FCopper write FCopper;
     property Silver: integer read FSilver write FSilver;
     property Gold: integer read FGold write FGold;
@@ -299,8 +301,6 @@ type
 
   TDAOCLocalPlayer = class(TDAOCMovingObject)
   private
-    FManaPct: BYTE;
-    FEndurancePct: BYTE;
     function GetFullName: string;
   protected
     FSkills:    TDAOCNameValueList;
@@ -315,8 +315,10 @@ type
     FGuild:     string;
     FLastName:  string;
     FRealmTitle:  string;
-    FHouse:     string;
+    FHouse:       string;
     FPlayerClassStr:  string;
+    FEndurancePct:  BYTE;
+    FManaPct:       BYTE;
     function GetObjectClass : TDAOCObjectClass; override;
   public
     constructor Create; override;
