@@ -677,15 +677,15 @@ void exConnection::parseSystemMessage (exPacket *p)
     textbox->append(QString("[%1] %2").arg(msg->getMsgType()).arg(msg->getFormattedText()));
 
     for(int x = 1; x < msgui->tabWidget->count(); x++)
-    {
-          tab = msgui->tabWidget->page(x);
-          if(msg->getMsgType() == tab->name())
-          {
-              textbox = (QTextEdit*)tab->childAt(10, 10);
-    	      textbox->append(msg->getFormattedText());
-              break;
-          }
-    }
+        {
+        tab = msgui->tabWidget->page(x);
+        if(msg->getMsgType() == tab->name())
+            {
+            textbox = (QTextEdit*)tab->childAt(10, 10);
+            textbox->append(msg->getFormattedText());
+            break;
+            }
+        }
 
     if (msg != NULL)
       delete msg;
