@@ -1,3 +1,7 @@
+Teerex (15/May/03)
+------------------
+ + Modified OSX/FreeBSD sniffer fragment code to match Linux version.
+
 Teerex (12/May/03)
 ------------------
  + Added a log message after Excal starts to inform the user to start
