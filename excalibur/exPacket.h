@@ -49,6 +49,7 @@ class exPacket {
     QByteArray getBytes(int l);
     void skip(int l);
     void decrypt(QString key);
+    QString getDataAsString();
 };
 
 QDataStream &operator<<( QDataStream &s, const exPacket &p);

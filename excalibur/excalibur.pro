@@ -1,3 +1,5 @@
+SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exItem.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp 
+HEADERS	+= exItem.h exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h 
 #
 # Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
 #
@@ -17,21 +19,19 @@
 # GNU General Public License for more details.
 
 
-SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exItem.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp
-HEADERS	+= exItem.h exPrefs.h exSniffer.h exConnection.h  exLink.h
 
 unix {
   UI_DIR      = .ui
   MOC_DIR     = .moc
   OBJECTS_DIR = .obj
 }
-FORMS		 = formexcalibur.ui prefsdialog.ui 
-TEMPLATE	 =app
-CONFIG		+= qt warn_on release thread opengl debug network gprof
-DEFINES		+= QT_MODULE_NETWORK
-INCLUDEPATH	+= /usr/include/pcap/
-LIBS		+= -lpcap -lglut -lGLU -lXi
-DBFILE		 = excalibur.db
-LANGUAGE	 = C++
 #QMAKE_CXXFLAGS += -pg -a
 #QMAKE_LFLAGS   += -pg -a
+FORMS	= formexcalibur.ui prefsdialog.ui 
+TEMPLATE	=app
+CONFIG	+= qt warn_on release thread opengl debug network gprof
+DEFINES	+= QT_MODULE_NETWORK
+INCLUDEPATH	+= /usr/include/pcap/
+LIBS	+= -lpcap -lglut -lGLU -lXi
+DBFILE	= excalibur.db
+LANGUAGE	= C++

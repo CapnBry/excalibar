@@ -64,6 +64,7 @@ protected:
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);
+  void dumpPacket(unsigned int command, exPacket *p);
 public slots:
   void listSelectionChanged(QListViewItem *i);
   void replaytimer();

@@ -99,6 +99,7 @@ int main( int argc, char ** argv )
 
     options.insert("--realtime",&realtime);
     options.insert("--link",&link);
+    options.insert("--dumpunknown", &prefs.dump_unknown_packets);
 
     if (! prepareCrypt()) {
       qFatal("\nFATAL ERROR:\tFailed to load the decryption library "

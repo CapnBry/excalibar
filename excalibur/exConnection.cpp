@@ -251,6 +251,10 @@ void exConnection::processPacket(exPacket * p)
 	    break;
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
+	    break;	
+	  default:
+	    if (prefs.dump_unknown_packets)
+		dumpPacket(command, p);
 	    break;
 	}
     } else if (!p->is_udp && !p->from_server) {
@@ -485,6 +489,8 @@ void exConnection::processPacket(exPacket * p)
 	      }
 	      break;
 	  default:
+	      if (prefs.dump_unknown_packets)
+		  dumpPacket(command, p);	
 	      break;
 	}
     }
@@ -597,4 +603,13 @@ void exConnection::spawnEditor()
   }
   p->addArgument(QString("usermaps/").append(mi->getName()));
   p->start();
+}
+
+void exConnection::dumpPacket(unsigned int command, exPacket *p)
+{
+    cout << QString().sprintf("Unknown %s packet %s server.  Command %02x\n", 
+			      (p->is_udp) ? "UDP" : "TCP",
+			      (p->from_server) ? "FROM" : "TO",
+			      command);
+    cout << p->getDataAsString() << flush;
 }

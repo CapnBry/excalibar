@@ -141,3 +141,38 @@ void exPacket::skip(int l) {
   Q_ASSERT(d.size() >= (offset + l));
   offset+=l;
 }
+
+QString exPacket::getDataAsString()
+{
+    QString result;
+    QString hex;
+    QString ascii;
+    unsigned char c;
+
+    for (size_t i=0; i < d.size(); i++)  {
+	/* if we're at 16, start a new line */
+        if (i && !(i % 16))  {
+            result.append(hex + " " + ascii + "\n");
+            hex = "";
+            ascii = "";
+        } 
+	/* add some whitespace in the middle of the hex */
+	else if ((i % 16) == 8) 
+	    hex.append(" - ");
+
+        c = (unsigned char)data[i];
+        hex.append(QString().sprintf("%02x ", c));
+        if ((c < ' ') || (c > '~'))
+            ascii.append('.');
+        else
+            ascii.append(c);
+    }  // for i in size
+
+    while (ascii.length() < 16)  {
+        hex.append("   ");
+        ascii.append(" ");
+    }
+
+    result.append(hex + " " + ascii + "\n");
+    return result;
+}
