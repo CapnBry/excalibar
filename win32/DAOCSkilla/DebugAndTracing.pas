@@ -188,7 +188,11 @@ end;
 procedure TfrmDebugging.chkRecordMobseenClick(Sender: TObject);
 begin
   if chkRecordMobseen.Checked then begin
-    FMobseenFile := TFileStream.Create(GetMobseenFileName, fmCreate or fmShareDenyWrite);
+      { make sure the file exists and is blank before we start, we do this
+        because Delphi doesn't respect the ShareMode on fmCreate }
+    FMobseenFile := TFileStream.Create(GetMobseenFileName, fmCreate);
+    FMobseenFile.Free;
+    FMobseenFile := TFileStream.Create(GetMobseenFileName, fmOpenWrite or fmShareDenyWrite);
     CheckWriteAllMobseen;
   end
   else
@@ -209,10 +213,10 @@ var
   s:         string;
   X, Y, Z:   integer;
 begin
-  if (ADAOCObject.ObjectClass = ocMob) and Assigned(FMobseenFile) and
+  if Assigned(FMobseenFile) and (ADAOCObject.ObjectClass = ocMob) and
     Assigned(FDControl.Zone) then begin
-    X := FDControl.Zone.ZoneToWorldX(ADAOCObject.X);
-    Y := FDControl.Zone.ZoneToWorldY(ADAOCObject.Y);
+    X := FDControl.Zone.WorldToZoneX(ADAOCObject.X);
+    Y := FDControl.Zone.WorldToZoneY(ADAOCObject.Y);
     Z := ADAOCObject.Z;
     if (X >= 65535) or (Y > 65535) then
       exit;
