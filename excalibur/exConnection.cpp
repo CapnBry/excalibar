@@ -713,3 +713,12 @@ void exConnection::dumpPacket(unsigned int command, exPacket *p)
               p->getlen());
     printf ("%s", p->getDataAsString().ascii());
 }
+
+void exConnection::setFilter( QString Filter)
+{
+  MobFilter.setFilter( Filter);
+  printf( "New Filter: %s\n", MobFilter.getFilter().ascii());
+
+  this->ex->ListViewMobs->repaint();
+}
+

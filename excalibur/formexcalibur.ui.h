@@ -144,5 +144,7 @@ void FormExcalibur::EditorSpawn_activated()
 
 void FormExcalibur::MobFilter_returnPressed()
 {
-    exMob::setFilter( MobFilter->text());
+  if( !Map->c) return;
+  
+  Map->c->setFilter( MobFilter->text());
 }

@@ -43,6 +43,7 @@ class exConnection;
 #include "exSniffer.h"
 #include "exPrefs.h"
 #include "exLink.h"
+#include "exFilter.h"
 
 class exConnection : public QObject {
   Q_OBJECT
@@ -85,6 +86,7 @@ public:
   int numPaints;
   bool alive;
   unsigned int selectedid;
+  exFilter MobFilter;
 
   exConnection(exNet *s, bool do_link, bool docapture);
   exConnection(QString *f);
@@ -98,6 +100,7 @@ public:
   const QPtrDict<exMob> &getMobs() const;
   void selectID(unsigned int id);
   void spawnEditor();
+  void setFilter( QString Filter);
 };
 
 #endif
