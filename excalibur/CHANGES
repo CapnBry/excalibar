@@ -1,4 +1,4 @@
-Teerex (07/Sep/02)
+Teerex (07/Aug/02)
 ------------------
  + Changed map paint routines to no longer rely on the Z-buffer (i.e.
    the depth buffer) to perform occlusion detection.  Z-buffer is a
@@ -14,6 +14,9 @@ Teerex (29/Jul/02)
    map, mob, and global timer that weren't initialized.
  + Fixed mismached malloc / delete [] in isNvidiaModuleLoaded() which
    was freeing an invalid memory region.
+ + Removed some superflous code around the ASSERT in a vector map loader.
+   Should only affect people who see the "Error:  exMapInfo == NULL!"
+   error message.
 
 Teerex (25/Jul/02)
 ------------------
