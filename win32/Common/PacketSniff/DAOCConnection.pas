@@ -24,7 +24,7 @@ uses
 {$IFDEF DAOC_AUTO_SERVER}
   ComObj,
 {$ENDIF}
-  GenericNetPackets, NamedPacketHandler, DAOCAccountCharInfo, DAOCObjs, DAOCRegion,
+  GameNetPackets, NamedPacketHandler, DAOCAccountCharInfo, DAOCObjs, DAOCRegion,
   DAOCInventory, DAOCPlayerAttributes, StringParseHlprs, VendorItems,
   ChatParse, FrameFns, MapNavigator, INIFiles;
 
@@ -46,10 +46,7 @@ type
 
 {$IFDEF DAOC_AUTO_SERVER} TDAOCConnection = class(TAutoObject) {$ELSE} TDAOCConnection = class(TObject) {$ENDIF}
   private
-    FClientAddr: Cardinal;
-    FServerAddr: Cardinal;
-    FUDPServerAddr: Cardinal;
-    FActive:  boolean;
+    FActive:    boolean;
     FVersionMajor: byte;
     FVersionMinor: byte;
     FVersionRelease: byte;
@@ -61,13 +58,13 @@ type
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
+    FMaxObjectDist:       double;
     FPingRequestSentTime: Cardinal;
     FLastPingTime:        integer;
     FRealmRanks:          TStringList;
     FSelectedObjectCached:  TDAOCObject;
     FPacketHandlerDefFile: string;
     FLastUDPSeq:    WORD;
-    FWatchedConnectionID: Cardinal;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -117,7 +114,6 @@ type
     procedure ClearCallbackList;
     procedure CheckScheduledTimeoutCallback;
     function GetSelectedObject: TDAOCObject;
-    function GetUDPServerIP: string;
     procedure SetSelectedObject(const Value: TDAOCObject);
     procedure ClearDAOCObjectList;
     procedure CheckObjectsOutOfRange;
@@ -134,6 +130,10 @@ type
     procedure OBJWALKRemoveTarget(AObj: TDAOCObject; AParam: Integer; var AContinue: boolean);
     procedure LinkPacketHandlers(AHandlerList: TNamedPacketHandlerList);
   protected
+    FSource:        TObject;  // usually a dstream server
+    FConnectionID:  Cardinal;
+    FClientAddr:    Cardinal;
+    FServerAddr:    Cardinal;
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
     FZoneList:  TDAOCZoneInfoList;
@@ -163,58 +163,58 @@ type
     procedure CPARSEBountyPointsChange(ASender: TDAoCChatParser; APoints: Integer);
     procedure CPARSECurrencyChanged(ASender: TDAOCChatParser; AReason: TDAOCCurrencyChangeReason);
 
-    procedure ParseSetEncryptionKey(pPacket: TGenericNetPacket);
-    procedure ParseSetPlayerRegion(pPacket: TGenericNetPacket);
-    procedure ParseAccountCharacters(pPacket: TGenericNetPacket);
-    procedure ParsePlayerDetails(pPacket: TGenericNetPacket);
-    procedure ParseLocalPosUpdateFromClient(pPacket: TGenericNetPacket);
-    procedure ParseInventoryList(pPacket: TGenericNetPacket);
-    procedure ParsePlayerStatsUpdate(pPacket: TGenericNetPacket);
-    procedure ParsePlayerSpecsSpellsAbils(pPacket: TGenericNetPacket);
-    procedure ParsePlayerSkills(pPacket: TGenericNetPacket);
-    procedure ParseLocalHeadUpdateFromClient(pPacket: TGenericNetPacket);
-    procedure ParsePlayerPosUpdate(pPacket: TGenericNetPacket);
-    procedure ParsePlayerHeadUpdate(pPacket: TGenericNetPacket);
-    procedure ParseMobUpdate(pPacket: TGenericNetPacket);
-    procedure ParseLogUpdate(pPacket: TGenericNetPacket);
-    procedure ParseLocalHealthUpdate(pPacket: TGenericNetPacket);
-    procedure ParseCharacterLoginInit(pPacket: TGenericNetPacket);
-    procedure ParseNewObjectCommon(pPacket: TGenericNetPacket; AClass: TDAOCObjectClass);
-    procedure ParseNewObject(pPacket: TGenericNetPacket);
-    procedure ParseNewMob(pPacket: TGenericNetPacket);
-    procedure ParseNewPlayer(pPacket: TGenericNetPacket);
-    procedure ParseNewVehicle(pPacket: TGenericNetPacket);
-    procedure ParseObjectEquipment(pPacket: TGenericNetPacket);
-    procedure ParseMoneyUpdate(pPacket: TGenericNetPacket);
-    procedure ParseRequestBuyItem(pPacket: TGenericNetPacket);
-    procedure ParseSelectedIDUpdate(pPacket: TGenericNetPacket);
-    procedure ParseProgressMeter(pPacket: TGenericNetPacket);
-    procedure ParseSpellPulse(pPacket: TGenericNetPacket);
-    procedure ParsePopupMessage(pPacket: TGenericNetPacket);
-    procedure ParseCommandFromClient(pPacket: TGenericNetPacket);
-    procedure ParseVendorWindow(pPacket: TGenericNetPacket);
-    procedure ParseRegionServerInfomation(pPacket: TGenericNetPacket);
-    procedure ParseDeleteObject(pPacket: TGenericNetPacket);
-    procedure ParseSetGroundTarget(pPacket: TGenericNetPacket);
-    procedure ParseCharacterStealthed(pPacket: TGenericNetPacket);
-    procedure ParseCharacterActivationRequest(pPacket: TGenericNetPacket);
-    procedure ParseServerProtocolInit(pPacket: TGenericNetPacket);
-    procedure ParseRequestPlayerByPlayerID(pPacket: TGenericNetPacket);
-    procedure ParseRequestObjectByInfoID(pPacket: TGenericNetPacket);
-    procedure ParsePlayerCenteredSpellEffect(pPacket: TGenericNetPacket);
-    procedure ParseServerPingResponse(pPacket: TGenericNetPacket);
-    procedure ParseServerPingRequest(pPacket: TGenericNetPacket);
-    procedure ParseGroupMembersUpdate(pPacket: TGenericNetPacket);
-    procedure ParseGroupWindowUpdate(pPacket: TGenericNetPacket);
-    procedure ParseAggroIndicator(pPacket: TGenericNetPacket);
-    procedure ParseAccountLoginRequest(pPacket: TGenericNetPacket);
-    procedure ParseDelveRequest(pPacket: TGenericNetPacket);
-    procedure ParseDelveInformation(pPacket: TGenericNetPacket);
-    procedure ParseVendorWindowRequest(pPacket: TGenericNetPacket);
-    procedure ParseDoorPositionUpdate(pPacket: TGenericNetPacket);
+    procedure ParseSetEncryptionKey(pPacket: TGameNetPacket);
+    procedure ParseSetPlayerRegion(pPacket: TGameNetPacket);
+    procedure ParseAccountCharacters(pPacket: TGameNetPacket);
+    procedure ParsePlayerDetails(pPacket: TGameNetPacket);
+    procedure ParseLocalPosUpdateFromClient(pPacket: TGameNetPacket);
+    procedure ParseInventoryList(pPacket: TGameNetPacket);
+    procedure ParsePlayerStatsUpdate(pPacket: TGameNetPacket);
+    procedure ParsePlayerSpecsSpellsAbils(pPacket: TGameNetPacket);
+    procedure ParsePlayerSkills(pPacket: TGameNetPacket);
+    procedure ParseLocalHeadUpdateFromClient(pPacket: TGameNetPacket);
+    procedure ParsePlayerPosUpdate(pPacket: TGameNetPacket);
+    procedure ParsePlayerHeadUpdate(pPacket: TGameNetPacket);
+    procedure ParseMobUpdate(pPacket: TGameNetPacket);
+    procedure ParseLogUpdate(pPacket: TGameNetPacket);
+    procedure ParseLocalHealthUpdate(pPacket: TGameNetPacket);
+    procedure ParseCharacterLoginInit(pPacket: TGameNetPacket);
+    procedure ParseNewObjectCommon(pPacket: TGameNetPacket; AClass: TDAOCObjectClass);
+    procedure ParseNewObject(pPacket: TGameNetPacket);
+    procedure ParseNewMob(pPacket: TGameNetPacket);
+    procedure ParseNewPlayer(pPacket: TGameNetPacket);
+    procedure ParseNewVehicle(pPacket: TGameNetPacket);
+    procedure ParseObjectEquipment(pPacket: TGameNetPacket);
+    procedure ParseMoneyUpdate(pPacket: TGameNetPacket);
+    procedure ParseRequestBuyItem(pPacket: TGameNetPacket);
+    procedure ParseSelectedIDUpdate(pPacket: TGameNetPacket);
+    procedure ParseProgressMeter(pPacket: TGameNetPacket);
+    procedure ParseSpellPulse(pPacket: TGameNetPacket);
+    procedure ParsePopupMessage(pPacket: TGameNetPacket);
+    procedure ParseCommandFromClient(pPacket: TGameNetPacket);
+    procedure ParseVendorWindow(pPacket: TGameNetPacket);
+    procedure ParseRegionServerInfomation(pPacket: TGameNetPacket);
+    procedure ParseDeleteObject(pPacket: TGameNetPacket);
+    procedure ParseSetGroundTarget(pPacket: TGameNetPacket);
+    procedure ParseCharacterStealthed(pPacket: TGameNetPacket);
+    procedure ParseCharacterActivationRequest(pPacket: TGameNetPacket);
+    procedure ParseServerProtocolInit(pPacket: TGameNetPacket);
+    procedure ParseRequestPlayerByPlayerID(pPacket: TGameNetPacket);
+    procedure ParseRequestObjectByInfoID(pPacket: TGameNetPacket);
+    procedure ParsePlayerCenteredSpellEffect(pPacket: TGameNetPacket);
+    procedure ParseServerPingResponse(pPacket: TGameNetPacket);
+    procedure ParseServerPingRequest(pPacket: TGameNetPacket);
+    procedure ParseGroupMembersUpdate(pPacket: TGameNetPacket);
+    procedure ParseGroupWindowUpdate(pPacket: TGameNetPacket);
+    procedure ParseAggroIndicator(pPacket: TGameNetPacket);
+    procedure ParseAccountLoginRequest(pPacket: TGameNetPacket);
+    procedure ParseDelveRequest(pPacket: TGameNetPacket);
+    procedure ParseDelveInformation(pPacket: TGameNetPacket);
+    procedure ParseVendorWindowRequest(pPacket: TGameNetPacket);
+    procedure ParseDoorPositionUpdate(pPacket: TGameNetPacket);
 
-    procedure ProcessDAOCPacketFromServer(pPacket: TGenericNetPacket);
-    procedure ProcessDAOCPacketFromClient(pPacket: TGenericNetPacket);
+    procedure ProcessDAOCPacketFromServer(pPacket: TGameNetPacket);
+    procedure ProcessDAOCPacketFromClient(pPacket: TGameNetPacket);
 
     procedure DoOnChatSayIncoming(const AWho, AMessage: string); virtual;
     procedure DoOnChatSayOutgoing(const AMessage: string); virtual;
@@ -272,7 +272,7 @@ type
     destructor Destroy; override;
 
     procedure InitPacketHandlers;
-    procedure ProcessDAOCPacket(pPacket: TGenericNetPacket);
+    procedure ProcessDAOCPacket(pPacket: TGameNetPacket);
     procedure Clear; virtual;
     procedure CheckForStaleObjects;
     procedure LoadRealmRanks(const AFileName: string);
@@ -286,20 +286,20 @@ type
 
       { network properties }
     property Active: boolean read FActive;
-    property ClientAddr: Cardinal read FClientAddr;
+    property ClientAddr: Cardinal read FClientAddr write FClientAddr;
     property ClientIP: string read GetClientIP write SetClientIP;
-    property ServerAddr: Cardinal read FServerAddr;
+    property ServerAddr: Cardinal read FServerAddr write FServerAddr;
     property ServerIP: string read GetServerIP write SetServerIP;
-    property UDPServerAddr: Cardinal read FUDPServerAddr;
-    property UDPServerIP: string read GetUDPServerIP;
+    property Source: TObject read FSource write FSource;
 
       { properties }
     property AccountCharacterList: TDAOCAccountCharInfoList read FAccountCharacters;
+    property ConnectionID: Cardinal read FConnectionID write FConnectionID;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
-    property MaxObjectDistance: double write SetMaxObjectDistance;
+    property MaxObjectDistance: double read FMaxObjectDist write SetMaxObjectDistance;
     property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime;
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
     property LastPingTime: integer read FLastPingTime;
@@ -312,7 +312,6 @@ type
     property TradeCommissionNPC: string read FTradeCommissionNPC;
     property TradeCommissionItem: string read FTradeCommissionItem;
     property VendorItems: TDAOCVendorItemList read FVendorItems;
-    property WatchedConnectionID: Cardinal read FWatchedConnectionID write FWatchedConnectionID;
     property Zone: TDAOCZoneInfo read FZone;
     property ZoneList: TDAOCZoneInfoList read FZoneList;
 
@@ -382,7 +381,7 @@ begin
   FSelectedID := 0;
   FChatParser.Reset;
   FGroundTarget.Clear;
-  FWatchedConnectionID := 0;
+  FConnectionID := 0;
 end;
 
 constructor TDAOCConnection.Create;
@@ -409,8 +408,11 @@ begin
   FGroupMembers := TDAOCObjectList.Create(false);
   HookChatParseCallbacks;
 
+  FServerProtocol := $01;
   SetMaxObjectDistance(8500);
   FMaxObjectStaleTime := 240000;  // 240,000ms = 4min
+
+  LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -445,12 +447,14 @@ end;
 
 procedure TDAOCConnection.DoOnConnect;
 begin
+  FActive := true;
   if Assigned(FOnConnect) then
     FOnConnect(Self);
 end;
 
 procedure TDAOCConnection.DoOnDisconnect;
 begin
+  FActive := false;
   if Assigned(FOnDisconnect) then
     FOnDisconnect(Self);
 end;
@@ -489,7 +493,7 @@ begin
     FOnLog(Self, s);
 end;
 
-procedure TDAOCConnection.ParseAccountCharacters(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseAccountCharacters(pPacket: TGameNetPacket);
 var
   sName:  string;
   iCharsLeft: integer;
@@ -523,7 +527,7 @@ begin
   end;    { for chars }
 end;
 
-procedure TDAOCConnection.ParsePlayerDetails(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerDetails(pPacket: TGameNetPacket);
 var
   SubType: BYTE;
   iLevel:   integer;
@@ -572,7 +576,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseInventoryList(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseInventoryList(pPacket: TGameNetPacket);
 var
   iItemCount:   integer;
   pTmpItem: TDAOCInventoryItem;
@@ -626,7 +630,7 @@ begin
     DoOnZoneChange;
 end;
 
-procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'LocalPosUpdateFromClient';
 {$IFDEF PRE_168}
@@ -653,7 +657,7 @@ begin
   CheckObjectsOutOfRange;
 end;
 
-procedure TDAOCConnection.ParsePlayerStatsUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerStatsUpdate(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'PlayerStatsUpdate';
   case pPacket.getByte of
@@ -665,7 +669,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SetEncryptionKey';
 
@@ -679,7 +683,7 @@ begin
 //  DoVersionNumsSet;
 end;
 
-procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SetPlayerRegion';
   DoSetRegionID(pPacket.getShort);
@@ -712,7 +716,7 @@ begin
 end;
 
 procedure TDAOCConnection.ProcessDAOCPacketFromClient(
-  pPacket: TGenericNetPacket);
+  pPacket: TGameNetPacket);
 var
   command:  BYTE;
   pHandler: TNamedPacketHandler;
@@ -732,14 +736,13 @@ begin
     pHandler.Handler(pPacket);
 end;
 
-procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ProcessDAOCPacketFromServer(pPacket: TGameNetPacket);
 var
   command:  BYTE;
   iSeqNo:   integer;
   pHandler: TNamedPacketHandler;
 begin
   iSeqNo := pPacket.getShort;
-//  if pPacket.IPProtocol = daocpUDP then
 
     { check for mislabeled UDP }
   if pPacket.IPProtocol = gnppTCP then
@@ -787,7 +790,7 @@ begin
   // Log('Player region changed to ' + IntToStr(FRegionID));
 end;
 
-procedure TDAOCConnection.ParsePlayerSpecsSpellsAbils(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerSpecsSpellsAbils(pPacket: TGameNetPacket);
 var
   iCnt:   integer;
   iLevel: integer;
@@ -826,7 +829,7 @@ begin
   end;  { while cnt and !EOF }
 end;
 
-procedure TDAOCConnection.ParsePlayerSkills(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerSkills(pPacket: TGameNetPacket);
 var
   iCnt:   integer;
   iLevel: integer;
@@ -862,7 +865,7 @@ begin
     FOnSkillLevelChanged(Self, AItem);
 end;
 
-procedure TDAOCConnection.ParseLocalHeadUpdateFromClient(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseLocalHeadUpdateFromClient(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'LocalHeadUpdateFromClient';
   pPacket.seek(2);
@@ -870,7 +873,7 @@ begin
   DoOnPlayerPosUpdate;
 end;
 
-procedure TDAOCConnection.ParsePlayerPosUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerPosUpdate(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -932,7 +935,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseMobUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseMobUpdate(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1022,7 +1025,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParsePlayerHeadUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerHeadUpdate(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1064,7 +1067,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseLogUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseLogUpdate(pPacket: TGameNetPacket);
 var
   sLine:  string;
   bType:  BYTE;
@@ -1087,7 +1090,7 @@ begin
   end;  { case bType }
 end;
 
-procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseLocalHealthUpdate(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'LocalHealthUpdate';
 
@@ -1099,7 +1102,7 @@ begin
   DoOnLocalHealthUpdate;
 end;
 
-procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseCharacterLoginInit(pPacket: TGameNetPacket);
 begin
     { the first packet we get which describes the character I think. }
   pPacket.HandlerName := 'CharacterLoginInit';
@@ -1115,7 +1118,7 @@ begin
   CheckZoneChanged;
 end;
 
-procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TGenericNetPacket;
+procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TGameNetPacket;
   AClass: TDAOCObjectClass);
 var
   tmpObject:  TDAOCObject;
@@ -1244,7 +1247,7 @@ begin
     SafeAddDAOCObjectAndNotify(tmpObject);
 end;
 
-procedure TDAOCConnection.ParseObjectEquipment(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseObjectEquipment(pPacket: TGameNetPacket);
 var
   ID:   integer;
   iCnt: integer;
@@ -1294,7 +1297,7 @@ begin
   TDAOCMovingObject(pMob).InventoryChanged;
 end;
 
-procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TGameNetPacket);
 var
   dwPrevious: Cardinal;
 begin
@@ -1321,12 +1324,12 @@ begin
   FLastCurrencyChangeReason := ccrUnknown;
 end;
 
-procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'RequestBuyItem NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParseSelectedIDUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseSelectedIDUpdate(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SelectedIDUpdate';
   FSelectedID := pPacket.getShort;
@@ -1334,7 +1337,7 @@ begin
   DoOnSelectedObjectChanged(SelectedObject);
 end;
 
-procedure TDAOCConnection.ParseProgressMeter(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseProgressMeter(pPacket: TGameNetPacket);
 var
   iDuration:  integer;
   sMessage:   string;
@@ -1359,12 +1362,12 @@ begin
 ;
 end;
 
-procedure TDAOCConnection.ParseSpellPulse(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseSpellPulse(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SpellPulse NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParsePopupMessage(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePopupMessage(pPacket: TGameNetPacket);
 var
   sMessage:   string;
 begin
@@ -1379,7 +1382,7 @@ begin
 ;
 end;
 
-procedure TDAOCConnection.ParseCommandFromClient(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseCommandFromClient(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'CommandFromClient NOTIMPL';
 (**
@@ -1520,7 +1523,7 @@ begin
   FTradeCommissionNPC := '';
 end;
 
-procedure TDAOCConnection.ParseVendorWindow(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseVendorWindow(pPacket: TGameNetPacket);
 var
   iItemDescs: integer;
   iPage:      integer;
@@ -1575,12 +1578,12 @@ begin
 end;
 
 procedure TDAOCConnection.ParseRegionServerInfomation(
-  pPacket: TGenericNetPacket);
+  pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'RegionServerInformation NOTIMPL';
 end;
 
-procedure TDAOCConnection.ParseDeleteObject(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseDeleteObject(pPacket: TGameNetPacket);
 var
   pObj:   TDAOCObject;
   wID:    WORD;
@@ -1695,12 +1698,12 @@ begin
     FOnTradeSkillCapped(Self);
 end;
 
-procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TGameNetPacket);
 begin
     { if we're already active and we have a preferred connection ID, then
       make sure this packet is for the right connection }
-  if FActive and (FWatchedConnectionID <> 0) and
-    (pPacket.ConnectionID <> FWatchedConnectionID) then
+  if FActive and (FConnectionID <> 0) and
+    (pPacket.ConnectionID <> FConnectionID) then
     exit;
 
 {$IFDEF GLOBAL_TICK_COUNTER}
@@ -1709,8 +1712,7 @@ begin
 
   if not FActive then begin
     Clear;
-    FActive := true;
-    FWatchedConnectionID := pPacket.ConnectionID;
+    FConnectionID := pPacket.ConnectionID;
     DoOnConnect;
   end;
 
@@ -1730,7 +1732,7 @@ begin
   CheckScheduledTimeoutCallback;
 end;
 
-procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseSetGroundTarget(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SetGroundTarget';
   FGroundTarget.X := pPacket.getLong;
@@ -1809,11 +1811,6 @@ begin
     FOnDAOCObjectMoved(Self, AObject);
 end;
 
-function TDAOCConnection.GetUDPServerIP: string;
-begin
-  Result := my_inet_ntoa(FUDPServerAddr);
-end;
-
 procedure TDAOCConnection.CPARSECombatStyleFailure(ASender: TDAOCChatParser);
 begin
   DoOnCombatStyleFailure;
@@ -1844,7 +1841,7 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
@@ -1905,6 +1902,7 @@ end;
 
 procedure TDAOCConnection.SetMaxObjectDistance(const Value: double);
 begin
+  FMaxObjectDist := Value;
   FMaxObjectDistSqr := Value * Value;
 end;
 
@@ -1915,7 +1913,7 @@ begin
 end;
 
 procedure TDAOCConnection.ParseCharacterActivationRequest(
-  pPacket: TGenericNetPacket);
+  pPacket: TGameNetPacket);
 var
   sCharName:  string;
 begin
@@ -1936,7 +1934,7 @@ begin
   DoSetRegionID(Result.RegionID);
 end;
 
-procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseServerProtocolInit(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'ServerProcotolInit';
   
@@ -1957,13 +1955,13 @@ begin
 end;
 
 procedure TDAOCConnection.ParseRequestPlayerByPlayerID(
-  pPacket: TGenericNetPacket);
+  pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'RequestPlayerByPlayerID';
   // pPacket.getShort;  // PlayerID
 end;
 
-procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'RequestObjectByInfoID';
 end;
@@ -2004,7 +2002,7 @@ begin
   end;  { while pObj }
 end;
 
-procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'PlayerCenteredSpellEffect NOTIMPL';
   { I think this is a "Player-Centered" spell effect.  Like a spell effect
@@ -2014,7 +2012,7 @@ begin
   // ID := pPacket.getShort;
 end;
 
-procedure TDAOCConnection.ParseServerPingResponse(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseServerPingResponse(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'ServerPingResponse';
   { the server sends us back a copy of the timer we sent }
@@ -2024,7 +2022,7 @@ begin
   DoOnPingReply;
 end;
 
-procedure TDAOCConnection.ParseServerPingRequest(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseServerPingRequest(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'ServerPingRequest';
     { We can't use the client's tick count for the ping request time, since
@@ -2040,7 +2038,7 @@ begin
     FOnPingReply(Self, FLastPingTime);
 end;
 
-procedure TDAOCConnection.ParseGroupMembersUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseGroupMembersUpdate(pPacket: TGameNetPacket);
 var
   iCnt:   integer;
   wID:    WORD;
@@ -2077,7 +2075,7 @@ begin
   DoOnGroupMembersChanged;
 end;
 
-procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseGroupWindowUpdate(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'GroupWindowUpdate? NOTIMPL';
 end;
@@ -2093,7 +2091,7 @@ begin
   FGroupMembers.Clear;
 end;
 
-procedure TDAOCConnection.ParseAggroIndicator(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseAggroIndicator(pPacket: TGameNetPacket);
 (*
 var
   wTarget:  WORD;
@@ -2157,7 +2155,7 @@ begin
   DoOnNewDAOCObject(ADAOCObject);
 end;
 
-procedure TDAOCConnection.ParseAccountLoginRequest(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseAccountLoginRequest(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'AccountLoginRequest';
   pPacket.seek(5);
@@ -2187,7 +2185,7 @@ begin
     FOnUnknownStealther(Self, AUnk);
 end;
 
-procedure TDAOCConnection.ParseDelveRequest(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseDelveRequest(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'DelveRequest';
   pPacket.seek(3);
@@ -2196,7 +2194,7 @@ begin
   FLastDelveRequestPos := pPacket.getByte;
 end;
 
-procedure TDAOCConnection.ParseDelveInformation(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseDelveInformation(pPacket: TGameNetPacket);
 var
   sItemName:    string;
   s:            string;
@@ -2281,7 +2279,7 @@ begin
   FRealmRanks.Sorted := true;
 end;
 
-procedure TDAOCConnection.ParseVendorWindowRequest(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseVendorWindowRequest(pPacket: TGameNetPacket);
 var
   wID:    WORD;
   pMob:   TDAOCMob;
@@ -2351,7 +2349,7 @@ begin
     FOnGroupMembersChanged(Self);
 end;
 
-procedure TDAOCConnection.ParseDoorPositionUpdate(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseDoorPositionUpdate(pPacket: TGameNetPacket);
 var
   pObj:   TDAOCObject;
   dwDoor: Cardinal;
@@ -2520,22 +2518,22 @@ begin
   end;
 end;
 
-procedure TDAOCConnection.ParseNewMob(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseNewMob(pPacket: TGameNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocMob);
 end;
 
-procedure TDAOCConnection.ParseNewObject(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseNewObject(pPacket: TGameNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocObject);
 end;
 
-procedure TDAOCConnection.ParseNewPlayer(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseNewPlayer(pPacket: TGameNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocPlayer);
 end;
 
-procedure TDAOCConnection.ParseNewVehicle(pPacket: TGenericNetPacket);
+procedure TDAOCConnection.ParseNewVehicle(pPacket: TGameNetPacket);
 begin
   ParseNewObjectCommon(pPacket, ocVehicle);
 end;
