@@ -1028,7 +1028,7 @@ end;
 constructor TGLUnkownStealther.Create;
 begin
   inherited;
-  FSize := 750;
+  FSize := 1000;
   FColor := $00ccff;
   FAlpha := 1;
 
