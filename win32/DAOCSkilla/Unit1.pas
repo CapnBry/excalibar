@@ -100,6 +100,8 @@ type
     function UseCollectionClient : boolean;
     function SetServerNet : boolean;
     procedure UpdateQuickLaunchList;
+    procedure ChatLogXI(const s: string);
+    procedure LogLocalPlayerXI;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -155,6 +157,9 @@ uses
 
 {$R *.dfm}
 
+const
+  CHAT_XI_PREFIX = 'XI: ';
+  
 var
     { ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) }
   BP_Instns: array[0..17] of Tbpf_insn = (
@@ -651,6 +656,12 @@ end;
 procedure TfrmMain.DAOCSelectedObjectChanged(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
+  if Assigned(ADAOCObject) and (ADAOCObject.ObjectClass = ocMob) then begin
+    ChatLogXI(Format('New Target: "%s" Level: %d Health: %d%%',
+      [ADAOCObject.Name, ADAOCObject.Level, ADAOCObject.HitPoints]));
+    LogLocalPlayerXI;
+  end;
+  
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCSelectedObjectChanged(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
@@ -1154,6 +1165,19 @@ end;
 procedure TfrmMain.DAOCAttemptNPCRightClickFailed(ASender: TObject);
 begin
   frmMacroing.DAOCAttemptNPCRightClickFailed;
+end;
+
+procedure TfrmMain.ChatLogXI(const s: string);
+begin
+  DAOCChatLog(nil, CHAT_XI_PREFIX + s);
+end;
+
+procedure TfrmMain.LogLocalPlayerXI;
+begin
+  with FConnection.LocalPlayer do
+    ChatLogXI(Format(
+      'Local Player: "%s" Level: %d Health: %d%% Endurance: %d%% Mana: %d%%',
+      [Name, Level, HitPoints, EndurancePct, ManaPct]));
 end;
 
 end.
