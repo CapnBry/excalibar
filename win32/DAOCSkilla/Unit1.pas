@@ -125,6 +125,7 @@ type
     procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
     procedure DAOCArriveAtGotoDest(ASender: TObject);
     procedure DAOCSelectNPCSuccess(ASender: TObject);
+    procedure DAOCSelectNPCFailed(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -344,6 +345,7 @@ begin
   FConnection.OnDelveItem := DAOCDelveItem;
   FConnection.OnArriveAtGotoDest := DAOCArriveAtGotoDest;
   FConnection.OnSelectNPCSuccess := DAOCSelectNPCSuccess;
+  FConnection.OnSelectNPCFailed := DAOCSelectNPCFailed;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
@@ -1132,6 +1134,11 @@ end;
 procedure TfrmMain.DAOCSelectNPCSuccess(ASender: TObject);
 begin
   frmMacroing.DAOCSelectNPCSuccess;
+end;
+
+procedure TfrmMain.DAOCSelectNPCFailed(ASender: TObject);
+begin
+  frmMacroing.DAOCSelectNPCFailed;
 end;
 
 end.
