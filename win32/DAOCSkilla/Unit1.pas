@@ -277,7 +277,7 @@ end;
 procedure TfrmMain.DAOCPlayerPosUpdate(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.Dirty;
+  frmGLRender.DAOCPlayerPosUpdate;
 {$ENDIF OPENGL_RENDERER}
 end;
 
