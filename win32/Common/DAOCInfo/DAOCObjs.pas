@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, Graphics,
   DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem,
-  DAOCClasses;
+  DAOCClasses, QuickSinCos;
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
@@ -455,6 +455,7 @@ procedure TDAOCMovingObject.UpdateLastProjected;
 var
   iSpeed:   integer;
   dHyp:     double;
+  s, c:     single;
 begin
   if FProjectedLastUpdate = LocalTickCount then
     exit;
@@ -468,8 +469,9 @@ begin
   end
   else begin
     dHyp := iSpeed * integer(TicksSinceUpdate) * (1 / 1000);
-    FProjectedX := round(FX + (sin(HeadRad) * dHyp));
-    FProjectedY := round(FY - (cos(HeadRad) * dHyp));
+    sincos_quick(GetHead, s, c);
+    FProjectedX := FX + round(s * dHyp);
+    FProjectedY := FY - round(c * dHyp);
   end;
 end;
 
