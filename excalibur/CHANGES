@@ -1,3 +1,20 @@
+Teerex (25/Jul/02)
+------------------
+ + Added guild tag (merchant / trainer type) to --mobseen output.  New
+   format is:
+     MOBSeen,Zone,X,Y,Z,Level,Name,Type
+
+Teerex (18/Jul/02)
+------------------
+ + Added code to filter out local IP from sniffs, preventing multiple
+   windows from popping up for people doing SNAT with one ethernet
+   adapter.  This breaks people running through SOCKS.  Fix upcoming.
+
+Teerex (17/Jun/02)
+------------------
+ + Changed status bar to display Zone or Region number to display 
+   instead of UNKNOWN when the zone cannot be found.
+
 Teerex (07/Jun/02)
 ------------------
  + Fixed bug where when having an open slot in your account's character
