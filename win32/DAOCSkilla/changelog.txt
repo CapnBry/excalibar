@@ -1,3 +1,8 @@
+2003 Sep 24 - v1.42
+-------------------
+  + Fixed mobseen writing (again!)
+  + Added support for downloading dds files over HTTP.
+
 2003 Sep 23 - v1.41
 -------------------
   + Fixed MacroTradeSkill window to be dialog style.
