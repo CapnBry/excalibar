@@ -119,6 +119,7 @@ DWORD Database::Run(const bool& bContinue)
     msg->x=737280;
     msg->y=606208;
     msg->z=0;
+    msg->visibility = 0x02; // stealth testing
 
     MessageInputFifo->Push(msg);
     }
