@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <list> // for list definition
 #include "gl\glpng.h" // for png utilities
 
+// data class member helper
 #define DECL_MEMBER(type,name) \
     public: \
     inline const type & Get##name(void)const{return(m_##name);}; \
@@ -37,6 +38,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #define MEMBER_ASSIGN(name) \
     Set##name(s.Get##name());
+
+// logger helpers for function/file/etc.
+
+// this assumes a variable in-scope called
+// "Logger"
+#define LOG_FUNC \
+    Logger << "[" <<  __FUNCTION__ << "] "
+
+// this assumes a variable in-scope called
+// "Logger"
+#define LOG_FILE_LINE \
+    Logger << __FILE << " " << __LINE__ << " "
+
+// this assumes a variable in-scope called
+// "Logger"
+#define LOG_FUNC_FILE_LINE \
+    Logger << __FILE << " " << __LINE__ << " [" << __FUNCTION__ << "] "
 
 // replacements for min and max macros
 template<typename T> T max(const T a,const T b){return(a > b ? a : b);};
@@ -74,6 +92,33 @@ template<class container> typename container::value_type::second_type PngBindCon
     (
     container& Container,
     typename container::value_type::first_type association,
+    const std::string& filename,
+    int mipmap=PNG_BUILDMIPMAPS,
+    int trans=PNG_SOLID,
+    pngInfo *info=NULL,
+    int wrapst=GL_CLAMP,
+    int minfilter=GL_LINEAR_MIPMAP_NEAREST,
+    int magfilter=GL_LINEAR_MIPMAP_NEAREST
+    )
+{
+    return(PngBindContainer<container>
+        (
+        Container,
+        association,
+        filename.c_str(),
+        mipmap,
+        trans,
+        info,
+        wrapst,
+        minfilter,
+        magfilter
+        ));
+}
+
+template<class container> typename container::value_type::second_type PngBindContainer
+    (
+    container& Container,
+    typename container::value_type::first_type association,
     const char *filename,
     int mipmap=PNG_BUILDMIPMAPS,
     int trans=PNG_SOLID,
@@ -93,6 +138,9 @@ template<class container> typename container::value_type::second_type PngBindCon
     // done
     return(id);
 }; // end PngBindContainer
+
+// functions for string manipulation
+std::string AppendFileToPath(const std::string& path,const std::string& file);
 
 // std::ostream helper operators
 std::ostream& operator<< (std::ostream& str,const struct in_addr& a);

@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <conio.h>
 #include <stdio.h>
+#include <sstream> // for stringstream defs
 // end console output redirection includes
 
 void AttachConsole(void)
@@ -49,6 +50,14 @@ void DetachConsole(void)
     // done
     return;
 } // end DetatchConsole
+
+// functions for string manipulation
+std::string AppendFileToPath(const std::string& path,const std::string& file)
+{
+    std::ostringstream oss;
+    oss << path << file;
+    return(oss.str());
+} // end AppendFileToPath
 
 std::ostream& operator<< (std::ostream& str,const struct in_addr& a)
 {
