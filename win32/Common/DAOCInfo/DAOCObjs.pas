@@ -93,6 +93,7 @@ type
     property Stealthed: boolean read FStealthed write SetStealthed;
     property ObjectClass: TDAOCObjectClass read GetObjectClass;
     property Name: string read GetName write SetName;
+    property Next: TDAOCObject read FNext;
   end;
 
   TDAOCObjectNotify = procedure (ASender: TObject; ADAOCObject: TDAOCObject) of Object;
@@ -122,10 +123,10 @@ type
     FHead: TDAOCObject;
   public
     procedure Add(ADAOCObj: TDAOCObject);
-    procedure Delete(ADAOCObj: TDAOCObject);
-    procedure Remove(ADAOCObj: TDAOCObject);
+    function Delete(ADAOCObj: TDAOCObject) : TDAOCObject;
+    function Remove(ADAOCObj: TDAOCObject) : TDAOCObject;
 
-    procedure AddOrReplaceByInfoID(ADAOCObj: TDAOCObject);
+    // procedure AddOrReplaceByInfoID(ADAOCObj: TDAOCObject);
     procedure Clear;
     function FindByInfoID(AInfoID: integer) : TDAOCObject;
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
@@ -1180,14 +1181,16 @@ begin
   end;
 
   FHead := ADAOCObj;
+  inc(FCount);
 end;
 
-procedure TDAOCObjectLinkedList.AddOrReplaceByInfoID(
-  ADAOCObj: TDAOCObject);
+(**
+procedure TDAOCObjectLinkedList.AddOrReplaceByInfoID(ADAOCObj: TDAOCObject);
 begin
-  FindByInfoID(ADAOCObj.InfoID).Free;
+  Delete(FindByInfoID(ADAOCObj.InfoID));
   Add(ADAOCObj);
 end;
+**)
 
 procedure TDAOCObjectLinkedList.Clear;
 var
@@ -1200,11 +1203,12 @@ begin
   end;
 
   FCount := 0;
+  FHead := nil;
 end;
 
-procedure TDAOCObjectLinkedList.Delete(ADAOCObj: TDAOCObject);
+function TDAOCObjectLinkedList.Delete(ADAOCObj: TDAOCObject) : TDAOCObject;
 begin
-  Remove(ADAOCObj);
+  Result := Remove(ADAOCObj);
   ADAOCObj.Free;
 end;
 
@@ -1237,7 +1241,7 @@ begin
   Result := nil;
   dMinDist := 0;
   pTmp := FHead;
-  
+
   while Assigned(pTmp) do begin
     dDist := Result.DistanceSqr2D(X, Y);
     if not Assigned(Result) or (dDist < dMinDist) then begin
@@ -1269,13 +1273,24 @@ begin
   end;  { while pTmp }
 end;
 
-procedure TDAOCObjectLinkedList.Remove(ADAOCObj: TDAOCObject);
+function TDAOCObjectLinkedList.Remove(ADAOCObj: TDAOCObject) : TDAOCObject;
+(*** Remove the object without freeing, return passed object's next ***)
 begin
+  if not Assigned(ADAOCObj) then begin
+    Result := nil;
+    exit;
+  end;
+
   if Assigned(ADAOCObj.FNext) then
     ADAOCObj.FNext.FPrev := ADAOCObj.FPrev;
   if Assigned(ADAOCObj.FPrev) then
     ADAOCObj.FPrev.FNext := ADAOCObj.FNext;
+  if ADAOCObj = FHead then
+    FHead := ADAOCObj.FNext;
 
+  Result := ADAOCObj.FNext;
+  ADAOCObj.FNext := nil;
+  ADAOCObj.FPrev := nil;
   dec(FCount);
 end;
 
@@ -1288,7 +1303,7 @@ begin
   inherited;
   if IsStale then
     exit;
-    
+
   dwTicksSinceUpdate := TicksSinceUpdate;
     { copied from mob.  need to figure out how often we get vehicle updates }
   if dwTicksSinceUpdate > 30000 then
