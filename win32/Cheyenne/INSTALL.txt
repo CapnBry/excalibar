@@ -32,7 +32,7 @@ other zip files. You don't need it unless you want to build Cheyenne.
 
 - Cheyenne.zip contains all the code for the Cheyenne executable. You don't need it unless you want to build Cheyenne.
 
-- libnids-1.16a.win32.zip contains my version of libnids. You don't need it unless you want to build Cheyenne.
+- libnids-1.16a-win32.zip contains my version of libnids. You don't need it unless you want to build Cheyenne.
 
 - glpng.zip contains the glpng library source code. You don't need it unless you want to build Cheyenne.
 
