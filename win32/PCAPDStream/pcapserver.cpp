@@ -62,7 +62,7 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 					  int nCmdShow )
 {
 
-	//AttachConsole();
+	AttachConsole();
 	
 	cMain MainApp(hInstance);
 	cSniffer Sniffer;
@@ -73,6 +73,6 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	bContinue=false;
 	Sleep(1000);
 
-	//DetachConsole();
+	DetachConsole();
 	return 1;
 }

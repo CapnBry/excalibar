@@ -1,12 +1,18 @@
 #include "pcapserver.h"
 
-cSniffer::cSniffer(void)
+cSniffer::cSniffer()
 {
 	pSniffer = this;
 	sniffer_activ = false;
 	connected = false;
 }
 
+cSniffer::~cSniffer()
+{
+    ::bContinue=false;
+    Sleep(1000);
+    
+} // end cSniffer
 bool cSniffer::IsDaocStream(unsigned long network,tuple4 addr,bool udp)
 {
 	unsigned short port = 10622;
@@ -189,12 +195,6 @@ void cSniffer::SnifferThreadProc()
                 {
                 // fd in rset
                 nids_next();
-                /*
-                if (!nids_next ())
-                    {
-                    Logger << "[Sniffer::Run] nids next returned 0\n";
-                    }
-                */
                 }
             }
         } // end forever

@@ -1,27 +1,12 @@
+#pragma once
+#include "dserver.h"
+extern "C" // gotta make extern "C" for a C library!
+{
+#include "nids.h"
+}
+
 namespace Network
 {
-class WinSocket
-{
-	public:
-	WinSocket();
-	~WinSocket();
-
-	bool Listen();
-	bool Accept();
-	bool CreateSocket();
-	bool CloseSocket();
-	bool Connect();
-	bool BindSocket(int port);
-	int Send(const unsigned char* buf, int cbBuf);
-	int SendToClient(const unsigned char* buf, int cbBuf);
-	int Send(const char* fmt, ...);
-	int Receive(char* buf,int len);
-	int ReceiveFromClient(char* buf,int len);
-
-	SOCKET sock,client;
-	sockaddr_in addr;
-}; //end class WinSocket
-
 class cDStreamMsg 
 {
 public:
@@ -73,12 +58,9 @@ private:
 	};
 };
 
-class cDStream : public WinSocket,
-				 public cDStreamMsg
+class cDStream : public cDStreamMsg
 {
 public:
-	HANDLE hServerThread;
-	int iPort;
 	unsigned long connectionid;
 	tuple4 addr;
 
@@ -87,8 +69,10 @@ public:
 
 	bool StartDStream();
 
-	void ServerThread();
-	static void ServerThreadProc();
+    inline void SendToClient(const void* data,const size_t num_bytes){server.SendToClients(data,num_bytes);};
+    
+private:
+    DServer server;
 }; //end class cDStream
 
 }; //end of namespace

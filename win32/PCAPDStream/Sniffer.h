@@ -3,7 +3,8 @@
 class cSniffer
 {
 public:
-	cSniffer(void);
+	cSniffer();
+	~cSniffer();
 
 	bool sniffer_activ;
 	bool connected;

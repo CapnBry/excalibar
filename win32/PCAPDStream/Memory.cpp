@@ -1,4 +1,43 @@
 #include "pcapserver.h"
+#include <fstream>
+#include <string>
+
+unsigned char* search_string=NULL;
+size_t sizeof_search_string=0;
+size_t search_size=0;
+
+cMemory::cMemory()
+{
+    // attempt to load searching info from file
+    std::ifstream f("key_search");
+    std::string line;
+    if(f.is_open())
+        {
+        f >> std::hex 
+          >> std::ws 
+          >> search_size // get search size then
+          >> std::ws 
+          >> sizeof_search_string // get sizeof search string then
+          >> std::ws;
+          
+        if(sizeof_search_string > 4096)
+            {
+            throw "sizeof_search_string > 4096!";
+            }
+        search_string=new unsigned char[sizeof_search_string];
+        // get the search string
+        unsigned int d;
+        for(size_t i=0;i<sizeof_search_string;++i)
+            {
+            f >> std::ws >> d >> std::ws;
+            search_string[i]=(unsigned char)d;
+            }
+        } // end if file opened successfully
+} 
+cMemory::~cMemory()
+{
+    delete[] search_string;
+}
 
 //decrypt source from dol project, thx :p
 void cMemory::Decrypt( unsigned char *buf, unsigned int len) 
@@ -72,34 +111,56 @@ DWORD cMemory::FindGameProcess()
 
 unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 {
-#define SEARCHSIZE 0x10000
-	int i,i2;
+	size_t i,i2;
 
-	unsigned char string[] =//hauptschleife die den key generiert
-	{ 0x0F, 0xB6, 0xC3,		//movzx eax, bl
-	  0x03, 0xFA,			//add edi, edx
-	  0x03, 0xC7,			//add eax, edi
-	  0x8B, 0xFE,			//mov edi, esi
-	  0x99,					//cdq
-	  0xF7, 0xFF,			//idiv edi
-	  0x41,					//inc ecx
-	  0x3B, 0xCE,			//cmp ecx, esi
-	  0x8B, 0xFA,			//mov edi, edx
-	  0x8D, 0x87 };			//lea offset
+	if(search_string==NULL)
+	    {
+        std::cerr << "[cMemory::FindMemOffset] using defaults for search string\n";
+	    // init search string to default
+	    
+	    static unsigned char string[] =//hauptschleife die den key generiert
+	    { 0x0F, 0xB6, 0xC3,		//movzx eax, bl
+	    0x03, 0xFA,			//add edi, edx
+	    0x03, 0xC7,			//add eax, edi
+	    0x8B, 0xFE,			//mov edi, esi
+	    0x99,					//cdq
+	    0xF7, 0xFF,			//idiv edi
+	    0x41,					//inc ecx
+	    0x3B, 0xCE,			//cmp ecx, esi
+	    0x8B, 0xFA,			//mov edi, edx
+	    0x8D, 0x87 };			//lea offset
+	    
+	    search_string=&(string[0]);
+	    sizeof_search_string=sizeof(string);
+	    search_size=0x30000;
+	    }
+	else
+	    {
+        std::cerr << "[cMemory::FindMemOffset] using key_search file for search string\n";
+        std::cerr << "search size=" << search_size << "\n"
+                  << "sizeof(search_string)=" << sizeof_search_string << "\n"
+                  << "search string=\n";
+        std::cerr << std::hex;
+        for(size_t xx=0;xx<sizeof_search_string;++xx)
+            {
+            std::cerr << (unsigned int)(search_string[xx]) << "\n";
+            }
+        std::cerr << std::dec;
+	    }
 
-	unsigned char *ptr = (unsigned char *)VirtualAlloc(NULL,SEARCHSIZE,MEM_COMMIT,PAGE_READWRITE);	
-	ZeroMemory(ptr,SEARCHSIZE);
+	unsigned char *ptr = (unsigned char *)VirtualAlloc(NULL,search_size,MEM_COMMIT,PAGE_READWRITE);	
+	ZeroMemory(ptr,search_size);
 
-	ReadProcessMemory(hProcess,(LPCVOID)0x400000,ptr,SEARCHSIZE,0);
+	ReadProcessMemory(hProcess,(LPCVOID)0x400000,ptr,search_size,0);
 
-	for(i = 0;i < SEARCHSIZE;i++)
+	for(i = 0;i < search_size;i++)
 	{
-		for(i2 = 0;i2 < sizeof(string);i2++)
+		for(i2 = 0;i2 < sizeof_search_string;i2++)
 		{
-			if(ptr[i2] != string[i2])
+			if(ptr[i2] != search_string[i2])
 				break;
 		}
-		if(i2 == sizeof(string))
+		if(i2 == sizeof_search_string)
 		{			
 			char tbuf[4];
 			tbuf[0] = ptr[i2];

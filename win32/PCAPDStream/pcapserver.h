@@ -21,7 +21,7 @@
 #define MAX_MSG_LENGTH 1024
 #define BUFSIZE 0xffff			   //65535 hoffe es reicht
 
-#include <windows.h>
+#include <winsock2.h>
 #include <stdio.h>
 #include <Tlhelp32.h>
 //#include "PCAP/nids.h"

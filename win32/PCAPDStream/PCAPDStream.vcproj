@@ -23,6 +23,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
@@ -71,6 +72,7 @@
 				Optimization="1"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
@@ -117,6 +119,15 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\buffer.cpp">
+			</File>
+			<File
+				RelativePath=".\DServer.cpp">
+			</File>
+			<File
+				RelativePath=".\DServerClient.cpp">
+			</File>
+			<File
 				RelativePath=".\DStream.cpp">
 			</File>
 			<File
@@ -140,7 +151,19 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath=".\buffer.h">
+			</File>
+			<File
+				RelativePath=".\DServer.h">
+			</File>
+			<File
+				RelativePath=".\DServerClient.h">
+			</File>
+			<File
 				RelativePath=".\DStream.h">
+			</File>
+			<File
+				RelativePath=".\locks.h">
 			</File>
 			<File
 				RelativePath=".\Main.h">
@@ -158,7 +181,16 @@
 				RelativePath=".\resource.h">
 			</File>
 			<File
+				RelativePath=".\signals.h">
+			</File>
+			<File
 				RelativePath=".\Sniffer.h">
+			</File>
+			<File
+				RelativePath=".\threads.h">
+			</File>
+			<File
+				RelativePath=".\tsdeque.h">
 			</File>
 		</Filter>
 		<Filter

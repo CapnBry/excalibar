@@ -1,6 +1,9 @@
 class cMemory
 {
 public:
+    cMemory();
+    ~cMemory();
+
 	HANDLE hGameProcess;
 	unsigned char CryptKey[256];
 
