@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <limits>
 #include <iostream> // for stream defs
 #include <list> // for list definition
+#include "gl\glpng.h" // for png utilities
 
 #define DECL_MEMBER(type,name) \
     public: \
@@ -60,6 +61,38 @@ union word_builder
 // console attach/detatch for GUI-based programs
 void AttachConsole(void);
 void DetachConsole(void);
+
+// glPng helper
+/*
+ * Thanks to:
+ *
+ * PNG loader library for OpenGL v1.45 (10/07/00)
+ * by Ben Wyatt ben@wyatt100.freeserve.co.uk
+ * Using LibPNG 1.0.2 and ZLib 1.1.3
+*/
+template<class container> typename container::value_type::second_type PngBindContainer
+    (
+    container& Container,
+    typename container::value_type::first_type association,
+    const char *filename,
+    int mipmap=PNG_BUILDMIPMAPS,
+    int trans=PNG_SOLID,
+    pngInfo *info=NULL,
+    int wrapst=GL_CLAMP,
+    int minfilter=GL_LINEAR_MIPMAP_NEAREST,
+    int magfilter=GL_LINEAR_MIPMAP_NEAREST
+    )
+{
+    container::value_type::second_type id=pngBind(filename,mipmap,trans,info,wrapst,minfilter,magfilter);
+
+    if(id != 0)
+        {
+        Container.insert(container::value_type(association,id));
+        }
+
+    // done
+    return(id);
+}; // end PngBindContainer
 
 // std::ostream helper operators
 std::ostream& operator<< (std::ostream& str,const struct in_addr& a);
@@ -105,7 +138,7 @@ template<typename T> struct INTERCEPT_DATA
 }; // end INTERCEPT_DATA
 
 /*
-    This rather complicated pair of functions deserve some explanation.
+    This rather complicated function deserves some explanation.
     
     Given the parameters, they determine the fastest time in which
     the reference can intercept the target. It assumes infinite turn
