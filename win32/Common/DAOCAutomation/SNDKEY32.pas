@@ -131,7 +131,7 @@ type
   WBytes = array[0..pred(SizeOf(Word))] of Byte;
 
   TSendKey = record
-    Name : ShortString;
+    Name : string;
     VKey : Byte;
   end;
 
