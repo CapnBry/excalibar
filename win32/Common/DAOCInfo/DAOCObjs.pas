@@ -188,6 +188,7 @@ type
   TDAOCVehicle = class(TDAOCMovingObject)
   protected
     function GetObjectClass : TDAOCObjectClass; override;
+  public
     procedure CheckStale; override;
   end;
 
@@ -1281,6 +1282,8 @@ end;
 { TDAOCVehicle }
 
 procedure TDAOCVehicle.CheckStale;
+var
+  dwTicksSinceUpdate:   DWORD;
 begin
   inherited;
   if IsStale then
