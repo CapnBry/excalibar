@@ -103,7 +103,7 @@ implementation
 // {$DEFINE PASCAL_GETS}
 
 const
-  MAX_EXPECTED_DAOC_PACKET_SIZE = 2048;
+  MAX_EXPECTED_DAOC_PACKET_SIZE = 4096;
 
 procedure ODS(const s: string);
 begin
@@ -305,8 +305,7 @@ end;
 procedure TDAOCTCPPacketAssembler.AppendFragmentToBuffer(AFragment: TTCPFragment);
 begin
   if (FPacketDataPos + AFragment.PayloadDataLen) < FPacketDataSize then begin
-    Move(AFragment.PayloadDataPtr^,
-      Pointer(DWORD(FPacketDataBuff) + FPacketDataPos)^,
+    Move(AFragment.PayloadDataPtr^, (PChar(FPacketDataBuff) + FPacketDataPos)^,
       AFragment.PayloadDataLen);
     inc(FPacketDataPos, AFragment.PayloadDataLen);
   end
