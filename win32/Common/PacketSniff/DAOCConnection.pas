@@ -2161,13 +2161,17 @@ begin
 end;
 
 procedure TDAOCConnection.ParseAggroIndicator(pPacket: TDAOCPacket);
+(*
 var
   wTarget:  WORD;
   wAggressor: WORD;
   pTarget:    TDAOCObject;
   pAggressor: TDAOCObject;
+*)
 begin
-  pPacket.HandlerName := 'AggroIndicator';
+  pPacket.HandlerName := 'Aggro/ChaseIndicator?';
+(* BRY: removed because I'm not sure about the validity of the packet type.
+  the code works though ;) 
   wTarget := pPacket.getShort;
   wAggressor := pPacket.getShort;
 
@@ -2183,6 +2187,7 @@ begin
       DoOnMobTargetChanged(TDAOCMob(pAggressor));
     end;
   end;
+*)
 end;
 
 procedure TDAOCConnection.DoOnMobTargetChanged(AMob: TDAOCMob);
