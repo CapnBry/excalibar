@@ -383,7 +383,7 @@ begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', '');
-    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8000);
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 7500);
     Caption := 'DAOC Skilla - ' + FConnection.DAOCPath;
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
