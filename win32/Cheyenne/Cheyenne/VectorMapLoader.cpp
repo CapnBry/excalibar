@@ -86,6 +86,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             ss.str("");
             ss.seekg(0);
             ss.seekp(0);
+            ss.clear();
 
             while(ch!=',' && !map_file.eof() && map_file.good())
                 {
@@ -126,6 +127,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             ss.str("");
             ss.seekp(0);
             ss.seekg(0);
+            ss.clear();
 
             // get the data from the next line
             while(!map_file.eof() && map_file.good() && bContinue)
