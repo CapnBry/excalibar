@@ -20,7 +20,8 @@ unit DAOCRegion;
 interface
 
 uses
-  Types, SysUtils, Contnrs, StringParseHlprs, Intersections;
+  Types, Classes, SysUtils, Contnrs, StringParseHlprs, Intersections, StreamINI,
+  MPKFile;
 
 type
   TDAOCRealm = (drNeutral, drAlbion, drMidgard, drHibernia);
@@ -30,18 +31,21 @@ type
 	TDAOCZoneInfo = class(TObject)
   private
     FZoneType: TDAOCZoneType;
-    FRotate: integer;
+    FRotate:  integer;
     FZoneNum: integer;
-    FRegion: integer;
+    FRegion:  integer;
+    FName:    string;
     FMapName: string;
     FBaseLoc: TPoint;
-    FMaxLoc: TPoint;
+    FMaxLoc:  TPoint;
     FAdjacentZones:   TDAOCZoneInfoList;
-    function GetName: string;
+
+    procedure MapNameToName;
+    procedure NameToMapName;
   public
     constructor Create;
     destructor Destroy; override;
-    
+
   	procedure LoadFromString(const AZoneInfo: string);
     function AsString: string;
 
@@ -59,7 +63,7 @@ type
     property ZoneType: TDAOCZoneType read FZoneType;
     property ZoneNum: integer read FZoneNum;
     property Rotate: integer read FRotate;
-    property Name: string read GetName;
+    property Name: string read FName;
     property MapName: string read FMapName;
   end;
 
@@ -69,15 +73,29 @@ type
     procedure UpdateAdjacentZones;
   public
     procedure LoadFromFile(const AFName: string);
+    procedure LoadFromMPKFile(const AMPKFName: string);
+
     function FindZoneForPoint(ARegion, AX, AY: integer) : TDAOCZoneInfo;
     function FindZone(AZoneNum: integer) : TDAOCZoneInfo;
-    
+
     property Items[I: Integer]: TDAOCZoneInfo read GetItems; default;
   end;
 
 function RealmToStr(ARealm: TDAOCRealm) : string;
 
 implementation
+
+function MPKZoneTypeToDAOCZoneType(AVal: integer) : TDAOCZoneType;
+begin
+  case AVal of
+    0:  Result := dztOverworld;
+    1:  Result := dztCity;
+    2:  Result := dztDungeon;
+    3:  Result := dztHousing;
+    else
+      Result := dztUnknown;
+  end;
+end;
 
 function RealmToStr(ARealm: TDAOCRealm) : string;
 begin
@@ -109,14 +127,14 @@ begin
     (AY > FBaseLoc.y) and (AY < FMaxLoc.y);
 end;
 
-function TDAOCZoneInfo.GetName: string;
+procedure TDAOCZoneInfo.MapNameToName;
 var
   I:  integer;
 begin
-  Result := ChangeFileExt(FMapName, '');
-  for I := 1 to Length(Result) do
-    if not (Result[I] in ['0'..'9', 'A'..'Z', 'a'..'z']) then
-      Result[I] := ' ';
+  FName := ChangeFileExt(FMapName, '');
+  for I := 1 to Length(FName) do
+    if not (FName[I] in ['0'..'9', 'A'..'Z', 'a'..'z']) then
+      FName[I] := ' ';
 end;
 
 procedure TDAOCZoneInfo.LoadFromString(const AZoneInfo: string);
@@ -140,6 +158,8 @@ begin
   FMapName := ParseWordEx(AZoneInfo, iStartPos, pcsFILENAME_CHARS);
   FZoneNum := StrToIntDef(ParseWord(AZoneInfo, iStartPos), -1);
   FRotate := StrToIntDef(ParseWord(AZoneInfo, iStartPos), -1);
+  
+  MapNameToName;
 end;
 
 function TDAOCZoneInfo.ZoneConvertHead(AHead: integer): integer;
@@ -179,6 +199,11 @@ destructor TDAOCZoneInfo.Destroy;
 begin
   FAdjacentZones.Free;
   inherited;
+end;
+
+procedure TDAOCZoneInfo.NameToMapName;
+begin
+  FMapName := Format('zone%3.3d.map', [FZoneNum]);
 end;
 
 { TDAOCZoneInfoList }
@@ -221,7 +246,7 @@ begin
   Clear;
   if not FileExists(AFName) then
     exit;
-    
+
   AssignFile(F, AFName);
   Reset(F);
   while not EOF(F) do begin
@@ -232,6 +257,51 @@ begin
   end;    { while }
   CloseFile(F);
 
+  UpdateAdjacentZones;
+end;
+
+procedure TDAOCZoneInfoList.LoadFromMPKFile(const AMPKFName: string);
+var
+  pMPK:   TMPKFile;
+  pStrm:  TStream;
+  pINI:   TStreamINIFile;
+  I:      integer;
+  pZI:    TDAOCZoneInfo;
+begin
+  pMPK := TMPKFile.Create(AMPKFName);
+  pStrm := pMPK.ExtractStream('zones.dat');
+  pMPK.Free;
+
+  pINI := TStreamINIFile.Create(pStrm);
+  pStrm.Free;
+
+  for I := 0 to pINI.SectionCount - 1 do
+    with pINI.Sections[I] do begin
+      if StrLIComp('zone', PChar(Name), 4) = 0 then begin
+        if not ReadBool('enabled', false) then
+          continue;
+
+        pZI := TDAOCZoneInfo.Create;
+        Self.Add(pZI);
+
+        pZI.FRegion := ReadInteger('region', -1);
+        pZI.FBaseLoc := Point(ReadInteger('region_offset_x', 0) * 8192,
+          ReadInteger('region_offset_y', 0) * 8192);
+        pZI.FMaxLoc := Point(pZI.BaseLoc.X + ReadInteger('width', 8) * 8192,
+          pZI.BaseLoc.Y + ReadInteger('width', 8) * 8192);
+        pZI.FZoneType := MPKZoneTypeToDAOCZoneType(ReadInteger('type', 0));
+        pZI.FZoneNum := StrToInt(copy(Name, 5, Length(Name)));
+        case pZI.ZoneNum of
+          26:       pZI.FRotate := 90;
+          120,209:  pZI.FRotate := 180;
+          else      pZI.FRotate := 0;
+        end;
+        pZI.FName := ReadString('name', 'unk' + IntToStr(pZI.ZoneNum));
+        pZI.NameToMapName;
+      end;  { if is a zone }
+    end;  { for I to section count / with }
+
+  pINI.Free;
   UpdateAdjacentZones;
 end;
 
@@ -262,3 +332,4 @@ begin
 end;
 
 end.
+
