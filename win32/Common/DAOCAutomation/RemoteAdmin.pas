@@ -886,7 +886,7 @@ end;
 procedure TdmdRemoteAdmin.HandleInventory(AConn: TClientConn; const ACmd: string);
 begin
   AConn.WriteLn('201 Player inventory follows');
-  AConn.WriteLn(FDControl.LocalPlayer.Inventory.AsText);
+  AConn.WriteLn(FDControl.LocalPlayer.Inventory.AsString(true));
   AConn.WriteLn('.');
 end;
 
