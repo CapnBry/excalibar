@@ -1,0 +1,22 @@
+if [ "$1" = -v ]
+then
+	shift
+	echo minx maxx miny maxy rangex rangey avgx avgy
+fi
+emap $1 | nawk -F, '
+BEGIN { maxx = maxy = 0; minx = miny = 655360000 }
+$1 == "M" || $1 == "F" {
+	if ($5 < minx) minx = $5; if ($5 > maxx) maxx = $5; 
+	if ($8 < minx) minx = $8; if ($8 > maxx) maxx = $8; 
+	if ($6 < miny) miny = $6; if ($6 > maxy) maxy = $6; 
+	if ($9 < miny) miny = $9; if ($9 > maxy) maxy = $9; 
+	}
+$1 == "P" {
+	if ($4 < minx) minx = $4; if ($4 > maxx) maxx = $4; 
+	if ($5 < miny) miny = $5; if ($5 > maxy) maxy = $5; 
+	}
+END	{
+	rx = maxx - minx
+	ry = maxy - miny
+	print minx, maxx, miny, maxy, rx, ry, minx + rx/2, miny + ry/2
+}'

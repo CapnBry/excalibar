@@ -1,0 +1,76 @@
+# map2dat 
+# MastaMappa Copyleft 2004
+# I release this software to the public domain software
+# converts an Excalibur .map file to postscript (no labels)
+
+
+if [ "$1" = "" ]
+then
+	echo "usage: $0 Excalibur_vector_map_file.map [> file.dat]"
+	exit
+fi
+
+export c=0
+
+for i in $*
+do
+
+minmax $i | nawk '
+#read minx maxx miny maxy rangex rangey junk
+# minx  maxx  miny  maxy  rangex rangey
+# 17321 28874 20705 32531 11553  11826 
+# 22000 25000 22000 30000 3000   8000
+
+function max(x,y)
+{
+if (x >= y)
+	return x
+else
+	return y
+}
+
+	{
+	minx = $1
+	miny = $3
+	rx = $5
+	ry = $6
+	# R = 65535 # fullscale
+	R = int(max(rx,ry)*1.06)
+	if (R > 65535)
+		{
+		R = 65535
+		offx = 0
+		offym = 0
+		}
+	else
+		{
+		offx = minx + int(rx/2) - int(R / 2)
+		offym = miny + int(ry/2) - int(R / 2)
+		}
+	if (f ~ /z[0-9]+.map/)
+	{
+		if (f ~ "/")
+		{
+			n = split(f, a, "/")
+			fn = a[n]
+		}
+		else
+			fn = f
+		zn = substr(fn, 2, 3)
+	}
+	CR = sprintf("%c", 13)
+	getline x < f
+	close(f)
+	split(x,a,",")
+	print "; " a[1] CR
+	print "zone" c "_number=" zn CR
+	print "zone" c "_left=0" CR
+	print "zone" c "_top=0" CR
+	print "zone" c "_offsetx=" offx CR
+	print "zone" c "_offsety=" offym CR
+	print "zone" c "_width=" R CR
+	print "zone" c "_height=" R CR
+	print "zone" c "_desc=" a[1] ", MastaMappa" CR
+	}'  f=$i c=$c -
+	c=$(expr $c + 1)
+done
