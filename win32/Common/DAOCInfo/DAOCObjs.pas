@@ -132,7 +132,7 @@ type
     FHead: TDAOCObject;
   public
     destructor Destroy; override;
-    
+
     procedure Add(ADAOCObj: TDAOCObject);
     function Delete(ADAOCObj: TDAOCObject) : TDAOCObject;
     function Remove(ADAOCObj: TDAOCObject) : TDAOCObject;
@@ -146,6 +146,11 @@ type
 
     property Head: TDAOCObject read FHead;
     property Count: integer read FCount;
+  end;
+
+  TDAOCUnknownStealther = class(TDAOCObject)
+  public
+    procedure CheckStale; override;
   end;
 
   TDAOCMovingObject = class(TDAOCObject)
@@ -1167,7 +1172,7 @@ begin
   inherited;
   if IsStale then
     exit;
-    
+
   dwTicksSinceUpdate := TicksSinceUpdate;
     { live mobs are stale from 20s-40s.  It looks like they get an update every
       ~10s or ~20s over UDP, so this allows for a dropped packet or two.  Plus
@@ -1512,6 +1517,24 @@ end;
 function TDAOCVehicle.GetObjectClass: TDAOCObjectClass;
 begin
   Result := ocVehicle;
+end;
+
+{ TDAOCUnknownStealther }
+
+procedure TDAOCUnknownStealther.CheckStale;
+var
+  dwLastUpdateDelta:  DWORD;
+begin
+  if IsStale then
+    exit;
+
+  dwLastUpdateDelta := TicksSinceUpdate;
+    { 4-10s stale decay }
+  if dwLastUpdateDelta < 4000 then
+    FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
+  else
+    FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 4000)
+      div 60, 0);
 end;
 
 end.

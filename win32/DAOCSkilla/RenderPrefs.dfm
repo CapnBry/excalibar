@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabExtras
+    ActivePage = tabFilter
     Align = alTop
     MultiLine = True
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -342,7 +342,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Left = 8
         Top = 44
         Width = 189
-        Height = 169
+        Height = 193
         Caption = '  By object type  '
         TabOrder = 0
         object chkRenderFriendlies: TCheckBox
@@ -402,6 +402,15 @@ object frmRenderPrefs: TfrmRenderPrefs
           Caption = 'Monsters and NPCs (M)'
           TabOrder = 2
           OnClick = ObjectFilterClick
+        end
+        object chkRenderUnkStealthers: TCheckBox
+          Left = 8
+          Top = 164
+          Width = 141
+          Height = 17
+          Caption = 'Anonymous stealthers'
+          TabOrder = 6
+          OnClick = chkRenderUnkStealthersClick
         end
       end
       object grpFilterByCon: TGroupBox

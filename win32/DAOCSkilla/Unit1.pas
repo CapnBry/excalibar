@@ -109,6 +109,7 @@ type
     procedure DAOCChatLog(ASender: TObject; const s: string);
     procedure DAOCPingReply(ASender: TObject; ATime: integer);
     procedure DAOCCharacterLogin(ASender: TObject);
+    procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -312,6 +313,7 @@ begin
   FConnection.OnChatLog := DAOCChatLog;
   FConnection.OnPingReply := DAOCPingReply;
   FConnection.OnCharacterLogin := DAOCCharacterLogin;
+  FConnection.OnUnknownStealther := DAOCUnknownStealther;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
@@ -1027,6 +1029,13 @@ end;
 procedure TfrmMain.chkTrackLoginsClick(Sender: TObject);
 begin
   FConnection.TrackCharacterLogins := chkTrackLogins.Checked;
+end;
+
+procedure TfrmMain.DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCUnknownStealther(AUnk);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.

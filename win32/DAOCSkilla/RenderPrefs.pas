@@ -66,6 +66,7 @@ type
     PlayerLevel:      integer;
     DrawGrid:         boolean;
     DrawPushPins:     boolean;
+    AnonymousStealthers: boolean;
 
     constructor Create;
 
@@ -163,6 +164,7 @@ type
     Label22: TLabel;
     chkPushpins: TCheckBox;
     Label23: TLabel;
+    chkRenderUnkStealthers: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -195,6 +197,7 @@ type
     procedure edtInvaderWarnTicksExit(Sender: TObject);
     procedure edtInvaderWarnTicksKeyPress(Sender: TObject; var Key: Char);
     procedure chkPushpinsClick(Sender: TObject);
+    procedure chkRenderUnkStealthersClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -256,7 +259,8 @@ begin
   Result.ObjectConFilter := ObjectConFilter;
   Result.MobListSortOrder := MobListSortOrder;
   Result.GroupByClass := GroupByClass;
-  Result.DrawPushPins := DrawPushPins; 
+  Result.DrawPushPins := DrawPushPins;
+  Result.AnonymousStealthers := AnonymousStealthers; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -328,6 +332,7 @@ begin
     MobListSortOrder := TMobListSortOrder(ReadInteger('RenderPrefs', 'MobListSortOrder', 0));
     GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
     DrawPushPins := ReadBool('RenderPrefs', 'DrawPushPins', true);
+    AnonymousStealthers := ReadBool('RenderPrefs', 'AnonymousStealthers', true);
   end;
 end;
 
@@ -370,6 +375,7 @@ begin
     WriteInteger('RenderPrefs', 'MobListSortOrder', ord(MobListSortOrder));
     WriteBool('RenderPrefs', 'GroupByClass', GroupByClass);
     WriteBool('RenderPrefs', 'DrawPushPins', DrawPushPins);
+    WriteBool('RenderPrefs', 'AnonymousStealthers', AnonymousStealthers);
   end;
 end;
 
@@ -523,6 +529,7 @@ begin
   chkRenderUnknown.Checked := ocUnknown in FRenderPrefs.ObjectClassFilter;
   chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectClassFilter;
   chkRenderFriendlies.Enabled := chkRenderPlayers.Checked;
+  chkRenderUnkStealthers.Checked := FRenderPrefs.AnonymousStealthers;
 
   chkShowGrays.Checked := ccGray in FRenderPrefs.ObjectConFilter;
   chkShowGreens.Checked := ccGreen in FRenderPrefs.ObjectConFilter;
@@ -761,6 +768,11 @@ end;
 procedure TfrmRenderPrefs.chkPushpinsClick(Sender: TObject);
 begin
   FRenderPrefs.DrawPushPins := chkPushpins.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkRenderUnkStealthersClick(Sender: TObject);
+begin
+  FRenderPrefs.AnonymousStealthers := chkRenderUnkStealthers.Checked;
 end;
 
 end.

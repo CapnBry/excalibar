@@ -204,6 +204,20 @@ type
     property Alpha: GLfloat read FAlpha write FAlpha;  // only for boat not sail
   end;
 
+  TGLUnkownStealther = class(TGLCallListObject)
+  private
+    FAlpha: GLfloat;
+    FSize: integer;
+    procedure SetSize(const Value: integer);
+  public
+    constructor Create; override;
+    procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
+    
+    property Size: integer read FSize write SetSize;
+    property Alpha: GLfloat read FAlpha write FAlpha;
+  end;
+
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
 function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
@@ -1005,6 +1019,47 @@ begin
 end;
 
 procedure TGLBoat.SetSize(const Value: integer);
+begin
+  FSize := Value;
+end;
+
+{ TGLUnkownStealther }
+
+constructor TGLUnkownStealther.Create;
+begin
+  inherited;
+  FSize := 750;
+  FColor := $00ccff;
+  FAlpha := 1;
+
+    { we need to do our own alpha so don't use color }
+  FUseColor := false;
+end;
+
+procedure TGLUnkownStealther.GLInitialize;
+var
+  pQuadric:   PGLUquadric;
+begin
+  inherited;
+  FUseColor := false;
+
+  pQuadric := gluNewQuadric();
+  gluQuadricOrientation(pQuadric, GLU_INSIDE);
+
+  glNewList(FGLList, GL_COMPILE);
+    gluDisk(pQuadric, 0, FSize, 20, 1);
+  glEndList();
+
+  gluDeleteQuadric(pQuadric);
+end;
+
+procedure TGLUnkownStealther.GLRender(const ARenderBounds: TRect);
+begin
+  SetGLColorFromTColor(FColor, FAlpha);
+  inherited;
+end;
+
+procedure TGLUnkownStealther.SetSize(const Value: integer);
 begin
   FSize := Value;
 end;
