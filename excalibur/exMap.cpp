@@ -376,12 +376,7 @@ void exMap::paintGL() {
 
     if (m->isCurrent()) {
       glPushMatrix();
-BEGIN_EXPERIMENTAL_CODE
       glTranslated(m->getProjectedX(),m->getProjectedY(),m->getZ());
-END_EXPERIMENTAL_CODE
-BEGIN_NORMAL_CODE
-      glTranslated(m->getX(),m->getY(),m->getZ());
-END_NORMAL_CODE
       objRotate(m->getHead());
 
       if (! m->isMob()) {
@@ -440,12 +435,7 @@ END_NORMAL_CODE
           } else {
             qglColor( darkRed );
           }
-BEGIN_EXPERIMENTAL_CODE
           drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
-END_EXPERIMENTAL_CODE
-BEGIN_NORMAL_CODE
-          drawCircle(m->getX(), m->getY(), 500, 18);
-END_NORMAL_CODE
         }
       }
     }
@@ -459,12 +449,7 @@ END_NORMAL_CODE
     glLineWidth ( 2.0 );
     glBegin(GL_LINES);
     glVertex3i(c->playerx,c->playery,c->playerz);
-BEGIN_EXPERIMENTAL_CODE
     glVertex3i(m->getProjectedX(),m->getProjectedY(),m->getZ());
-END_EXPERIMENTAL_CODE
-BEGIN_NORMAL_CODE
-    glVertex3i(m->getX(),m->getY(),m->getZ());
-END_NORMAL_CODE
     glEnd();
   }
 
