@@ -38,7 +38,8 @@ Database::Database() :
     bFullUpdateRequest(false),
     DeadReconingThreshold(500.0f),
     MinNetworkTime(2.0f),
-    NetworkHeartbeat(10.0f)
+    NetworkHeartbeat(10.0f),
+    UncorrelatedStealthTime(-15.0)
 {
 
     // done
