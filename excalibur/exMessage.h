@@ -29,8 +29,9 @@ class exMessage;
 class exMessage{
 	
 	public:
-		exMessage::exMessage(QString, uint8_t, uint8_t);
-		void exMessage::parseMsg();
+		exMessage(QString, uint8_t, uint8_t);
+		~exMessage();
+		void parseMsg();
 		QString getFormattedText() { return FormattedText; }
 		QString getMsgType()       { return MsgType; }
 

@@ -53,6 +53,7 @@ protected:
   QPtrDict<exMob> objs;
   QPtrDict<exMob> players;
   QPtrDict<exMob> mobinfo;
+  QPtrList<exMessage> messageList;
   QDict<int> playerzones;
   QDict<Realm> playerrealms;
   QByteArray cryptkey;

@@ -30,19 +30,27 @@ exMessage::exMessage(QString newMsg, uint8_t opCode, uint8_t typeCode)
 { 
 	this->Msg = newMsg;
 	this->MsgType = "Unknown";
-	this->FormattedText = newMsg;
+	this->FormattedText = this->Msg;
 	this->opCode = opCode;
 	this->typeCode = typeCode;
 }
 
+exMessage::~exMessage()
+{
+	if( NULL !=- this->Msg)
+		delete this->Msg;
+}
+
 void exMessage::parseMsg()
 {
+	/*
 	QRegExp rxGuild( "\\[Guild\\] [A-Za-z]+\\:\\ ");
 	QRegExp rxGroup( ".*\\[Party\\].*");
 	QRegExp rxChat( ".*\\[Chat\\].*");
 	QRegExp rxTell( ".*send[s]?\\,\\ \\\".*");
 	QRegExp rxBCast( ".*\\*\\*.*\\*\\*$");
 	QRegExp rxSay( ".*say[s]?\\,\\ \\\".*");
+	*/
 	QRegExp rxPML( "^The\\ .*\\ drops[\\ ]+(a\\ )?[A-Z]+.*");
 	int p;
 	
