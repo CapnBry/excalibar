@@ -1,3 +1,10 @@
+Druppy (18/Feb/02)
+-----------------
+Changes:
+	+ Added a Vader warning that will beep() when non-mob 
+	  non-friendly person is drawn into the spawn list. 
+	  Settings->vaderWarn or Ctrl+w
+
 Druppy (17/Feb/02)
 -----------------
 Changes:

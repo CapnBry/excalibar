@@ -137,9 +137,9 @@ void FormExcalibur::ProfileExit_activated()
 }
 
 
-void FormExcalibur::EditorSpawn_activated()
+void FormExcalibur::vaderWarn_toggled( bool ena)
 {
-  Map->c->spawnEditor();
+  Map->c->vaderWarn = ena;
 }
 
 void FormExcalibur::MobFilter_returnPressed()

@@ -87,6 +87,7 @@ public:
   Realm playerrealm;
   int numPaints;
   bool alive;
+  bool vaderWarn;
   unsigned int selectedid;
   exFilter MobFilter;
 

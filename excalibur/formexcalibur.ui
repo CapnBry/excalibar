@@ -49,7 +49,7 @@
             <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>146</width>
+                <width>134</width>
                 <height>104</height>
             </rect>
         </property>
@@ -208,6 +208,7 @@
         <action name="GLMapFade"/>
         <action name="ItemUpload"/>
         <action name="Preferences"/>
+        <action name="vaderWarn"/>
         <action name="ShowMsgs"/>
         <action name="EditorSpawn"/>
     </item>
@@ -416,6 +417,20 @@
             <number>4194381</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>vaderWarn</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Vader Warning</string>
+        </property>
+        <property name="accel">
+            <number>4194391</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -484,12 +499,6 @@
         <slot>ProfileExit_activated()</slot>
     </connection>
     <connection>
-        <sender>EditorSpawn</sender>
-        <signal>activated()</signal>
-        <receiver>FormExcalibur</receiver>
-        <slot>EditorSpawn_activated()</slot>
-    </connection>
-    <connection>
         <sender>MobFilter</sender>
         <signal>returnPressed()</signal>
         <receiver>FormExcalibur</receiver>
@@ -501,28 +510,34 @@
         <receiver>FormExcalibur</receiver>
         <slot>showMsgs()</slot>
     </connection>
+    <connection>
+        <sender>vaderWarn</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>vaderWarn_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
 </includes>
 <slots>
-    <slot>resizeEvent( QResizeEvent * e )</slot>
-    <slot>showEvent( QShowEvent * e )</slot>
-    <slot>init()</slot>
-    <slot>destroy()</slot>
-    <slot>ReloadMaps_activated()</slot>
-    <slot>MapSlider_valueChanged( int range )</slot>
-    <slot>GroupPlayers_toggled( bool ena )</slot>
-    <slot>GLObjectSizes_selected( QAction * act )</slot>
-    <slot>SortDistance_toggled( bool ena )</slot>
-    <slot>Preferences_activated()</slot>
-    <slot>GLRulers_toggled( bool ena )</slot>
+    <slot>vaderWarn_toggled( bool ena)</slot>
+    <slot>GLMapFade_toggled(bool ena)</slot>
+    <slot>GLObjectSizes_selected(QAction * act)</slot>
+    <slot>GLRulers_toggled(bool ena)</slot>
+    <slot>GroupPlayers_toggled(bool ena)</slot>
     <slot>ItemUpload_activated()</slot>
-    <slot>GLMapFade_toggled( bool ena )</slot>
-    <slot>ProfileExit_activated()</slot>
-    <slot>EditorSpawn_activated()</slot>
+    <slot>MapSlider_valueChanged(int range)</slot>
     <slot>MobFilter_returnPressed()</slot>
-    <slot>showMsgs( )</slot>
+    <slot>Preferences_activated()</slot>
+    <slot>ProfileExit_activated()</slot>
+    <slot>ReloadMaps_activated()</slot>
+    <slot>SortDistance_toggled(bool ena)</slot>
+    <slot>destroy()</slot>
+    <slot>init()</slot>
+    <slot>resizeEvent(QResizeEvent * e)</slot>
+    <slot>showEvent(QShowEvent * e)</slot>
+    <slot>showMsgs()</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

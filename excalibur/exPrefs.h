@@ -43,6 +43,7 @@ public slots:
 public:
   bool sort_group_players;
   bool sort_distance;
+  bool vaderWarn;
   exPrefs::SortOptions sort_when;
   int brightness_alive;
   int brightness_dead;

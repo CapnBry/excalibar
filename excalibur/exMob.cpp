@@ -155,6 +155,8 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QRegExp rx( c->MobFilter.getFilter());
   QColor clr;
 
+  if( !isMob() && cFriendly != getColor() && c->vaderWarn) { qApp->beep(); }
+
   if (! isMob() && ! isObj()) {
     clr=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     cols.setColor(QColorGroup::Base, clr);
