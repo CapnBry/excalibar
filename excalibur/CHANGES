@@ -1,3 +1,31 @@
+Teerex (01/Jun/02)
+------------------
+Changes:
+ + Fixed triange borders for realm color not displaying
+   due to being culled.
+ + Fixed fast aggro indicators not displaying at all.
+ + Fixed quality aggro indicators overwriting triangle.
+ + Fixed distance fade on aggro indicators.
+ + Fixed vector map elements not recaching when needed.
+ + Fixed some filled vector map areas not filling due
+   to culling.
+ + Removed erronious double-drawing of map elements.
+   Should be a drastic speed improvement, since even
+   the PNG textures were being drawn twice!
+ + Fixed vector maps not displaying unless "Fill map
+   polygons" and "Depthfade" were both on.
+ + Shrunk size of status bar and layout grid to provide
+   a few more pixels of map.
+ + Added MaxFPS preference to run the draw loop at idle.
+   This will show you your maximum FPS at the cost of
+   sucking up all your available CPU time.
+ + Renamed Use Use Texture Filtering to Use Linear filtering,
+   since it just swaps between NEAREST and LINEAR min and mag
+   algorithms.
+Notes:
+ + Turning on "Fill map polygons" causes a large performance
+   hit.
+
 Teerex (31/May/02)-2
 ------------------
 Changes:
