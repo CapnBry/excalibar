@@ -653,6 +653,8 @@ void exConnection::parseObjectEquipment(exPacket *p)
     int objcount;
     int slot;
     int obj_list, obj_index, obj_color;
+//    bool dump_packet;
+
     exMob *mob;
     exInventoryItem *ii;
 
@@ -666,8 +668,9 @@ void exConnection::parseObjectEquipment(exPacket *p)
     p->seek(2);  // FF FF for mobs?
     objcount = p->getByte();
     slot = 0;
+//    dump_packet = FALSE;
 
-    if (objcount)
+    if (objcount && (mob->getLevel() == 50))
         cout << mob->getName() << ": ";
 
     while (objcount)  {
@@ -686,10 +689,20 @@ void exConnection::parseObjectEquipment(exPacket *p)
         case 0x1c:  // sleeves
             obj_list = p->getByte();
             obj_index = p->getByte();
-            if (obj_list & 0xf0)  
+            if (obj_list & 0x40)
                 obj_color = p->getByte();
             else  
                 obj_color = 0;
+            if (obj_list & 0x20)
+            {
+                p->getShort();  // particle effect?
+//                dump_packet = TRUE;
+            }
+            if (obj_list & 0x80) //
+            {
+                p->getShort();  // guild emblem?
+//                dump_packet = TRUE;
+            }
             break;
         default:
             obj_list = 0;
@@ -698,8 +711,9 @@ void exConnection::parseObjectEquipment(exPacket *p)
         }  /* select slot */
 
         ii = new exInventoryItem(slot, obj_list, obj_index, obj_color);
-        cout << ii->getDescription() + " ";
-        delete ii;
+        mob->updateInventory(ii);
+        if (mob->getLevel() == 50)
+            cout << ii->getDescription() + ", ";
 
         /* it appears if the high bit is set, that this is actually
            a particle effect on the preceeding item? */
@@ -707,8 +721,13 @@ void exConnection::parseObjectEquipment(exPacket *p)
             objcount--;
     }  /* while objcount */
 
-    if (slot)
-        cout << endl;
+    if (slot && (mob->getLevel() == 50))
+    {
+        cout << " (" + mob->getClassName() + ")" << endl;
+    }
+
+//    if ((mob->getLevel() == 50) && (dump_packet == TRUE))
+//        dumpPacket(0, p);
 }
 
 void exConnection::parseObjectStopped(exPacket *p)
@@ -937,11 +956,17 @@ void exConnection::updateObjectTypeCounts(void)
     exMob *mob;
     int cnt_mob = 0;;
     int cnt_players[4];
+    int cnt_players_alive[4];
 
     cnt_players[rFriend] = 0;
     cnt_players[rAlbion] = 0;
     cnt_players[rMidgaard] = 0;
     cnt_players[rHibernia] = 0;
+
+    cnt_players_alive[rFriend] = 0;
+    cnt_players_alive[rAlbion] = 0;
+    cnt_players_alive[rMidgaard] = 0;
+    cnt_players_alive[rHibernia] = 0;
 
     for (;mob_iter.current(); ++mob_iter)  {
         mob = mob_iter.current();
@@ -954,16 +979,19 @@ void exConnection::updateObjectTypeCounts(void)
             }
             else if (mob->isPlayer())  {
                 cnt_players[mob->getRealm()]++;
+                if (!mob->isDead())
+                    cnt_players_alive[mob->getRealm()]++;
             }
     }  /* for each mob */
 
 
     cnt_players[playerrealm] += cnt_players[rFriend];
+    cnt_players_alive[playerrealm] += cnt_players_alive[rFriend];
 
-    ex->lblCounts->setText(QString("Albs: %1  Mids: %2\nHibs: %3  Mobs: %4").
-                           arg(cnt_players[rAlbion]).
-                           arg(cnt_players[rMidgaard]).
-                           arg(cnt_players[rHibernia]).
+    ex->lblCounts->setText(QString("Albs: %1 (%2)  Mids: %3 (%4)\nHibs: %5 (%6)  Mobs: %7").
+                           arg(cnt_players_alive[rAlbion]).arg(cnt_players[rAlbion]).
+                           arg(cnt_players_alive[rMidgaard]).arg(cnt_players[rMidgaard]).
+                           arg(cnt_players_alive[rHibernia]).arg(cnt_players[rHibernia]).
                            arg(cnt_mob));
 }
 

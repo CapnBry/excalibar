@@ -619,9 +619,9 @@ QString exInventoryItem::getDescription(void)
     case 0x00:
         switch (obj_index)  {
         case 0x34:  return "bow";
-        case 0x39:  return "cloak1";
+        case 0x39:  return "cloak";
         case 0x3a:  return "robe";
-        case 0x3f:  return "1h axe";
+        case 0x3f:  return "axe" + getSlotDesc();
         case 0x60:  return "cloak";
         case 0xe6:  
         case 0xe7:
@@ -642,8 +642,8 @@ QString exInventoryItem::getDescription(void)
         case 0xfd:  
         case 0xfe:  return "S(3) " + getSlotDesc();
         default:
-            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
-                                     slot, obj_list, obj_index, obj_color);
+            return getSlotDesc() + QString().sprintf(" %02x %02x %02x",
+                                                     obj_list, obj_index, obj_color);
         }  /* b1=0x00 b2 */
            
 
@@ -670,14 +670,14 @@ QString exInventoryItem::getDescription(void)
         case 0x42:  return "hammer " + getSlotDesc();
         case 0x46:  return "cloak";
         case 0x47:  return "staff " + getSlotDesc();
-        case 0x50:  return "RM " + getSlotDesc();
-        case 0x51:  return "SB " + getSlotDesc();
-        case 0xb6:  return "HE " + getSlotDesc();
+        // case 0x50:  return "RM " + getSlotDesc();
+        // case 0x51:  return "SB " + getSlotDesc();
+        // case 0xb6:  return "HE " + getSlotDesc();
         case 0xbb:  return "cloak";
         case 0xff:  return "Pcrown " + getSlotDesc();
         default:
-            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
-                                     slot, obj_list, obj_index, obj_color);
+            return getSlotDesc() + QString().sprintf(" %02x %02x %02x",
+                                                     obj_list, obj_index, obj_color);
         }  /* b1=0x01 b2 */
 
 
@@ -685,28 +685,151 @@ QString exInventoryItem::getDescription(void)
         switch (obj_index)  {
         case 0x2d:  return "cloak";
         case 0x2f:  return "cloak";
-        case 0x36:  return "staff (spark) " + getSlotDesc();
-        case 0x3f:  return "hammer " + getSlotDesc();
+        case 0x36:  return "staff" + getSlotDesc();
+        case 0x3f:  return "hammer" + getSlotDesc();
         case 0x41:  return "axe " + getSlotDesc();
-        case 0xbf:  return "RM " + getSlotDesc();
-        case 0xc2:  return "RM " + getSlotDesc();
-        case 0xc3:  return "RM " + getSlotDesc();
-        case 0xc4:  return "HE " + getSlotDesc();
-        case 0xc5:  return "HE " + getSlotDesc();
-        case 0xc7:  return "HE " + getSlotDesc();
-        case 0xc8:  return "HE " + getSlotDesc();
-        case 0xf9:  return "SB " + getSlotDesc();
-        case 0xfa:  return "SB " + getSlotDesc();
-        case 0xfb:  return "SB " + getSlotDesc();
-        case 0xfc:  return "SB " + getSlotDesc();
-        case 0xfd:  return "SB " + getSlotDesc();
+        case 0xb0:  return "AR " + getSlotDesc();  // armsman chest
+        case 0xb1:  return "AR " + getSlotDesc();  // leggings
+        case 0xb2:  return "AR " + getSlotDesc();  // sleeves
+        case 0xb3:  return "AR " + getSlotDesc();  // gloves
+        case 0xb4:  return "AR " + getSlotDesc();  // boots
+        case 0xb5:  return "PA " + getSlotDesc();  // paladin chest
+        case 0xb6:  return "PA " + getSlotDesc();  // leggings
+        case 0xb7:  return "PA " + getSlotDesc();  // sleeves
+        case 0xb8:  return "PA " + getSlotDesc();  // gloves
+        case 0xb9:  return "PA " + getSlotDesc();  // boots
+        case 0xba:  return "HA " + getSlotDesc();  // healer chest
+        case 0xbb:  return "HA " + getSlotDesc();  // leggings
+        case 0xbc:  return "HA " + getSlotDesc();  // sleeves
+        case 0xbd:  return "HA " + getSlotDesc();  // gloves
+        case 0xbe:  return "HA " + getSlotDesc();  // boots
+        case 0xbf:  return "RM " + getSlotDesc();  // runemaster chest
+        case 0xc0:  return "RM " + getSlotDesc();  // leggings
+        case 0xc1:  return "RM " + getSlotDesc();  // sleeves
+        case 0xc2:  return "RM " + getSlotDesc();  // gloves
+        case 0xc3:  return "RM " + getSlotDesc();  // boots
+        case 0xc4:  return "HE " + getSlotDesc();  // hero chest
+        case 0xc5:  return "HE " + getSlotDesc();  // leggings
+        case 0xc6:  return "HE " + getSlotDesc();  // sleeves
+        case 0xc7:  return "HE " + getSlotDesc();  // gloves
+        case 0xc8:  return "HE " + getSlotDesc();  // boots
+        case 0xc9:  return "CL " + getSlotDesc();  // cleric chest
+        case 0xca:  return "CL " + getSlotDesc();  // leggings
+        case 0xcb:  return "CL " + getSlotDesc();  // sleeves
+        case 0xcc:  return "CL " + getSlotDesc();  // gloves
+        case 0xcd:  return "CL " + getSlotDesc();  // boots
+        case 0xce:  return "MY " + getSlotDesc();  // mercenary chest
+        case 0xcf:  return "MY " + getSlotDesc();  // leggings
+        case 0xd0:  return "MY " + getSlotDesc();  // sleeves
+        case 0xd1:  return "MY " + getSlotDesc();  // gloves
+        case 0xd2:  return "MY " + getSlotDesc();  // boots
+        case 0xd3:  return "MI " + getSlotDesc();  // minstrel chest
+        case 0xd4:  return "MI " + getSlotDesc();  // leggings
+        case 0xd5:  return "MI " + getSlotDesc();  // sleeves
+        case 0xd6:  return "MI " + getSlotDesc();  // gloves
+        case 0xd7:  return "MI " + getSlotDesc();  // boots
+        case 0xd8:  return "SC " + getSlotDesc();  // scout chest
+        case 0xd9:  return "SC " + getSlotDesc();  // leggings
+        case 0xda:  return "SC " + getSlotDesc();  // sleeves
+        case 0xdb:  return "SC " + getSlotDesc();  // boots
+        case 0xdc:  return "SC " + getSlotDesc();  // gloves
+        case 0xdd:  return "TH " + getSlotDesc();  // theurgist chest
+        case 0xde:  return "BA " + getSlotDesc();  // bard chest
+        case 0xdf:  return "BA " + getSlotDesc();  // leggings
+        case 0xe0:  return "BA " + getSlotDesc();  // sleeves
+        case 0xe1:  return "BA " + getSlotDesc();  // gloves
+        case 0xe2:  return "BA " + getSlotDesc();  // boots
+        case 0xe3:  return "DR " + getSlotDesc();  // druid chest
+        case 0xe4:  return "DR " + getSlotDesc();  // leggings
+        case 0xe5:  return "DR " + getSlotDesc();  // sleeves
+        case 0xe6:  return "DR " + getSlotDesc();  // gloves
+        case 0xe7:  return "DR " + getSlotDesc();  // boots
+        case 0xe8:  return "EL " + getSlotDesc();  // eldritch chest
+        case 0xe9:  return "ME " + getSlotDesc();  // mentalist chest
+        case 0xea:  return "NI " + getSlotDesc();  // nightshade chest
+        case 0xeb:  return "NI " + getSlotDesc();  // leggings
+        case 0xec:  return "NI " + getSlotDesc();  // sleeves
+        case 0xed:  return "NI " + getSlotDesc();  // gloves
+        case 0xee:  return "NI " + getSlotDesc();  // boots
+        case 0xf4:  return "HU " + getSlotDesc();  // hunter chest
+        case 0xf5:  return "HU " + getSlotDesc();  // leggings
+        case 0xf6:  return "HU " + getSlotDesc();  // sleeves
+        case 0xf7:  return "HU " + getSlotDesc();  // gloves
+        case 0xf8:  return "HU " + getSlotDesc();  // boots
+        case 0xf9:  return "SB " + getSlotDesc();  // shadowblade chest
+        case 0xfa:  return "SB " + getSlotDesc();  // leggings
+        case 0xfb:  return "SB " + getSlotDesc();  // sleeves
+        case 0xfc:  return "SB " + getSlotDesc();  // gloves
+        case 0xfd:  return "SB " + getSlotDesc();  // boots
+        case 0xfe:  return "SH " + getSlotDesc();  // shaman chest
+        case 0xff:  return "SH " + getSlotDesc();  // leggings
         default:           
-            return QString().sprintf("slot (0x%02x) %02x %02x %02x ",
-                                     slot, obj_list, obj_index, obj_color);
+            return getSlotDesc() + QString().sprintf(" %02x %02x %02x",
+                                                     obj_list, obj_index, obj_color);
         }  /* b1=0x02 b2 */
-    }  /* b1 */
 
-    return "???";
+    case 0x03:
+        switch (obj_index)  {
+        case 0x00:  return "SH " + getSlotDesc();  // sleeves
+        case 0x01:  return "SH " + getSlotDesc();  // gloves
+        case 0x02:  return "SH " + getSlotDesc();  // boots
+        case 0x03:  return "SK " + getSlotDesc();  // skald chest
+        case 0x04:  return "SK " + getSlotDesc();  // leggings
+        case 0x05:  return "SK " + getSlotDesc();  // sleeves
+        case 0x06:  return "SK " + getSlotDesc();  // gloves
+        case 0x07:  return "SK " + getSlotDesc();  // boots
+        case 0x08:  return "WR " + getSlotDesc();  // warrior chest
+        case 0x09:  return "WR " + getSlotDesc();  // leggings
+        case 0x0a:  return "WR " + getSlotDesc();  // sleeves
+        case 0x0b:  return "WR " + getSlotDesc();  // gloves
+        case 0x0c:  return "WR " + getSlotDesc();  // boots
+        case 0x0d:  return "EN " + getSlotDesc();  // enchanter chest
+        case 0x0e:  return "BL " + getSlotDesc();  // blademaster chest
+        case 0x0f:  return "BL " + getSlotDesc();  // leggings
+        case 0x10:  return "BL " + getSlotDesc();  // sleeves
+        case 0x11:  return "BL " + getSlotDesc();  // gloves
+        case 0x12:  return "BL " + getSlotDesc();  // boots
+        case 0x13:  return "TN " + getSlotDesc();  // thane chest
+        case 0x14:  return "TN " + getSlotDesc();  // leggings
+        case 0x15:  return "TN " + getSlotDesc();  // sleeves
+        case 0x16:  return "TN " + getSlotDesc();  // gloves
+        case 0x17:  return "TN " + getSlotDesc();  // boots
+        case 0x18:  return "IN " + getSlotDesc();  // infiltrator chest
+        case 0x19:  return "IN " + getSlotDesc();  // leggings
+        case 0x1a:  return "IN " + getSlotDesc();  // sleeves
+        case 0x1b:  return "IN " + getSlotDesc();  // gloves
+        case 0x1c:  return "IN " + getSlotDesc();  // boots
+        case 0x1d:  return "FR " + getSlotDesc();  // friar chest
+        case 0x1e:  return "WI " + getSlotDesc();  // wizard chest
+        case 0x1f:  return "SP " + getSlotDesc();  // spiritmaster chest
+        case 0x20:  return "SP " + getSlotDesc();  // leggings
+        case 0x21:  return "SP " + getSlotDesc();  // sleeves
+        case 0x22:  return "SP " + getSlotDesc();  // gloves
+        case 0x23:  return "SP " + getSlotDesc();  // boots
+        case 0x24:  return "SO " + getSlotDesc();  // sorcerer chest
+        case 0x25:  return "WA " + getSlotDesc();  // warden chest
+        case 0x26:  return "WA " + getSlotDesc();  // leggings
+        case 0x27:  return "WA " + getSlotDesc();  // sleeves
+        case 0x28:  return "WA " + getSlotDesc();  // gloves
+        case 0x29:  return "WA " + getSlotDesc();  // boots
+        case 0x2a:  return "CH " + getSlotDesc();  // champion chest
+        case 0x2b:  return "CH " + getSlotDesc();  // leggings
+        case 0x2c:  return "CH " + getSlotDesc();  // sleeves
+        case 0x2d:  return "CH " + getSlotDesc();  // gloves
+        case 0x2e:  return "CH " + getSlotDesc();  // boots
+        case 0x2f:  return "RA " + getSlotDesc();  // ranger chest
+        case 0x30:  return "RA " + getSlotDesc();  // leggings
+        case 0x31:  return "RA " + getSlotDesc();  // sleeves
+        case 0x32:  return "RA " + getSlotDesc();  // gloves
+        case 0x33:  return "RA " + getSlotDesc();  // boots
+            return getSlotDesc() + QString().sprintf(" %02x %02x %02x",
+                                                     obj_list, obj_index, obj_color);
+        }  /* b1=0x03 b2 */
+
+    default:
+        return getSlotDesc() + QString().sprintf(" %02x %02x %02x",
+                                                 obj_list, obj_index, obj_color);
+    }  /* b1 */
 }
 
 QString exInventoryItem::getSlotDesc(void)
@@ -750,34 +873,156 @@ int exInventoryItem::getColor(void) const
 
 exMob::playerClass exInventoryItem::getClassRestriction(void)
 {
+    /* DO NOT use Helms to identify a class, because most classes
+     use the same helm mesh */
     switch (obj_list & 0x0f)
     {
     case 0x00:  return exMob::Unknown;
     case 0x01:
         switch (obj_index)
         {
-        case 0x50:  return exMob::Runemaster;
-        case 0x51:  return exMob::Shadowblade;
-        case 0xb6:  return exMob::Hero;
+            // case 0x50:  return exMob::Runemaster;  Helm
+            // case 0x51:  return exMob::Shadowblade; Helm
+            // case 0xb6:  return exMob::Hero; Helm
         default:    return exMob::Unknown;
         }  /* case list 0x01 */
     case 0x02:
         switch (obj_index)
         {
-        case 0xbf:  return exMob::Runemaster;
-        case 0xc2:  return exMob::Runemaster;
-        case 0xc3:  return exMob::Runemaster;
-        case 0xc4:  return exMob::Hero;
-        case 0xc5:  return exMob::Hero;
-        case 0xc7:  return exMob::Hero;
-        case 0xc8:  return exMob::Hero;
-        case 0xf9:  return exMob::Shadowblade;
-        case 0xfa:  return exMob::Shadowblade;
-        case 0xfb:  return exMob::Shadowblade;
-        case 0xfc:  return exMob::Shadowblade;
-        case 0xfd:  return exMob::Shadowblade;
+        case 0xb0:  return exMob::Armsman;  // chest
+        case 0xb1:  return exMob::Armsman;  // leggings
+        case 0xb2:  return exMob::Armsman;  // sleeves
+        case 0xb3:  return exMob::Armsman;  // gloves
+        case 0xb4:  return exMob::Armsman;  // boots
+        case 0xb5:  return exMob::Paladin;  // chest
+        case 0xb6:  return exMob::Paladin;  // leggings
+        case 0xb7:  return exMob::Paladin;  // sleeves
+        case 0xb8:  return exMob::Paladin;  // gloves
+        case 0xb9:  return exMob::Paladin;  // boots
+        case 0xba:  return exMob::Healer;  // chest
+        case 0xbb:  return exMob::Healer;  // leggings
+        case 0xbc:  return exMob::Healer;  // sleeves
+        case 0xbd:  return exMob::Healer;  // gloves
+        case 0xbe:  return exMob::Healer;  // boots
+        case 0xbf:  return exMob::Runemaster;  // chest
+        case 0xc0:  return exMob::Runemaster;  // leggings
+        case 0xc1:  return exMob::Runemaster;  // sleeves
+        case 0xc2:  return exMob::Runemaster;  // boots
+        case 0xc3:  return exMob::Runemaster;  // gloves
+        case 0xc4:  return exMob::Hero;  // chest
+        case 0xc5:  return exMob::Hero;  // leggings
+        case 0xc6:  return exMob::Hero;  // sleeves
+        case 0xc7:  return exMob::Hero;  // gloves
+        case 0xc8:  return exMob::Hero;  // boots
+        case 0xc9:  return exMob::Cleric;  // chest
+        case 0xca:  return exMob::Cleric;  // leggings
+        case 0xcb:  return exMob::Cleric;  // sleeves
+        case 0xcc:  return exMob::Cleric;  // gloves
+        case 0xcd:  return exMob::Cleric;  // boots
+        case 0xce:  return exMob::Mercenary;  // chest
+        case 0xcf:  return exMob::Mercenary;  // leggings
+        case 0xd0:  return exMob::Mercenary;  // sleeves
+        case 0xd1:  return exMob::Mercenary;  // gloves
+        case 0xd2:  return exMob::Mercenary;  // boots
+        case 0xd3:  return exMob::Minstrel;  // chest
+        case 0xd4:  return exMob::Minstrel;  // leggings
+        case 0xd5:  return exMob::Minstrel;  // sleeves
+        case 0xd6:  return exMob::Minstrel;  // gloves
+        case 0xd7:  return exMob::Minstrel;  // boots
+        case 0xd8:  return exMob::Scout;  // chest
+        case 0xd9:  return exMob::Scout;  // legs
+        case 0xda:  return exMob::Scout;  // sleeves
+        case 0xdb:  return exMob::Scout;  // gloves
+        case 0xdc:  return exMob::Scout;  // boots
+        case 0xdd:  return exMob::Theurgist;  // chest
+        case 0xde:  return exMob::Bard;  // chest
+        case 0xdf:  return exMob::Bard;  // leggings
+        case 0xe0:  return exMob::Bard;  // sleeves
+        case 0xe1:  return exMob::Bard;  // gloves
+        case 0xe2:  return exMob::Bard;  // boots
+        case 0xe3:  return exMob::Druid;  // chest
+        case 0xe4:  return exMob::Druid;  // leggings
+        case 0xe5:  return exMob::Druid;  // sleeves
+        case 0xe6:  return exMob::Druid;  // gloves
+        case 0xe7:  return exMob::Druid;  // boots
+        case 0xe8:  return exMob::Eldritch;  // chest
+        case 0xe9:  return exMob::Mentalist;  // chest
+        case 0xea:  return exMob::Nightshade;  // chest
+        case 0xeb:  return exMob::Nightshade;  // leggings
+        case 0xec:  return exMob::Nightshade;  // sleeves
+        case 0xed:  return exMob::Nightshade;  // gloves
+        case 0xee:  return exMob::Nightshade;  // boots
+        case 0xf4:  return exMob::Hunter;  // chest
+        case 0xf5:  return exMob::Hunter;  // leggings
+        case 0xf6:  return exMob::Hunter;  // sleeves
+        case 0xf7:  return exMob::Hunter;  // gloves
+        case 0xf8:  return exMob::Hunter;  // boots
+        case 0xf9:  return exMob::Shadowblade;  // chest
+        case 0xfa:  return exMob::Shadowblade;  // leggings
+        case 0xfb:  return exMob::Shadowblade;  // sleeves
+        case 0xfc:  return exMob::Shadowblade;  // gloves
+        case 0xfd:  return exMob::Shadowblade;  // boots
+        case 0xfe:  return exMob::Shaman;  // chest
+        case 0xff:  return exMob::Shaman;  // leggings
         default:    return exMob::Unknown;
         } /* case list 0x02 */
+    case 0x03:
+        switch (obj_index)
+        {
+        case 0x00:  return exMob::Shaman;  // sleeves
+        case 0x01:  return exMob::Shaman;  // gloves
+        case 0x02:  return exMob::Shaman;  // boots
+        case 0x03:  return exMob::Skald;  // chest
+        case 0x04:  return exMob::Skald;  // leggings
+        case 0x05:  return exMob::Skald;  // sleeves
+        case 0x06:  return exMob::Skald;  // gloves
+        case 0x07:  return exMob::Skald;  // boots
+        case 0x08:  return exMob::Warrior;  // chest
+        case 0x09:  return exMob::Warrior;  // leggings
+        case 0x0a:  return exMob::Warrior;  // sleeves
+        case 0x0b:  return exMob::Warrior;  // gloves
+        case 0x0c:  return exMob::Warrior;  // boots
+        case 0x0d:  return exMob::Enchanter; // chest
+        case 0x0e:  return exMob::Blademaster; // chest
+        case 0x0f:  return exMob::Blademaster; // leggings
+        case 0x10:  return exMob::Blademaster; // sleeves
+        case 0x11:  return exMob::Blademaster; // gloves
+        case 0x12:  return exMob::Blademaster; // boots
+        case 0x13:  return exMob::Thane;  // chest
+        case 0x14:  return exMob::Thane;  // leggings
+        case 0x15:  return exMob::Thane;  // sleeves
+        case 0x16:  return exMob::Thane;  // gloves
+        case 0x17:  return exMob::Thane;  // boots
+        case 0x18:  return exMob::Infiltrator; // chest
+        case 0x19:  return exMob::Infiltrator; // leggings
+        case 0x1a:  return exMob::Infiltrator; // sleeves
+        case 0x1b:  return exMob::Infiltrator; // gloves
+        case 0x1c:  return exMob::Infiltrator; // boots
+        case 0x1d:  return exMob::Friar; // chest
+        case 0x1e:  return exMob::Wizard; // chest
+        case 0x1f:  return exMob::Spiritmaster; // chest
+        case 0x20:  return exMob::Spiritmaster; // leggings
+        case 0x21:  return exMob::Spiritmaster; // sleeves
+        case 0x22:  return exMob::Spiritmaster; // gloves
+        case 0x23:  return exMob::Spiritmaster; // boots
+        case 0x24:  return exMob::Sorcerer; // chest
+        case 0x25:  return exMob::Warden; // chest
+        case 0x26:  return exMob::Warden; // leggings
+        case 0x27:  return exMob::Warden; // sleeves
+        case 0x28:  return exMob::Warden; // gloves
+        case 0x29:  return exMob::Warden; // boots
+        case 0x2a:  return exMob::Champion; // chest
+        case 0x2b:  return exMob::Champion; // leggings
+        case 0x2c:  return exMob::Champion; // sleeves
+        case 0x2d:  return exMob::Champion; // gloves
+        case 0x2e:  return exMob::Champion; // boots
+        case 0x2f:  return exMob::Ranger; // chest
+        case 0x30:  return exMob::Ranger; // leggings
+        case 0x31:  return exMob::Ranger; // sleeves
+        case 0x32:  return exMob::Ranger; // gloves
+        case 0x33:  return exMob::Ranger; // boots
+        default:    return exMob::Unknown;
+        }  /* case list 0x03 */
     default:
         return exMob::Unknown;
     }
