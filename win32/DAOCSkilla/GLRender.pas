@@ -128,10 +128,10 @@ end;
 
 procedure TfrmGLRender.glMapInit(Sender: TObject);
 const
-  lightpos: array[0..3] of GLfloat = (0.5, -1.0, 1.0, 0.0);
-  diffuse: array[0..3] of GLfloat = (0.5, 0.5, 0.5, 1.0);
+  lightpos: array[0..3] of GLfloat = (-0.5, -0.5, 1.0, 0.0);
+  diffuse: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
   ambient: array[0..3] of GLfloat = (0.0, 0.0, 0.0, 1.0);
-  material: array[0..3] of GLfloat = (0.5, 0.5, 0.5, 1.0);
+  material: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
 begin
   { BRY: Handle this gracefully at some point }
   if not Load_GL_version_1_3 then
@@ -414,6 +414,7 @@ begin
 
   glDisable(GL_LIGHTING);
   glDisable(GL_CULL_FACE);
+  glDisable(GL_BLEND);
 
   glEnable(GL_TEXTURE_2D);
   FMapTextures.GLRender;
