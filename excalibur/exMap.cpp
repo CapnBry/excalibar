@@ -675,7 +675,7 @@ void exMap::paintGL() {
   if ((exTick - _last_fps) >= 1000) {
 
     if (frames > 0) {
-      if (((int)fps / frames) >= 500)
+      if (((int)fps / frames) >= 1000)
         c->ex->FPS->setText("??? FPS");
        else
          c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
