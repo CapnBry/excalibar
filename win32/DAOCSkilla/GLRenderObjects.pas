@@ -112,6 +112,9 @@ type
     property Z: GLuint read FZ write FZ;
   end;
 
+  TMapElementInfoPoint = class(TMapElementPoint)
+  end;
+
   PMapElementLinePoint = ^TMapElementLinePoint;
   TMapElementLinePoint = record
     X, Y, Z:    GLint;
