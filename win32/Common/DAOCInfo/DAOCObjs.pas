@@ -91,7 +91,8 @@ type
     function IndexOfInfoID(AInfoID: integer) : integer;
     function FindByInfoID(AInfoID: integer) : TDAOCObject;
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
-    function FindNearest(X, Y, Z: DWORD) : TDAOCObject;
+    function FindNearest3D(X, Y, Z: DWORD) : TDAOCObject;
+    function FindNearest2D(X, Y: DWORD) : TDAOCObject;
 
     property Items[I: integer]: TDAOCObject read GetItems; default;
   end;
@@ -108,6 +109,8 @@ type
     FHitPoints:  BYTE;
     FSpeedWord:  WORD;
   public
+    constructor Create; override;
+    
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
 
@@ -293,6 +296,12 @@ begin
   FSpeedWord := 0;
 end;
 
+constructor TDAOCMovingObject.Create;
+begin
+  inherited;
+  FHitPoints := 100;
+end;
+
 function TDAOCMovingObject.GetIsDead: boolean;
 begin
   Result := FHitPoints = 0;
@@ -429,11 +438,11 @@ begin
   case l_steps_taken of
     -3:  Result := clSilver;
     -2:  Result := clLime;
-    -1:  Result := clBlue;
+    -1:  Result := $ff3300;  // blue
      0:  Result := clYellow;
      1:  Result := $007fff;  // orange
      2:  Result := clRed;
-     3:  Result := clFuchsia;
+     3:  Result := $ff00cc;  // purple
     else
       Result := clBlack;
   end;  { cas l_steps_taken }
@@ -764,7 +773,7 @@ begin
   Result := nil;
 end;
 
-function TDAOCObjectList.FindNearest(X, Y, Z: DWORD): TDAOCObject;
+function TDAOCObjectList.FindNearest2D(X, Y: DWORD): TDAOCObject;
 var
   dDist:    double;
   dMinDist: double;
@@ -774,7 +783,25 @@ begin
   dMinDist := 0;
 
   for I := 0 to Count - 1 do begin
-    dDist := Items[I].Distance3D(X, Y, Z);
+    dDist := Items[I].DistanceSqr2D(X, Y);
+    if not Assigned(Result) or (dDist < dMinDist) then begin
+      Result := Items[I];
+      dMinDist := dDist;
+    end;
+  end;  { for I .. count }
+end;
+
+function TDAOCObjectList.FindNearest3D(X, Y, Z: DWORD): TDAOCObject;
+var
+  dDist:    double;
+  dMinDist: double;
+  I:    integer;
+begin
+  Result := nil;
+  dMinDist := 0;
+
+  for I := 0 to Count - 1 do begin
+    dDist := Items[I].DistanceSqr3D(X, Y, Z);
     if not Assigned(Result) or (dDist < dMinDist) then begin
       Result := Items[I];
       dMinDist := dDist;
