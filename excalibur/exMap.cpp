@@ -448,7 +448,7 @@ void exMap::paintGL() {
           drawAggroCircle(1.0, 0.0, 0.0,
                           (prefs.agro_fading) ? m->playerDist() / 1500.0f : 0.0f);
 
-        /* if this is a player */
+        /* if this is a player, draw the realm color ring */
       if (!m->isMobOrObj()) {
         if (m->isDead()) {
           setGLColor (m->getRealmColor().dark(160), m->getZ());
@@ -465,7 +465,11 @@ void exMap::paintGL() {
         setGLColor(1.0,1.0,1.0, m->getZ());
         glCallList(listSquares);
       } else {
-        setGLColor(m->getConColor(c->playerlevel), m->getZ());
+        QColor clr;
+        clr = m->getConColor(c->playerlevel);
+        if (m->isStealthed())
+          clr = clr.dark(200);
+        setGLColor(clr, m->getZ());
         glCallList(listTriangle);
       }  // if !obj
 

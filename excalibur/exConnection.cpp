@@ -604,6 +604,7 @@ END_EXPERIMENTAL_CODE
             mob = mobinfo.find((void *) ((unsigned int) infoid));
             if (mob) {
                 mob->setStealth(TRUE);
+                ex->Map->dirty();
             }
             break;
 
@@ -810,8 +811,10 @@ void exConnection::parseMobPosUpdate(exPacket *p)
 	mob->setPosition(x, y, z);
 	mob->setHead(head);
 	mob->setSpeed(speed);
-	mob->setHP(hp);
-	ex->Map->dirty();
+        mob->setHP(hp);
+
+        ex->Map->dirty();
+
 	if (prefs.sort_when == exPrefs::sortAlways)
 	    ex->ListViewMobs->sort();
     }
@@ -820,35 +823,48 @@ void exConnection::parseMobPosUpdate(exPacket *p)
 void exConnection::parsePlayerPosUpdate(exPacket *p)
 {
     unsigned int id = p->getShort();
-    unsigned int speed = p->getShort();
-    unsigned int z = p->getShort();
-    p->seek(2);
-    unsigned int x = p->getLong();
-    unsigned int y = p->getLong();
-    unsigned int head = p->getShort();
     exMob *mob = players.find((void *)id);
     if (mob) {
-	mob->setPosition(x, y, z);
-	mob->setHead(head);
-	mob->setSpeed(speed);
+        unsigned int x, y, z, hp;
 
-      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
-        ex->ListViewMobs->sort();
+        mob->setSpeed(p->getShort());
+        z = p->getShort();
+        p->seek(2);
+        x = p->getLong();
+        y = p->getLong();
+	mob->setPosition(x, y, z);
+	mob->setHead(p->getShort());
+        p->seek(2);
+        mob->setStealth(p->getByte() & 0x02);  // stealthed but visible
+        hp = p->getByte();
+        if (hp <= 100)
+            mob->setHP(hp);
+
+        ex->Map->dirty();
+
+        if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
+            ex->ListViewMobs->sort();
     }
 }
 
 void exConnection::parsePlayerHeadUpdate(exPacket *p)
 {
     unsigned int id = p->getShort();
-    unsigned int head = p->getShort();
-    p->seek(4);
-    unsigned int hp = p->getByte();
     exMob *mob = players.find((void *)id);
+
     if (mob) {
-	mob->setHead(head);
+        unsigned int hp;
+
+	mob->setHead(p->getShort());
+        p->seek(1);
+        mob->setStealth(p->getByte() & 0x02);  // stealthed but visible
+        p->seek(2);
+        hp = p->getByte();
 	if (hp <= 100)
-	    mob->setHP(hp);
-	ex->Map->dirty();
+            mob->setHP(hp);
+
+        ex->Map->dirty();
+
 	if (prefs.sort_when == exPrefs::sortAlways)
 	    ex->ListViewMobs->sort();
     }
