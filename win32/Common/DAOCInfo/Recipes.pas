@@ -488,12 +488,15 @@ end;
 
 function TCraftRecipeCollection.MaterialFixupName(const AMaterial: string): string;
 (*** Just a function to fixup some of Mythic's inconsistencies between what the
-  vendor sells and what the recipies call for ***)
+  vendor sells and what the recipies call for (converts material name to match
+  vendor name ***)
 begin
   if AnsiSameText(AMaterial, 'wood boards') then
     Result := 'wood'
   else if AnsiSameText(AMaterial, 'fox glove') then
     Result := 'foxglove'
+  else if AnsiSameText(AMaterial, 'St. John''s Wort') then
+    Result := 'St John''s wort'
   else
     Result := AMaterial;
 end;
