@@ -18,7 +18,15 @@ fi
 # if you cat this file, (as oppossed to cat -v) you dont see the <ctrl>-M in the first sed pattern
 # haha, infact you dont see the sed either :P
 sed -e 's///g' -e 's/ *$//' $1 2>/dev/null | awk '
-BEGIN { M = 8192 }
+BEGIN { M = 8192
+	file = "/Users/mm/z2r"	# you WILL need to fix this line, HARDCODED
+	while ((getline x < file) > 0)
+		{
+		split(x, a)
+		z2r[a[1]] = a[2]
+		}
+	close(file)
+	}
 $1 ~ "^;" { next }	# skip commented lines (begin with a ;)
 $1 ~ "^[[]zone" {	# start of new zone data, init defaults, turn on zon flag
 	zon = 1; z = substr($1,6,3); sub("^0", "", z); zone = z + 0; proxy_zone[zone] = "-"; type[zone]=0 }
@@ -37,7 +45,16 @@ NF == 0 {	# blank line, process previous info, then turn off zon flag
 		y = region_offset_y[zone] * M
 		w = width[zone] * M
 		h = height[zone] * M
-		printf "%3s %3s %3s %s %3s %8d %8d - %8d %8d %s\n", zone, region[zone], proxy_zone[zone], type[zone], rot, x, y, x+w, y+h, zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
+		zstr = sprintf("%03d", zone)
+		if (zstr in z2r)
+			realm = z2r[zstr]
+		else
+			realm = "-"
+		if (proxy_zone[zone] == "-")
+			pz = "-"
+		else
+			pz = sprintf("%03d", proxy_zone[zone])
+		printf "%03d %03d %3s %s %3s %8d %8d %-2s %8d %8d %s\n", zone, region[zone], pz, type[zone], rot, x, y, realm, x+w, y+h, zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
 		printf "%4s  %08x %08x  -  %08x %08x  %s  %-25s %-3s  %s\n", region[zone], x, y, x+w, y+h, type[zone], zonename[zone] ".map", zone, rot | "sort -n +8 -o mapinfo.txt"
 		printf "[%s]\r\n", rawzonename[zone] > "zones.ini"
 		printf "width = %s\r\n", width[zone] > "zones.ini"
