@@ -91,6 +91,10 @@ type
     FKeySelectFriendly: string;
     FTurnUsingFaceLoc: boolean;
     FAttemptingNPCRightClick: boolean;
+    FOnAttemptNPCRightClickSuccess: TNotifyEvent;
+    FOnAttemptNPCRightClickFailed: TNotifyEvent;
+    FKeyStrafeRight: string;
+    FKeyStrafeLeft: string;
 
     function BearingToDest: integer;
     procedure SetArrowDown(const Value: boolean);
@@ -137,6 +141,7 @@ type
     function LastItemOfTradeskillProgressionIsNext : boolean;
     function LoadOddsStreakContinue : boolean;
     function LoadOddsPctContinue : boolean;
+    procedure PressVK(const AKey: string; ADuration: Cardinal);
 
     procedure LoadMasterVendorListForRegion(ARegionID: integer);
     procedure SaveMasterVendorListForRegion(ARegionID: integer);
@@ -162,6 +167,8 @@ type
     procedure DoOnVendorWindowRequest(AMob: TDAOCMob); override; 
     procedure DoOnSelectNPCFailed; virtual;
     procedure DoOnSelectNPCSuccess; virtual;
+    procedure DoOnAttemptNPCRightClickSuccess; virtual;
+    procedure DoOnAttemptNPCRightClickFailed; virtual;
 
 {$IFDEF DAOC_AUTO_SERVER}
     function GetClassTypeInfo: ITypeInfo;
@@ -243,6 +250,8 @@ type
     function LaunchCharacterIdx(AIndex: integer) : boolean;
     procedure SelectNPC(const ANPCName: string);
     procedure AttemptNPCRightClick;
+    procedure StrafeRight(ADuration: Cardinal);
+    procedure StrafeLeft(ADuration: Cardinal);
 
       { read-only props }
     property TurnRate: integer read FTurnRate;
@@ -276,14 +285,18 @@ type
     property ArrowRight: boolean read FArrowRight write SetArrowRight;
     property AutomationMode: TAutomationMode read FAutomationMode write SetAutomationMode;
       { Keys }
-    property KeyQuickSell: string read FKeyQuickSell write FKeyQuickSell;  
+    property KeyQuickSell: string read FKeyQuickSell write FKeyQuickSell;
     property KeySelectFriendly: string read FKeySelectFriendly write FKeySelectFriendly;
+    property KeyStrafeLeft: string read FKeyStrafeLeft write FKeyStrafeLeft;
+    property KeyStrafeRight: string read FKeyStrafeRight write FKeyStrafeRight;
       { Events }
     property OnArriveAtGotoDest: TNotifyEvent read FOnArriveAtGotoDest write FOnArriveAtGotoDest;
     property OnPathChanged: TNotifyEvent read FOnPathChanged write FOnPathChanged;
     property OnStopAllActions: TNotifyEvent read FOnStopAllActions write FOnStopAllActions;
     property OnSelectNPCFailed: TNotifyEvent read FOnSelectNPCFailed write FOnSelectNPCFailed;
     property OnSelectNPCSuccess: TNotifyEvent read FOnSelectNPCSuccess write FOnSelectNPCSuccess;
+    property OnAttemptNPCRightClickFailed: TNotifyEvent read FOnAttemptNPCRightClickFailed write FOnAttemptNPCRightClickFailed;
+    property OnAttemptNPCRightClickSuccess: TNotifyEvent read FOnAttemptNPCRightClickSuccess write FOnAttemptNPCRightClickSuccess;
 
 {$IFDEF DAOC_AUTO_SERVER}
     property ClassTypeInfo: ITypeInfo read GetClassTypeInfo;
@@ -321,6 +334,14 @@ begin
     Result := -I
   else
     Result := I;
+end;
+
+function StringToVK(const AKey: string) : WORD;
+begin
+  if Length(AKey) = 1 then
+    Result := VkKeyScan(AKey[1])
+  else
+    Result := 0;
 end;
 
 { TDAOCControl }
@@ -1707,8 +1728,8 @@ end;
 
 procedure TDAOCControl.DoOnVendorWindowRequest(AMob: TDAOCMob);
 begin
+  DoOnAttemptNPCRightClickSuccess;
   inherited;
-  FAttemptingNPCRightClick := false;
 end;
 
 procedure TDAOCControl.NPCRightClickCallback(Sender: TObject; ALastY: Cardinal);
@@ -1719,10 +1740,52 @@ begin
     UpdateDAOCWindowHnd;
     if GetWindowRect(FDAOCHWND, R) then begin
       inc(ALastY, (R.Bottom - R.Top) div NPC_RIGHT_CLICK_DIV);
+
+      if ALastY > Cardinal(R.Bottom - R.Top) then begin
+        DoOnAttemptNPCRightClickFailed;
+        exit;
+      end;
+
       RightClick((R.Right - R.Left) div 2, ALastY);
       ScheduleCallback(500, NPCRightClickCallback, ALastY);
     end
   end;  { if still clicking }
+end;
+
+procedure TDAOCControl.DoOnAttemptNPCRightClickFailed;
+begin
+  if Assigned(FOnAttemptNPCRightClickFailed) then
+    FOnAttemptNPCRightClickFailed(Self);
+  FAttemptingNPCRightClick := false;
+end;
+
+procedure TDAOCControl.DoOnAttemptNPCRightClickSuccess;
+begin
+  if Assigned(FOnAttemptNPCRightClickSuccess) then
+    FOnAttemptNPCRightClickSuccess(Self);
+  FAttemptingNPCRightClick := false;
+end;
+
+procedure TDAOCControl.StrafeLeft(ADuration: Cardinal);
+begin
+  PressVK(FKeyStrafeLeft, ADuration);
+end;
+
+procedure TDAOCControl.StrafeRight(ADuration: Cardinal);
+begin
+  PressVK(FKeyStrafeLeft, ADuration);
+end;
+
+procedure TDAOCControl.PressVK(const AKey: string; ADuration: Cardinal);
+{ Since this is a sync call, do not call with a long duration or position update
+  packets will back up }
+var
+  wKey:   WORD;
+begin
+  wKey := StringToVK(AKey);
+  DoVKDown(wKey);
+  sleep(ADuration);
+  DoVKUp(wKey);
 end;
 
 initialization
