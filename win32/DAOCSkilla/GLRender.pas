@@ -54,6 +54,7 @@ type
     FMobTriangle:   T3DArrowHead;
     FObjectTriangle:    T3DPyramid;
     FGroundTarget:      TGLBullsEye;
+    FVisibleRangeRep:   TGLFlatViewFrustum;
     FMapToPlayerOffset: TPoint;
     FFilteredObjects:   TDAOCObjectList;
     FRenderPrefs:   TRenderPreferences;
@@ -80,6 +81,7 @@ type
     procedure DrawMobTypeTag(AMob: TDAOCMob);
     procedure DrawGroundTarget;
     procedure DrawFrameStats;
+    procedure DrawLineToMobTarget(AMob: TDAOCMob);
 
     procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
@@ -349,8 +351,12 @@ end;
 procedure TfrmGLRender.DrawPlayerTriangle;
 begin
   glEnable(GL_LIGHTING);
-  glColor3f(1, 1, 0);
   glRotatef(FDControl.LocalPlayer.Head, 0, 0, 1);
+
+  if FRenderPrefs.ViewFrustum then
+    FVisibleRangeRep.GLRender(FRenderBounds);
+
+  glColor3f(1, 1, 0);
   FMobTriangle.GLRender(FRenderBounds);
 end;
 
@@ -512,17 +518,20 @@ begin
       clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
 
         { if the mob is on the move, draw a line to its destination }
-      if FRenderPrefs.DrawAIDestination and
-        (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
-        glLineWidth(3.0);
+      if FRenderPrefs.DrawAIDestination then begin
+        if (pObj.ObjectClass = ocMob) and Assigned(TDAOCMob(pObj).Target) then
+          DrawLineToMobTarget(TDAOCMob(pObj))
+        else if (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
+          glLineWidth(3.0);
 
-        SetGLColorFromTColor(clMob, 0.33);
+          SetGLColorFromTColor(clMob, 0.33);
 
-        glBegin(GL_LINES);
-          glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
-          glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
-        glEnd();
-      end;  { if destinaton set }
+          glBegin(GL_LINES);
+            glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
+            glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
+          glEnd();
+        end;  { if destinaton set }
+      end;  { if draw AIDest }
 
       glPushMatrix();
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
@@ -575,6 +584,7 @@ begin
   FMobTriangle := T3DArrowHead.Create;
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
+  FVisibleRangeRep := TGLFlatViewFrustum.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
@@ -587,6 +597,7 @@ begin
   FFilteredObjects.Free;
   FMobTriangle.Free;
   FGroundTarget.Free;
+  FVisibleRangeRep.Free;
   FObjectTriangle.Free;
   FMapElementsListList.Free;
   FMapTexturesListList.Free;
@@ -602,6 +613,7 @@ begin
   FMapElementsListList.GLCleanup;
   FMapTexturesListList.GLCleanup;
   FGroundTarget.GLCleanup;
+  FVisibleRangeRep.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -615,6 +627,7 @@ begin
   FMapElementsListList.GLInitialize;
   FMapTexturesListList.GLInitialize;
   FGroundTarget.GLInitialize;
+  FVisibleRangeRep.GLInitialize;
   
   CheckGLError;
 end;
@@ -1237,6 +1250,16 @@ begin
     FRenderPrefs := tmpPrefs;
     FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   end;
+end;
+
+procedure TfrmGLRender.DrawLineToMobTarget(AMob: TDAOCMob);
+begin
+  glLineWidth(3.0);
+  glColor3f(1, 0, 0);
+  glBegin(GL_LINES);
+    glVertex3f(AMob.XProjected, AMob.YProjected, 0);
+    glVertex3f(AMob.Target.XProjected, AMob.Target.YProjected, 0);
+  glEnd();
 end;
 
 end.
