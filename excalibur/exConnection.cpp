@@ -210,7 +210,7 @@ void exConnection::replay()
     file->setName(*replayfile);
 
     if (!file->open(IO_ReadOnly)) {
-	qFatal("Couldn't open replayfile");
+        qFatal("Couldn't open replayfile: " + QString(*replayfile));
     }
 
     ds = new QDataStream(file);
