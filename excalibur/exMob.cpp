@@ -32,6 +32,8 @@ static const QColor cHibernia(0,255,0);
 static const QColor cAlbion(255,0,0);
 static const QColor cFriendly(0,255,255);
 
+static double max_stale_range = 7500.0;
+
 exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int
 newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj)
  : QListViewItem(view)
@@ -62,6 +64,13 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   _lasttick = exTick;
   _lastdist = 0;
   playerDist();
+
+  /*
+   if we see anything that's further out than our stale range,
+   increase the stale range to encompass this object
+   */
+  if (_lastdist > max_stale_range)
+      max_stale_range = lastdist;
 }
 
 int exMob::compare(QListViewItem *i, int col, bool ascending) const {
@@ -436,9 +445,9 @@ void exMob::checkStale() {
 //    maxtime=10000;
 
       /* mobs get updated to around 7000-7500 */
-    if ((playerDist() > 7500.0) ||
-        (!obj && ((exTick - _lasttick) > maxtime))
-        ) {
+  if ((playerDist() > max_stale_range) ||
+      (!obj && ((exTick - _lasttick) > maxtime))
+     ) {
     current = false;
     c->ex->ListViewMobs->takeItem(this);
   }
