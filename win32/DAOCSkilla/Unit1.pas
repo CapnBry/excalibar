@@ -266,6 +266,13 @@ end;
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   Memo1.Lines.Clear;
+
+  Log('--==========================================================--');
+  Log('  DaocSkilla is provided at no cost and without warranty');
+  Log('     under the General Public License (GPL) Vesion 2.');
+  Log('  See LICENSE.TXT for more information regarding licensing.');
+  Log('--==========================================================--');
+  
   SetupDAOCConnectionObj;
 
 {$IFDEF WINPCAP}
@@ -348,6 +355,7 @@ begin
   FConnection.OnDisconnect := DAOCDisconnect;
   FConnection.OnZoneChange := DAOCZoneChange;
   FConnection.OnAfterPacket := DAOCPacket;
+//  FConnection.OnPacket := DAOCPacket;
   FConnection.OnInventoryChanged := DAOCInventoryChanged;
   FConnection.OnVendorWindow := DAOCVendorWindow;
   FConnection.OnPathChanged := DAOCPathChanged;
