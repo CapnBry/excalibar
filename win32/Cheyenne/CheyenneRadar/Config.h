@@ -48,6 +48,7 @@ private:
     DECL_MEMBER(bool,ShowHibs);
     DECL_MEMBER(bool,ShowMids);
     DECL_MEMBER(bool,ShowMobs);
+    DECL_MEMBER(bool,SaveDAoCMessages);
     DECL_MEMBER(bool,ShowObjects);
     DECL_MEMBER(std::string,DStreamServer);
     DECL_MEMBER(unsigned short,DStreamServerPort);

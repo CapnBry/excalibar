@@ -143,6 +143,9 @@ INT_PTR CALLBACK ConfigDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lPara
                 case IDC_SHOWMOBS:
                     ::RadarConfig.SetShowMobs(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
                     break;
+                case IDC_SAVE_DAOC_MESSAGES:
+                    ::RadarConfig.SetSaveDAoCMessages(GET_CHECK_BOOL(hWnd,LOWORD(wParam)));
+                    break;
                 case IDC_SHOWRANGERING1:
                     if(GET_CHECK_BOOL(hWnd,LOWORD(wParam))==true)
                         {

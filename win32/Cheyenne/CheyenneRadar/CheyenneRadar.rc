@@ -206,6 +206,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,142,235,107,10
     CONTROL         "Simplify Vector Maps",IDC_SIMPLIFYLINES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,31,102,10
+    CONTROL         "Save DAoC Messages",IDC_SAVE_DAOC_MESSAGES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,103,156,83,10
 END
 
 IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60

@@ -149,7 +149,9 @@ Database::Database() :
     DeadReconingThreshold(500.0f),
     MinNetworkTime(2.0f),
     NetworkHeartbeat(10.0f),
-    UncorrelatedStealthTime(-15.0)
+    UncorrelatedStealthTime(-15.0),
+    bSaveDAoCMessages(false),
+    MessageSaveStream(0)
 {
 
     // done
@@ -161,6 +163,9 @@ Database::~Database()
     // stop first for cleanup
     Stop();
 
+    // delete this
+    delete MessageSaveStream;
+    
     // done
     return;
 } // end ~Database
@@ -1007,6 +1012,22 @@ void Database::RequestFullUpdate(void)
     // done
     return;
 } // end RequestFullUpdate
+
+void Database::SaveMessage(const daocmessages::SniffedMessage& msg)
+{
+    // see if we are supposed to save
+    if(bSaveDAoCMessages)
+        {
+        // make sure exists
+        if(MessageSaveStream==0)
+            {
+            MessageSaveStream=new std::ofstream("daoc_messages.log");
+            }
+
+        // save it
+        msg.Print(*MessageSaveStream);
+        } // end if we are supposed to save
+} // end SaveMessage
 
 void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 {
@@ -1960,6 +1981,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.ModifyMotion().SetYPos(float(p->y));
             ThisActor.ModifyMotion().SetZPos(float(p->z));
             ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
+            ThisActor.ModifyMotion().SetSpeed(float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff)));
 
             // save other actor info
             ThisActor.SetName(std::string(p->name));

@@ -44,6 +44,7 @@ Config::Config()
     SetShowHibs(true);
     SetShowMids(true);
     SetShowMobs(true);
+    SetSaveDAoCMessages(false);
     SetShowObjects(true);
     SetDStreamServer("<no server>");
     SetDStreamServerPort(9867);

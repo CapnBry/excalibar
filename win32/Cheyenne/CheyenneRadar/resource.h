@@ -49,6 +49,8 @@
 #define IDC_SHOWRANGERING6              1029
 #define IDC_COPYRIGHT2                  1029
 #define IDC_LICENSE                     1029
+#define IDC_SHOWMOBS2                   1030
+#define IDC_SAVE_DAOC_MESSAGES          1030
 #define IDC_SIMPLIFYLINES               1031
 #define IDC_TOLERANCE                   1032
 #define ID_FILE_EXIT                    40001

@@ -268,6 +268,7 @@ public:
         unsigned short& id_region,
         Database::id_type& original_id_or_infoid
         );
+    void SaveDAoCMessages(const bool bSave){bSaveDAoCMessages=bSave;};
 
     void RequestFullUpdate(void);
 
@@ -298,6 +299,8 @@ private:
     }
 
     void ResetDatabase(void);
+    
+    void SaveMessage(const daocmessages::SniffedMessage& msg);
 
     Actor* GetActorById(const Database::id_type& info_id);
     UncorrelatedStealthInfo* GetUncorrelatedStealthById(const Database::id_type& info_id);
@@ -321,6 +324,9 @@ private:
     const CheyenneTime MinNetworkTime;
     const CheyenneTime NetworkHeartbeat;
     bool bFullUpdateRequest; // true when a sharenet full update request is active
+    bool bSaveDAoCMessages; // true when we are supposed to save DAoC messages
+    std::ostream* MessageSaveStream;
+    
 
     // synchronization
     mutable MutexLock DBMutex;
