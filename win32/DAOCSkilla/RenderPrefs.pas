@@ -37,6 +37,7 @@ type
     RotateMapWithPlayer:  boolean;
     AdjacentZones:    boolean;
     ViewFrustum:      boolean;
+    AlternateMobListText: boolean;
 
     constructor Create;
 
@@ -136,6 +137,7 @@ begin
   Result.RotateMapWithPlayer := RotateMapWithPlayer;
   Result.AdjacentZones := AdjacentZones;
   Result.ViewFrustum := ViewFrustum;
+  Result.AlternateMobListText := AlternateMobListText;
 end;
 
 constructor TRenderPreferences.Create;
@@ -181,6 +183,7 @@ begin
     RotateMapWithPlayer := ReadBool('RenderPrefs', 'RotateMapWithPlayer', false);
     AdjacentZones := ReadBool('RenderPrefs', 'AdjacentZones', false);
     ViewFrustum := ReadBool('RenderPrefs', 'ViewFrustum', true);
+    AlternateMobListText := DrawTypeTag; //ReadBool('RenderPrefs', 'AlternateMobListText', false);
   end;
 end;
 
@@ -211,6 +214,7 @@ begin
     WriteBool('RenderPrefs', 'RotateMapWithPlayer', RotateMapWithPlayer);
     WriteBool('RenderPrefs', 'AdjacentZones', AdjacentZones);
     WriteBool('RenderPrefs', 'ViewFrustum', ViewFrustum);
+    WriteBool('RenderPrefs', 'AlternateMobListText', AlternateMobListText);
   end;
 end;
 
