@@ -3,7 +3,12 @@ unit BackgroundHTTP;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, SyncObjs, IdBaseComponent, IdComponent,
+{$IFDEF LINUX}
+  QControls,
+{$ELSE}
+  Windows, Messages,
+{$ENDIF !LINUX}
+  SysUtils, Classes, SyncObjs, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdHTTP;
 
 type
@@ -55,12 +60,15 @@ type
   private
     FRequestList:   TBackgroundHTTPRequestList;
     FIdHTTP:        TIdHTTP;
-    FRequestEvent:  THANDLE;
+    FRequestEvent:  TEvent;
     FNotifyWnd:     THANDLE;
   protected
     procedure ProcessRequests;
     procedure Execute; override;
+{$IFDEF LINUX}
+{$ELSE}
     procedure NotifyProc(var Msg: TMessage);
+{$ENDIF !LINUX}
     procedure DoOnRequestCompleteMainThread(ARequest: TBackgroundHTTPRequest);
     procedure DoOnHTTPComplete(ARequest: TBackgroundHTTPRequest);
   public
@@ -75,7 +83,11 @@ type
 implementation
 
 const
+{$IFDEF LINUX}
+  WM_REQUEST_COMPLETE = CM_BASE - 1;
+{$ELSE}
   WM_REQUEST_COMPLETE = WM_USER + 1;
+{$ENDIF !LINUX}
 
 { TBackgroundHTTPRequestList }
 
@@ -148,7 +160,7 @@ begin
   FIdHTTP := TIdHTTP.Create(nil);
   FIdHTTP.Request.UserAgent := 'Mozilla/3.0 (compatible; DaocSkilla)';
   FRequestList := TBackgroundHTTPRequestList.Create;
-  FRequestEvent := CreateEvent(nil, false, false, nil);
+  FRequestEvent := TEvent.Create(nil, false, false, '');
   FNotifyWnd := AllocateHWnd(NotifyProc);
 
   inherited Create(false);
@@ -158,7 +170,7 @@ destructor TBackgroundHTTPManager.Destroy;
 begin
   ClearRequests;
   FRequestList.Free;
-  CloseHandle(FRequestEvent);
+  FRequestEvent.Free;
   FIdHTTP.Free;
   DeallocateHWnd(FNotifyWnd);
 
@@ -183,7 +195,7 @@ end;
 procedure TBackgroundHTTPManager.Execute;
 begin
   while not Terminated do begin
-    WaitForSingleObject(FRequestEvent, INFINITE);
+    FRequestEvent.WaitFor(INFINITE);
     if not Terminated then
       ProcessRequests;
   end;
@@ -221,13 +233,13 @@ end;
 procedure TBackgroundHTTPManager.Request(ARequest: TBackgroundHTTPRequest);
 begin
   FRequestList.Add(ARequest);
-  SetEvent(FRequestEvent);
+  FRequestEvent.SetEvent;
 end;
 
 procedure TBackgroundHTTPManager.Shutdown;
 begin
   Terminate;
-  SetEvent(FRequestEvent);
+  FRequestEvent.SetEvent;
   WaitFor;
 end;
 
