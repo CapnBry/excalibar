@@ -949,7 +949,7 @@ end;
 
 function TDAOCObject.SameLocAndHead(AObject: TDAOCObject): boolean;
 begin
-  Result := SameLoc(AObject) and (AObject.HeadWord = FHeadWord);
+  Result := SameLoc(AObject) and ((AObject.HeadWord and $0fff) = (FHeadWord and $0fff));
 end;
 
 procedure TDAOCObject.SetDestinationXYZ(X, Y, Z: Cardinal);
