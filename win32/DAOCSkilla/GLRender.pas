@@ -9,8 +9,8 @@ uses
   Windows, Messages, Controls, Forms, Graphics, MMSystem,
   StdCtrls, ExtCtrls, ComCtrls, Dialogs,
 {$ENDIF !LINUX}
-  SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCObjs,
-  GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
+  SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCConnectionList,
+  DAOCObjs, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
   QuickSinCos, BackgroundHTTP, TexFont, GLUT;
 
 type
@@ -67,7 +67,7 @@ type
     procedure pnlLeftEndDock(Sender, Target: TObject; X, Y: Integer);
   private
     glMap:     TglWindow;
-    FDControl: TDAOCConnection;
+    FCurrConn: TDAOCConnection;
     FRange:         Cardinal;
     FRenderBounds:  TRect;
     FGLInitsCalled:       boolean;
@@ -101,9 +101,11 @@ type
     lstObjects:   TLockableListBox;
     FPushPins:    TVectorMapElementList;
     FUnknownStealther:  TGLUnkownStealther;
-    FPresicenceNode:    TGLPrescienceNode;
+    FPrescienceNode:    TGLPrescienceNode;
     FBasePath:    string;
     FMaxTXFTextWidth:   integer;
+    FHudConFlag:  TGLHudConFlag;
+    FDAOCConnectionList: TDAOCConnectionList;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -129,8 +131,8 @@ type
     procedure DrawGrid;
     procedure DrawMouseTooltip;
     procedure DrawUnknownStealthers;
+    procedure DrawNoConnection;
 
-    procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
     procedure RefreshFilteredList;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
@@ -162,23 +164,27 @@ type
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
     procedure DisplaySelectedObjectInventory;
     procedure CheckMouseOverUnproject;
+    procedure SetDAOCConnectionList(const Value: TDAOCConnectionList);
+    procedure PreviousConnection;
+    procedure NextConnection;
+    procedure SetCurrentConnection(AConn: TDAOCConnection);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
-    procedure DAOCAddObject(AObj: TDAOCObject);
-    procedure DAOCDeleteObject(AObj: TDAOCObject);
-    procedure DAOCUpdateObject(AObj: TDAOCObject);
-    procedure DAOCSelectedObjectChanged(AObj: TDAOCObject);
-    procedure DAOCRegionChanged;
-    procedure DAOCZoneChanged;
-    procedure DAOCSetGroundTarget;
-    procedure DAOCCharacterLogin;
-    procedure DAOCPlayerPosUpdate;
-    procedure DAOCUnknownStealther(AObj: TDAOCObject);
-    procedure DAOCDoorPositionUpdate(ADoor: TDAOCObject);
+    procedure DAOCAddObject(Sender: TObject; AObj: TDAOCObject);
+    procedure DAOCDeleteObject(Sender: TObject; AObj: TDAOCObject);
+    procedure DAOCUpdateObject(Sender: TObject; AObj: TDAOCObject);
+    procedure DAOCSelectedObjectChanged(Sender: TObject; AObj: TDAOCObject);
+    procedure DAOCRegionChanged(Sender: TObject);
+    procedure DAOCZoneChanged(Sender: TObject);
+    procedure DAOCSetGroundTarget(Sender: TObject);
+    procedure DAOCCharacterLogin(Sender: TObject);
+    procedure DAOCPlayerPosUpdate(Sender: TObject);
+    procedure DAOCUnknownStealther(Sender: TObject; AObj: TDAOCObject);
+    procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
 
     procedure Dirty;
-    property DAOCControl: TDAOCConnection read FDControl write SetDControl;
+    property DAOCConnectionList: TDAOCConnectionList read FDAOCConnectionList write SetDAOCConnectionList;
     property PrefsFile: string read FPrefsFile write FPrefsFile;
     property RangeCircles: TRangeCircleList read FRangeCircles;
   end;
@@ -282,26 +288,23 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.SetDControl(const Value: TDAOCConnection);
-begin
-  FDControl := Value;
-end;
-
 procedure TfrmGLRender.glMapDraw(Sender: TObject);
 var
   dwStartTickCount:  Cardinal;
 begin
-  if not Assigned(FDControl) then
+  if not FGLInitsCalled then
+    GLInits;
+
+  if not Assigned(FCurrConn) then begin
+    DrawNoConnection;
     exit;
+  end;
 
   try
-    if not FGLInitsCalled then
-      GLInits;
-
     dwStartTickCount := GetTickCount;
     if FInvaderHighlightLastSwap + 1000 < dwStartTickCount then begin
       UpdateFrameStats(dwStartTickCount - FInvaderHighlightLastSwap);
-      FDControl.CheckForStaleObjects;
+      FCurrConn.CheckForStaleObjects;
       FInvaderHighlightLastSwap := dwStartTickCount;
       FInvaderHighlight := not FInvaderHighlight;
     end;
@@ -323,7 +326,7 @@ begin
     DrawLineToSelected;
     DrawGroundTarget;
 
-    glTranslatef(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
+    glTranslatef(FCurrConn.LocalPlayer.XProjected, FCurrConn.LocalPlayer.YProjected, 0);
 
       { at player pos }
     DrawMapRulers;
@@ -417,7 +420,6 @@ begin
     
     FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
     FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
-    UpdateMapURLs;
   end
   else
     slideZoomChange(Self);
@@ -448,7 +450,7 @@ begin
   glDisable(GL_LIGHTING);
 
   r := FRange * 1.5;
-  sincos_quick(FDControl.LocalPlayer.Head, s, c);
+  sincos_quick(FCurrConn.LocalPlayer.Head, s, c);
 
     { Draw map rulers }
   glLineWidth(1.0);
@@ -468,7 +470,7 @@ end;
 procedure TfrmGLRender.DrawPlayerTriangle;
 begin
   glEnable(GL_LIGHTING);
-  glRotatef(FDControl.LocalPlayer.Head, 0, 0, 1);
+  glRotatef(FCurrConn.LocalPlayer.Head, 0, 0, 1);
 
   if FRenderPrefs.ViewFrustum then
     FVisibleRangeRep.GLRender(FRenderBounds);
@@ -498,12 +500,14 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DAOCAddObject(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCAddObject(Sender: TObject; AObj: TDAOCObject);
 var
   iOldIndex:  integer;
   iOldTop:    integer;
   iPos:       integer;
 begin
+  if Sender <> FCurrConn then exit;
+  
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     iPos := FilteredObjectInsert(AObj);
 
@@ -535,7 +539,7 @@ begin
 {$IFDEF MSWINDOWS}
     if FRenderPrefs.InvaderWarning and
       (AObj.ObjectClass = ocPlayer) and
-      (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive then
+      (AObj.Realm <> FCurrConn.LocalPlayer.Realm) and AObj.IsAlive then
       if GlobalTickCount - FLastInvaderWarningTicks >= FRenderPrefs.InvaderWarnMinTicks then begin
         // Log('Invader: ' + AObj.Name);
         PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
@@ -545,12 +549,14 @@ begin
   end;  { if onject in filter }
 end;
 
-procedure TfrmGLRender.DAOCDeleteObject(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCDeleteObject(Sender: TObject; AObj: TDAOCObject);
 var
   iOldPos:  integer;
   iOldTop:  integer;
   iPos:     integer;
 begin
+  if Sender <> FCurrConn then exit;
+
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     iPos := FFilteredObjects.Remove(AObj);
     if iPos = -1 then begin
@@ -582,8 +588,10 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCUpdateObject(Sender: TObject; AObj: TDAOCObject);
 begin
+  if Sender <> FCurrConn then exit;
+
   if AObj.HitPoints <> AObj.HitPointsLast then
     InvalidateListObject(AObj);
     { RefreshFilteredList calls Dirty for us }
@@ -598,24 +606,24 @@ var
   pNearest: TDAOCObject;
   x, y:     Cardinal;
 begin
-  if not FRenderPrefs.TrackMapClick then
+  if not (FRenderPrefs.TrackMapClick and Assigned(FCurrConn)) then
     exit;
 
   MapUnproject(X, Y, true);
 
     { if this is a dungeon, use 3d distance else use 2d }
-  if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = dztDungeon) then
-    pNearest := FFilteredObjects.FindNearest3D(x, y, FDControl.LocalPlayer.Z)
+  if Assigned(FCurrConn.Zone) and (FCurrConn.Zone.ZoneType = dztDungeon) then
+    pNearest := FFilteredObjects.FindNearest3D(x, y, FCurrConn.LocalPlayer.Z)
   else
     pNearest := FFilteredObjects.FindNearest2D(x, y);
 
   if Assigned(pNearest) then begin
-    if pNearest.DistanceSqr2D(x, y) > FDControl.LocalPlayer.DistanceSqr2D(x, y) then
-      pNearest := FDControl.LocalPlayer;
+    if pNearest.DistanceSqr2D(x, y) > FCurrConn.LocalPlayer.DistanceSqr2D(x, y) then
+      pNearest := FCurrConn.LocalPlayer;
 
     if FRenderPrefs.TrackInGameSelect then
         { callback will update screen }
-      FDControl.SelectedObject := pNearest
+      FCurrConn.SelectedObject := pNearest
     else
       GridSelectObject(pNearest);
     Dirty;
@@ -626,14 +634,14 @@ procedure TfrmGLRender.DrawLineToSelected;
 var
   pSelected:  TDAOCObject;
 begin
-  pSelected := FDControl.SelectedObject;
+  pSelected := FCurrConn.SelectedObject;
   if Assigned(pSelected) then begin
     glDisable(GL_LIGHTING);
 
     glColor3f(1.0, 1.0, 1.0);
     glLineWidth(2.0);
     glBegin(GL_LINES);
-    glVertex3i(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
+    glVertex3i(FCurrConn.LocalPlayer.XProjected, FCurrConn.LocalPlayer.YProjected, 0);
     if pSelected is TDAOCMovingObject then
       glVertex3i(TDAOCMovingObject(pSelected).XProjected, TDAOCMovingObject(pSelected).YProjected, 0)
     else
@@ -659,7 +667,7 @@ begin
       if pObj.Stealthed then
         clMob := clBlack
       else
-        clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
+        clMob := pObj.GetConColor(FCurrConn.LocalPlayer.Level);
 
       DrawAIDestination(pObj, clMob);
 
@@ -684,7 +692,7 @@ begin
     else if pObj.ObjectClass = ocObject then begin
       glTranslatef(pObj.X, pObj.Y, 0);
       if AnsiSameText(pObj.Name, 'Prescience Node') then
-        FPresicenceNode.GLRender(FRenderBounds)
+        FPrescienceNode.GLRender(FRenderBounds)
       else begin
         FObjectTriangle.Color := clWhite;
         FObjectTriangle.GLRender(FRenderBounds);
@@ -746,8 +754,10 @@ begin
   FMapTexturesListList.HTTPFetch := FHTTPFetch;
 
   FMobTriangle := T3DArrowHead.Create;
-  FPresicenceNode := TGLPrescienceNode.Create;
-  FPresicenceNode.ImageFileName := FBasePath + 'prescience.tga';
+  FPrescienceNode := TGLPrescienceNode.Create;
+  FPrescienceNode.ImageFileName := FBasePath + 'prescience.tga';
+  FHudConFlag := TGLHudConFlag.Create;
+  FHudConFlag.ImageFileName := FBasePath + 'conflag.tga';
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
   FVisibleRangeRep := TGLFlatViewFrustum.Create;
@@ -795,7 +805,8 @@ begin
   FTxfH10.UnloadFont;
   FTxfH10.Free;
   FPushPins.Free;
-  FPresicenceNode.Free;
+  FPrescienceNode.Free;
+  FHudConFlag.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -812,7 +823,8 @@ begin
   FTxfH12.CleanupTexture;
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
-  FPresicenceNode.GLCleanup;
+  FPrescienceNode.GLCleanup;
+  FHudConFlag.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -830,7 +842,8 @@ begin
   FBoat.GLInitialize;
   FPushPins.GLInitialize;
   FUnknownStealther.GLInitialize;
-  FPresicenceNode.GLInitialize;
+  FPrescienceNode.GLInitialize;
+  FHudConFlag.GLInitialize;
 
   FTxfH10.EstablishTexture;
   FTxfH12.EstablishTexture;
@@ -854,27 +867,31 @@ begin
     FPushPins.GLRender(FRenderBounds);
 end;
 
-procedure TfrmGLRender.DAOCZoneChanged;
+procedure TfrmGLRender.DAOCZoneChanged(Sender: TObject);
 begin
-  if not Assigned(FDControl.Zone) then begin
+  if Sender <> FCurrConn then exit;
+
+  if not Assigned(FCurrConn.Zone) then begin
     FZoneName := '';
     exit;
   end;
 
-  FZoneName := FDControl.Zone.Name;
+  FZoneName := FCurrConn.Zone.Name;
 
   { BRY:  We really need to select the GL context here, but I don't because
     glWindow doesn't have a function to activate its context and we'll just
     see if this works }
+  UpdateMapURLs;
   ReloadMapElementsAndTextures;
 end;
 
-procedure TfrmGLRender.DAOCRegionChanged;
+procedure TfrmGLRender.DAOCRegionChanged(Sender: TObject);
 begin
-  Caption := FDControl.LocalPlayer.Name + S_CAPTION_SUFFIX;
-  UpdateMapURLs;
-  FRenderPrefs.PlayerRealm := FDControl.LocalPlayer.Realm;
-  DAOCSetGroundTarget;
+  if Sender <> FCurrConn then exit;
+
+  Caption := FCurrConn.LocalPlayer.Name + S_CAPTION_SUFFIX;
+  FRenderPrefs.PlayerRealm := FCurrConn.LocalPlayer.Realm;
+  DAOCSetGroundTarget(Sender);
   LoadRegionPushpins;
 end;
 
@@ -888,8 +905,10 @@ begin
     lstObjects.ItemIndex := I;
 end;
 
-procedure TfrmGLRender.DAOCSelectedObjectChanged(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCSelectedObjectChanged(Sender: TObject; AObj: TDAOCObject);
 begin
+  if Sender <> FCurrConn then exit;
+
   FTargetHUDWidth := 0;
   
   if FRenderPrefs.TrackInGameSelect then begin
@@ -915,7 +934,7 @@ begin
     SetGLColorFromTColorDarkened(cl, 1, 0.25)
   else begin
     fAlphaMax := 1;
-    if (ADAOCObject.Realm <> FDControl.LocalPlayer.Realm) and FInvaderHighlight then
+    if (ADAOCObject.Realm <> FCurrConn.LocalPlayer.Realm) and FInvaderHighlight then
       fAlphaMax := 0.6;
     SetGLColorFromTColor(cl, fAlphaMax * ADAOCObject.LiveDataConfidencePct);
   end;
@@ -939,7 +958,7 @@ end;
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
 begin
   if FRenderPrefs.RedrawOnTimer then begin
-    if FDControl.Active then
+    if FCurrConn.Active then
       UpdateGlobalTickCount;
     Dirty;
   end;
@@ -960,7 +979,9 @@ var
       glColor3f(0.4, 0.4, 0.4);
       WriteTXFTextH12(4+1, rastery-1, AName);
         { con color for name }
-      SetGLColorFromTColor(GetConColor(FDControl.LocalPlayer.Level), 1);
+      //FHudConFlag.Color := GetConColor(FCurrConn.LocalPlayer.Level);
+      //FHudConFlag.GLRender(Rect(0, 0, Width, Height));
+      SetGLColorFromTColor(GetConColor(FCurrConn.LocalPlayer.Level), 1);
       rastery := WriteTXFTextH12(4, rastery, AName);
     end;
   end;
@@ -992,7 +1013,7 @@ begin
   if not FRenderPrefs.DrawHUD then
     exit;
 
-  pMob := FDControl.SelectedObject;
+  pMob := FCurrConn.SelectedObject;
   if not Assigned(pMob) then
     exit;
 
@@ -1059,7 +1080,7 @@ begin
         glColor4fv(@TEXT_COLOR);
   end;    { case class }
 
-  s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer)) +
+  s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FCurrConn.LocalPlayer)) +
     ' ' + ZDeltaStr(pMob, false);
   if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).Speed <> 0) then
     s := s + '  Speed: ' + TDAOCMovingObject(pMob).SpeedString;
@@ -1076,16 +1097,16 @@ begin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   if FRenderPrefs.RotateMapWithPlayer then
-    glRotatef(FDControl.LocalPlayer.Head - 180, 0, 0, 1)
-  else if Assigned(FDControl.Zone) and (FDControl.Zone.Rotate > 0) then
-    glRotatef(FDControl.Zone.Rotate, 0, 0, 1);
+    glRotatef(FCurrConn.LocalPlayer.Head - 180, 0, 0, 1)
+  else if Assigned(FCurrConn.Zone) and (FCurrConn.Zone.Rotate > 0) then
+    glRotatef(FCurrConn.Zone.Rotate, 0, 0, 1);
   glRotatef(180, 1, 0, 0);
 
-  FRenderBounds.Left := FDControl.LocalPlayer.XProjected - FRange;
+  FRenderBounds.Left := FCurrConn.LocalPlayer.XProjected - FRange;
   inc(FRenderBounds.Left, FMapToPlayerOffset.X);
   FRenderBounds.Right := FRenderBounds.Left + (integer(FRange) * 2);
 
-  FRenderBounds.Top := FDControl.LocalPlayer.YProjected - FRange;
+  FRenderBounds.Top := FCurrConn.LocalPlayer.YProjected - FRange;
   inc(FRenderBounds.Top, FMapToPlayerOffset.Y);
   FRenderBounds.Bottom := FRenderBounds.Top + (integer(FRange) * 2);
 
@@ -1106,6 +1127,11 @@ procedure TfrmGLRender.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   case Key of
+    VK_F11:
+        if ssShift in Shift then
+          PreviousConnection
+        else
+          NextConnection;
     VK_PRIOR:
       begin
         if lstObjects.Focused then
@@ -1288,11 +1314,13 @@ var
   R:      TRect;
   pOldFilteredList:  TDAOCObjectList;
 begin
+  if not Assigned(FCurrConn) then exit;
+  
     { save the old list because we might need it for invalidating }
   pOldFilteredList := FFilteredObjects;
   FFilteredObjects := TDAOCObjectList.Create(false);
 
-  pObj := FDControl.DAOCObjects.Head;
+  pObj := FCurrConn.DAOCObjects.Head;
   while Assigned(pObj) do begin
     if FRenderPrefs.IsObjectInFilter(pObj) then
       FilteredObjectInsert(pObj);
@@ -1383,7 +1411,7 @@ end;
 
 function TfrmGLRender.PlayerMobListText(AMob: TDAOCPlayer) : string;
 begin
-  if AMob.Realm <> FDControl.LocalPlayer.Realm then begin
+  if AMob.Realm <> FCurrConn.LocalPlayer.Realm then begin
     Result := '';
     
     if AMob.RealmRank <> rrUnknown then
@@ -1424,7 +1452,7 @@ begin
 
         { mobs are con color on white }
       else if pMob.Realm = drNeutral then begin
-        cl := pMob.GetConColor(FDControl.LocalPlayer.Level);
+        cl := pMob.GetConColor(FCurrConn.LocalPlayer.Level);
         R := GetRValue(cl) shr 1;
         G := GetGValue(cl) shr 1;
         B := GetBValue(cl) shr 1;
@@ -1510,9 +1538,11 @@ begin
   FInvalidateCount := 0;
 end;
 
-procedure TfrmGLRender.DAOCSetGroundTarget;
+procedure TfrmGLRender.DAOCSetGroundTarget(Sender: TObject);
 begin
-  with FDControl.GroundTarget do
+  if Sender <> FCurrConn then exit;
+
+  with FCurrConn.GroundTarget do
     FGroundTarget.Assign(X, Y);
 end;
 
@@ -1547,8 +1577,8 @@ end;
 
 procedure TfrmGLRender.ReloadMapElementsAndTextures;
 begin
-  FMapElementsListList.LoadForZone(FDControl.Zone, FRenderPrefs.AdjacentZones);
-  FMapTexturesListList.LoadForZone(FDControl.Zone, FRenderPrefs.AdjacentZones);
+  FMapElementsListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
+  FMapTexturesListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
 end;
 
 procedure TfrmGLRender.DoPrefsDialog;
@@ -1607,7 +1637,7 @@ begin
 
   glEnable(GL_TEXTURE_2D);
   glColor4f(1, 1, 1, 1);
-  with FDControl do begin
+  with FCurrConn do begin
     if FZoneName <> '' then
       rastery := WriteTXFTextH10(rasterx, rastery, FZoneName);
     s := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
@@ -1657,7 +1687,7 @@ begin
     exit;
 
     { the grid only draws over the current zone }
-  if not Assigned(FDControl.Zone) then
+  if not Assigned(FCurrConn.Zone) then
     exit;
 
   glDisable(GL_LIGHTING);
@@ -1672,7 +1702,7 @@ begin
 //  XMax := ((FRenderBounds.Right + GRID_STEP - 1) div GRID_STEP) * GRID_STEP;
 //  YMax := ((FRenderBounds.Bottom + GRID_STEP - 1) div GRID_STEP) * GRID_STEP;
 
-  with FDControl.Zone do begin
+  with FCurrConn.Zone do begin
     XMin := BaseLoc.X;
     YMin := BaseLoc.Y;
     XMax := MaxLoc.X;
@@ -1752,14 +1782,14 @@ var
   pNearest: TDAOCObject;
 begin
   // (GetAsyncKeyState(VK_CONTROL) = 0) or
-  if not Assigned(FDControl.Zone) or ((FMouseLocX = 0) and (FMouseLocY = 0)) then
+  if not Assigned(FCurrConn.Zone) or ((FMouseLocX = 0) and (FMouseLocY = 0)) then
     exit;
 
     { distance from here to the mouse }
-  iDist := round(FDControl.LocalPlayer.Distance2D(FMouseLocX, FMouseLocY));
+  iDist := round(FCurrConn.LocalPlayer.Distance2D(FMouseLocX, FMouseLocY));
 
-  if FDControl.Zone.ZoneType = dztDungeon then
-    pNearest := FFilteredObjects.FindNearest3D(FMouseLocX, FMouseLocY, FDControl.LocalPlayer.Z)
+  if FCurrConn.Zone.ZoneType = dztDungeon then
+    pNearest := FFilteredObjects.FindNearest3D(FMouseLocX, FMouseLocY, FCurrConn.LocalPlayer.Z)
   else
     pNearest := FFilteredObjects.FindNearest2D(FMouseLocX, FMouseLocY);
 
@@ -1776,8 +1806,8 @@ begin
   ptMouse.X := ptMouse.X + 2;
   ptMouse.Y := glMap.ClientHeight - ptMouse.Y + iHeight;
 
-  ZoneX := FMouseLocX - Cardinal(FDControl.Zone.BaseLoc.X);
-  ZoneY := FMouseLocY - Cardinal(FDControl.Zone.BaseLoc.Y);
+  ZoneX := FMouseLocX - Cardinal(FCurrConn.Zone.BaseLoc.X);
+  ZoneY := FMouseLocY - Cardinal(FCurrConn.Zone.BaseLoc.Y);
 
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
@@ -1801,7 +1831,7 @@ procedure TfrmGLRender.MobListMouseDown(Sender: TObject;
 begin
   pnlLeft.BeginDrag(false);
   if (lstObjects.ItemIndex <> -1) and (lstObjects.ItemIndex < FFilteredObjects.Count) then
-    FDControl.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
+    FCurrConn.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
 end;
 
 procedure TfrmGLRender.pnlLeftEndDock(Sender, Target: TObject; X,
@@ -1811,9 +1841,11 @@ begin
     pnlLeft.Align := alLeft;
 end;
 
-procedure TfrmGLRender.DAOCCharacterLogin;
+procedure TfrmGLRender.DAOCCharacterLogin(Sender: TObject);
 begin
-  FRenderPrefs.PlayerLevel := FDControl.LocalPlayer.Level;
+  if Sender <> FCurrConn then exit;
+
+  FRenderPrefs.PlayerLevel := FCurrConn.LocalPlayer.Level;
 end;
 
 procedure TfrmGLRender.RENDERPrefsMobListOptionChanged(Sender: TObject);
@@ -1826,7 +1858,7 @@ function TfrmGLRender.FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject): 
 var
   I:   integer;
 begin
-  if Assigned(FDControl.Zone) then
+  if Assigned(FCurrConn.Zone) then
     for I := 0 to FFilteredObjects.Count - 1 do
       if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) < 0 then begin
         FFilteredObjects.Insert(I, ADAOCObject);
@@ -1841,11 +1873,11 @@ begin
         end
 
         else if not FRenderPrefs.GroupByRealm or (ADAOCObject.Realm = FFilteredObjects[I].Realm) then begin
-          if ((FDControl.Zone.ZoneType = dztDungeon) and
-              (ADAOCObject.DistanceSqr3D(FDControl.LocalPlayer) < FFilteredObjects[I].DistanceSqr3D(FDControl.LocalPlayer)))
+          if ((FCurrConn.Zone.ZoneType = dztDungeon) and
+              (ADAOCObject.DistanceSqr3D(FCurrConn.LocalPlayer) < FFilteredObjects[I].DistanceSqr3D(FCurrConn.LocalPlayer)))
             or
-            ((FDControl.Zone.ZoneType <> dztDungeon) and
-              (ADAOCObject.DistanceSqr2D(FDControl.LocalPlayer) < FFilteredObjects[I].DistanceSqr2D(FDControl.LocalPlayer)))
+            ((FCurrConn.Zone.ZoneType <> dztDungeon) and
+              (ADAOCObject.DistanceSqr2D(FCurrConn.LocalPlayer) < FFilteredObjects[I].DistanceSqr2D(FCurrConn.LocalPlayer)))
             then begin
             FFilteredObjects.Insert(I, ADAOCObject);
             Result := I;
@@ -1901,8 +1933,10 @@ begin
     Result := 0;
 end;
 
-procedure TfrmGLRender.DAOCPlayerPosUpdate;
+procedure TfrmGLRender.DAOCPlayerPosUpdate(Sender: TObject);
 begin
+  if Sender <> FCurrConn then exit;
+
     { RefreshFilteredList calls Dirty for us }
   if FRenderPrefs.MobListSortOrder = msoDistance then
     RefreshFilteredList
@@ -1913,9 +1947,9 @@ end;
 procedure TfrmGLRender.UpdateMapURLs;
 begin
   FMapTexturesListList.MapBaseURL := FRenderPrefs.MapBaseURL +
-    's=' + FDControl.ServerIP + '&';
+    's=' + FCurrConn.ServerIP + '&';
   FMapElementsListList.MapBaseURL := FRenderPrefs.MapBaseURL +
-    's=' + FDControl.ServerIP + '&';
+    's=' + FCurrConn.ServerIP + '&';
 end;
 
 function TfrmGLRender.WriteTXFTextH10(X, Y: integer; const s: string): integer;
@@ -1954,7 +1988,7 @@ end;
 procedure TfrmGLRender.LoadRegionPushpins;
 begin
   FPushPins.GLCleanup;
-  FPushPins.LoadFromFile(Format('%sregion%3.3d.pin', [FBasePath, FDControl.RegionID]));
+  FPushPins.LoadFromFile(Format('%sregion%3.3d.pin', [FBasePath, FCurrConn.RegionID]));
   FPushPins.GLInitialize;
 end;
 
@@ -1962,11 +1996,11 @@ procedure TfrmGLRender.AddPushPin;
 var
   pPin:   TMapElementPoint;
 begin
-  if not Assigned(FDControl.Zone) then
+  if not Assigned(FCurrConn.Zone) then
     exit;
 
-  pPin := TfrmAddPushpin.Execute(FDControl.LocalPlayer.X,
-    FDControl.LocalPlayer.Y, FDControl.LocalPlayer.Z, FDControl.Zone.Name);
+  pPin := TfrmAddPushpin.Execute(FCurrConn.LocalPlayer.X,
+    FCurrConn.LocalPlayer.Y, FCurrConn.LocalPlayer.Z, FCurrConn.Zone.Name);
 
   if Assigned(pPin) then begin
     FPushPins.Add(pPin);
@@ -1974,8 +2008,10 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DAOCUnknownStealther(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCUnknownStealther(Sender: TObject; AObj: TDAOCObject);
 begin
+  if Sender <> FCurrConn then exit;
+
   Dirty;
 end;
 
@@ -1989,7 +2025,7 @@ begin
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
 
-  pObj := FDControl.UnknownStealthers.Head;
+  pObj := FCurrConn.UnknownStealthers.Head;
   while Assigned(pObj) do begin
     glTranslatef(pObj.X, pObj.Y, 0);
     FUnknownStealther.Alpha := pObj.LiveDataConfidencePct * 0.33;
@@ -2005,7 +2041,7 @@ begin
   if not FRenderPrefs.AnonymousStealthers then
     exit;
 
-  if not Assigned(FDControl.UnknownStealthers.Head) then
+  if not Assigned(FCurrConn.UnknownStealthers.Head) then
     exit;
     
   glEnable(GL_TEXTURE_2D);
@@ -2095,7 +2131,7 @@ function TfrmGLRender.ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean): string;
 var
   iZDelta:    integer;
 begin
-  iZDelta := AObj.Z - FDControl.LocalPlayer.Z;
+  iZDelta := AObj.Z - FCurrConn.LocalPlayer.Z;
   if iZDelta < 0 then begin
     if AVerbose then
       Result := IntToStr(-iZDelta) + ' below you'
@@ -2118,7 +2154,7 @@ var
   pSelected:  TDAOCObject;
   s:    string;
 begin
-  pSelected := FDControl.SelectedObject;
+  pSelected := FCurrConn.SelectedObject;
   if Assigned(pSelected) then begin
     if pSelected.ObjectClass in [ocMob, ocPlayer, ocLocalPlayer] then begin
       s := TDAOCMovingObject(pSelected).Inventory.AsString(false);
@@ -2138,9 +2174,94 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DAOCDoorPositionUpdate(ADoor: TDAOCObject);
+procedure TfrmGLRender.DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
 begin
-  DAOCUpdateObject(ADoor);
+  if Sender <> FCurrConn then exit;
+
+  DAOCUpdateObject(Sender, ADoor);
+end;
+
+procedure TfrmGLRender.SetDAOCConnectionList(const Value: TDAOCConnectionList);
+begin
+  FDAOCConnectionList := Value;
+    { if theres any connections in this list, then select the last one }
+  if FDAOCConnectionList.Count > 0 then
+    SetCurrentConnection(FDAOCConnectionList[FDAOCConnectionList.Count - 1])
+
+    { else clear the current connection, because there isn't one }
+  else if Assigned(FCurrConn) then
+    SetCurrentConnection(nil);
+end;
+
+procedure TfrmGLRender.NextConnection;
+var
+  iIdx: integer;
+begin
+  if FDAOCConnectionList.Count < 2 then
+    exit;
+
+  iIdx := FDAOCConnectionList.IndexOf(FCurrConn);
+  inc(iIdx);
+
+  if iIdx >= FDAOCConnectionList.Count then
+    iIdx := 0;
+
+  SetCurrentConnection(FDAOCConnectionList[iIdx]);
+end;
+
+procedure TfrmGLRender.PreviousConnection;
+var
+  iIdx: integer;
+begin
+  if FDAOCConnectionList.Count < 2 then
+    exit;
+
+  iIdx := FDAOCConnectionList.IndexOf(FCurrConn);
+  dec(iIdx);
+
+  if iIdx < 0 then
+    iIdx := FDAOCConnectionList.Count - 1;
+
+  SetCurrentConnection(FDAOCConnectionList[iIdx]);
+end;
+
+procedure TfrmGLRender.SetCurrentConnection(AConn: TDAOCConnection);
+begin
+  if FCurrConn = AConn then
+    exit;
+
+  FCurrConn := AConn;
+
+  if Assigned(FCurrConn) then begin
+      { BRY: I call these in kind of an arbitrary order according to how
+        they would be called in normal life, this might need to be adjusted }
+    DAOCCharacterLogin(AConn);
+    DAOCRegionChanged(AConn);
+    DAOCZoneChanged(AConn);
+    DAOCPlayerPosUpdate(AConn);
+
+    RefreshFilteredList;
+    tmrMinFPS.Enabled := true;
+  end
+  else
+    tmrMinFPS.Enabled := false;
+end;
+
+procedure TfrmGLRender.DrawNoConnection;
+begin
+  { called when no connection is set, just setup a screen sized world and
+    spit out some text }
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  SetupScreenProjectionMatrix;
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glDisable(GL_BLEND);
+  glEnable(GL_TEXTURE_2D);
+
+  glColor3f(1.0, 1.0, 1.0);
+  WriteTXFTextH12(5, glMap.ClientHeight, 'No connection assigned.');
 end;
 
 end.

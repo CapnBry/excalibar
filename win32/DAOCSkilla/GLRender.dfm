@@ -99,6 +99,7 @@ object frmGLRender: TfrmGLRender
     end
   end
   object tmrMinFPS: TTimer
+    Enabled = False
     Interval = 500
     OnTimer = tmrMinFPSTimer
     Left = 32
