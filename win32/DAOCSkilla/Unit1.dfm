@@ -186,12 +186,12 @@ object frmMain: TfrmMain
     end
     object atnDumpMobList: TAction
       Category = 'Logging'
-      Caption = 'Dump current mob list to log'
+      Caption = 'Dump current mob list to internal log'
     end
     object atnDumpPacketDataToLog: TAction
       Category = 'Logging'
       AutoCheck = True
-      Caption = 'Dump packet data to log'
+      Caption = 'Dump packet data to internal log'
       OnExecute = atnDumpPacketDataToLogExecute
     end
     object atnProcessPackets: TAction
@@ -203,13 +203,13 @@ object frmMain: TfrmMain
     object atnCaptureMobseen: TAction
       Category = 'Logging'
       AutoCheck = True
-      Caption = 'Capture mob updates to mobseen'
+      Caption = 'Capture mob updates to mobseen.csv'
       OnExecute = atnCaptureMobseenExecute
     end
     object atnCaptureDelveseen: TAction
       Category = 'Logging'
       AutoCheck = True
-      Caption = 'Capture delve info to delveseen'
+      Caption = 'Capture delve info to delveseen.csv'
       OnExecute = atnCaptureDelveseenExecute
     end
     object atnSkillaLog: TAction
