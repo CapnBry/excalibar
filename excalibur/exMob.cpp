@@ -137,6 +137,8 @@ QString exMob::text(int column) const {
       return QString::number((mi) ? y - mi->getBaseY() : y);
     case 5:
       return QString::number(z);
+    case 6:
+      return QString::number( static_cast< int >(const_cast< exMob *>(this)->playerDist()));
     default:
       return NULL;
   }
@@ -144,12 +146,30 @@ QString exMob::text(int column) const {
 
 void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align) {
   QColorGroup cols(cg);
-  QColor c;
+  QColor clr;
 
   if (! isMob() && ! isObj()) {
-    c=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
-    cols.setColor(QColorGroup::Base, c);
+    clr=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
+    cols.setColor(QColorGroup::Base, clr);
   }
+  else if ( !isObj() )
+    {
+    int ldif=(c->playerlevel / 10) + 1;
+    int l=this->getLevel();
+    if (l < (c->playerlevel - ldif * 3)) /* gray */
+      clr = QColor( 139, 137, 137);
+    else if (l <= (c->playerlevel - ldif * 2)) /* green */
+      clr = QColor(0,255,0);
+    else if (l <= (c->playerlevel - ldif * 1)) /* blue */
+      clr = QColor(0,0,255);
+    else if (l <= c->playerlevel) /* yellow */
+      clr = QColor(255,255,0);
+    else if (l <= (c->playerlevel + ldif * 2)) /* red */
+      clr = QColor(255,0,0);
+    else /* purple */
+      clr = QColor(160,32,240);
+    cols.setColor( QColorGroup::Text, clr);
+    }
 
   QListViewItem::paintCell(p,cols,column,width,align);
 }
