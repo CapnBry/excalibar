@@ -163,6 +163,8 @@ const
   SOL_TCP = $06;
   SOL_UDP = $11;
 
+function StrToHNet(const AIP: string) : Cardinal;
+function HNetToStr(AIP: Cardinal) : string;
 function my_inet_ntoa(inaddr : Cardinal) : string;
 function my_inet_htoa(inaddr : Cardinal) : string;
 function EtherHeaderToString(pHeader : PEthernetHeader) : string;
@@ -180,6 +182,16 @@ function IsAck(pFrame : PTCPHeader) : boolean;
 function IsUrg(pFrame : PTCPHeader) : boolean;
 
 implementation
+
+function StrToHNet(const AIP: string) : Cardinal;
+begin
+  Result := ntohl(inet_addr(PChar(AIP)));
+end;
+
+function HNetToStr(AIP: Cardinal) : string;
+begin
+  Result := string(my_inet_ntoa(ntohl(AIP)));
+end;
 
 function my_inet_ntoa(inaddr : Cardinal) : string;
 var
