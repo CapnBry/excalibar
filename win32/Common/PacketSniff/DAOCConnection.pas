@@ -2224,7 +2224,7 @@ begin
     if Assigned(pObj) and (pObj.ObjectClass = ocPlayer) then
       TDAOCPlayer(pObj).IsInGroup := true
     else if wID <> FLocalPlayer.InfoID then
-      Log('GroupMembersUpdate: Can not find player by InfoID 0x' + IntToHex(wID, 2));
+      Log('GroupMembersUpdate: Can not find player by InfoID 0x' + IntToHex(wID, 4));
 
     pPacket.getPascalString;  // name
     pPacket.getPascalString;  // class
