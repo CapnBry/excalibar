@@ -1,0 +1,52 @@
+Items on the development todo list
+
+ + Ability to filter the mob list and map via various critera:
+     -- Mob con color
+     -- Player / Non player
+     -- Objects
+ + Separate the engine code from UI code.
+ + Indicate characters which have stealthed, rather than just 
+   showing them as not moving.
+ + Fix map "Maintain aspect ratio" option.
+ + Ability to lock the mob list so it doesn't scroll while you have 
+   a mob selected.
+ + Stop mob drift!  Mobs past the stale distance which are moving tend
+   to stay moving.
+ + Stop duplicate windows from opening for the same connection.
+ + Add a range finder, distance and bearing to current target.
+ + Figure out how to decide to remove stale items from the list.
+ + List other players' equipped items.
+ + In cities make NPCs never go stale by distance, so all the NPCs
+   in a city will always be visible.
+ + Add a description of what all the options do.
+ + Fix options not saving unless you save them via the prefs dialog.
+ + Ability to change the format of the PNG backgrounds for better 
+   performance.  Grayscale, RGB4.
+ + Stop recaching PNG texture quads.
+ + Fix players on horses not working.
+ + Fix mobs in pursuit players not updating.
+ + Tooltip information while mouse is over map.  Maybe loc / distance / 
+   bearing to pointer, mob info for mob underneath.
+ + Speed optimizations of graphics routines.
+ + Ability to alter the packet filter from the command line
+ + Remove command-line startup and replace with a window to start / stop /
+   change options.
+ + Remove PNG maps in favor of auto-generated maps.
+ + Clean up exPacket code to use more efficient memory copies.
+ + Creating a new character assumes everyone is from an enemy realm. 
+   Well, there are alot of problems with creating a new char.
+ + Fix some mobs not conning the same as they do from DAoC.
+ + Provide more memory efficient "tiled" background maps generated
+   at runtime.  That is, use small textures tiled to approximate the
+   terrain.
+ + Add a separate dialog that can be opened to show you the status of
+   the selected mob / player / item in a more readable format (not all
+   on one line).
+ + Add the ability to link multiple Excalibur instances from different
+   players to get more complete coverage of game area.
+ + Get player information via Herald XML when you select them.
+ + Option to have all players beep (for Mordred) or beep based on 
+   guild tag.
+ + Ability to start and stop excalibur while DAoC is running.
+ + Show mob names like merchant names.
+ + Replace sin and cos with table lookup aproximations.
