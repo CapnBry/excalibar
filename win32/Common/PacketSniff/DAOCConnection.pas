@@ -119,6 +119,8 @@ type
     procedure ClearDAOCObjectList;
     procedure CheckObjectsOutOfRange;
     procedure SetMaxObjectDistance(const Value: double);
+    function CheckZoneChanged : boolean;
+    function SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
@@ -166,6 +168,7 @@ type
     procedure ParseDeleteObject(pPacket: TDAOCPacket);
     procedure ParseSetGroundTarget(pPacket: TDAOCPacket);
     procedure ParseCharacterStealthed(pPacket: TDAOCPacket);
+    procedure ParseCharacterActivationRequest(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -487,7 +490,7 @@ var
   SubType: BYTE;
   iLevel:   integer;
   sName:    string;
-  pAcctChar: TAccountCharInfo;
+  pAcctChar:  TAccountCharInfo;
 begin
   pPacket.HandlerName := 'PlayerDetails';
   pPacket.Seek(1);  // count of items
@@ -496,13 +499,10 @@ begin
     pPacket.Seek(1);
     iLevel := pPacket.getByte;
     sName := pPacket.getPascalString;
-    pAcctChar := FAccountCharacters.FindOrAddChar(sName);
-    pAcctChar.FLevel := iLevel;
 
-    FLocalPlayer.Level := pAcctChar.Level;
-    FLocalPlayer.Realm := pAcctChar.Realm;
-    FLocalPlayer.Name := pAcctChar.Name;
-    DoSetRegionID(pAcctChar.RegionID);
+    pAcctChar := SetActiveCharacterByName(sName);
+    pAcctChar.FLevel := iLevel;
+    FLocalPlayer.Level := iLevel;
 
     DoOnCharacterLogin;
   end;
@@ -543,9 +543,27 @@ begin
   DoOnInventoryChanged;
 end;
 
+function TDAOCConnection.CheckZoneChanged : boolean;
+begin
+  Result := false;
+  
+  if Assigned(FZone) then
+    if not FZone.ContainsPoint(FRegionID, FLocalPlayer.X, FLocalPlayer.Y) then begin
+      FZone := nil;
+      Result := true;
+    end;
+
+  if not Assigned(FZone) then begin
+    FZone := FZoneList.FindZoneForPoint(FRegionID, FLocalPlayer.X, FLocalPlayer.Y);
+    if Assigned(FZone) then
+      Result := true;
+  end;
+
+  if Result then
+    DoOnZoneChange;
+end;
+
 procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TDAOCPacket);
-var
-  bZoneChanged: boolean;
 begin
   pPacket.HandlerName := 'LocalPosUpdateFromClient';
   pPacket.seek(2);
@@ -556,22 +574,7 @@ begin
   FLocalPlayer.Y := pPacket.getLong;
   FLocalPlayer.HeadWord := pPacket.getShort;
 
-  bZoneChanged := false;
-
-  if Assigned(FZone) then
-    if not FZone.ContainsPoint(FRegionID, FLocalPlayer.X, FLocalPlayer.Y) then begin
-      FZone := nil;
-      bZoneChanged := true;
-    end;
-
-  if not Assigned(FZone) then begin
-    FZone := FZoneList.FindZoneForPoint(FRegionID, FLocalPlayer.X, FLocalPlayer.Y);
-    if Assigned(FZone) then
-      bZoneChanged := true;
-  end;
-
-  if bZoneChanged then
-    DoOnZoneChange;
+  CheckZoneChanged;
 
   DoOnPlayerPosUpdate;
   CheckObjectsOutOfRange;
@@ -657,6 +660,7 @@ begin
     $12:  ParseLocalHeadUpdateFromClient(pPacket);
     $18:  ParseSelectedIDUpdate(pPacket);
     $44:  ParseSetGroundTarget(pPacket);
+    $b8:  ParseCharacterActivationRequest(pPacket);
     $d0:  ParseRequestBuyItem(pPacket);
   end;
 end;
@@ -1068,6 +1072,8 @@ begin
 
   ClearDAOCObjectList;
   FVendorItems.Clear;
+
+  CheckZoneChanged;
 end;
 
 procedure TDAOCConnection.ParseNewObject(pPacket: TDAOCPacket;
@@ -1739,8 +1745,10 @@ end;
 
 procedure TDAOCConnection.SetSelectedObject(const Value: TDAOCObject);
 begin
-  FSelectedID := Value.InfoID;
-  DoOnSelectedObjectChanged(Value);
+  if FSelectedID <> Value.InfoID then begin
+    FSelectedID := Value.InfoID;
+    DoOnSelectedObjectChanged(Value);
+  end;
 end;
 
 procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TDAOCPacket);
@@ -1748,6 +1756,7 @@ var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
 begin
+  pPacket.HandlerName := 'CharacterStealthed';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
   if Assigned(pDAOCObject) then
@@ -1789,6 +1798,28 @@ procedure TDAOCConnection.DoVersionNumsSet;
 begin
   if Assigned(FOnVersionNumsSet) then
     FOnVersionNumsSet(Self, FVersionMajor, FVersionMinor, FVersionRelease);
+end;
+
+procedure TDAOCConnection.ParseCharacterActivationRequest(
+  pPacket: TDAOCPacket);
+var
+  sCharName:  string;
+begin
+  pPacket.HandlerName := 'CharacterActivationRequest';
+  pPacket.seek(4);
+  sCharName := pPacket.getNullTermString(28);
+  SetActiveCharacterByName(sCharName);
+  { account name follows as an NTS, but who cares }
+end;
+
+function TDAOCConnection.SetActiveCharacterByName(const ACharacterName: string) : TAccountCharInfo;
+begin
+  Result := FAccountCharacters.FindOrAddChar(ACharacterName);
+
+  FLocalPlayer.Level := Result.Level;
+  FLocalPlayer.Realm := Result.Realm;
+  FLocalPlayer.Name := Result.Name;
+  DoSetRegionID(Result.RegionID);
 end;
 
 end.
