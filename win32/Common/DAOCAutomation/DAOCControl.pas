@@ -14,7 +14,7 @@ interface
 
 uses
   SysUtils, Windows, Messages, Classes, SndKey32, DAOCConnection, DAOCObjs,
-  MapNavigator, ExtCtrls, DAOCWindows, MMSystem, Recipes,
+  MapNavigator, ExtCtrls, DAOCWindows, MMSystem, Recipes, DAOCInventory,
   MPKFile, QuickLaunchChars
 {$IFDEF DAOC_AUTO_SERVER}
   ,ComObj, ActiveX, AxCtrls, DAOCSkilla_TLB
@@ -97,6 +97,8 @@ type
     FKeyStrafeLeft:   string;
     FSendKeysSlashDelay:  integer;
     FQuickLaunchProfiles: TQuickLaunchProfileList;
+    FInventoryLookup: TDAOCInventoryItemLookupList;
+    FInventoryLookupEnabled:  boolean;
 
     function BearingToDest: integer;
     procedure SetArrowDown(const Value: boolean);
@@ -115,6 +117,7 @@ type
     function GetTradeRecipes: TUniversalRecipeCollection;
     procedure InternalTradeskillFailure;
     procedure NPCRightClickCallback(Sender: TObject; ALastY: Cardinal);
+    function GetInventoryLookup: TDAOCInventoryItemLookupList;
   protected
     procedure DoTurntoDest(AMaxTurnTime: integer);
     function PlayerToHeadingDelta(AHead: integer) : integer;
@@ -171,6 +174,7 @@ type
     procedure DoOnSelectNPCSuccess; virtual;
     procedure DoOnAttemptNPCRightClickSuccess; virtual;
     procedure DoOnAttemptNPCRightClickFailed; virtual;
+    procedure DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem); override; 
 
 {$IFDEF DAOC_AUTO_SERVER}
     function GetClassTypeInfo: ITypeInfo;
@@ -259,6 +263,7 @@ type
     property TurnRate: integer read FTurnRate;
     property MapNodes: TMapNodeList read FMapNodes;
     property CurrentPath: TMapNodeList read FCurrentPath;
+    property InventoryLookup: TDAOCInventoryItemLookupList read GetInventoryLookup;
     property WindowManager: TDAOCWindowManager read FWindowManager;
     property TradeRecipes: TUniversalRecipeCollection read GetTradeRecipes;
     property QuickLaunchChars: TQuickLaunchCharList read FQuickLaunchChars;
@@ -272,6 +277,7 @@ type
     property GotoDistTolerance: integer read FGotoDistTolerance write FGotoDistTolerance;
     property ForceStationaryTurnDegrees: integer read FForceStationaryTurnDegrees
       write FForceStationaryTurnDegrees;
+    property InventoryLookupEnabled: boolean read FInventoryLookupEnabled write FInventoryLookupEnabled;  
     property SendKeysSlashDelay: integer read FSendKeysSlashDelay write FSendKeysSlashDelay;
     property TurnUsingFaceLoc: boolean read FTurnUsingFaceLoc write FTurnUsingFaceLoc;
     property TradeSkillProgression: string read FTradeSkillProgression write SetTradeSkillProgression;
@@ -352,6 +358,7 @@ end;
 
 destructor TDAOCControl.Destroy;
 begin
+  FInventoryLookup.Free;
   FTradeRecipes.Free;
   FWindowManager.Free;
   StopAllActions;
@@ -497,6 +504,7 @@ begin
   FSendKeysSlashDelay := 100;
   FTurnUsingFaceLoc := false;
   FTurnRate := 700;
+  FInventoryLookupEnabled := true; 
 
   FLastPlayerPos := TDAOCMovingObject.Create;
   FMapNodes := TMapNodeList.Create;
@@ -1639,70 +1647,12 @@ begin
   Result := LaunchCharacter(FQuickLaunchChars[AIndex]);
 end;
 
-{$IFDEF DAOC_AUTO_SERVER}
-procedure TDAOCControl.SendKeysW(const S: WideString);
+procedure TDAOCControl.DoMobInventoryUpdate(AMob: TDAOCMovingObject; AItem: TDAOCInventoryItem);
 begin
-  DoSendKeys(s);
-end;
+  if FInventoryLookupEnabled and (AItem.Description = '') then 
+    AItem.Description := GetInventoryLookup.ItemName(AItem.ItemID);
 
-procedure TDAOCControl.EventSinkChanged(const EventSink: IInterface);
-begin
-  FAxEvents := EventSink as IDAOCControlEvents;
-end;
-
-function TDAOCControl.GetClassTypeInfo: ITypeInfo;
-begin
-  Result := AutoFactory.ClassInfo;
-end;
-
-procedure TDAOCControl.DAOCCLog(const AMessage: WideString);
-begin
-  Log(AMessage);
-end;
-
-procedure TDAOCControl.ChatAllianceW(const bsMessage: WideString);
-begin
-  ChatAlliance(bsMessage);
-end;
-
-procedure TDAOCControl.ChatChatW(const bsMessage: WideString);
-begin
-  ChatChat(bsMessage);
-end;
-
-procedure TDAOCControl.ChatGroupW(const bsMessage: WideString);
-begin
-  ChatGroup(bsMessage);
-end;
-
-procedure TDAOCControl.ChatGuildW(const bsMessage: WideString);
-begin
-  ChatGuild(bsMessage);
-end;
-
-procedure TDAOCControl.ChatSayW(const bsMessage: WideString);
-begin
-  ChatSay(bsMessage);
-end;
-
-procedure TDAOCControl.ChatSendW(const bsWho: WideString; const bsMessage: WideString);
-begin
-  ChatSend(bsWho, bsMessage);
-end;
-
-procedure TDAOCControl.PathToNodeNameW(const bsNodeName: WideString);
-begin
-  PathToNodeName(bsNodeName);
-end;
-
-procedure TDAOCControl.NodeLoadW(const bsFileName: WideString);
-begin
-  FMapNodes.LoadFromFile(bsFileName);
-end;
-
-procedure TDAOCControl.NodeSaveW(const bsFileName: WideString);
-begin
-  FMapNodes.SaveToFile(bsFileName);
+  inherited;
 end;
 
 procedure TDAOCControl.TradeskillStartProgression;
@@ -1815,6 +1765,95 @@ begin
   DoVKDown(wKey);
   sleep(ADuration);
   DoVKUp(wKey);
+end;
+
+function TDAOCControl.GetInventoryLookup: TDAOCInventoryItemLookupList;
+var
+  mpkGameData:  TMPKFile;
+  strmObjects:  TStream;
+begin
+  if not Assigned(FInventoryLookup) then begin
+    FInventoryLookup := TDAOCInventoryItemLookupList.Create;
+    if FileExists(FDAOCPath + 'gamedata.mpk') then begin
+      mpkGameData := TMPKFile.Create(FDAOCPath + 'gamedata.mpk');
+      strmObjects := mpkGameData.ExtractStream('objects.csv');
+      try
+        FInventoryLookup.LoadFromStream(strmObjects);
+        // GameDataMPKAvailable(mpkGameData);
+      finally
+        strmObjects.Free;
+        mpkGameData.Free;
+      end;
+    end;  { if file exists }
+  end;  { if not assigned FInventoryLookup }
+
+  Result := FInventoryLookup;
+end;
+
+{$IFDEF DAOC_AUTO_SERVER}
+procedure TDAOCControl.SendKeysW(const S: WideString);
+begin
+  DoSendKeys(s);
+end;
+
+procedure TDAOCControl.EventSinkChanged(const EventSink: IInterface);
+begin
+  FAxEvents := EventSink as IDAOCControlEvents;
+end;
+
+function TDAOCControl.GetClassTypeInfo: ITypeInfo;
+begin
+  Result := AutoFactory.ClassInfo;
+end;
+
+procedure TDAOCControl.DAOCCLog(const AMessage: WideString);
+begin
+  Log(AMessage);
+end;
+
+procedure TDAOCControl.ChatAllianceW(const bsMessage: WideString);
+begin
+  ChatAlliance(bsMessage);
+end;
+
+procedure TDAOCControl.ChatChatW(const bsMessage: WideString);
+begin
+  ChatChat(bsMessage);
+end;
+
+procedure TDAOCControl.ChatGroupW(const bsMessage: WideString);
+begin
+  ChatGroup(bsMessage);
+end;
+
+procedure TDAOCControl.ChatGuildW(const bsMessage: WideString);
+begin
+  ChatGuild(bsMessage);
+end;
+
+procedure TDAOCControl.ChatSayW(const bsMessage: WideString);
+begin
+  ChatSay(bsMessage);
+end;
+
+procedure TDAOCControl.ChatSendW(const bsWho: WideString; const bsMessage: WideString);
+begin
+  ChatSend(bsWho, bsMessage);
+end;
+
+procedure TDAOCControl.PathToNodeNameW(const bsNodeName: WideString);
+begin
+  PathToNodeName(bsNodeName);
+end;
+
+procedure TDAOCControl.NodeLoadW(const bsFileName: WideString);
+begin
+  FMapNodes.LoadFromFile(bsFileName);
+end;
+
+procedure TDAOCControl.NodeSaveW(const bsFileName: WideString);
+begin
+  FMapNodes.SaveToFile(bsFileName);
 end;
 
 initialization
