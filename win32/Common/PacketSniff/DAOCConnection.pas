@@ -65,7 +65,7 @@ type
     FVersionRelease: byte;
     FCryptKey:  TDAOCCryptKey;
     FCryptKeySet: boolean;
-    FLargestDAOCPacketSeen:   integer;
+    FLargestDAOCPacketSeen: DWORD;
     FAccountCharacters:  TAccountCharInfoList;
     FServerProtocol:  byte;
 
@@ -250,7 +250,7 @@ type
     property CryptKey: string read GetCryptKey write SetCryptKey;
     property DAOCObjects: TDAOCObjectList read FDAOCObjs;
     property GroundTarget: TMapNode read FGroundTarget;
-    property LargestDAOCPacketSeen: integer read FLargestDAOCPacketSeen;
+    property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
     property MaxObjectUpdtDistance: double write SetMaxObjectUpdtDistance; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
@@ -535,7 +535,7 @@ begin
   pPacket.HandlerName := 'InventoryList';
   iItemCount := pPacket.getByte;
   pPacket.seek(3);
-  while (iItemCount > 0) and (pPacket.Position < pPacket.Size) do begin
+  while (iItemCount > 0) and not pPacket.EOF do begin
     pTmpItem := TDAOCInventoryItem.Create;
     pTmpItem.Slot := pPacket.getByte;
     pTmpItem.Level := pPacket.getByte;
@@ -643,21 +643,19 @@ function TDAOCConnection.PlayerZoneX: DWORD;
 begin
   Result := FLocalPlayer.X;
   if Assigned(FZone) then
-    Result := FZone.ZoneConvertX(Result);
+    Result := FZone.WorldToZoneX(Result);
 end;
 
 function TDAOCConnection.PlayerZoneY: DWORD;
 begin
   Result := FLocalPlayer.Y;
   if Assigned(FZone) then
-    Result := FZone.ZoneConvertY(Result);
+    Result := FZone.WorldToZoneY(Result);
 end;
 
 function TDAOCConnection.PlayerZoneZ: DWORD;
 begin
   Result := FLocalPlayer.Z;
-  if Assigned(FZone) then
-    Result := FZone.ZoneConvertZ(Result);
 end;
 
 procedure TDAOCConnection.ProcessDAOCPacketFromClient(
@@ -1006,8 +1004,8 @@ begin
         iZoneBase := pPacket.getByte;
         SetZoneBase;
         if Assigned(pZoneBase) then begin
-          X := pZoneBase.ZoneConvertX(X);
-          Y := pZoneBase.ZoneConvertY(Y);
+          X := pZoneBase.ZoneToWorldX(X);
+          Y := pZoneBase.ZoneToWorldY(Y);
         end;
 
           { adjust DestX, DestY to global coords }
@@ -1015,8 +1013,8 @@ begin
           iZoneBase := pPacket.getByte;
           SetZoneBase;
           if Assigned(pZoneBase) then begin
-            DestinationX := pZoneBase.ZoneConvertX(DestinationX);
-            DestinationY := pZoneBase.ZoneConvertY(DestinationY);
+            DestinationX := pZoneBase.ZoneToWorldX(DestinationX);
+            DestinationY := pZoneBase.ZoneToWorldY(DestinationY);
           end;
         end;  { if dest <> 0 }
       end  { protocol }
