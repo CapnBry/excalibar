@@ -108,15 +108,16 @@ class exMapElementLine : public exMapElement {
 };
 
 class exMapPNGLoaderDialog : public QObject, public QThread {
-	Q_OBJECT
-	public:
-	        exMapPNGLoaderDialog  (void);
-	        ~exMapPNGLoaderDialog (void);
+Q_OBJECT
+public:
+        exMapPNGLoaderDialog  (void);
+        ~exMapPNGLoaderDialog (void);
 
-		virtual void run (void);
-	        virtual bool event (QEvent *e);
-	protected:
-	        QProgressDialog *pdProgress;
+	virtual void run (void);
+        virtual bool event (QEvent *e);
+protected:
+	friend class exMapPNGLoader;
+        QProgressDialog *pdProgress;
 };
 
 class exMapPNGLoader : public QObject, public QThread {
@@ -131,8 +132,11 @@ public:
         virtual bool event (QEvent *e);
 
 	exMapPNGLoaderDialog empldProgress;
-	protected:
+protected:
+	bool m_bGhettoMutex;
         exMap *parent;
+public slots:
+	void abort (void);
 };
 
 

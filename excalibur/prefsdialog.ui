@@ -111,6 +111,133 @@
             </attribute>
             <widget class="QGroupBox">
                 <property name="name">
+                    <cstring>GroupBox1</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>10</y>
+                        <width>110</width>
+                        <height>120</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>GL Smoothing</string>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout4</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>90</width>
+                            <height>92</height>
+                        </rect>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothPoints</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Points</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothLines</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Lines</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothPolygons</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Polygons</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox4</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>490</x>
+                        <y>10</y>
+                        <width>110</width>
+                        <height>70</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>AutoSimplify</string>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>MapSimplifyRangeLabel</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>90</width>
+                            <height>22</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>TextLabel1</string>
+                    </property>
+                </widget>
+                <widget class="QSlider">
+                    <property name="name">
+                        <cstring>MapSimplifyRange</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>40</y>
+                            <width>90</width>
+                            <height>24</height>
+                        </rect>
+                    </property>
+                    <property name="minValue">
+                        <number>25</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>300</number>
+                    </property>
+                    <property name="lineStep">
+                        <number>10</number>
+                    </property>
+                    <property name="pageStep">
+                        <number>25</number>
+                    </property>
+                    <property name="value">
+                        <number>50</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
                     <cstring>GroupBox2</cstring>
                 </property>
                 <property name="geometry">
@@ -175,129 +302,94 @@
             </widget>
             <widget class="QGroupBox">
                 <property name="name">
-                    <cstring>GroupBox4</cstring>
+                    <cstring>GroupBox10</cstring>
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>480</x>
-                        <y>10</y>
-                        <width>120</width>
-                        <height>90</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>AutoSimplify</string>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>MapSimplifyRangeLabel</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>100</width>
-                            <height>22</height>
-                        </rect>
-                    </property>
-                    <property name="text">
-                        <string>TextLabel1</string>
-                    </property>
-                </widget>
-                <widget class="QSlider">
-                    <property name="name">
-                        <cstring>MapSimplifyRange</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>50</y>
-                            <width>100</width>
-                            <height>24</height>
-                        </rect>
-                    </property>
-                    <property name="minValue">
-                        <number>25</number>
-                    </property>
-                    <property name="maxValue">
-                        <number>300</number>
-                    </property>
-                    <property name="lineStep">
-                        <number>10</number>
-                    </property>
-                    <property name="pageStep">
-                        <number>25</number>
-                    </property>
-                    <property name="value">
-                        <number>50</number>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>GroupBox1</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>10</y>
-                        <width>110</width>
+                        <x>298</x>
+                        <y>9</y>
+                        <width>180</width>
                         <height>120</height>
                     </rect>
                 </property>
                 <property name="title">
-                    <string>GL Smoothing</string>
+                    <string>PNG loader</string>
                 </property>
-                <widget class="QLayoutWidget">
+                <widget class="QCheckBox">
                     <property name="name">
-                        <cstring>Layout4</cstring>
+                        <cstring>LoadAdjacentPNGs</cstring>
                     </property>
                     <property name="geometry">
                         <rect>
                             <x>10</x>
                             <y>20</y>
-                            <width>90</width>
-                            <height>92</height>
+                            <width>160</width>
+                            <height>27</height>
                         </rect>
                     </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothPoints</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Points</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothLines</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Lines</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothPolygons</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Polygons</string>
-                            </property>
-                        </widget>
-                    </vbox>
+                    <property name="cursor">
+                        <cursor>0</cursor>
+                    </property>
+                    <property name="text">
+                        <string>Draw Adjacent Zones</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>CheckBox17</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>40</y>
+                            <width>140</width>
+                            <height>27</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Use Mip Mapping</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>CheckBox18</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>60</y>
+                            <width>160</width>
+                            <height>27</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Use Texture Filtering</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>CheckBox19</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>80</y>
+                            <width>150</width>
+                            <height>27</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Disable PNG Maps</string>
+                    </property>
                 </widget>
             </widget>
         </widget>

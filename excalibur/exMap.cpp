@@ -21,6 +21,7 @@
 
 #include "exMap.h"
 #include "exMob.h"
+#include "exMapInfo.h"
 #include "exLineSimplify.h"
 #include <math.h>
 #include <GL/glut.h>
@@ -352,7 +353,7 @@ void exMap::paintGL() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  qglColor( white );
+  qglColor( yellow );
 
   glPushMatrix();
   glTranslated(c->playerx,c->playery,c->playerz);
@@ -646,14 +647,13 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  if (PNGLoader.running()) {
-      qWarning("Poor Man's Mutex Error:\tUnable to ABORT PNG Loading Engine..  Multiple threads may occur!!!!!!!!!!");
-BEGIN_EXPERIMENTAL_CODE
-      QMessageBox::information(0,"PNG Loading Engine", "***WARNING*** Polly needs a THREAD MUTEX! (and a cracker) ***WARNING***");
-END_EXPERIMENTAL_CODE
+  if (PNGLoader.running())
+  {
+    PNGLoader.abort();
+    PNGLoader.run();
+  } else {
+    PNGLoader.start();
   }
-
-  PNGLoader.start();
 
   QFile f;
   f.setName(QString("usermaps/").append(mi->getName()));
@@ -1046,27 +1046,54 @@ void exMapElementLine::draw(exMap *map) {
   glEnd();  
 }
 
-exMapPNGLoader::exMapPNGLoader  (void) {}
-exMapPNGLoader::~exMapPNGLoader (void) {}
+exMapPNGLoader::exMapPNGLoader  (void) {m_bGhettoMutex = true;}
+exMapPNGLoader::~exMapPNGLoader (void) {m_bGhettoMutex = false;}
 
 void exMapPNGLoader::setParent ( exMap *parent )
 {
   this->parent = parent;
+/*  connect ( &empldProgress, SIGNAL(cancelled (void)),
+            this,           SLOT  (abort     (void)) ); */
   empldProgress.start();
 }
 
-/*this code was writting by Andon while he was toasted thats why it causes
-  segvs out the ass*/
 void exMapPNGLoader::run (void)
 {
   int x,y;
   int w,h;
-  const int xadd = parent->mi->getBaseX();
-  const int yadd = parent->mi->getBaseY();
 
   parent->map.clear();
 
-  QFile fimg(QString().sprintf("maps/zone%03d.png", parent->mi->getZoneNum()));
+  exMapInfo *mi;
+
+  empldProgress.pdProgress->reset();
+  m_bGhettoMutex = true;
+
+  for  (mi = parent->mi->getAdjacentZones(); mi && m_bGhettoMutex; mi = parent->mi->getAdjacentZones(mi->getZoneNum())) {
+
+    while (! prefs.map_loadadjacentpngs && mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum()) {
+      mi = parent->mi->getAdjacentZones(mi->getZoneNum());
+BEGIN_EXPERIMENTAL_CODE
+      if (mi != NULL && mi->getZoneNum() != parent->mi->getZoneNum())
+        printf("Ignoring Adjacent Zone:\t(ID - %3d)\t- Disabled...\n", mi->getZoneNum());
+END_EXPERIMENTAL_CODE
+      }
+
+      if (mi == NULL)
+        break;
+
+BEGIN_EXPERIMENTAL_CODE
+    printf("Loading Adjacent Zone:\t(ID - %3d)\n", mi->getZoneNum());
+END_EXPERIMENTAL_CODE
+
+    if (empldProgress.pdProgress->wasCancelled())
+      m_bGhettoMutex = false;
+
+    const int xadd = mi->getBaseX();
+    const int yadd = mi->getBaseY();
+
+
+  QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
   if (fimg.exists()) {
     QImage img;
     if (img.load(fimg.name())) {
@@ -1075,8 +1102,8 @@ void exMapPNGLoader::run (void)
       parent->ignore_fill = true;
       if (! empldProgress.running())
          empldProgress.start();
-      for(y=0;y<8;y++) {
-        for(x=0;x<8;x++) {
+      for(y=0;y<8&&m_bGhettoMutex;y++) {
+        for(x=0;x<8&&m_bGhettoMutex;x++) {
           qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_STAT, (void*)(y * 8 + x + 1)));
           struct PNGCallback *pc;
           pc = new struct PNGCallback;
@@ -1095,6 +1122,8 @@ void exMapPNGLoader::run (void)
   }
   qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)0));
 }
+}
+
 
 bool exMap::event (QEvent *e)
 {
@@ -1118,11 +1147,16 @@ bool exMap::event (QEvent *e)
 bool exMapPNGLoader::event (QEvent *e)
 {
   if (e->type() == CALLBACK_PNG_ABRT) {
-/*  Not Implimented yet.  You're lucky I did this much, muhahah
-      - Andon */
+    m_bGhettoMutex = false;
     return true;
   }
   return false;
+}
+
+void exMapPNGLoader::abort (void)
+{
+  m_bGhettoMutex = false;
+  cleanup();
 }
 
 exMapPNGLoaderDialog::exMapPNGLoaderDialog (void)
@@ -1139,8 +1173,14 @@ void exMapPNGLoaderDialog::run (void)
 {
   pdProgress->reset();
 
-  while (1)
-    sleep(360);
+  while (1) {
+    if (pdProgress->isVisible()) {
+      pdProgress->repaint();
+      sleep(1);
+    } else {
+      sleep(360);
+    }
+  }
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)

@@ -87,6 +87,7 @@ void exPrefs::show() {
   dlg->GLMapRotate->setChecked(map_rotate);
   dlg->GLSimpleObjects->setChecked(map_simple);
   dlg->GLMapFill->setChecked(map_fill);
+  dlg->LoadAdjacentPNGs->setChecked(map_loadadjacentpngs);
   dlg->AgroCircles->setChecked(agro_circles);
   dlg->AgroFading->setChecked(agro_fading);
 
@@ -143,6 +144,8 @@ void exPrefs::accept() {
   map_autosimplifyrange=dlg->MapSimplifyRange->value();
 
   map_fill=dlg->GLMapFill->isOn();
+
+  map_loadadjacentpngs=dlg->LoadAdjacentPNGs->isOn();
 
 
   agro_circles=dlg->AgroCircles->isOn();
@@ -207,6 +210,7 @@ void exPrefs::loadSettings() {
   map_fade=s.readBoolEntry("/Excalibur/GLMapFade", TRUE);
   map_fill=s.readBoolEntry("/Excalibur/GLMapFill", TRUE);
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
+  map_loadadjacentpngs=s.readBoolEntry("/Excalibur/LoadAdjacentPNGs", FALSE);
 
 
   player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
@@ -255,6 +259,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/GLMapFade", map_fade);
   s.writeEntry("/Excalibur/GLMapFill", map_fill);
   s.writeEntry("/Excalibur/MapAutoSimplifyRange", map_autosimplifyrange);
+  s.writeEntry("/Excalibur/LoadAdjacentPNGs", map_loadadjacentpngs);
   s.writeEntry("/Excalibur/AutoSelectTarget", select_target);
   s.writeEntry("/Excalibur/GroupPlayers", sort_group_players);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);

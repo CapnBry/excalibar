@@ -32,26 +32,28 @@ typedef QPtrList<exMapInfo> exMapInfoList;
 
 class exMapInfo {
   private:
-    int zone;
+    int region;
     int basex;
     int basey;
     int maxx;
     int maxy;
     int rotations;
-    int zonenum;
+    int zone;
     QString fileName;
     static QPtrDict<exMapInfoList> maps;
   public:
-    exMapInfo(int nzone, int bx, int by, int mx, int my, int rots, QString fname, int nzonenum);
-    bool right(int nzone, int x, int y);
+    exMapInfo(int nregion, int bx, int by, int mx, int my, int rots, QString fname, int nzone);
+    bool right(int nregion, int x, int y);
+    bool adjoin(int nregion, int xbase, int ybase, int xmax, int ymax);
     QString getName() const;
     int getBaseX() const;
     int getBaseY() const;
     int getRotate() const;
     int getZoneNum() const;
     QString getZoneName() const;
+    exMapInfo *getAdjacentZones (int iZoneCheck = -1) const;
     static void setup(QString infofile);
-    static exMapInfo *get(int zone, int x, int y);
+    static exMapInfo *get(int region, int x, int y);
 };
 
 #else
