@@ -1,3 +1,33 @@
+Peonslayer (01/Jan/26)
+----------------------
+ + Added Experience Window with all kinds of features for monitoring
+   experience progression.
+
+Peonslayer (01/Jan/15)
+----------------------
+ + Added agro lines and option to preference to switch on/off.
+ + Cleaned up processPacket and moved every opCode that wasn't 
+   already out to a member function.
+ + Added documentation on unknown packet structures to processPacket
+   and member functions where there are unknowns.  This information
+   was found at dolserver.sourceforge.net under the forum Packet
+   Documentation, Sticky - known packet.
+
+Peonslayer (01/Jan/11)
+----------------------
+ + Added parsing of who and examine system messages to obtain player 
+   classes.
+ + Streamlined class string lookups with string array.  Added support
+   for female class variants.
+
+Peonslayer (01/Jan/04)
+----------------------
+ + Added depth fade configuration options to allow better control
+   over depth fading in dungeons.
+ + Added Zoom number to indicate value of Zoom slider to status bar.
+ + Added Quick Zoom options to menu bar with hotkeys.  Provides the
+   ability to quickly switch between default zoom levels.
+
 Teerex (04/Jun/03)
 ------------------
  + Excalibur release 1.2.8
