@@ -53,6 +53,7 @@ type
     FArrowRight: boolean;
 
     FLastPlayerPos: TDAOCMovingObject;
+    FLastPlayerPosTime:   Cardinal;
     FSamePlayerPosCount:  integer;
     FMapNodes:    TMapNodeList;
     FTurnRateCalLeft: integer;
@@ -316,7 +317,7 @@ type
 implementation
 
 uses
-  ComServ, ChatParse;
+  ComServ, ChatParse, GlobalTickCounter;
 
 const
   TURNRATE_CAL_COUNT = 5;
@@ -376,12 +377,19 @@ begin
   if FTurnRateCalLeft > 0 then
     ContinueTurnRateCal;
 
-  if FLastPlayerPos.SameLocAndHead(FLocalPlayer) then
-    inc(FSamePlayerPosCount)
-  else
+  if FLastPlayerPos.SameLocAndHead(FLocalPlayer) then begin
+      { we get updates here from both head and pos packets, so make sure
+        we don't double ding the poscount for two packets representing the
+        same position data } 
+    if (GlobalTickCount - FLastPlayerPosTime > 1000) then begin
+      FLastPlayerPosTime := GlobalTickCount;
+      inc(FSamePlayerPosCount);
+    end;
+  end
+  else begin
     FSamePlayerPosCount := 0;
-
-  FLastPlayerPos.Assign(FLocalPlayer);
+    FLastPlayerPos.Assign(FLocalPlayer);
+  end;
 
   if Assigned(FDestGotoNode) then
     DoGotoDest;
@@ -1242,7 +1250,7 @@ end;
 function TDAOCControl.StuckGoingToDest: boolean;
 begin
   Result := Assigned(FDestGotoNode) and ArrowUp and
-    (FSamePlayerPosCount > 3);
+    (FSamePlayerPosCount > 2);
 end;
 
 procedure TDAOCControl.DoOnPathChanged;
