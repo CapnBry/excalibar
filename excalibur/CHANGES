@@ -1,5 +1,13 @@
 Andon (07/Mar/02)
 -----------------
+Bug Fixes:
+ + Vector maps work again
+
+ * Version bumped to 1.2.2b
+
+
+Andon (07/Mar/02)
+-----------------
 Changes:
  + The Map Loader progress indicator has been
    moved to the status bar to conserve valued

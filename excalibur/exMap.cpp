@@ -1261,12 +1261,12 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
 
   /* Not sure what the issue here is.. Something isn't thread safe!!! */
 
-  const char* chName;
+  QString qsName;
   try {
-    chName = ((exMapInfo*)mi)->getName().latin1();
+    qsName = ((exMapInfo*)mi)->getName();
 
-    if (chName == NULL || sizeof(chName) <= 4) {
-      Q_ASSERT(chName == NULL || sizeof(chName) <= 4);
+    if (qsName == NULL) {
+      Q_ASSERT(qsName != NULL);
       return;
     }
   } catch (...) {
@@ -1276,13 +1276,13 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
 
 
   QFile f;
-  f.setName(QString("usermaps/").append(chName));
+  f.setName(QString("usermaps/").append(qsName));
 
   if (! f.open(IO_ReadOnly)) {
-    f.setName(QString("maps/").append(chName));
+    f.setName(QString("maps/").append(qsName));
 
     if (! f.open(IO_ReadOnly)) {
-      qWarning("Failed to open map named %s",chName);
+      qWarning("Failed to open map named %s",qsName.latin1());
       elem = new exMapElementPoint();
       elem->fromString("NO MAP LOADED", xadd, yadd);
       map.append(elem);
@@ -1322,7 +1322,7 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
         }
 
         if (! ok) {
-          qWarning("\nSub-Element: %d\n>>   %s\n>>>  %s\n>>>> was not accepted.\n", i, (const char*)line.left(line.length() -1), chName); 
+          qWarning("\nSub-Element: %d\n>>   %s\n>>>  %s\n>>>> was not accepted.\n", i, (const char*)line.left(line.length() -1), qsName.latin1()); 
           if (elem)
             delete elem;
         }
