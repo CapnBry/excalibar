@@ -208,61 +208,95 @@ private:
 class HeadPoint : public CSLCommandAPI
 {
 public:
+    HeadPoint(){proxy=0;};
+    ~HeadPoint(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadPoint(*this));};
 protected:
 private:
+    int x;
+    int y;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadPoint
 
 class HeadActor : public CSLCommandAPI
 {
 public:
+    HeadActor(){proxy=0;};
+    ~HeadActor(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadActor(*this));};
 protected:
 private:
+    std::string Name;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadActor
 
 class HeadTarget: public CSLCommandAPI
 {
 public:
+    HeadTarget(){proxy=0;};
+    ~HeadTarget(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadTarget(*this));};
 protected:
 private:
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadTarget
 
 class HeadPointRelative : public CSLCommandAPI
 {
 public:
+    HeadPointRelative(){proxy=0;};
+    ~HeadPointRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadPointRelative(*this));};
 protected:
 private:
+    int x;
+    int y;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadPointRelative
 
 class HeadActorRelative : public CSLCommandAPI
 {
 public:
+    HeadActorRelative(){proxy=0;};
+    ~HeadActorRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadActorRelative(*this));};
 protected:
 private:
+    std::string Name;
+    float angle_radians;
+    float distance;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadActorRelative
 
 class HeadTargetRelative : public CSLCommandAPI
 {
 public:
+    HeadTargetRelative(){proxy=0;};
+    ~HeadTargetRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadTargetRelative(*this));};
 protected:
 private:
+    float angle_degrees;
+    float distance;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class HeadTargetRelative
 
 class KeyboardPress: public CSLCommandAPI
