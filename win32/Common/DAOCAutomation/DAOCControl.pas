@@ -511,7 +511,7 @@ begin
   pNode.X := FLocalPlayer.X;
   pNode.Y := FLocalPlayer.Y;
   pNode.Z := FLocalPlayer.Z;
-  pNode.Head := FLocalPlayer.Head;
+  pNode.Head := PlayerZoneHead;
   pNode.Radius := FMapNodes.DefaultRadius;
   try
     FMapNodes.Add(pNode);
@@ -657,8 +657,8 @@ begin
     inc(AHead, 360);
   Result := AHead - FLocalPlayer.Head;
   if Result > 180 then
-    dec(Result, 360);
-  if Result < -180 then
+    dec(Result, 360)
+  else if Result < -180 then
     inc(Result, 360);
 end;
 
