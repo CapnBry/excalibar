@@ -72,6 +72,10 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	    TestSegSearch(lpCmdLine);
 	    }
 	#endif
+	
+	// select network device
+	SelectDevice(hInstance);
+	
 	cMain MainApp(hInstance);
 	cSniffer Sniffer;
 	cDStream DStream;

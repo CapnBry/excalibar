@@ -41,6 +41,7 @@ using namespace Network;
 
 unsigned short GetWord(unsigned char *data);
 void TestSegSearch(const char* cmd_line);
+void SelectDevice(HINSTANCE hInst);
 
 extern cMain *pMain;
 extern cSniffer *pSniffer;

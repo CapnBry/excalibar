@@ -152,6 +152,9 @@
 				RelativePath=".\segmentsearcher.cpp">
 			</File>
 			<File
+				RelativePath=".\selectdevice.cpp">
+			</File>
+			<File
 				RelativePath=".\Sniffer.cpp">
 			</File>
 			<File
