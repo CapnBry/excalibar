@@ -1354,6 +1354,10 @@ begin
     FRenderPrefs.Width := Width;
     FRenderPrefs.Height := Height;
     FRenderPrefs.Range := FRange;
+      { turn off attempt download if continuous failure }
+    FRenderPrefs.AttemptMapDownload := FRenderPrefs.AttemptMapDownload and
+      FMapTexturesListList.AttemptDownload and FMapElementsListList.AttemptDownload;
+
     FRenderPrefs.SaveSettings(FPrefsFile);
     FRangeCircles.SaveToFile(FPrefsFile);
   end;
