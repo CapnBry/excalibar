@@ -2,7 +2,7 @@ unit DStreamDefs;
 
 (****************************************************************************
 **
-** Copyright (C) 2003 Bryan Mayland.  All rights reserved.
+** Copyright (C) 2004 Bryan Mayland.  All rights reserved.
 **
 ** This file may be distributed and/or modified under the terms of the
 ** GNU General Public License version 2 as published by the Free Software
