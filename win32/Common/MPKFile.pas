@@ -88,6 +88,7 @@ type
     procedure ExtractToDirectory(const AName, ADirName: string);
     procedure ExtractAllToDirectory(const ADirName: string);
     function ExtractStream(const AName: string) : TMemoryStream;
+    function ExtractStreamIdx(AIndex: integer) : TMemoryStream;
 
     property FileName: string read FFileName write SetFileName;
     property InternalName: string read FInternalName;
@@ -157,11 +158,17 @@ end;
 function TMPKFile.ExtractStream(const AName: string): TMemoryStream;
 var
   iIndex:     integer;
-  iStrmSize:  integer;
 begin
   iIndex := FDirectory.IndexOf(AName);
-  if iIndex <> -1 then
-    iStrmSize := FDirectory[iIndex].FUncompressedSize
+  Result := ExtractStreamIdx(iIndex);
+end;
+
+function TMPKFile.ExtractStreamIdx(AIndex: integer): TMemoryStream;
+var
+  iStrmSize:  integer;
+begin
+  if AIndex <> -1 then
+    iStrmSize := FDirectory[AIndex].FUncompressedSize
   else
     iStrmSize := 0;
 
@@ -173,7 +180,7 @@ begin
     Result := TMemoryStream.Create;
 
   Result.Size := iStrmSize;
-  ExtractIdxToStream(iIndex, Result);
+  ExtractIdxToStream(AIndex, Result);
   Result.Seek(0, soFromBeginning);
 end;
 
