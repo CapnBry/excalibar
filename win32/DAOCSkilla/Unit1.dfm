@@ -3,6 +3,7 @@ object frmMain: TfrmMain
   Top = 223
   Width = 510
   Height = 331
+  BorderIcons = [biSystemMenu, biMinimize, biMaximize, biHelp]
   Caption = 'DAOC Skilla'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

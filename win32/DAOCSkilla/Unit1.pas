@@ -124,6 +124,7 @@ type
     procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
     procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
     procedure DAOCArriveAtGotoDest(ASender: TObject);
+    procedure DAOCSelectNPCSuccess(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -342,6 +343,7 @@ begin
   FConnection.OnUnknownStealther := DAOCUnknownStealther;
   FConnection.OnDelveItem := DAOCDelveItem;
   FConnection.OnArriveAtGotoDest := DAOCArriveAtGotoDest;
+  FConnection.OnSelectNPCSuccess := DAOCSelectNPCSuccess;
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
@@ -406,8 +408,11 @@ begin
     chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', Now);
+    FConnection.TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
+    FConnection.KeyQuickSell := ReadString('Keys', 'QuickSell', FConnection.KeyQuickSell);
+    FConnection.KeySelectFriendly := ReadString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
 
     frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
     frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
@@ -475,6 +480,9 @@ begin
     WriteDateTime('Main', 'LastUpdateCheck', FLastUpdateCheck);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
+    WriteBool('Main', 'TurnUsingFaceLoc', FConnection.TurnUsingFaceLoc);
+    WriteString('Keys', 'QuickSell', FConnection.KeyQuickSell);
+    WriteString('Keys', 'SelectFriendly', FConnection.KeySelectFriendly);
 
     WriteString('Main', 'Adapter', frmConnectionConfig.AdapterName);
     WriteBool('Main', 'ProcessLocally', frmConnectionConfig.ProcessLocally);
@@ -1119,6 +1127,11 @@ end;
 procedure TfrmMain.DAOCArriveAtGotoDest(ASender: TObject);
 begin
   frmMacroing.DAOCArriveAtGotoDest;
+end;
+
+procedure TfrmMain.DAOCSelectNPCSuccess(ASender: TObject);
+begin
+  frmMacroing.DAOCSelectNPCSuccess;
 end;
 
 end.
