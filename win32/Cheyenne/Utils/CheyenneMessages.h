@@ -39,30 +39,30 @@ namespace opcodes
     typedef const unsigned char c_opcode_t;
     typedef unsigned char opcode_t;
 
-    c_opcode_t player_pos_update=0x01;      // 1
-    c_opcode_t self_health_update=0x05;     // 5
-    c_opcode_t system_message=0x07;         // 7
-    c_opcode_t mob_pos_update=0x09;         // 9
-    c_opcode_t delete_object=0x0A;          // 10
-    c_opcode_t player_head_update=0x12;     // 18
-    c_opcode_t set_hp=0x14;                 // 20
-    c_opcode_t player_target=0x18;          // 24
-    c_opcode_t self_zone_change=0x1F;       // 31
-    c_opcode_t xp=0x39;                     // 57
-    c_opcode_t ground_target=0x44;          // 68
-    c_opcode_t begin_crafting=0x45;         // 69
-    c_opcode_t stealth=0x49;                // 73
-    c_opcode_t name_realm_zone=0x55;        // 85
-    c_opcode_t craft_timer=0x5B;            // 91
-    c_opcode_t unknown_purpose=0x6C;        // 108
-    c_opcode_t object_id=0x71;              // 113
-    c_opcode_t mob_id=0x72;                 // 114
-    c_opcode_t player_id=0x7C;              // 124
-    c_opcode_t selfid_pos=0x88;             // 136
-    c_opcode_t crypt_and_version=0x8A;      // 138
-    c_opcode_t inventory_change=0xAA;       // 170
-    c_opcode_t object_equipment=0xBD;       // 189
-    c_opcode_t player_level_name=0xBE;      // 190
+    c_opcode_t player_pos_update=0xA9; //0x01;      // 1
+    c_opcode_t self_health_update=0xAD; //0x05;     // 5
+    c_opcode_t system_message=0xAF; //0x07;         // 7
+    c_opcode_t mob_pos_update=0xA1; //0x09;         // 9
+    c_opcode_t delete_object=0xA2; //0x0A;          // 10
+    c_opcode_t player_head_update=0xBA; //0x12;     // 18
+    c_opcode_t set_hp=0xBC; //0x14;                 // 20
+    c_opcode_t player_target=0xB0; //0x18;          // 24
+    c_opcode_t self_zone_change=0xB7; //0x1F;       // 31
+    c_opcode_t xp=0x91; //0x39;                     // 57
+    c_opcode_t ground_target=0xEC; //0x44;          // 68
+    c_opcode_t begin_crafting=0xED; //0x45;         // 69
+    c_opcode_t stealth=0xE1; //0x49;                // 73
+    c_opcode_t name_realm_zone=0xFD; //0x55;        // 85
+    c_opcode_t craft_timer=0xF3; //0x5B;            // 91
+    c_opcode_t unknown_purpose=0xC4; //0x6C;        // 108
+    c_opcode_t object_id=0xD9; //0x71;              // 113
+    c_opcode_t mob_id=0xDA; //0x72;                 // 114
+    c_opcode_t player_id=0xD4; //0x7C;              // 124
+    c_opcode_t selfid_pos=0x20; //0x88;             // 136
+    c_opcode_t crypt_and_version=0x22; //0x8A;      // 138
+    c_opcode_t inventory_change=0x02; //0xAA;       // 170
+    c_opcode_t object_equipment=0x15; //0xBD;       // 189
+    c_opcode_t player_level_name=0x16; //0xBE;      // 190
 }; // end namespace opcodes
 
 namespace daocmessages
