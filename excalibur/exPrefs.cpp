@@ -34,10 +34,8 @@
 #include "exMap.h"
 
 exPrefs::exPrefs() {
-#ifndef __APPLE__
   loadSettings();
   activate();
-#endif
 }
 
 void exPrefs::activate() {
