@@ -659,46 +659,48 @@ void exMap::mapRead() {
     f.setName(QString("maps/").append(mi->getName()));
     if (! f.open(IO_ReadOnly)) {
       qWarning("Failed to open map named %s",(const char *) mi->getName());
-      return;
+      elem = new exMapElementPoint();
+      elem->fromString("NO MAP LOADED", xadd, yadd);
+      map.append(elem);
     }
-  }
+    else {
+      f.readLine(line, 0x10000);
 
-  f.readLine(line, 0x10000);
+      while (f.readLine(line, 0x10000)!=-1) {
+        bool ok;
+        QStringList split=QStringList::split(",",line,TRUE);
+        QStringList lst;
+        for(i=0;i<split.size();i++) 
+          lst+=split[i].simplifyWhiteSpace().stripWhiteSpace();
 
+        if (lst.size() < 3) 
+          continue;
 
-  while (f.readLine(line, 0x10000)!=-1) {
-    bool ok;
-    QStringList split=QStringList::split(",",line,TRUE);
-    QStringList lst;
-    for(i=0;i<split.size();i++) 
-      lst+=split[i].simplifyWhiteSpace().stripWhiteSpace();
+        ok = false;
+        elem = NULL;
 
-    if (lst.size() < 3) 
-      continue;
-
-    ok = false;
-    elem = NULL;
-
-    cmd=lst[0];
-    if (cmd.length() == 1) {
-      switch (cmd[0].latin1()) {
-        case 'M':
-        case 'F':
-          elem=new exMapElementLine();
-          break;
-        case 'P':
-          elem=new exMapElementPoint();
-          break;
+        cmd=lst[0];
+        if (cmd.length() == 1) {
+          switch (cmd[0].latin1()) {
+            case 'M':
+            case 'F':
+              elem=new exMapElementLine();
+              break;
+            case 'P':
+              elem=new exMapElementPoint();
+              break;
+          }
+          if (elem && elem->fromString(lst, xadd, yadd)) {
+             ok = true;
+             map.append(elem);
+          }
+        }
+        if (! ok) {
+          qWarning("Map element %s was not accepted", (const char *)line);
+          if (elem)
+            delete elem;
+        }
       }
-      if (elem && elem->fromString(lst, xadd, yadd)) {
-         ok = true;
-         map.append(elem);
-      }
-    }
-    if (! ok) {
-      qWarning("Mapelement %s was not accepted", (const char *)line);
-      if (elem)
-        delete elem;
     }
   }
 }
