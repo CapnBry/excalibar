@@ -7,10 +7,13 @@ uses
 
 type
   TDAOCChatParser = class;
+  TDAOCCurrencyChangeReason = (ccrUnknown, ccrLootSolo, ccrLootGroup, ccrTask,
+    ccrSellItem, ccrBuyCon, ccrBuyItem, ccrRepairItem);
 
   TDAOCParserNotify = procedure (Sender: TDAOCChatParser) of object;
   TDAOCParserIntNotify = procedure (Sender: TDAOCChatParser; AVal: integer) of object;
   TDAOCParseStrNotify = procedure (Sender: TDAOCChatParser; const AVal: string) of object;
+  TDAOCParserCurrencyChangeNotify = procedure(Sender: TDAOCChatParser; AChangeReason: TDAOCCurrencyChangeReason) of object;
 
   (****
     ZoneMap
@@ -331,8 +334,8 @@ type
     FOnExtraOutDamage: TDAOCParserNotify;
     FLastOutAttackDT:  TDateTime;
     FLastOutAttackTicks: DWORD;
-    FOnBountyPointsChange: TDAOCParserNotify;
-    FOnRealmPointsChange: TDAOCParserNotify;
+    FOnBountyPointsChange: TDAOCParserIntNotify;
+    FOnRealmPointsChange: TDAOCParserIntNotify;
     FOnEquipWeapon: TDAOCParserNotify;
     FOnInEvade: TDAOCParserNotify;
     FOnInMiss: TDAOCParserNotify;
@@ -346,7 +349,13 @@ type
     FTradeSkillStreaks: array[94..100] of integer;
     FEffectDamageType:  TEffectDamageType;
     FOnTradeSkillFailureWithLoss: TDAOCParserNotify;
+    FOnCurrencyChange: TDAOCParserCurrencyChangeNotify;
 
+    procedure ParseBuyItem;
+    procedure ParseBuyBackCon;
+    procedure ParseRepairs;
+    procedure ParseCoinSolo;
+    procedure ParseCoinGroup;
     procedure ParseCastSpell;
     procedure ParseEffectDamage;
     procedure ParseTradeskillCap;
@@ -448,8 +457,8 @@ type
       write FOnAttackStatsChange;
     property OnTradeSkillTask: TDAOCParserNotify read FOnTradeSkillTask write FOnTradeSkillTask;
     property OnExperienceChange: TDAOCParserNotify read FOnExperienceChange write FOnExperienceChange;
-    property OnRealmPointsChange: TDAOCParserNotify read FOnRealmPointsChange write FOnRealmPointsChange;
-    property OnBountyPointsChange: TDAOCParserNotify read FOnBountyPointsChange write FOnBountyPointsChange;
+    property OnRealmPointsChange: TDAOCParserIntNotify read FOnRealmPointsChange write FOnRealmPointsChange;
+    property OnBountyPointsChange: TDAOCParserIntNotify read FOnBountyPointsChange write FOnBountyPointsChange;
     property OnSessionOpen: TDAOCParserNotify read FOnSessionOpen write FOnSessionOpen;
     property OnSessionClose: TDAOCParserNotify read FOnSessionClose write FOnSessionClose;
     property OnTradeSkillSuccess: TDAOCParserIntNotify read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
@@ -486,6 +495,7 @@ type
     property OnHealed: TDAOCParserIntNotify read FOnHealed write FOnHealed;
     property OnBracketCommand: TDAOCParseStrNotify read FOnBracketCommand write FOnBracketCommand;
     property OnTradeskillCapped: TDAOCParserNotify read FOnTradeskillCapped write FOnTradeskillCapped;
+    property OnCurrencyChange: TDAOCParserCurrencyChangeNotify read FOnCurrencyChange write FOnCurrencyChange; 
   end;
 
 implementation
@@ -911,7 +921,7 @@ begin
     inc(FRealmPoints, iExp);
 
     if Assigned(FOnRealmPointsChange) then
-      FOnRealmPointsChange(Self)
+      FOnRealmPointsChange(Self, iExp)
   end
 
   else if Pos(' Specialization Points ', FCurrentLine) > 0 then 
@@ -920,7 +930,7 @@ begin
     inc(FBountyPoints, iExp);
 
     if Assigned(FOnBountyPointsChange) then
-      FOnBountyPointsChange(Self);
+      FOnBountyPointsChange(Self, iExp);
   end
 end;
 
@@ -998,6 +1008,7 @@ var
   bFoundItem:   boolean;
 begin
     { [18:36:14] Wolgrun gives you 1130 copper for the lapis lazuli stone. }
+    { [13:07:11] xxx gives you 5 gold, 74 silver, 68 copper pieces for the yyy }
   iPos := Pos(' gives you ', FCurrentLine);
   if iPos = -1 then
     exit;
@@ -1022,6 +1033,9 @@ begin
 
   if not bFoundItem then
     FDropItems.FindOrAddItem(sItem, '').SetSellValue(iValue);
+
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrSellItem);
 end;
 
 procedure TDAOCChatParser.ParseStyleDamage;
@@ -1398,6 +1412,21 @@ begin
       { [09:12:19] You must perform the Assault style before this one! }
     else if LineBeginsWith('You must perform the ') then
       ParseStylePrereqFailure
+      { [21:51:54] You just bought a steel bladed claw greave for 2 gold, 8 silver pieces. }
+    else if LineBeginsWith('You just bought ') then
+      ParseBuyItem
+      { [22:46:53] You give Morthwyl 1 gold, 77 silver, 64 copper pieces. }
+    else if LineBeginsWith('You give ') and LineEndsWith(' pieces.') then
+      ParseRepairs
+      { [23:51:40] You give him a donation of 5 gold, 91 silver, 95 copper pieces. }
+    else if LineBeginsWith('You give him a donation of ') then
+      ParseBuyBackCon
+      { [10:50:16] Your share of the loot is 67 silver, and 91 copper pieces. }
+    else if LineBeginsWith('Your share of the loot is ') then
+      ParseCoinGroup
+      { [22:03:13] You pick up 1 silver, and 59 copper pieces. }
+    else if LineBeginsWith('You pick up ') and LineEndsWith(' pieces.') then
+      ParseCoinSolo
     else if LineBeginsWith('[ALL]:  ]') then
       ParseBracketCommand
       { [08:23:49] You hit wolfaur quixot for 27 extra damage! }
@@ -1659,6 +1688,36 @@ begin
 
     { Reset the effect damage type }
   FEffectDamageType := edtUnknown;
+end;
+
+procedure TDAOCChatParser.ParseBuyBackCon;
+begin
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrBuyCon);
+end;
+
+procedure TDAOCChatParser.ParseBuyItem;
+begin
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrBuyItem);
+end;
+
+procedure TDAOCChatParser.ParseCoinGroup;
+begin
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrLootGroup);
+end;
+
+procedure TDAOCChatParser.ParseCoinSolo;
+begin
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrLootSolo);
+end;
+
+procedure TDAOCChatParser.ParseRepairs;
+begin
+  if Assigned(FOnCurrencyChange) then
+    FOnCurrencyChange(Self, ccrRepairItem);
 end;
 
 { TZoneMap }
