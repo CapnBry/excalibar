@@ -270,7 +270,11 @@ begin
 end;
 
 procedure TfrmMain.SetupDAOCConnectionObj(AConn: TDAOCConnection);
+var
+  sAppPath: string;
 begin
+  sAppPath := ExtractFilePath(ParamStr(0));
+
   with TDAOCControl(AConn) do begin
     OnPlayerPosUpdate := DAOCPlayerPosUpdate;
     OnLog := DAOCLog;
@@ -303,9 +307,11 @@ begin
 
     DAOCPath := FDAOCPath;
     MainHWND := Handle;
-    ZoneList.LoadFromMPKFile(FDAOCPath + 'zones\zones.mpk');
+    ZoneList.LoadFromMPKFile(FDAOCPath + 'zones' + PathDelim + 'zones.mpk');
+    PacketHandlerDefFile := sAppPath + 'packethandlers.ini';
+    LoadRealmRanks(sAppPath + 'realmranks.dat');
   end;
-  
+
   LoadSettingsForConnection(AConn);
 
 {$IFDEF DAOC_AUTO_SERVER}
