@@ -1,0 +1,103 @@
+# map2ps v1.0
+# MastaMappa Copyleft 2004
+# I release this software to the public domain
+# converts an Excalibur .map file to postscript (no labels)
+# suitable for gv or ps2pdf
+# version 2 has scaling
+
+
+if [ "$1" = "" ]
+then
+	echo "usage: $0 [-p] Excalibur_vector_map_file.map [> file.ps]"
+	echo "	-p is for maps you intent to send to a printer"
+	exit
+fi
+
+p=0
+if [ "$1" = -p ]
+then
+	p=1
+	shift
+fi
+nawk '
+BEGIN {
+	p='$p'
+	print "9 36 translate"
+	print "/Helvetica findfont 15 scalefont setfont"
+	print "/mscale  { 8 72 mul 65535 div mul } def"
+	FS = ","
+	print "0 setgray"
+	print "0 0 moveto"
+	print "0 65535 mscale lineto"
+	print "65535 mscale 65535 mscale lineto"
+	print "65535 mscale 0 lineto"
+	print "0 0 lineto"
+	if (p == 1)
+		print "stroke"
+	else
+		print "fill"
+	print ".5 setgray"
+	for (i = 10000; i < 65535; i += 10000)
+		{
+		print "0 " 65535 - i " mscale moveto"
+		print "60000 mscale " 65535 - i " mscale lineto"
+		print "stroke"
+		print i " mscale 5535 mscale moveto"
+		print i " mscale 65535 mscale  lineto"
+		print "stroke"
+		}
+	if (p == 1)
+		print "0 setgray"
+	else
+		print "1 setgray"
+	#                   R G B
+	rgb["blue"]     = " 0 0 1 "
+	rgb["green"]    = " 0 1 0 "
+	rgb["red"]      = " 1 0 0 "
+	rgb["cyan"]     = " 0 1 1 "
+	rgb["magenta"]  = " 1 0 1 "
+	rgb["yellow"]   = " 1 1 0 "
+	rgb["brown"]    = " .9 .5 0 "
+	rgb["Brown"]    = " .9 .5 0 "
+	if (p == 1)
+	{
+		rgb["white"]    = " 0 0 0 "
+	}
+	else
+	{
+		rgb["white"]    = " 1 1 1 "
+	}
+	rgb["pink"]     = " 1 .75 .75 "
+	rgb["orange"]   = " 1 .75 .15 "
+	rgb["darkgreen"]   = " 0 .332 0 "
+	rgb["DarkGreen"]   = " 0 .332 0 "
+	rgb["DarkGrey"]   = " .3 .3 .3 "
+	rgb["Gold"]      = " 1 0.664062 0.0664062 "
+	rgb["Gray"]    =   " .5 .5 .5 "
+	rgb["gray"]    =   " .5 .5 .5 "
+	rgb["grey"]    =   " .5 .5 .5 "
+
+	}
+NR == 1 { print "500 mscale 3000 mscale moveto (" $1 ") show"
+	mod = "2004"
+	if (FILENAME != "-")
+	{
+		cmd = "ls -l " FILENAME " 2>/dev/null"
+		cmd | getline x
+		close(cmd)
+		split(x,a, " ")
+		mod = sprintf("%s %02d %d", a[6] , a[7], (a[8] ~ ":" ? "2004" : a[8]))
+	}
+	print "500 mscale 500 mscale moveto (MastaMappa " mod ") show"
+	}
+$1 ~ /M|F/ {
+	print $5, "mscale", 65536 - $6, "mscale moveto"
+	for (i = 8; i < NF; i +=3)
+		print $i, "mscale", 65536 - $(i+1), "mscale lineto"
+	if ($3 in rgb)
+		print rgb[$3] "setrgbcolor"
+	else
+		print rgb["white"] "setrgbcolor"
+	print "stroke"
+	}
+END { print "showpage" }' $*
