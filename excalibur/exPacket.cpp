@@ -158,7 +158,7 @@ QString exPacket::getDataAsString()
         } 
 	/* add some whitespace in the middle of the hex */
 	else if ((i % 16) == 8) 
-	    hex.append(" - ");
+	    hex.append("- ");
 
         c = (unsigned char)data[i];
         hex.append(QString().sprintf("%02x ", c));
@@ -170,7 +170,7 @@ QString exPacket::getDataAsString()
 
     while (ascii.length() < 16)  {
 	if ((ascii.length() % 16) == 8) 
-	    hex.append(" - ");
+	    hex.append("- ");
 	hex.append("   ");
         ascii.append(" ");
     }
