@@ -39,6 +39,7 @@ type
     FIsFromClient: boolean;
     FIPProtocol:  TDAOCIPPrococol;
     FHandlerName: string;
+    FOwnsPacketData:  boolean;
     function GetIsFromServer: boolean;
     procedure FreePacketData;
   public
@@ -46,6 +47,7 @@ type
     destructor Destroy; override;
 
     procedure CopyDataToPacket(AData: Pointer; ASize: integer);
+    procedure LinkDataToPacket(AData: Pointer; ASize: integer);
     procedure SaveToFile(const AFName: string);
     procedure Decrypt(const AKey: TDAOCCryptKey);
     procedure seek(iCount: integer);
@@ -464,7 +466,8 @@ end;
 procedure TDAOCPacket.CopyDataToPacket(AData: Pointer; ASize: integer);
 begin
   FreePacketData;
-  
+
+  FOwnsPacketData := true;  
   FSize := ASize;
   GetMem(FPacketDataStart, FSize);
   Move(AData^, FPacketDataStart^, FSize);
@@ -530,7 +533,8 @@ end;
 procedure TDAOCPacket.FreePacketData;
 begin
   if Assigned(FPacketDataStart) then begin
-    FreeMem(FPacketDataStart);
+    if FOwnsPacketData then
+      FreeMem(FPacketDataStart);
     FPacketDataStart := nil;
   end;
 end;
@@ -619,6 +623,18 @@ asm
   xchg al, ah
 end;
 {$ENDIF}
+
+procedure TDAOCPacket.LinkDataToPacket(AData: Pointer; ASize: integer);
+begin
+  FreePacketData;
+
+  FOwnsPacketData := false;  
+  FSize := ASize;
+
+  FPacketDataStart := AData;
+  FPacketDataPos := FPacketDataStart;
+  FPacketDataEnd := FPacketDataStart + FSize;
+end;
 
 procedure TDAOCPacket.SaveToFile(const AFName: string);
 var
