@@ -35,8 +35,8 @@ extern logger_t Logger;
 extern CheyenneClock Clock;
 #include "..\..\Common\PacketStore\PacketStore.h" // include for offline packet storage
 
-//typedef DAOCConnection DAOC_CONNECTION;
-typedef StoringDAOCConnection<PacketStore<std::ofstream> > DAOC_CONNECTION;
+typedef DAOCConnection DAOC_CONNECTION; // use this for a regular connection
+//typedef StoringDAOCConnection<PacketStore<std::ofstream> > DAOC_CONNECTION; // use this to store all packets in a file
 
 bool operator==(const tuple4& a,const tuple4& b)
 {
