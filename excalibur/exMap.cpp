@@ -391,7 +391,6 @@ void exMap::paintGL() {
           glCallList(listCircle);
       }
 
-  
       ldif=(c->playerlevel / 10) + 1;
       l=m->getLevel();
       if (l < (c->playerlevel - ldif * 3)) 
@@ -419,6 +418,13 @@ void exMap::paintGL() {
         glCallList(listSquares);
 
       glPopMatrix();
+
+      /* if it is filtered draw a yellow circle around it */
+	  if( m->isFiltered())
+         {
+         qglColor( yellow );
+         drawCircle(m->getProjectedX(), m->getProjectedY(), 500, 18);
+         }
 
       /* if the mob is within range, draw an agro circle around it */
       if (prefs.agro_circles) {

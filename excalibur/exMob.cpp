@@ -154,7 +154,6 @@ QString exMob::text(int column) const {
 
 void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align) {
   QColorGroup cols(cg);
-  QRegExp rx( c->MobFilter.getFilter());
   QColor clr;
 
   if( !isMob() && !isObj() && isInvader() && getLevel() >= 15 && c->vaderWarn && !isDead() && !isKnown)
@@ -190,9 +189,9 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
     cols.setColor( QColorGroup::Text, clr);
     }
 
-  if( -1 != rx.search( name) && "" != c->MobFilter.getFilter())
+  if( isFiltered())
 	{
-    cols.setColor(QColorGroup::Base, QColor(255,255,153));
+    cols.setColor( QColorGroup::Base, QColor(255,255,153));
     cols.setColor( QColorGroup::Text, QColor(0,0,0));
 	}
   QListViewItem::paintCell(p,cols,column,width,align);
@@ -396,4 +395,14 @@ void exMob::checkStale() {
     current = false;
     c->ex->ListViewMobs->takeItem(this);
   }
+}
+
+bool exMob::isFiltered() 
+{
+ 
+  QRegExp rx( c->MobFilter.getFilter());
+
+  if (-1 != rx.search( name) && "" != c->MobFilter.getFilter()) return true;
+
+  return false;
 }

@@ -89,6 +89,7 @@ class exMob : public QListViewItem {
     void setHP(unsigned int hp);
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
+	bool isFiltered(); 
 	static void setFilter( QString );
 };
 
