@@ -29,6 +29,7 @@
 #define IDC_PLAYALBCREATESOUND          1012
 #define IDC_UPDATEWHENRENDERED          1012
 #define IDC_ALBCREATESOUND              1013
+#define IDC_AUTOHOOKTARGET              1013
 #define IDC_PLAYHIBCREATESOUND          1014
 #define IDC_PRINTUNKNOWNPACKETS         1014
 #define IDC_HIBCREATESOUND              1015

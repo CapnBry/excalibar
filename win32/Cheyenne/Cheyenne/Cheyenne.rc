@@ -127,7 +127,7 @@ BEGIN
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,34,61,16
     CONTROL         "Update actors when rendered",IDC_UPDATEWHENRENDERED,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,
-                    83,63,18
+                    79,63,18
     CONTROL         "Render MOBs in PPI",IDC_RENDERMOBS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,198,19,85,10
     CONTROL         "Render objects in PPI",IDC_RENDEROBJECTS,"Button",
@@ -145,7 +145,10 @@ BEGIN
     GROUPBOX        "Self Display",IDC_STATIC,187,82,105,40
     CONTROL         "Use vector maps only in followed zone",
                     IDC_VECTORONLYINFOLLOWED,"Button",BS_AUTOCHECKBOX | 
-                    BS_MULTILINE | WS_TABSTOP,109,50,61,30
+                    BS_MULTILINE | WS_TABSTOP,109,48,61,30
+    CONTROL         "Automatically hook target",IDC_AUTOHOOKTARGET,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,109,100,63,
+                    18
 END
 
 IDD_SETRANGERINGS DIALOG DISCARDABLE  0, 0, 128, 151

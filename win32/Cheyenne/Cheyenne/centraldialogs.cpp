@@ -220,6 +220,7 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
             SET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI,param->GetTexturesInPPI());
             SET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI,param->GetVectorMapInPPI());
             SET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED,param->GetVectorMapOnlyInFollowedZone());
+            SET_CHECK_BOOL(hWnd,IDC_AUTOHOOKTARGET,param->GetAutoHookTarget());
             
             }
             break;
@@ -246,6 +247,8 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
                     param->ModifyTexturesInPPI() = GET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI);
                     param->ModifyVectorMapInPPI() = GET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI);
                     param->ModifyVectorMapOnlyInFollowedZone() = GET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED);
+
+                    param->ModifyAutoHookTarget() = GET_CHECK_BOOL(hWnd,IDC_AUTOHOOKTARGET);
 
                     EndDialog(hWnd,IDOK);
                     break;
