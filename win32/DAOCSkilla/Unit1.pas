@@ -130,6 +130,7 @@ type
     procedure DAOCLog(Sender: TObject; const s: string);
     procedure DAOCZoneChange(Sender: TObject);
     procedure DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+    procedure DAOCAfterPacket(Sender: TObject; APacket: TDAOCPacket);
     procedure DAOCInventoryChanged(Sender: TObject);
     procedure DAOCVendorWindow(Sender: TObject);
     procedure DAOCPathChanged(Sender: TObject);
@@ -373,7 +374,7 @@ begin
   FConnection.OnConnect := DAOCConnect;
   FConnection.OnDisconnect := DAOCDisconnect;
   FConnection.OnZoneChange := DAOCZoneChange;
-  FConnection.OnAfterPacket := DAOCPacket;
+  FConnection.OnAfterPacket := DAOCAfterPacket;
 //  FConnection.OnPacket := DAOCPacket;
   FConnection.OnInventoryChanged := DAOCInventoryChanged;
   FConnection.OnVendorWindow := DAOCVendorWindow;
@@ -399,6 +400,7 @@ begin
   FConnection.LoadRealmRanks(ExtractFilePath(ParamStr(0)) + 'RealmRanks.dat');
   FConnection.PacketHandlerDefFile := ExtractFilePath(ParamStr(0)) + 'packethandlers.ini';
   FConnection.InitPacketHandlers;
+  FConnection.ServerProtocol := $01;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
@@ -629,9 +631,9 @@ begin
   end;  { with INI }
 end;
 
-procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+procedure TfrmMain.DAOCAfterPacket(Sender: TObject; APacket: TDAOCPacket);
 begin
-  frmDebugging.DAOCPacket(Sender, APacket);
+  frmDebugging.DAOCAfterPacket(APacket);
 end;
 
 procedure TfrmMain.DAOCInventoryChanged(Sender: TObject);
@@ -1094,7 +1096,12 @@ begin
     not frmConnectionConfig.ProcessLocally
 end;
 
-{$IFDEF WINPCAP}
+procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
+begin
+  frmDebugging.DAOCPacket(APacket);
+end;
+
+function TfrmMain.SetServerNet : boolean;
 (*** Returns true if subnet changed ***)
 var
   dwNet:  DWORD;
@@ -1112,14 +1119,10 @@ begin
 
   BP_Instns[5].k := dwNet;
   BP_Instns[8].k := dwNet;
+{$IFDEF WINPCAP}
   Log('ServerNet set to ' + my_inet_htoa(dwNet));
-end;
-{$ELSE}
-function TfrmMain.SetServerNet : boolean;
-begin
-  Result := false;
-end;
 {$ENDIF WINPCAP}
+end;
 
 procedure TfrmMain.DAOCCharacterLogin(ASender: TObject);
 begin
@@ -1127,7 +1130,7 @@ begin
   frmGLRender.DAOCCharacterLogin;
 {$ENDIF OPENGL_RENDERER}
 
-  if chkTrackLogins.Checked then 
+  if chkTrackLogins.Checked then
     UpdateQuickLaunchList;
 end;
 
@@ -1406,7 +1409,7 @@ end;
 
 procedure TfrmMain.PIPEConnected(ASender: TObject);
 begin
-  Log('Pipe connected');
+  Log('Pipe to client connected');
 end;
 
 procedure TfrmMain.PIPEDisconnected(ASender: TObject);
