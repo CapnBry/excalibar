@@ -606,6 +606,26 @@ object frmRenderPrefs: TfrmRenderPrefs
     object tabMobList: TTabSheet
       Caption = 'Mob list'
       ImageIndex = 4
+      object Label21: TLabel
+        Left = 12
+        Top = 144
+        Width = 328
+        Height = 13
+        Caption = 
+          '-- The mob list can be undocked from the map window by dragging ' +
+          'it. '
+      end
+      object Label22: TLabel
+        Left = 12
+        Top = 164
+        Width = 393
+        Height = 29
+        AutoSize = False
+        Caption = 
+          '-- Press F2 to toggle the mob list on and off, or to show it if ' +
+          'you'#39've undocked and closed it.'
+        WordWrap = True
+      end
       object chkGroupByRealm: TCheckBox
         Left = 8
         Top = 8

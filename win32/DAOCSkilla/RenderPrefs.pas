@@ -156,6 +156,8 @@ type
     chkGroupByClass: TCheckBox;
     edtInvaderWarnTicks: TEdit;
     Label20: TLabel;
+    Label21: TLabel;
+    Label22: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
