@@ -587,7 +587,7 @@ void Sniffer::PrintConnections(std::ostream& str)const
     for(sniff_map_const_iterator it=sniff_map.begin(); it != sniff_map.end();++it)
         {
         // print the first connection
-        str << "\t" << it->first << "\n";
+        str << it->first << "\n";
         } // end for each connection still in the map
 } // end PrintConnections(ostream)
 
