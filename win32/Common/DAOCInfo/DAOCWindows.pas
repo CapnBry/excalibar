@@ -129,6 +129,8 @@ type
     FItemLeftOffset:  integer;
     FItemHeight:      integer;
     FLastSelectWasIcon: boolean;
+    FCloseLeftOffset:   integer;
+    FCloseTopOffset:    integer;
 
     procedure SelectItemCommon(Value, XOff: integer);
   public
@@ -142,6 +144,7 @@ type
     procedure PageRight;
     procedure ScrollUp;
     procedure ScrollDown;
+    procedure Close;
   end;
 
   TVendorWindow = class(TScrollableListWindow)
@@ -568,6 +571,11 @@ end;
 
 { TScrollableListWindow }
 
+procedure TScrollableListWindow.Close;
+begin
+  DoLeftClick(Left + FCloseLeftOffset, Top + FCloseTopOffset);
+end;
+
 constructor TScrollableListWindow.Create(AWndManager: TDAOCWindowManager);
 begin
   inherited Create(AWndManager);
@@ -585,6 +593,8 @@ begin
   FItemTopOffset := 25;
   FItemLeftOffset := 15;
   FItemHeight := 18;
+  FCloseLeftOffset := 345;
+  FCloseTopOffset := 5;
 end;
 
 procedure TScrollableListWindow.PageLeft;
