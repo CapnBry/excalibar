@@ -918,7 +918,7 @@ void exConnection::setFilter( QString Filter)
   MobFilter.setFilter( Filter);
   printf( "New Filter: %s\n", MobFilter.getFilter().ascii());
 
-  this->ex->ListViewMobs->repaint();
+  this->ex->ListViewMobs->update();
 }
 
 void exConnection::cancelMap (void)
