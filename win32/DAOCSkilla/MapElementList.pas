@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Contnrs, GLRenderObjects, LinedFileStream, CSVLineParser,
-  DDSImage;
+  DDSImage, GL;
 
 type
   TGLRenderObjectList = class(TObjectList)
@@ -13,9 +13,9 @@ type
     FOffsetX: integer;
     function GetItems(I: integer): TGLRenderObject;
   public
-    procedure GLInitialize;
-    procedure GLRender;
-    procedure GLCleanup;
+    procedure GLInitialize; virtual;
+    procedure GLRender; virtual;
+    procedure GLCleanup; virtual;
 
     property Items[I: integer]: TGLRenderObject read GetItems; default;
     property OffsetX: integer read FOffsetX write FOffsetX;
@@ -33,6 +33,7 @@ type
   private
   public
     procedure LoadFromFile(const AFileName: string);
+    procedure GLRender; override;
   end;
 
 implementation
@@ -105,6 +106,13 @@ begin
 end;
 
 { TTextureMapElementList }
+
+procedure TTextureMapElementList.GLRender;
+begin
+  glEnable(GL_TEXTURE_2D);
+  inherited;
+  glDisable(GL_TEXTURE_2D);
+end;
 
 procedure TTextureMapElementList.LoadFromFile(const AFileName: string);
 const
