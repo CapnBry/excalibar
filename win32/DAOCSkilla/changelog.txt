@@ -1,5 +1,30 @@
-2004 Jan 5 - v1.72
-------------------
+IN TESTING
+----------
+  + Fixed typo in naming of Eldritch recipes.
+  + Added AutoDeselectMerchant, AutoStartProgression, AutoQuickbarSlot
+    to powerskillbuy profiles.
+  + Fix exception thrown if Q is pressed with no recipe selected in
+    PowerskillBuy.  (thanks theermine)
+  + AutoSell should now work at the forge node and the merchant node,
+    as well as if no nodes are defined.  If at the merchant AutoSell
+    should trigger after the merchant window opens but before AutoBuy
+    starts.
+  + Fix for range circle smoothness allowing large numbers.  Should cap
+    at 360 as intended now.
+  + Macro turns now can use /faceloc.  NOT RECOMMENDED: sent to server.
+  + Added SelectNPC function to DAOCControl and remote admin.
+  + Added SendKeys to remote admin.
+  + Added parse of packet 0xd2, VendorWindowRequest.
+  + Added AttemptNPCRightClick to DAOCControl and remote admin.
+  + Fixed LocalPlayer with None lastname.  (ridethereindeer)
+  + Added code when arriving at the merchant node to F9 for the vendor
+    /stick them, and right-click around to try to open the vendor
+    window.
+  + Added MerchantName property to powerskill profile.
+  + Added a better error message when a .NOD file could not be found.
+
+2004 Jan 05 - v1.72
+-------------------
   + Changed "Stuck going to dest" calculation so that it does not think
     the player is stuck while turning.  Fix compliments of drmctchr.
   + Added IncludeRecipes and ExcludeRecipes filter for powerskillbuy.
@@ -285,7 +310,7 @@
   + Mobs with speed and no destination are now properly updated
     on the first tick.
   + Added a rendering "view frustum" which approximates what
-  	is visible in the DAOC renderer (first person perspective)
+    is visible in the DAOC renderer (first person perspective)
 
 2003 Sep 20 - v1.38
 -------------------
@@ -393,8 +418,8 @@
 2003 Sep 06
 -----------
   + Fixes bug which was preventing mobs from moving once they were displayed.
-	+ Use predicted mob locations based on speed
-	+ Shows a AI mob's destinaton while they are moving.
+  + Use predicted mob locations based on speed
+  + Shows a AI mob's destinaton while they are moving.
   + Added graves and non-moving objects to display
   + Nicer grid for object list.
   + Selection now syncronized between grid and map
