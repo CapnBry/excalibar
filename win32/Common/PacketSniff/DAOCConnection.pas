@@ -117,6 +117,7 @@ type
     FOnRegionChanged: TNotifyEvent;
     FOnPingReply: TIntegerEvent;
     FOnMobTargetChanged: TDAOCMobNotify;
+    FOnUnknownStealther: TDAOCObjectNotify;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -145,6 +146,7 @@ type
     FRegionID:  integer;
     FDAOCObjs:  TDAOCObjectLinkedList;
     FDAOCObjsStale: TDAOCObjectLinkedList;
+    FUnknownStealthers: TDAOCObjectLinkedList;
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
@@ -240,6 +242,7 @@ type
     procedure DoVersionNumsSet; virtual;
     procedure DoOnPingReply; virtual;
     procedure DoOnMobTargetChanged(AMob: TDAOCMob); virtual;
+    procedure DoOnUnknownStealther(AUnk: TDAOCUnknownStealther); virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -275,6 +278,7 @@ type
     property AccountCharacterList: TAccountCharInfoList read FAccountCharacters;
     property CryptKey: string read GetCryptKey write SetCryptKey;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
+    property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers; 
     property GroundTarget: TMapNode read FGroundTarget;
     property LargestDAOCPacketSeen: DWORD read FLargestDAOCPacketSeen;
     property MaxObjectDistance: double write SetMaxObjectDistance;
@@ -324,6 +328,7 @@ type
     property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
     property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
     property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
+    property OnUnknownStealther: TDAOCObjectNotify read FOnUnknownStealther write FOnUnknownStealther;
   end;
 
 
@@ -415,6 +420,7 @@ begin
   FMasterVendorList := TDAOCMasterVendorList.Create;
   FDAOCObjs := TDAOCObjectLinkedList.Create;
   FDAOCObjsStale := TDAOCObjectLinkedList.Create;
+  FUnknownStealthers := TDAOCObjectLinkedList.Create;
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
@@ -433,6 +439,7 @@ begin
   FChatParser.Free;
   FDAOCObjs.Free;
   FDAOCObjsStale.Free;
+  FUnknownStealthers.Free;
   FMasterVendorList.Free;
   FVendorItems.Free;
   FZoneList.Free;
@@ -1306,6 +1313,13 @@ begin
           LastName := pPacket.getPascalString;
 
           IsInGuild := (FLocalPlayer.Guild <> '') and AnsiSameText(Guild, FLocalPlayer.Guild);
+
+             { if this guy is in our unknown stealther list, now we know who he is }
+          pOldObject := FUnknownStealthers.FindByInfoID(tmpObject.InfoID);
+          while Assigned(pOldObject) do begin
+            FUnknownStealthers.Delete(pOldObject);
+            pOldObject := FUnknownStealthers.FindByInfoID(tmpObject.InfoID);
+          end;
         end;  { with TDAOCPlayer }
       end;  { ocPlayer }
 
@@ -1815,6 +1829,10 @@ begin
     exit;
   end;
 
+{$IFDEF GLOBAL_TICK_COUNTER}
+  UpdateGlobalTickCount;
+{$ENDIF GLOBAL_TICK_COUNTER}
+
     { DataLen is the (declared UDP total len) - (UDP Header len) }
   iDataLen := wUDPDatagramLen - (sizeof(TUDPHeader) - sizeof(TIPHeader));
   pPayloadDataPtr := Pointer(DWORD(ASegment.Data) + sizeof(TUDPHeader));
@@ -1993,12 +2011,23 @@ procedure TDAOCConnection.ParseCharacterStealthed(pPacket: TDAOCPacket);
 var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
+  pUnkStealther:  TDAOCUnknownStealther;
 begin
   pPacket.HandlerName := 'CharacterStealthed';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
   if Assigned(pDAOCObject) then
-    pDAOCObject.Stealthed := true;
+    pDAOCObject.Stealthed := true
+  else begin
+    pUnkStealther := TDAOCUnknownStealther.Create;
+    pUnkStealther.InfoID := wID;
+    pUnkStealther.X := FLocalPlayer.XProjected;
+    pUnkStealther.Y := FLocalPlayer.YProjected;
+    pUnkStealther.Z := FLocalPlayer.Z;
+    FUnknownStealthers.Add(pUnkStealther);
+
+    DoOnUnknownStealther(pUnkStealther);
+  end;
 end;
 
 procedure TDAOCConnection.ClearDAOCObjectList;
@@ -2013,6 +2042,7 @@ begin
   end;
 
   FDAOCObjsStale.Clear;  // we can just clear because we have notified
+  FUnknownStealthers.Clear;
 end;
 
 procedure TDAOCConnection.CheckObjectsOutOfRange;
@@ -2123,6 +2153,15 @@ begin
       FDAOCObjsStale.Add(pObj);
       pObj := pNext;
     end
+    else
+      pObj := pObj.Next;
+  end;  { while pObj }
+
+  pObj := FUnknownStealthers.Head;
+  while Assigned(pObj) do begin
+    pObj.CheckStale;
+    if pObj.IsStale then
+      pObj := FUnknownStealthers.Delete(pObj)
     else
       pObj := pObj.Next;
   end;  { while pObj }
@@ -2360,6 +2399,12 @@ begin
       pSelected.Name := FChatParser.Target;
       DoOnDAOCObjectMoved(pSelected);
     end;
+end;
+
+procedure TDAOCConnection.DoOnUnknownStealther(AUnk: TDAOCUnknownStealther);
+begin
+  if Assigned(FOnUnknownStealther) then
+    FOnUnknownStealther(Self, AUnk);
 end;
 
 end.
