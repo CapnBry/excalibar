@@ -1,3 +1,11 @@
+Teerex (28/Oct/02)
+------------------
+ + Added limited support for mainaining the inventory of mobs / players.
+ + Used player inventory to guess what class players are (only works with
+   epic armor at this time).
+ + Added display of player class to list window.  Format for friendlies
+   is "name (class)".  Format for enemies is "class race".
+
 Teerex (20/Aug/02)
 ------------------
  + Added saving of map object size preference.
