@@ -1,8 +1,13 @@
-Teerex (10/Feb/02)
+Teerex (19/Feb/03)
+------------------
+ + Players who stealth now have their triangle darkened to indicate it.
+ + Set version to 1.2.8
+
+Teerex (10/Feb/03)
 ------------------
  + Excalibur version 1.2.7 released.
 
-Teerex (03/Feb/02)
+Teerex (03/Feb/03)
 ------------------
  + Fixed bug where mob health update of 100% wasn't being set.
 
