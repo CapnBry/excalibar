@@ -19,7 +19,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    297)
+    304)
   PixelsPerInch = 96
   TextHeight = 13
   object lblServerPing: TLabel
@@ -56,6 +56,16 @@ object frmMain: TfrmMain
       'oC.'
     WordWrap = True
   end
+  object btnLogin: TBitBtn
+    Left = 368
+    Top = 108
+    Width = 75
+    Height = 25
+    Caption = 'Launch DAoC'
+    Enabled = False
+    TabOrder = 1
+    OnClick = btnLoginClick
+  end
   object Memo1: TMemo
     Left = 4
     Top = 164
@@ -71,7 +81,7 @@ object frmMain: TfrmMain
       'Memo1')
     ParentFont = False
     ScrollBars = ssVertical
-    TabOrder = 0
+    TabOrder = 2
   end
   object btnDebugging: TButton
     Left = 76
@@ -79,7 +89,7 @@ object frmMain: TfrmMain
     Width = 75
     Height = 25
     Caption = '&Debugging'
-    TabOrder = 1
+    TabOrder = 3
     OnClick = btnDebuggingClick
   end
   object chkAutolaunchExcal: TCheckBox
@@ -90,7 +100,7 @@ object frmMain: TfrmMain
     Caption = 'Autolaunch Excalibur windows'
     Checked = True
     State = cbChecked
-    TabOrder = 2
+    TabOrder = 4
   end
   object chkChatLog: TCheckBox
     Left = 4
@@ -98,7 +108,7 @@ object frmMain: TfrmMain
     Width = 105
     Height = 17
     Caption = 'Realtime chat.log'
-    TabOrder = 3
+    TabOrder = 5
     OnClick = chkChatLogClick
   end
   object edtChatLogFile: TEdit
@@ -112,7 +122,7 @@ object frmMain: TfrmMain
     Font.Name = 'Courier New'
     Font.Style = []
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 6
     Text = 'c:\mythic\isles\realchat.log'
   end
   object btnResume: TButton
@@ -121,7 +131,7 @@ object frmMain: TfrmMain
     Width = 145
     Height = 17
     Caption = 'Resume last connection'
-    TabOrder = 5
+    TabOrder = 7
     OnClick = btnResumeClick
   end
   object btnConnectionOpts: TBitBtn
@@ -129,7 +139,7 @@ object frmMain: TfrmMain
     Top = 12
     Width = 45
     Height = 41
-    TabOrder = 6
+    TabOrder = 8
     OnClick = btnConnectionOptsClick
     Glyph.Data = {
       1A040000424D1A040000000000005A00000028000000200000001E0000000100
@@ -172,7 +182,7 @@ object frmMain: TfrmMain
     Width = 73
     Height = 25
     Caption = 'Excalibur'
-    TabOrder = 7
+    TabOrder = 9
     OnClick = btnGLRenderClick
   end
   object btnMacroing: TBitBtn
@@ -181,29 +191,66 @@ object frmMain: TfrmMain
     Width = 69
     Height = 25
     Caption = 'Macroing'
-    TabOrder = 8
+    TabOrder = 10
     OnClick = btnMacroingClick
+  end
+  object cbxAutoLogin: TComboBox
+    Left = 304
+    Top = 84
+    Width = 197
+    Height = 21
+    DropDownCount = 12
+    ItemHeight = 13
+    TabOrder = 0
+    OnKeyPress = cbxAutoLoginKeyPress
+  end
+  object chkTrackLogins: TCheckBox
+    Left = 304
+    Top = 68
+    Width = 193
+    Height = 17
+    Caption = 'Track character logins'
+    Checked = True
+    State = cbChecked
+    TabOrder = 11
+  end
+  object btnDeleteChar: TBitBtn
+    Left = 444
+    Top = 108
+    Width = 55
+    Height = 25
+    Caption = 'Remove'
+    Enabled = False
+    TabOrder = 12
+    OnClick = btnDeleteCharClick
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
+    MaxLineAction = maException
     OnDisconnected = tcpCollectorClientDisconnected
     Host = '127.0.0.1'
     Port = 9867
-    Left = 428
-    Top = 68
+    Left = 256
+    Top = 104
   end
   object tcpCollectorServer: TIdTCPServer
     OnStatus = tcpCollectorServerStatus
     Bindings = <>
+    CommandHandlers = <>
     DefaultPort = 9867
+    Greeting.NumericCode = 0
+    MaxConnectionReply.NumericCode = 0
     OnExecute = tcpCollectorServerExecute
-    Left = 396
-    Top = 68
+    ReplyExceptionCode = 0
+    ReplyTexts = <>
+    ReplyUnknownCommand.NumericCode = 0
+    Left = 224
+    Top = 104
   end
   object tmrReconnect: TTimer
     Enabled = False
     OnTimer = tmrReconnectTimer
-    Left = 460
-    Top = 68
+    Left = 288
+    Top = 104
   end
 end

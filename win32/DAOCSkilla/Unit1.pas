@@ -7,7 +7,7 @@ uses
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
   Recipes, IdTCPServer, IdBaseComponent, IdComponent, IdTCPConnection,
-  IdTCPClient;
+  IdTCPClient, QuickLaunchChars;
 
 type
   TfrmMain = class(TForm)
@@ -26,6 +26,10 @@ type
     Label2: TLabel;
     btnGLRender: TBitBtn;
     btnMacroing: TBitBtn;
+    cbxAutoLogin: TComboBox;
+    btnLogin: TBitBtn;
+    chkTrackLogins: TCheckBox;
+    btnDeleteChar: TBitBtn;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -44,6 +48,9 @@ type
     procedure btnConnectionOptsClick(Sender: TObject);
     procedure tmrReconnectTimer(Sender: TObject);
     procedure tcpCollectorClientDisconnected(Sender: TObject);
+    procedure btnDeleteCharClick(Sender: TObject);
+    procedure btnLoginClick(Sender: TObject);
+    procedure cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
   private
     FPReader:   TPacketReader2;
     FConnection:  TDAOCControl;
@@ -52,6 +59,7 @@ type
     FClosing:       boolean;
     FProcessPackets:  boolean;
     FSegmentFromCollector:    TEthernetSegment;
+    FQuickLaunchChars:        TQuickLaunchCharList;
 
     procedure LoadSettings;
     procedure SaveSettings;
@@ -70,6 +78,7 @@ type
     procedure NewSegmentFromCollector;
     function UseCollectionClient : boolean;
     function SetServerNet : boolean;
+    procedure UpdateQuickLaunchList;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -90,6 +99,7 @@ type
     procedure DAOCSetGroundTarget(ASender: TObject);
     procedure DAOCChatLog(ASender: TObject; const s: string);
     procedure DAOCPingReply(ASender: TObject; ATime: integer);
+    procedure DAOCCharacterLogin(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -207,6 +217,9 @@ begin
   FPReader.OnEthernetSegment := EthernetSegment;
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
 
+  FQuickLaunchChars := TQuickLaunchCharList.Create;
+  FQuickLaunchChars.ServerNameFile := ExtractFilePath(ParamStr(0)) + 'servers.ini';
+
   FProcessPackets := true;
 
 {$IFNDEF OPENGL_RENDERER}
@@ -219,6 +232,7 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+  FQuickLaunchChars.Free;
   FPReader.Free;
   CloseChatLog;
 end;
@@ -292,6 +306,7 @@ begin
   FConnection.OnSetGroundTarget := DAOCSetGroundTarget;
   FConnection.OnChatLog := DAOCChatLog;
   FConnection.OnPingReply := DAOCPingReply;
+  FConnection.OnCharacterLogin := DAOCCharacterLogin;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -312,6 +327,7 @@ begin
   OpenCollectionServer;
   if not frmConnectionConfig.ProcessLocally then
     OpenCollectionClient;
+  UpdateQuickLaunchList;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -329,6 +345,8 @@ end;
 
 procedure TfrmMain.LoadSettings;
 begin
+  FQuickLaunchChars.LoadFromFile(GetConfigFileName);
+  
   with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
@@ -341,6 +359,7 @@ begin
     chkChatLogClick(nil);
     edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
     btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
+    chkTrackLogins.Checked := ReadBool('Main', 'TrackLogins', true);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
@@ -395,12 +414,15 @@ end;
 
 procedure TfrmMain.SaveSettings;
 begin
+  FQuickLaunchChars.SaveToFile(GetConfigFileName);
+
   with TINIFile.Create(GetConfigFileName) do begin
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
     WriteBool('Main', 'AutolaunchExcal', chkAutolaunchExcal.Checked);
     WriteBool('Main', 'RealtimeChatLog', chkChatLog.Checked);
     WriteString('Main', 'ChatLogFile', edtChatLogFile.Text);
+    WriteBool('Main', 'TrackLogins', chkTrackLogins.Checked);
 
     WriteString('Main', 'DAOCPath', FConnection.DAOCPath);
 
@@ -898,6 +920,100 @@ begin
   BP_Instns[4].k := dwNet;
   BP_Instns[7].k := dwNet;
   Log('ServerNet set to ' + my_inet_htoa(dwNet));
+end;
+
+procedure TfrmMain.DAOCCharacterLogin(ASender: TObject);
+begin
+  if chkTrackLogins.Checked then begin
+    FQuickLaunchChars.AddOrUpdateChar(
+      FConnection.AccountCharacterList.AccountName,
+      FConnection.AccountCharacterList.AccountPassword,
+      FConnection.AccountCharacterList.ServerName,
+      FConnection.LocalPlayer.Name,
+      ord(FConnection.LocalPlayer.Realm),
+      FConnection.ServerAddr);
+    UpdateQuickLaunchList;
+  end;
+end;
+
+procedure TfrmMain.UpdateQuickLaunchList;
+var
+  I:    integer;
+begin
+  cbxAutoLogin.Clear;
+  for I := 0 to FQuickLaunchChars.Count - 1 do
+    cbxAutoLogin.Items.AddObject(Format('%s (%s)', [
+      FQuickLaunchChars[I].Name, FQuickLaunchChars[I].Server]),
+      FQuickLaunchChars[I]);
+
+  if cbxAutoLogin.Items.Count > 0 then begin
+    cbxAutoLogin.ItemIndex := 0;
+    btnLogin.Enabled := true;
+    btnDeleteChar.Enabled := true;
+  end
+  else begin
+    btnLogin.Enabled := false;
+    btnDeleteChar.Enabled := false;
+  end;
+end;
+
+procedure TfrmMain.btnDeleteCharClick(Sender: TObject);
+begin
+  if cbxAutoLogin.ItemIndex < FQuickLaunchChars.Count then begin
+    FQuickLaunchChars.Delete(cbxAutoLogin.ItemIndex);
+    UpdateQuickLaunchList;
+  end;
+end;
+
+procedure TfrmMain.btnLoginClick(Sender: TObject);
+var
+  sDLL:       string;
+  sCmdLine:   string;
+  pi:   TProcessInformation;
+  si:   TStartupInfo;
+  pLogin: TQuickLaunchChar;
+  sLastDir:   string;
+begin
+  if cbxAutoLogin.ItemIndex >= FQuickLaunchChars.Count then
+    exit;
+
+  sLastDir := GetCurrentDir;
+  if not SetCurrentDir(FConnection.DAOCPath) then
+    exit;
+
+  try
+    pLogin := FQuickLaunchChars[cbxAutoLogin.ItemIndex];
+    if (pLogin.ServerAddr = $3210FED0) then  // Pendragon
+      sDLL := 'tgame.dll'
+    else
+      sDLL := 'game.dll';
+
+    sCmdLine := Format('%s %s 10622 %s %s %s %d', [sDLL,
+      pLogin.ServerIP, pLogin.Account, pLogin.Password, pLogin.Name, pLogin.Realm]);
+
+    FillChar(si, sizeof(si), 0);
+    si.cb := sizeof(si);
+    FillChar(pi, sizeof(pi), 0);
+    if not CreateProcess(nil, PChar(sCmdLine),
+      nil, nil, false, CREATE_SUSPENDED, nil, nil, si, pi) then begin
+      MessageBox(0, PChar('Error ' + IntToStr(GetLastError) + ' launching'), 'QuickLaunch', MB_OK);
+      exit;
+    end;
+
+    ResumeThread(pi.hThread);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+  finally
+    SetCurrentDir(sLastDir);
+  end;
+end;
+
+procedure TfrmMain.cbxAutoLoginKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then begin
+    Key := #0;
+    btnLoginClick(nil);
+  end;
 end;
 
 end.
