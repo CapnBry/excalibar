@@ -134,18 +134,6 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
       a=hp;
       b=mob->hp;
       break;
-    case 3:
-      a=x;
-      b=mob->x;
-      break;
-    case 4:
-      a=y;
-      b=mob->y;
-      break;
-    case 5:
-      a=z;
-      b=mob->z;
-      break;
     default:
       return key(col, ascending).compare(i->key(col,ascending));
   }
