@@ -228,6 +228,7 @@ type
 
     procedure ProcessEthernetSegment(ASegment: TEthernetSegment);
     procedure Clear; virtual;
+    procedure CheckForStaleObjects;
 
       { Functions to use zone information to find relative player coords }
     function PlayerZoneHead : integer;
@@ -344,6 +345,7 @@ begin
   FSelectedID := 0;
   FChatParser.Reset;
   FLargestDAOCPacketSeen := 0;
+  FGroundTarget.Clear;
 end;
 
 constructor TDAOCConnection.Create;
@@ -369,7 +371,7 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectDistance(7000);
+  SetMaxObjectDistance(6000);
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -1914,6 +1916,14 @@ end;
 procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
 begin
   pPacket.HandlerName := 'RequestObjectByInfoID';
+end;
+
+procedure TDAOCConnection.CheckForStaleObjects;
+var
+  I:    integer;
+begin
+  for I := 0 to FDAOCObjs.Count - 1 do
+    FDAOCObjs[I].CheckStale;
 end;
 
 end.
