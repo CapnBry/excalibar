@@ -1,9 +1,10 @@
 object frmDebugging: TfrmDebugging
   Left = 259
   Top = 186
-  Width = 432
-  Height = 162
+  BorderStyle = bsDialog
   Caption = 'Tracing and Debugging'
+  ClientHeight = 134
+  ClientWidth = 423
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,7 +12,6 @@ object frmDebugging: TfrmDebugging
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Scaled = False
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
@@ -120,7 +120,7 @@ object frmDebugging: TfrmDebugging
   end
   object tmrPlayback: TTimer
     Enabled = False
-    Interval = 50
+    Interval = 100
     OnTimer = tmrPlaybackTimer
     Left = 196
     Top = 16
