@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, Graphics,
-  DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem;
+  DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem,
+  DAOCClasses;
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
@@ -21,7 +22,6 @@ type
     procedure SetDestinationZ(const Value: WORD);
     procedure SetLevel(const Value: integer);
     procedure SetRealm(const Value: TDAOCRealm);
-    procedure SetName(const Value: string);
     procedure SetHeadWord(const Value: WORD);
     function GetHead: integer;
     procedure SetStealthed(const Value: boolean);
@@ -42,6 +42,7 @@ type
     FStealthed:  boolean;
 
     function HeadRad: double;
+    procedure SetName(const Value: string); virtual;
     function GetObjectClass : TDAOCObjectClass; virtual;
     function GetName : string; virtual;
   public
@@ -107,24 +108,31 @@ type
     function GetYProjected: DWORD;
     function GetIsDead: boolean;
     function GetIsAlive: boolean;
+    procedure SetHitPoints(const Value: BYTE);
+    function GetSpeedString: string;
   protected
     FHitPoints:  BYTE;
     FSpeedWord:  WORD;
+    FInventory: TDAOCInventory;
   public
     constructor Create; override;
+    destructor Destroy; override;
 
     procedure Assign(ASrc: TDAOCMovingObject);
     procedure Clear; override;
     function DestinationAhead : boolean;
+    procedure InventoryChanged; virtual;
 
     property XProjected: DWORD read GetXProjected;
     property YProjected: DWORD read GetYProjected;
     property Speed: integer read GetSpeed;
     property SpeedWord: WORD read FSpeedWord write SetSpeedWord;
+    property SpeedString: string read GetSpeedString;
     property IsAlive: boolean read GetIsAlive;
     property IsDead: boolean read GetIsDead;
     property IsSwimming: boolean read GetIsSwimming;
-    property HitPoints: BYTE read FHitPoints write FHitPoints;
+    property HitPoints: BYTE read FHitPoints write SetHitPoints;
+    property Inventory: TDAOCInventory read FInventory;
   end;
 
   TDAOCUnknownMovingObject = class(TDAOCMovingObject)
@@ -133,31 +141,37 @@ type
     function GetObjectClass : TDAOCObjectClass; override;
   end;
 
-  TDAOCPlayer = class(TDAOCMovingObject)
-  private
-    FGuild: string;
-    FLastName: string;
-    function GetFullName: string;
-  protected
-    function GetObjectClass : TDAOCObjectClass; override;
-  public
-    procedure Assign(ASrc: TDAOCPlayer);
-    procedure Clear; override;
-
-    property Guild: string read FGuild write FGuild;
-    property LastName: string read FLastName write FLastName;
-    property FullName: string read GetFullName;
-  end;
-
   TDAOCMob = class(TDAOCMovingObject)
   private
-    FTypeTag: string;
   protected
+    FTypeTag: string;
     function GetObjectClass : TDAOCObjectClass; override;
   public
     procedure Assign(ASrc: TDAOCMob);
 
     property TypeTag: string read FTypeTag write FTypeTag;
+  end;
+
+  TDAOCPlayer = class(TDAOCMovingObject)
+  protected
+    FGuild: string;
+    FLastName:  string;
+    FFullName:  string;
+    FCharacterClass:  TDAOCCharacterClass;
+    procedure UpdateFullName;
+    procedure SetName(const Value: string); override;
+    procedure SetLastName(const Value: string);
+    function GetObjectClass : TDAOCObjectClass; override;
+  public
+    procedure Assign(ASrc: TDAOCPlayer);
+    procedure Clear; override;
+
+    procedure InventoryChanged; override;
+
+    property Guild: string read FGuild write FGuild;
+    property LastName: string read FLastName write SetLastName;
+    property FullName: string read FFullName;
+    property CharacterClass: TDAOCCharacterClass read FCharacterClass;
   end;
 
   TDAOCCurrency = class(TObject)
@@ -180,14 +194,13 @@ type
 
   TDAOCLocalPlayer = class(TDAOCMovingObject)
   private
-    FInventory: TDAOCInventory;
+  protected
     FSkills:    TDAOCNameValueList;
     FSpecializations: TDAOCNameValueList;
     FAbilities: TDAOCNameValueList;
     FSpells:    TDAOCNameValueList;
     FStyles:    TDAOCNameValueList;
     FCurrency:  TDAOCCurrency;
-  protected
     function GetObjectClass : TDAOCObjectClass; override;
   public
     constructor Create; override;
@@ -195,7 +208,6 @@ type
 
     procedure Clear; override;
 
-    property Inventory: TDAOCInventory read FInventory;
     property Abilities: TDAOCNameValueList read FAbilities;
     property Currency: TDAOCCurrency read FCurrency;
     property Skills: TDAOCNameValueList read FSkills;
@@ -210,6 +222,9 @@ function DWORDDelta(A, B: DWORD) : DWORD;
 
 implementation
 
+const
+  SPEED_1X = 191;
+  
 function DWORDDelta(A, B: DWORD) : DWORD;
 begin
   if A > B then
@@ -302,6 +317,8 @@ end;
 
 constructor TDAOCMovingObject.Create;
 begin
+    { create objects before inherited because inherited calls clear }
+  FInventory := TDAOCInventory.Create;
   inherited;
   FHitPoints := 100;
 end;
@@ -341,6 +358,12 @@ begin
   end;
 end;
 
+destructor TDAOCMovingObject.Destroy;
+begin
+  FInventory.Free;
+  inherited;
+end;
+
 function TDAOCMovingObject.GetIsAlive: boolean;
 begin
   REsult := FHitPoints <> 0;
@@ -366,9 +389,18 @@ begin
     Result := -Result;
 end;
 
+function TDAOCMovingObject.GetSpeedString: string;
+var
+  iSpeed:   integer;
+begin
+  iSpeed := Speed;
+  iSpeed := (iSpeed * 100) div SPEED_1X;
+  Result := IntToStr(iSpeed) + '%';
+end;
+
 function TDAOCMovingObject.GetXProjected: DWORD;
 begin
-    { TODO:  Project moving object position }
+    { TODO:  Project moving object position using global timer }
   if Speed = 0 then
     Result := FX
   else
@@ -378,12 +410,21 @@ end;
 
 function TDAOCMovingObject.GetYProjected: DWORD;
 begin
-    { TODO:  Project moving object position }
+    { TODO:  Project moving object position using global timer }
   if Speed = 0 then
     Result := FY
   else
     Result := round(FY - (cos(HeadRad) *
       (Speed * ((GetTickCount - LastUpdate) / 1000))));
+end;
+
+procedure TDAOCMovingObject.InventoryChanged;
+begin
+end;
+
+procedure TDAOCMovingObject.SetHitPoints(const Value: BYTE);
+begin
+  FHitPoints := Value and $7f;  // bit $80 means *something*
 end;
 
 procedure TDAOCMovingObject.SetSpeedWord(const Value: WORD);
@@ -634,7 +675,6 @@ end;
 procedure TDAOCLocalPlayer.Clear;
 begin
   inherited Clear;
-  FInventory.Clear;
   FSkills.Clear;
   FSpecializations.Clear;
   FAbilities.Clear;
@@ -647,7 +687,6 @@ constructor TDAOCLocalPlayer.Create;
 begin
     { must create all objects before we call inherited because the inherited
       will call clear and we need objects for the clear }
-  FInventory := TDAOCInventory.Create;
   FSkills := TDAOCNameValueList.Create;
   FSpecializations := TDAOCNameValueList.Create;
   FAbilities := TDAOCNameValueList.Create;
@@ -666,7 +705,6 @@ begin
   FAbilities.Free;
   FSkills.Free;
   FSpecializations.Free;
-  FInventory.Free;
 
   inherited Destroy;
 end;
@@ -690,20 +728,48 @@ procedure TDAOCPlayer.Clear;
 begin
   inherited Clear;
   FGuild := '';
-  FLastName := '';  
-end;
-
-function TDAOCPlayer.GetFullName: string;
-begin
-  if FLastName <> '' then
-    Result := FName + ' ' + FLastName
-  else
-    Result := FName;
+  FLastName := '';
+  FInventory.Clear;
 end;
 
 function TDAOCPlayer.GetObjectClass: TDAOCObjectClass;
 begin
   Result := ocPlayer;
+end;
+
+procedure TDAOCPlayer.InventoryChanged;
+var
+  I:    integer;
+begin
+  inherited;
+  if FCharacterClass <> ccUnknown then
+    exit;
+
+  for I := 0 to FInventory.Count - 1 do begin
+    FCharacterClass := FInventory[I].ClassRestriction;
+    if FCharacterClass <> ccUnknown then
+      exit;
+  end;
+end;
+
+procedure TDAOCPlayer.SetLastName(const Value: string);
+begin
+  FLastName := Value;
+  UpdateFullName;
+end;
+
+procedure TDAOCPlayer.SetName(const Value: string);
+begin
+  inherited;
+  UpdateFullName;
+end;
+
+procedure TDAOCPlayer.UpdateFullName;
+begin
+  if FLastName <> '' then
+    FFullName := FName + ' ' + FLastName
+  else
+    FFullName := FName;
 end;
 
 { TDAOCMob }
