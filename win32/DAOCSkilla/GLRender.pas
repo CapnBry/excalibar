@@ -172,9 +172,9 @@ type
     procedure SetCurrentConnection(AConn: TDAOCConnection);
     procedure AutoSelectConnection;
     procedure UpdateCaption;
-    procedure DumpMVM(const where: string);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
+    procedure DumpMVM(const where: string);
   public
     procedure DAOCConnect(Sender: TObject);
     procedure DAOCDisconnect(Sender: TObject);
