@@ -4,7 +4,7 @@ interface
 
 uses
   Types, Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, 
-  DDSImage, Intersections, QuickSinCos, INIFiles, GLUT;
+  DDSImage, Intersections, QuickSinCos, INIFiles, GLUT, TGA2;
 
 type
   TGLRenderObject = class(TObject)
@@ -213,9 +213,20 @@ type
     constructor Create; override;
     procedure GLInitialize; override;
     procedure GLRender(const ARenderBounds: TRect); override;
-    
+
     property Size: integer read FSize write SetSize;
     property Alpha: GLfloat read FAlpha write FAlpha;
+  end;
+
+  TGLPrescienceNode = class(TGLCallListObject)
+  private
+    FImage: GLuint;
+    FImageFileName: string;
+  public
+    procedure GLInitialize; override;
+    procedure GLCleanup; override;
+
+    property ImageFileName: string read FImageFileName write FImageFileName;
   end;
 
 procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
@@ -1062,6 +1073,72 @@ end;
 procedure TGLUnkownStealther.SetSize(const Value: integer);
 begin
   FSize := Value;
+end;
+
+{ TGLPrescienceNode }
+
+procedure TGLPrescienceNode.GLCleanup;
+begin
+  if FImage <> 0 then begin
+    glDeleteTextures(1, @FImage);
+    FImage := 0;
+  end;
+end;
+
+procedure TGLPrescienceNode.GLInitialize;
+var
+  tga2:   TTGAImage;
+  orig_format:  DWORD;
+begin
+  inherited;
+  FColor := $ffffff;  // white
+
+  if FileExists(FImageFileName) then begin
+    glGenTextures(1, @FImage);
+    tga2 := TTGAImage.Create;
+    tga2.LoadFromFile(FImageFileName);
+
+    if tga2.Header.ImgSpec.Depth = 32 then
+      orig_format := GL_BGRA
+    else
+      orig_format := GL_BGR;
+
+    glBindTexture(GL_TEXTURE_2D, FImage);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tga2.Header.ImgSpec.Width, tga2.Header.ImgSpec.Height,
+      0, orig_format, GL_UNSIGNED_BYTE, tga2.Data);
+
+    tga2.Free;
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  end  { if texture exists }
+  else
+    FImage := 0;
+
+  glNewList(FGLList, GL_COMPILE);
+
+  if FImage <> 0 then begin
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, FImage);
+  end;
+
+  glBegin(GL_QUADS);
+    glTexCoord2f(0, 1);
+    glVertex3f(-1000, -1000, 0);
+    glTexCoord2f(1, 1);
+    glVertex3f(1000, -1000, 0);
+    glTexCoord2f(1, 0);
+    glVertex3f(1000, 1000, 0);
+    glTexCoord2f(0, 0);
+    glVertex3f(-1000, 1000, 0);
+  glEnd();
+
+  if FImage <> 0 then
+    glDisable(GL_TEXTURE_2D);
+    
+  glEndList();
 end;
 
 end.
