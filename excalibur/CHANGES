@@ -15,6 +15,12 @@ Bug Fixes:
  + Fixed a Signal 11 (SIGSEGV - Segmentation Fault) caused
    by assuming ds was always initialized.. A recent patch
    has caused us to have to re-evaluate those criteria.
+   
+Bug Fixes (teerex):
+ + Removed double coding for stale check and moved to checkStale().
+   Decreased the stale range to 10,000 for all mobs/players/items.
+ + Fixed major bug in experimental code for mob loc projection that
+   was ganking things out of the list.
 
 
 SnowBlind (11/Feb/02)
