@@ -1,3 +1,19 @@
+Teerex (23/May/03)
+------------------
+ + Added L1 (Manhattan) distance from player to exMob, stale check
+   and aggro circle now use this for distance estimates.
+ + Changed exMob::getConColor to cache its result to speed up 
+   recalculating the value every frame.
+ + Changed mob stale check to fire about once a second rather than
+   every frame.
+ + Changed all mob and player headings to be in degrees instead of
+   daochead units.  objRotate no longer needed, faster renderings.
+ + Removed assertion from vector map load code.
+ + Changed some exMob functions to be more inline friendly and faster.
+ + Replaced sin() and cos() with approximated table lookups.
+ + Circle drawing routine no longer indexes off a float (what was I
+   thinking there?!)
+
 Teerex (22/May/03)
 ------------------
  + Removed the --druppy-leak command line option, and the associated
