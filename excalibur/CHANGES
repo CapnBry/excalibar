@@ -1,3 +1,19 @@
+Andon (12/Feb/02)
+-----------------
+
+Additions:
+ + Added NEW objects for the object spawn type on the map..
+   It's a Pyramid or square, depending on your map seetings.
+
+Bug Fixes:
+ + Fixed a bug that was causing object spawns to be marked
+   as "stale" due to the fact that no position updates were
+   being received for them.
+ + Fixed a Signal 11 (SIGSEGV - Segmentation Fault) caused
+   by assuming ds was always initialized.. A recent patch
+   has caused us to have to re-evaluate those criteria.
+
+
 SnowBlind (11/Feb/02)
 ---------------------
 Additions:

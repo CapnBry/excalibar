@@ -108,8 +108,9 @@ protected:
   bool map_load;
   GLuint listTriangle;
   GLuint listCircle;
+  GLuint listSquares;
   exMapInfo *mi;
-  int objsize;
+  uint8_t objsize;
   exTimeType _lastDarken;
   bool mobDarken;
   QPtrList<exMapElement> map;
@@ -144,12 +145,12 @@ public:
   void setMap(exMapInfo *m);
   void mapRead();
   void textGL(QString text, int x, int y, int z);
-  void setObjectSize(int nsize);
+  void setObjectSize(uint8_t uiSize);
   int stringInt(QStringList *sl, unsigned int sec);
   exMapInfo *getMap();
   void makeObjects(bool simple);
 
-  void drawCircle(int center_x, int center_y, int radius, int segments);
+  void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
 };
 
 

@@ -35,7 +35,6 @@
 #include <qprocess.h>
 #include <math.h>
 #include <qmessagebox.h>
-#include <qstatusbar.h>
 #include "exConnection.h"
 #include "exItem.h"
 
@@ -54,13 +53,15 @@ exConnection::exConnection(exNet * s, bool dolink, bool docapture)
     from = inet_ntoa(addr);
     addr.s_addr = sniff->n_server_addr;
     to = inet_ntoa(addr);
-  if(writecapture){
-    fname = "Capture-" + from + "-" + to + "-" + QDateTime::currentDateTime().toString("yyyy.MM.dd-hh:mm:ss");
 
-    file->setName(fname);
-    file->open(IO_WriteOnly);
-    ds = new QDataStream(file);
-  }
+    if(writecapture){
+        fname = "Capture-" + from + "-" + to + "-" + QDateTime::currentDateTime().toString("yyyy.MM.dd-hh:mm:ss");
+
+        file->setName(fname);
+        file->open(IO_WriteOnly);
+        ds = new QDataStream(file);
+    }
+
     if (dolink)
       link = new exLink();
 }
@@ -226,7 +227,6 @@ void exConnection::processPacket(exPacket * p)
     QString info;
     QString title;
     QByteArray data;
-    QListViewItem *selected;
     unsigned int level;
     exMob *mob;
     Realm mobrealm;
@@ -305,14 +305,8 @@ END_EXPERIMENTAL_CODE
                      .arg((mi) ? playerx - mi->getBaseX() : playerx)
                      .arg((mi) ? playery - mi->getBaseY() : playery)
                      .arg(playerz));
-	      ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
+              ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
 	      ex->Map->dirty();
-
-              if (prefs.sticky_list){
-                 selected = ex->ListViewMobs->selectedItem();
-                   if(selected)
-                      ex->ListViewMobs->ensureItemVisible(selected);
-              }
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
               if (link && mi)
@@ -450,6 +444,9 @@ END_EXPERIMENTAL_CODE
 /*021*/           name = p->getPascalString();
                   ismob = false;
                   isobj = true;
+BEGIN_EXPERIMENTAL_CODE
+                  printf("New Object: %4x\n", infoid);
+END_EXPERIMENTAL_CODE
               }
 
 	      mob = NULL;
@@ -541,6 +538,9 @@ END_EXPERIMENTAL_CODE
 		  }
 	      }
 	      break;
+          case 0x1e: /* Stealth */
+          case 0x25: /* OpCodes */
+              break;
 	  default:
 	      if (prefs.dump_unknown_packets)
 		  dumpPacket(command, p);	

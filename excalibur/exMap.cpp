@@ -74,8 +74,8 @@ void exMap::setMap(exMapInfo *m) {
   map_load=true;
 }
 
-void exMap::setObjectSize(int nsize) {
-  objsize=nsize;
+void exMap::setObjectSize(uint8_t uiSize) {
+  objsize = uiSize;
   makeObjects(prefs.map_simple);
 }
 
@@ -84,8 +84,8 @@ exMapInfo *exMap::getMap() {
 }
 
 void exMap::makeObjects(bool simple) {
-  int w=objsize;
-  int l=w*2;
+  int w = objsize;
+  int l = w * 2;
 
   glNewList(listTriangle, GL_COMPILE);
 
@@ -124,6 +124,43 @@ void exMap::makeObjects(bool simple) {
   glVertex3f(w*1.5,-w*1.5,-1);
   glVertex3f(-w*1.5,-w*1.5,-1);
   glVertex3f(0,l*1.5,-1);
+
+  glEnd();
+  glEndList();
+
+  glNewList(listSquares, GL_COMPILE);
+  glBegin(GL_TRIANGLES);
+  glNormal3f(0.0,0.0,1.0);
+
+  if (simple) {
+    glVertex3i(w,w,0);
+    glVertex3i(w,-w,0);
+    glVertex3i(-w,-w,0);
+
+    glVertex3i(-w,-w,0);
+    glVertex3i(-w,w,0);
+    glVertex3i(w,w,0);
+  } else {
+    glNormal3f(0.0,w,0.0);
+    glVertex3i(0,0,w);
+    glVertex3i(-w,w,-w);
+    glVertex3i(w,w,-w);
+
+    glNormal3f(w,0.0,0.0);
+    glVertex3i(0,0,w);
+    glVertex3i(w,w,-w);
+    glVertex3i(w,-w,-w);
+
+    glNormal3f(0.0,-w,0.0);
+    glVertex3i(0,0,w);
+    glVertex3i(w,-w,-w);
+    glVertex3i(-w,-w,-w);
+
+    glNormal3f(-w,0.0,0.0);
+    glVertex3i(0,0,w);
+    glVertex3i(-w,-w,-w);
+    glVertex3i(-w,w,-w);
+  }
 
   glEnd();
   glEndList();
@@ -206,8 +243,9 @@ void exMap::initializeGL() {
   glMaterialfv(GL_FRONT, GL_AMBIENT, material);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, material);
 
-  listTriangle=glGenLists(1);
-  listCircle=glGenLists(1);
+  listTriangle = glGenLists(1);
+  listCircle   = glGenLists(1);
+  listSquares  = glGenLists(1);
 
   makeObjects(prefs.map_simple);
 }
@@ -221,8 +259,8 @@ void exMap::paintGL() {
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
   exMob *m;
-  int ldif;
-  int l;
+  uint8_t ldif;
+  uint8_t l;
   double playerhead;
   double playerrad;
   int minx, maxx, miny,maxy;
@@ -350,13 +388,14 @@ END_NORMAL_CODE
         if (m->isDead()) {
           setGLColor (m->getColor().dark(160), m->getZ());
         } else if (m->isObj()) {
-          setGLColor (m->getColor().dark(10), m->getZ());
+          setGLColor (m->getColor().dark(5), m->getZ());
         } else if (! m->isInvader()) {
           setGLColor (m->getColor(), m->getZ());
         } else {
           setGLColor ( (mobDarken) ? m->getColor().dark(150) : m->getColor().light(150), m->getZ());
         }
-        glCallList(listCircle);
+        if (! m->isObj())
+          glCallList(listCircle);
       }
 
   
@@ -380,7 +419,12 @@ END_NORMAL_CODE
       if (m->isObj())
         setGLColor(1.0,1.0,1.0, m->getZ());
 
-      glCallList(listTriangle);
+
+      if (! m->isObj())
+        glCallList(listTriangle);
+      else
+        glCallList(listSquares);
+
       glPopMatrix();
 
       /* if the mob is within range, draw an agro circle around it */
@@ -405,7 +449,8 @@ END_NORMAL_CODE
         }
       }
     }
-    m->stale();
+    if (! m->isObj() || m->playerDist() > 10000)
+      m->stale();
   }
 
   m=mobs.find((void *)c->selectedid);
@@ -441,17 +486,17 @@ END_NORMAL_CODE
   glFlush();
 }
 
-void exMap::drawCircle(int center_x, int center_y, int radius, int segments)
+void exMap::drawCircle(int center_x, int center_y, int radius, uint8_t segments)
 {
-     double angle;
+     float angle;
      int vectorx, vectory;
 
      /* draw a circle from a bunch of short lines */
      glBegin(GL_LINE_LOOP);
-     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (double) segments))
+     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (float) segments))
      {
-         vectorx = (int)(center_x + ((double)radius * sin(angle)));
-         vectory = (int)(center_y + ((double)radius * cos(angle)));
+         vectorx = (int)(center_x + ((float)radius * sin(angle)));
+         vectory = (int)(center_y + ((float)radius * cos(angle)));
          glVertex3i(vectorx, vectory, 500);
      }
      glEnd();
