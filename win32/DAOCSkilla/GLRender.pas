@@ -87,6 +87,7 @@ type
     FTxfH10:      TTexFont;
     FTxfH12:      TTexFont;
     lstObjects:   TLockableListBox;
+    FPushPins:    TVectorMapElementList;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -134,6 +135,8 @@ type
     function WriteTXFTextH10(X, Y: integer; const s: string) : integer;
     function WriteTXFTextH12(X, Y: integer; const s: string) : integer;
     procedure CreateObjectListBox;
+    procedure LoadRegionPushpins;
+    procedure AddPushPin;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -158,7 +161,7 @@ var
 
 implementation
 
-uses Unit1, GlobalTickCounter;
+uses Unit1, GlobalTickCounter, AddPushPin;
 
 const
   COL_NAME = 0;
@@ -200,6 +203,19 @@ begin
     Result := a
   else
     Result := b;
+end;
+
+{ TLockableListBox }
+
+procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
+begin
+  Message.Result := 1;
+end;
+
+procedure TLockableListBox.WMPaint(var Message: TWMPaint);
+begin
+  if not FLocked then
+    inherited;
 end;
 
 { TfrmGLRender }
@@ -660,6 +676,7 @@ begin
   FVisibleRangeRep := TGLFlatViewFrustum.Create;
   FBoat := TGLBoat.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
+  FPushPins := TVectorMapElementList.Create;
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
@@ -698,6 +715,7 @@ begin
   FTxfH12.Free;
   FTxfH10.UnloadFont;
   FTxfH10.Free;
+  FPushPins.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -712,6 +730,7 @@ begin
   FBoat.GLCleanup;
   FTxfH10.CleanupTexture;
   FTxfH12.CleanupTexture;
+  FPushPins.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -727,6 +746,7 @@ begin
   FGroundTarget.GLInitialize;
   FVisibleRangeRep.GLInitialize;
   FBoat.GLInitialize;
+  FPushPins.GLInitialize;
 
   FTxfH10.EstablishTexture;
   FTxfH12.EstablishTexture;
@@ -744,6 +764,8 @@ begin
     FMapTexturesListList.GLRender(FRenderBounds);
   if FRenderPrefs.DrawMapVector then
     FMapElementsListList.GLRender(FRenderBounds);
+  if FRenderPrefs.DrawPushPins then
+    FPushPins.GLRender(FRenderBounds);
 end;
 
 procedure TfrmGLRender.DAOCZoneChanged;
@@ -767,6 +789,7 @@ begin
   UpdateMapURLs;
   FRenderPrefs.PlayerRealm := FDControl.LocalPlayer.Realm;
   DAOCSetGroundTarget;
+  LoadRegionPushpins;
 end;
 
 procedure TfrmGLRender.GridSelectObject(ADAOCObject: TDAOCObject);
@@ -1084,6 +1107,11 @@ begin
       begin
         FRenderPrefs.DrawHUD := not FRenderPrefs.DrawHUD;
         Dirty;
+        Key := #0;
+      end;
+    'i', 'I':
+      begin
+        AddPushPin;
         Key := #0;
       end;
     'm', 'M':
@@ -1781,17 +1809,28 @@ begin
   lstObjects.OnMouseDown := MobListMouseDown;
 end;
 
-{ TLockableListBox }
-
-procedure TLockableListBox.WMEraseBkgnd(var Message: TWmEraseBkgnd);
+procedure TfrmGLRender.LoadRegionPushpins;
 begin
-  Message.Result := 1;
+  FPushPins.GLCleanup;
+  FPushPins.LoadFromFile(Format('%sregion%3.3d.pin',
+    [ExtractFilePath(ParamStr(0)), FDControl.RegionID]));
+  FPushPins.GLInitialize;
 end;
 
-procedure TLockableListBox.WMPaint(var Message: TWMPaint);
+procedure TfrmGLRender.AddPushPin;
+var
+  pPin:   TMapElementPoint;
 begin
-  if not FLocked then
-    inherited;
+  if not Assigned(FDControl.Zone) then
+    exit;
+
+  pPin := TfrmAddPushpin.Execute(FDControl.LocalPlayer.X,
+    FDControl.LocalPlayer.Y, FDControl.LocalPlayer.Z, FDControl.Zone.Name);
+
+  if Assigned(pPin) then begin
+    FPushPins.Add(pPin);
+    FPushPins.Save('Pushpin format: P,<label>,<color>,<world x>,<world y>,<world z>');
+  end;
 end;
 
 end.
