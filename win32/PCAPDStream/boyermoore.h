@@ -1,7 +1,6 @@
 #ifndef _BOYERMOORE_H_
 #define _BOYERMOORE_H_
 
-
 class CBoyMooSearch 
 {
 private:
@@ -16,13 +15,14 @@ protected:
 	int m_StartPos;
 	int m_EndPos;
 
-	void InitializeFor(const unsigned char* needle, int needlelen);
+	void InitializeFor(const char* needle, int needlelen);
+	virtual void BeforeFindFirst(void);
 public:
 	CBoyMooSearch(void);
 
-	int FindFirst(const unsigned char* needle, int needlelen);
-	int FindFirst(const char* needle) { return FindFirst((const unsigned char*)needle, (int)strlen(needle)); };
-	int FindNext(void);
+	int FindFirst(const char* needle, int needlelen);
+	int FindFirst(const char* needle) { return FindFirst(needle, (int)strlen(needle)); };
+	virtual int FindNext(void);
 
 	void SetStartPos(int val) { m_StartPos = val; };
 	int GetStartPos(void) { return m_StartPos; };
@@ -33,8 +33,8 @@ public:
 class CBoyMooTextSearch : public CBoyMooSearch
 {
 public:
-	CBoyMooTextSearch(const char *haystack, int haystacklen) { m_haystack = (unsigned char *)haystack; m_haystacklen = haystacklen; };
-	CBoyMooTextSearch(const char *haystack) { m_haystack = (unsigned char *)haystack; m_haystacklen = (int)strlen(haystack); };
+	CBoyMooTextSearch(char *haystack, int haystacklen) { m_haystack = (unsigned char *)haystack; m_haystacklen = haystacklen; };
+	CBoyMooTextSearch(char *haystack) { m_haystack = (unsigned char *)haystack; m_haystacklen = (int)strlen(haystack); };
 };
 
 class CBoyMooFileSearch : public CBoyMooSearch
@@ -44,6 +44,22 @@ private:
 public:
 	CBoyMooFileSearch(const char *fname);
 	~CBoyMooFileSearch(void);
+};
+
+class CBoyMooProcessSearch : public CBoyMooSearch
+{
+private:
+	unsigned int m_ProcessID;
+	int m_LastStartPos;
+	int m_LastEndPos;
+
+	void FreeHaystack(void);
+protected:
+	void BeforeFindFirst(void);	
+public:
+	CBoyMooProcessSearch(const unsigned int processid);
+	~CBoyMooProcessSearch(void);
+	int FindNext(void);
 };
 
 #endif 

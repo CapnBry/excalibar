@@ -9,7 +9,7 @@ public:
 
 	void Decrypt( unsigned char *buf, unsigned int len);
 	DWORD FindGameProcess();
-	unsigned long FindMemOffset(HANDLE hProcess);	
+	unsigned long FindMemOffset(DWORD GamePID);	
 	bool GetKey();
 	bool CryptKeySet;
 };

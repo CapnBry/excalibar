@@ -17,10 +17,10 @@ void TestSegSearch(const char* cmd_line)
         0x8B, 0xFA,			//mov edi, edx
         0x8D, 0x87			//lea offset
         };
-    CSegmentSearch search(cmd_line);
-    void* needle_address=search.FindFirst(".text",&needle[0],sizeof(needle));
+    CSegmentFileSearch search(cmd_line);
+    void* needle_address=search.FindFirst(".text",(const char*)(&needle[0]),sizeof(needle));
     
-    std::cout << "needle_address= 0x" << needle_address << "\n";
+    std::cout << "needle_address = 0x" << needle_address << "\n";
     
     // done
     return;

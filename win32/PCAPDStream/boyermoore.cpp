@@ -1,13 +1,13 @@
 #include <windows.h>
 #include <stdio.h>
-#include <string.h>
 #include "boyermoore.h"
 
-CBoyMooSearch::CBoyMooSearch(void) : m_StartPos(0), m_EndPos(0)
+CBoyMooSearch::CBoyMooSearch(void) : m_StartPos(0), m_EndPos(0),
+	m_haystack(NULL), m_haystacklen(0)
 {
 }
 
-void CBoyMooSearch::InitializeFor(const unsigned char* needle, int needlelen)
+void CBoyMooSearch::InitializeFor(const char* needle, int needlelen)
 {
 	m_needle = (unsigned char *)needle;
 	m_needlelen = needlelen;
@@ -17,13 +17,17 @@ void CBoyMooSearch::InitializeFor(const unsigned char* needle, int needlelen)
 		m_skip[i] = m_needlelen;
 	for(i=0; i<m_needlelen; i++) 
 		m_skip[m_needle[i]] = m_needlelen - 1 - i;
-
 }
 
-int CBoyMooSearch::FindFirst(const unsigned char* needle, int needlelen)
+void CBoyMooSearch::BeforeFindFirst(void)
 {
-	InitializeFor(needle, needlelen);
 	m_FindPos = m_StartPos - 1;
+}
+
+int CBoyMooSearch::FindFirst(const char* needle, int needlelen) 
+{
+	BeforeFindFirst();
+	InitializeFor(needle, needlelen);
 	return FindNext();
 }
 
@@ -35,6 +39,11 @@ int CBoyMooSearch::FindNext(void)
 		m_FindPos = m_needlelen - 1;
 	else
 		m_FindPos += m_needlelen;
+
+	if (m_FindPos > m_haystacklen) {
+		m_FindPos = -1;
+		return m_FindPos;
+	}
 
 	for(i=m_needlelen-1; i>=0; m_FindPos--, i--) {
 		while (m_haystack[m_FindPos] != m_needle[i]) {
@@ -90,3 +99,60 @@ CBoyMooFileSearch::~CBoyMooFileSearch(void)
 	}
 }
 
+CBoyMooProcessSearch::CBoyMooProcessSearch(const unsigned int processid)
+{
+	m_ProcessID = processid;
+	m_LastStartPos = 0;
+	m_LastEndPos = 0;
+}
+
+CBoyMooProcessSearch::~CBoyMooProcessSearch(void)
+{
+	FreeHaystack();
+}
+
+void CBoyMooProcessSearch::FreeHaystack(void)
+{
+	if (m_haystack) {
+		free(m_haystack);
+		m_haystack = NULL;
+		m_haystacklen = 0;
+	}
+}
+
+void CBoyMooProcessSearch::BeforeFindFirst(void)
+{
+	/* don't call the inherited because it sets the findpos to startpos
+	   which is wrong because the processsearch searches the offset
+	   starting at startpos */
+	m_FindPos = -1;
+
+	if (m_LastStartPos != m_StartPos || m_LastEndPos != m_EndPos) {
+		HANDLE hProcess;
+
+		FreeHaystack();
+		if ((hProcess = OpenProcess(PROCESS_VM_READ, false, m_ProcessID)) != NULL) {
+			DWORD bytesread;
+
+			m_haystacklen = m_EndPos - m_StartPos;
+			m_haystack = (unsigned char *)malloc(m_haystacklen);
+			ReadProcessMemory(hProcess, (void *)m_StartPos, m_haystack, m_haystacklen, &bytesread);
+			if (bytesread != m_haystacklen)
+				FreeHaystack();
+			CloseHandle(hProcess);
+		}  /* if openprocess */
+
+		m_LastStartPos = m_StartPos;
+		m_LastEndPos = m_EndPos;
+	}  /* if not the same start / end pos */
+}
+
+int CBoyMooProcessSearch::FindNext(void)
+{
+	/* since the return value is an offset into the section of memory, 
+	   we need to adjust it */
+	int retVal = CBoyMooSearch::FindNext();
+	if (retVal != -1)
+		retVal += m_StartPos;
+	return retVal;
+}

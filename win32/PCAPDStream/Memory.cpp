@@ -1,6 +1,8 @@
-#include "pcapserver.h"
 #include <fstream>
 #include <string>
+#include <vector>
+#include "pcapserver.h"
+#include "segmentsearcher.h"
 
 unsigned char* search_string=NULL;
 size_t sizeof_search_string=0;
@@ -177,6 +179,7 @@ DWORD cMemory::FindGameProcess()
 
   return 0; 
 }
+/*
 unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 {
 	size_t i,i2;
@@ -260,39 +263,86 @@ unsigned long cMemory::FindMemOffset(HANDLE hProcess)
 	VirtualFree(original_mem,0,MEM_RELEASE);
 	return 0;
 }
+*/
+unsigned long cMemory::FindMemOffset(DWORD GamePID)
+{
+	if(search_string==NULL)
+	    {
+        std::cerr << "[cMemory::FindMemOffset] using defaults for search string\n";
+	    // init search string to default
+	    
+	    static unsigned char string[] =//hauptschleife die den key generiert
+	    { 0x0F, 0xB6, 0xC3,		//movzx eax, bl
+	    0x03, 0xFA,			//add edi, edx
+	    0x03, 0xC7,			//add eax, edi
+	    0x8B, 0xFE,			//mov edi, esi
+	    0x99,					//cdq
+	    0xF7, 0xFF,			//idiv edi
+	    0x41,					//inc ecx
+	    0x3B, 0xCE,			//cmp ecx, esi
+	    0x8B, 0xFA,			//mov edi, edx
+	    0x8D, 0x87 };			//lea offset
+	    
+	    search_string=&(string[0]);
+	    sizeof_search_string=sizeof(string);
+	    search_size=0x10000;
+	    BaseAddr=(unsigned char *)0x400000;
+	    } // end if use hard coded needle
+	else
+	    {
+	    #ifdef _DEBUG
+        std::cout << "[cMemory::FindMemOffset] using key_search file for search string\n";
+        std::cout << "search size=" << search_size << "\n"
+                  << "BaseAddr=" << BaseAddr << "\n"
+                  << "sizeof(search_string)=" << sizeof_search_string << "\n"
+                  << "search string=\n";
+        std::cout << std::hex;
+        for(size_t xx=0;xx<sizeof_search_string;++xx)
+            {
+            std::cout << (unsigned int)(search_string[xx]) << "\n";
+            }
+        std::cout << std::dec;
+        #endif
+	    } // end else use needle from file
+	
+	// search pid
+	CSegmentProcessSearch key_search(GamePID);
+	unsigned long pkey=(unsigned long)key_search.FindFirst(".text",(const char*)search_string,sizeof_search_string);
+	return (pkey?(pkey+sizeof_search_string):0);
+} // end FindMemOffset
 
 bool cMemory::GetKey()
 {
-	unsigned long dwGameID;	
+	unsigned long GamePID;	
 	HANDLE hGameProc;
 
-	if((dwGameID = FindGameProcess()) == NULL)
+	if((GamePID = FindGameProcess()) == NULL)
 	{
 		pMain->StatusUpdate("couldn't find DAoC process\r\n");
         return false;
     }
 
-	if((hGameProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwGameID)) == NULL)
+	if((hGameProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GamePID)) == NULL)
 	{
 		pMain->StatusUpdate("can't open DAoC process\r\n");
         return false;
     }
 
-	unsigned long KeyOffset;// = 0xA46A48;
-	KeyOffset = FindMemOffset(hGameProc);
+	// get key offset offset
+	unsigned long KeyOffset = FindMemOffset(GamePID);
 
 	if(KeyOffset == 0)
-	{
+	    {
 		pMain->StatusUpdate("crypt key NOT FOUND in memory\r\n");
     	CloseHandle(hGameProc);
 		return false;
-	}
+	    }
 	
 	do
-	{
+	    {
 		ReadProcessMemory(hGameProc,(LPCVOID)KeyOffset,CryptKey,256,0);
 		Sleep(50);
-	}
+	    }
     while(((long *)&CryptKey)[0] == 0);   	
 
 
