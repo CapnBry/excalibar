@@ -56,6 +56,8 @@ exMap::exMap(QWidget *parent, const char *name)
   MapLoader.initialize();
   MapLoader.setParent(this);
   m_bNeedMapReload = false;
+
+  connect(&idleTimer, SIGNAL(timeout()), this, SLOT(idleTimeout()));
 }
 
 exMap::~exMap() {
@@ -133,9 +135,9 @@ void exMap::makeObjects(bool simple) {
   glNewList(listCircle, GL_COMPILE);
   glBegin(GL_TRIANGLES);
     glNormal3f(0.0,0.0,1.0);
-    glVertex3f(w*1.5,-w*1.5,-1);
-    glVertex3f(0,l*1.5,-1);
     glVertex3f(-w*1.5,-w*1.5,-1);
+    glVertex3f(0,l*1.5,-1);
+    glVertex3f(w*1.5,-w*1.5,-1);
   glEnd();
   glEndList();
 
@@ -376,15 +378,18 @@ void exMap::paintGL() {
   bounds=bounds.normalize();
 
   if ((lastfade != prefs.map_fade) || (lastfill != prefs.map_fill))
-    recache = true;
-  if (lastfill && (lastz != c->playerz))
-    recache = true;
+      recache = true;
+  else if ((prefs.map_fade || prefs.map_fill) && (lastz != c->playerz))
+      recache = true;
+
+  lastfade = prefs.map_fade;
+  lastfill = prefs.map_fill;
 
   for (mapel=map.first(); mapel; mapel=map.next()) {
      if (recache)
-       mapel->recache(this);
+         mapel->recache(this);
      if (mapel->visible(bounds))
-       mapel->cached_draw();
+         mapel->cached_draw();
   }
 
   recache = false;
@@ -443,11 +448,12 @@ void exMap::paintGL() {
 
       /* if it is filtered draw a yellow circle around it */
       if (prefs.filter_circles && m->isFiltered())
-          drawAggroCircle(m->getZ(), 1.0, 1.0, 0.0);
+          drawAggroCircle(m->getZ(), 1.0, 1.0, 0.0, 0.0);
 
       /* if the mob is within range, draw an agro circle around it */
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
-          drawAggroCircle(m->getZ(), 1.0, 0.0, 0);
+          drawAggroCircle(m->getZ(), 1.0, 0.0, 0.0,
+                          (prefs.agro_fading) ? m->playerDist() / 1500.0f : 0.0);
 
         /* if this is a player */
       if (!m->isMobOrObj()) {
@@ -546,15 +552,15 @@ void exMap::drawMobName(exMob *m)
     glPopAttrib();
 }
 
-void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B)
+void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
+                            GLfloat distfade_pct)
 {
     /* This function assumes that the X, Y, and Z coordinates are
        already in the translation matrix set for the circle */
     glPushMatrix();
-    if (Z <= 0.01f)
-        glTranslatef(0.0f, 0.0f, 0.01f);
-    else
-        glTranslatef(0.0f, 0.0f, Z - 0.01f);
+    // 600 to account for the radius of the sphere + the height of the triangle
+    if (Z >= 600.0f)
+        glTranslatef(0.0f, 0.0f, -600.0f);
 
     if (prefs.alpha_circles && ! prefs.map_simple) {
         glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
@@ -570,15 +576,19 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B)
             drawCircle (0, 0, 500, 18);
         }
 
-        glColor4f  (R, G, B, 0.25f);
+        if (distfade_pct > 0)
+            glColor4f(R, G, B, 0.50f - (distfade_pct / 2.0f));
+        else
+            glColor4f(R, G, B, 0.25f);
 
         GLUquadricObj *qoCircle;
         qoCircle = gluNewQuadric();
 
-        if (prefs.alpha_speed)
-            gluDisk   (qoCircle, 0, 500, 18, 18);
-        else
-            gluSphere (qoCircle, 500, 32, 32);
+        if (prefs.alpha_speed)  {
+            gluQuadricOrientation(qoCircle, GLU_INSIDE);
+            gluDisk(qoCircle, 0, 500, 18, 18);
+        } else
+            gluSphere(qoCircle, 500, 32, 32);
         glPopAttrib();
     }
 
@@ -587,9 +597,12 @@ void exMap::drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B)
         glDisable    (GL_LIGHTING);
 
         glLineWidth  (1.0);
-        glColor3f    (R, G, B);
-        drawCircle   (0, 0, 500, 18);
-        glPopAttrib  ();
+        if (distfade_pct > 0)
+            glColor3f(R - distfade_pct, G - distfade_pct, B - distfade_pct);
+        else
+            glColor3f(R, G, B);
+        drawCircle(0, 0, 500, 18);
+        glPopAttrib();
     }
 
     glPopMatrix();
@@ -703,14 +716,14 @@ void exMap::setGLColor(double r, double g, double b, int z) {
   col[0]=r;
   col[1]=g;
   col[2]=b;
-  setGLColor(col, (double) z);
+  adjustGLColor(col, (double) z);
   glColor4d(col[0],col[1],col[2],col[3]);
 }
 
-void exMap::setGLColor(double *col, double z) {
+void exMap::adjustGLColor(double *col, double z) {
   double darken;
 
-  if (! prefs.map_fade) {
+  if (!prefs.map_fade) {
     col[3]=1.0;
     return;
   }
@@ -771,6 +784,11 @@ void exMap::mapRead() {
 
 }
 
+void exMap::idleTimeout(void)
+{
+    dirty();
+}
+
 exMapElement::exMapElement() {
   displist = glGenLists(1);
 }
@@ -783,7 +801,6 @@ void exMapElement::recache(exMap *map) {
   glNewList(displist, GL_COMPILE);
   draw(map);
   glEndList();
-  glCallList(displist);
 }
 
 
@@ -1019,15 +1036,15 @@ bool exMapElementLine::fromString(QStringList lst, int xadd, int yadd) {
     allpoints.append(p);
     points.append(p);
     if (bounds.x() == 0) {
-      bounds.setRect(x, y, 1, 1);
+      bounds.setRect(x, y, x, y);
     } else {
       if (bounds.left() > x)
         bounds.setLeft(x);
       if (bounds.right() < x)
         bounds.setRight(x);
-      if (bounds.top() < y)
+      if (bounds.top() > y)
         bounds.setTop(y);
-      if (bounds.bottom() > y)
+      if (bounds.bottom() < y)
         bounds.setBottom(y); 
      }
   }
@@ -1120,11 +1137,12 @@ void exMapElementLine::draw(exMap *map) {
     p->glcol[1]=g;
     p->glcol[2]=b; 
     p->glcol[3]=1.0;
-    map->setGLColor(p->glcol, (double) p->z);
+    map->adjustGLColor(p->glcol, (double) p->z);
   }
 
   if (! map->ignore_fill && filled && prefs.map_fill) {
     exMapElementLineTess *t;
+    glDisable(GL_CULL_FACE);  // some of our tesselated polys are upside down
     for (t=tesspoints.first(); t; t=tesspoints.next()) {
       glBegin(t->type);
       for (p=t->points.first(); p; p=t->points.next()) {
@@ -1133,6 +1151,7 @@ void exMapElementLine::draw(exMap *map) {
       }
       glEnd();
     }
+    glEnable(GL_CULL_FACE);
   }
 
   glBegin(GL_LINE_STRIP);

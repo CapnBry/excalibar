@@ -168,10 +168,15 @@ protected:
   
   unsigned int  frames;
   exTimeType    _last_fps;
+  QTimer idleTimer;
   
   void drawCircle(int center_x, int center_y, int radius, uint8_t segments);
   void drawMobName(exMob *m);
-  void drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B);
+  void drawAggroCircle(GLfloat Z, GLfloat R, GLfloat G, GLfloat B,
+                       GLfloat distfade_pct);
+
+public slots:
+  void idleTimeout(void);
 
 public:
   exConnection *c;
@@ -192,7 +197,7 @@ public:
 
   void setGLColor(double r, double g, double b, int z);
   void setGLColor(QColor col, int z);
-  void setGLColor(double *col, double z);
+  void adjustGLColor(double *col, double z);
   void dirty();
   void setConnection(exConnection *nc);
   void objRotate(unsigned int daocheading);
