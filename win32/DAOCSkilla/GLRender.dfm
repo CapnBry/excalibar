@@ -74,4 +74,10 @@ object frmGLRender: TfrmGLRender
       33
       37)
   end
+  object tmrMinFPS: TTimer
+    Interval = 500
+    OnTimer = tmrMinFPSTimer
+    Left = 36
+    Top = 28
+  end
 end

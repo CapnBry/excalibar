@@ -12,6 +12,7 @@ type
     glMap: TglWindow;
     slideZoom: TTrackBar;
     grdObjects: TDrawGrid;
+    tmrMinFPS: TTimer;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -23,11 +24,14 @@ type
     procedure grdObjectsDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
     procedure grdObjectsClick(Sender: TObject);
+    procedure tmrMinFPSTimer(Sender: TObject);
   private
     FDControl: TDAOCControl;
     FRange:     DWORD;
-    FGLInitsCalled:     boolean;
+    FGLInitsCalled:       boolean;
     FDirty:   boolean;
+    FInvaderHighlight:    boolean;
+    FInvaderHighlightLastSwap:  DWORD;
     FMapElements:   TVectorMapElementList;
     FMapTextures:   TTextureMapElementList;
     FRangeCircles:  TRangeCircleList;
@@ -46,7 +50,7 @@ type
     procedure GLInits;
     procedure GLCleanups;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
-    procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCObject);
+    procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
   protected
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
@@ -100,6 +104,7 @@ var
   miny:   integer;
   maxx:   integer;
   maxy:   integer;
+  dwTickCount:  DWORD;
 begin
   if not Assigned(FDControl) then
     exit;
@@ -107,10 +112,11 @@ begin
   if not FGLInitsCalled then
     GLInits;
 
-  // Clear the color and depth buffers
-//  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-//  glColor3f(0.0, 1.0, 0.0);
-//  glRectf(100, 100, 150, 150);
+  dwTickCount := GetTickCount;
+  if FInvaderHighlightLastSwap + 1000 < dwTickCount then begin
+    FInvaderHighlightLastSwap := dwTickCount;
+    FInvaderHighlight := not FInvaderHighlight;
+  end;
 
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -124,7 +130,7 @@ begin
   maxx := FDControl.LocalPlayer.X + FRange;
   miny := FDControl.LocalPlayer.Y - FRange;
   maxy := FDControl.LocalPlayer.Y + FRange;
-  glOrtho(minx, maxx, miny, maxy, 1, -200);
+  glOrtho(minx, maxx, miny, maxy, 1, -300);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -135,7 +141,7 @@ begin
   DrawMobsAndPlayers;
   DrawLineToSelected;
 
-  glTranslatef(FDControl.LocalPlayer.X, FDControl.LocalPlayer.Y, 0);
+  glTranslatef(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
 
     { at player pos }
   DrawMapRulers;
@@ -195,9 +201,24 @@ begin
 end;
 
 procedure TfrmGLRender.slideZoomChange(Sender: TObject);
+var
+  iSize:  integer;
 begin
   FRange := slideZoom.Position;
-  glMap.ReDraw;
+
+  iSize := FRange div 40;
+  if iSize > 300 then
+    iSize := 300
+  else if iSize < 25 then
+    iSize := 25;
+  FMobTriangle.Size := iSize;
+  
+  if Visible then begin
+    FMobTriangle.GLCleanup;
+    FMobTriangle.GLInitialize;
+  end;
+
+  Dirty;
 end;
 
 procedure TfrmGLRender.FormShow(Sender: TObject);
@@ -318,8 +339,11 @@ begin
     glColor3f(1.0, 1.0, 1.0);
     glLineWidth(2.0);
     glBegin(GL_LINES);
-    glVertex3i(FDControl.LocalPlayer.X, FDControl.LocalPlayer.Y, 0);  // c->playerz
-    glVertex3i(pSelected.X, pSelected.Y, 0);  // m->getZ()
+    glVertex3i(FDControl.LocalPlayer.XProjected, FDControl.LocalPlayer.YProjected, 0);
+    if pSelected is TDAOCMovingObject then
+      glVertex3i(TDAOCMovingObject(pSelected).XProjected, TDAOCMovingObject(pSelected).YProjected, 0)
+    else
+      glVertex3i(pSelected.X, pSelected.Y, 0);
     glEnd();
   end;
 end;
@@ -328,41 +352,46 @@ procedure TfrmGLRender.DrawMobsAndPlayers;
 var
   I:    integer;
   clMob:  TColor;
-  pMob:   TDAOCObject;
+  pObj:   TDAOCObject;
+  pMovingObj:  TDAOCMovingObject;
 begin
+  glEnable(GL_BLEND);
+
   for I := 0 to FDControl.DAOCObjects.Count - 1 do begin
-    pMob := FDControl.DAOCObjects[I];
+    pObj := FDControl.DAOCObjects[I];
 
-    if pMob.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
-      glPushMatrix();
-      glTranslatef(pMob.X, pMob.Y, 0);
-      glRotatef(pMob.Head - 180, 0, 0, 1);
-
-      if pMob.ObjectClass = ocPlayer then
-        DrawPlayerHighlightRing(pMob);
-
-      clMob := pMob.GetConColor(FDControl.LocalPlayer.Level);
-      if pMob.Stealthed then
+    if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
+      pMovingObj := TDAOCMovingObject(pObj);
+      clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
+      if pObj.Stealthed then
         clMob := clGreen;
+
+        { if the mob is on the move, draw a line to its destination }
+      if (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
+        glLineWidth(3.0);
+        SetGLColorFromTColor(clMob, 0.33);
+        glBegin(GL_LINES);
+          glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
+          glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
+        glEnd();
+      end;  { if destinaton set }
+
+      glPushMatrix();
+      glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
+      glRotatef(pObj.Head - 180, 0, 0, 1);
+
+      if pObj.ObjectClass = ocPlayer then
+        DrawPlayerHighlightRing(TDAOCMovingObject(pObj));
+
       glColor3ubv(PGLubyte(@clMob));
       FMobTriangle.GLRender;
 
       glPopMatrix();
-
-        { if the mob is on the move, draw a line to its destination }
-      if (pMob.DestinationX <> 0) and (pMob.DestinationY <> 0) then begin
-        glLineWidth(2.0);
-        glColor4f(1, 0, 0, 0.8);
-        glBegin(GL_LINES);
-          glVertex3f(pMob.X, pMob.Y, 0);
-          glVertex3f(pMob.DestinationX, pMob.DestinationY, 0);
-        glEnd();
-      end;  { if destinaton set }
     end;  { if a class to draw }
 
-    if pMob.ObjectClass = ocObject then begin
+    if pObj.ObjectClass = ocObject then begin
       glPushMatrix();
-      glTranslatef(pMob.X, pMob.Y, 0);
+      glTranslatef(pObj.X, pObj.Y, 0);
       FObjectTriangle.GLRender;
       glPopMatrix();
     end;
@@ -380,7 +409,7 @@ begin
   rngCircle := TRangeCircle.CreateRange(1500);
   rngCircle.Color := clLime;
   FRangeCircles.Add(rngCircle);
-  rngCircle := TRangeCircle.CreateRange(7000);
+  rngCircle := TRangeCircle.CreateRange(6000);
   rngCircle.Color := clSilver;
   FRangeCircles.Add(rngCircle);
 
@@ -596,12 +625,23 @@ begin
   Dirty;
 end;
 
-procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCObject);
+procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
 var
+  cl:     TColor;
   fSize:  GLfloat;
 begin
+  cl := RealmColor(ADAOCObject.Realm);
+
   fSize :=  FMobTriangle.Size * 1.33;
-  SetGLColorFromTColor(RealmColor(ADAOCObject.Realm), 1);
+  if ADAOCObject.IsDead then
+    SetGLColorFromTColorDarkened(cl, 1, 0.25)
+  else if ADAOCObject.Realm <> FDControl.LocalPlayer.Realm then
+    if FInvaderHighlight then
+      SetGLColorFromTColorDarkened(cl, 1, 1.3)
+    else
+      SetGLColorFromTColorDarkened(cl, 1, 0.7)
+  else
+    SetGLColorFromTColor(cl, 1);
 
   glBegin(GL_TRIANGLES);
     glNormal3f(0, 0, 1);
@@ -609,6 +649,11 @@ begin
     glVertex3F(0, 2 * fSize, 0);
     glVertex3f(fSize, -fSize, 0);
   glEnd();
+end;
+
+procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
+begin
+  Dirty;
 end;
 
 end.
