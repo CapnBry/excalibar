@@ -1139,7 +1139,7 @@ begin
           Level := pPacket.getByte;  //+15
           pPacket.getByte;  //+16  bittest 0, 1, 2, 4, 8, c0
           pPacket.getByte;  //+17  shl 2
-          pPakcet.seek(4);  // daoc v1.71
+          pPacket.seek(4);  // daoc v1.71
           Name := pPacket.getPascalString;//+18
           TypeTag := pPacket.getPascalString;
             { the destination is usually set in the update packet before the client
