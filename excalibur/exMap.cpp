@@ -49,6 +49,8 @@ exMap::exMap(QWidget *parent, const char *name)
   map_load = false; 
   mobDarken = false;
   _lastDarken = 0;
+  _last_fps = 0;
+  frames = 0;
   mi = NULL;
   edit_xofs = edit_yofs = 0;
   recache = true;
