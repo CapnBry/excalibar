@@ -6,7 +6,7 @@ uses
   Windows, Classes, ActiveX, AXScript;
 
 type
-  TScriptErrorEvent = procedure (Sender: TObject; const AErr, ALine: string) of object;
+  TScriptErrorEvent = procedure (Sender: TObject; const AErr, ALine: string; APos: TPoint) of object;
   TScriptObjectNeededEvent = procedure (Sender: TObject; const AName: string;
     out IObj: IUnknown) of Object;
   TScriptTypeInfoNeededEvent = procedure (Sender: TObject; const AName: string;
@@ -122,7 +122,7 @@ begin
   end;
 
   if Assigned(FOnError) then
-    FOnError(Self, sErr, sLine);
+    FOnError(Self, sErr, sLine, pt);
     
   Result := S_OK;
 end;
