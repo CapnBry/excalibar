@@ -19,7 +19,7 @@ uses
   Graphics,
 {$ENDIF !LINUX}
   Types, SysUtils, Classes, Contnrs, GL, GLext, GLU,
-  DDSImage, Intersections, QuickSinCos, INIFiles, GLUT, TGA2;
+  DDSImage, Intersections, QuickSinCos, INIFiles, GlutFonts, TGA2;
 
 type
   TGLRenderObject = class(TObject)
@@ -336,31 +336,25 @@ begin
 end;
 
 function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
-var
-  I:    integer;
 begin
   Result := Y - 13;
 
-  if not Assigned(glutBitmapCharacter) or (s = '') then
+  if s = '' then
     exit;
 
   glRasterPos2i(X, Result);
-  for I := 1 to Length(s) do
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(s[I]));
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10, s);
 end;
 
 function WriteGLUTTextH12(X, Y: integer; const s: string): integer;
-var
-  I:    integer;
 begin
   Result := Y - 13;
 
-  if not Assigned(glutBitmapCharacter) or (s = '') then
+  if s = '' then
     exit;
 
   glRasterPos2i(X, Result);
-  for I := 1 to Length(s) do
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(s[I]));
+  glutBitmapString(GLUT_BITMAP_HELVETICA_12, s);
 end;
 
 procedure ShadedRect(Left, Top, Right, Bottom: integer);

@@ -1,5 +1,15 @@
 unit GLRender;
 
+(****************************************************************************
+**
+** Copyright (C) 2004 Bryan Mayland.  All rights reserved.
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License version 2 as published by the Free Software
+** Foundation.
+**
+****************************************************************************)
+
 interface
 
 uses
@@ -11,7 +21,7 @@ uses
 {$ENDIF !LINUX}
   SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCConnectionList,
   DAOCObjs, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
-  QuickSinCos, BackgroundHTTP, TexFont, GLUT, Menus, ActnList;
+  QuickSinCos, BackgroundHTTP, Menus, ActnList, GlutFonts;
 
 type
   { A simple list box that you can prevent drawing }
@@ -157,19 +167,15 @@ type
     FLastInvaderWarningTicks:   Cardinal;
     FLastAlertIntervalTicks:    Cardinal;
     FBoat:    TGLBoat;
-    FTargetHUDWidth:  integer;
     FMouseLocX:   Cardinal;
     FMouseLocY:   Cardinal;
     FHTTPFetch:   TBackgroundHTTPManager;
-    FTxfH10:      TTexFont;
-    FTxfH12:      TTexFont;
     lstObjects:   TLockableListBox;
     FPushPins:    TVectorMapElementList;
     FUnknownStealther:  TGLUnknownStealther;
     FObjectHighlight:   TGLObjectHighlight;
     FPrescienceNode:    TGLPrescienceNode;
     FBasePath:    string;
-    FMaxTXFTextWidth:   integer;
     //FHudConFlag:  TGLHudConFlag;
     FDAOCConnectionList: TDAOCConnectionList;
     FPrefsLoaded: boolean;
@@ -223,8 +229,6 @@ type
     procedure MapUnproject(var X, Y: Cardinal; ANeedMVPSetup: boolean);
     function CompareObjectClasses(A, B: TDAOCObjectClass): integer;
     procedure UpdateMapURLs;
-    function WriteTXFTextH10(X, Y: integer; const s: string) : integer;
-    function WriteTXFTextH12(X, Y: integer; const s: string) : integer;
     procedure LoadRegionPushpins;
     procedure AddPushPin;
     procedure SetSmoothingOpts;
@@ -788,7 +792,7 @@ begin
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
-      if pObj.Highlight then 
+      if pObj.Highlight then
         FObjectHighlight.GLRender(FRenderBounds);
 
       if pObj.ObjectClass = ocPlayer then
@@ -854,11 +858,6 @@ begin
   FBasePath := ExtractFilePath(ParamStr(0));
   FRangeCircles := TRangeCircleList.Create;
 
-  FTxfH10 := TTexFont.Create;
-  FTxfH10.LoadFont(FBasePath + 'helvetica10.txf');
-  FTxfH12 := TTexFont.Create;
-  FTxfH12.LoadFont(FBasePath + 'helvetica12.txf');
-
   FHTTPFetch := TBackgroundHTTPManager.Create;
   FHTTPFetch.AgentVersion := frmMain.Version;
 
@@ -893,17 +892,11 @@ begin
   FRenderPrefs.OnMobTriangleSizeChanged := RENDERPrefsMobTriangleSizeChanged;
   FRenderPrefs.OnMinFPSChanged := RENDERPrefsMinFPSChanged; 
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
-  FRenderPrefs.HasGLUT := Assigned(glutInit);
 
   if FRenderPrefs.HasOpenGL13 then
     Log('OpenGL 1.3:  Available (' + GetGLVersion + ')')
   else
     Log('OpenGL 1.3:  NOT FOUND (' + GetGLVersion + ')');
-
-  if FRenderPrefs.HasGLUT then
-    Log('OpenGL GLUT:  Available')
-  else
-    Log('OpenGL GLUT:  NOT FOUND');
 
   UpdateObjectCounts;
   CreateObjectListBox;
@@ -923,10 +916,6 @@ begin
   FRenderPrefs.Free;
   FHTTPFetch.Shutdown;
   FHTTPFetch.Free;
-  FTxfH12.UnloadFont;
-  FTxfH12.Free;
-  FTxfH10.UnloadFont;
-  FTxfH10.Free;
   FPushPins.Free;
   FPrescienceNode.Free;
   //FHudConFlag.Free;
@@ -942,10 +931,6 @@ begin
   FGroundTarget.GLCleanup;
   FVisibleRangeRep.GLCleanup;
   FBoat.GLCleanup;
-  FTxfH10.CleanupTexture;
-  FTxfH10.CleanupCallLists;
-  FTxfH12.CleanupTexture;
-  FTxfH12.CleanupCallLists;
   FPushPins.GLCleanup;
   FUnknownStealther.GLCleanup;
   FObjectHighlight.GLCleanup;
@@ -972,10 +957,6 @@ begin
   FPrescienceNode.GLInitialize;
   //FHudConFlag.GLInitialize;
 
-  FTxfH10.EstablishTexture;
-//  FTxfH10.BuildCallLists;
-  FTxfH12.EstablishTexture;
-//  FTxfH12.BuildCallLists;
   CheckGLError;
 end;
 
@@ -1056,8 +1037,6 @@ procedure TfrmGLRender.DAOCSelectedObjectChanged(Sender: TObject; AObj: TDAOCObj
 begin
   if Sender <> FCurrConn then exit;
 
-  FTargetHUDWidth := 0;
-  
   if FRenderPrefs.TrackInGameSelect then begin
     GridSelectObject(AObj);
     Dirty;
@@ -1126,12 +1105,12 @@ var
     with TDAOCMovingObject(pMob) do begin
         { white background for the name }
       glColor3f(0.4, 0.4, 0.4);
-      WriteTXFTextH12(4+1, rastery-1, AName);
+      WriteGLUTTextH12(4+1, rastery-1, AName);
         { con color for name }
       //FHudConFlag.Color := GetConColor(FCurrConn.LocalPlayer.Level);
       //FHudConFlag.GLRender(Rect(0, 0, Width, Height));
       SetGLColorFromTColor(GetConColor(FCurrConn.LocalPlayer.Level), 1);
-      rastery := WriteTXFTextH12(4, rastery, AName);
+      rastery := WriteGLUTTextH12(4, rastery, AName);
     end;
   end;
 
@@ -1154,7 +1133,7 @@ var
       if (pMob.ObjectClass = ocLocalPlayer) and
         (TDAOCLocalPlayer(pMob).ManaPct <> 0) and (TDAOCLocalPlayer(pMob).ManaPct <> 100) then
         s := s + ' ' + IntToStr(TDAOCLocalPlayer(pMob).ManaPct) + '%M';
-      rastery := WriteTXFTextH12(4, rastery, s);
+      rastery := WriteGLUTTextH12(4, rastery, s);
     end;
   end;
 
@@ -1170,27 +1149,20 @@ begin
   glDisable(GL_LIGHTING);
 
   rastery := glMap.ClientHeight - 1;
-
-  if FTargetHUDWidth = 0 then
-    FMaxTXFTextWidth := 0;
-
-    { BRY: we don't use FTargetHUDWidth yet, because is needs to also be
-      recalculated when the object's speed changes, and I'm not sure how I
-      want to do that to keep the box from lagging one frame every time }
   ShadedRect(1, rastery, 160, rastery - 56);
 
-  glEnable(GL_TEXTURE_2D);
+  glDisable(GL_BLEND);
   case pMob.ObjectClass of
     ocObject, ocDoor:
       begin
         glColor3f(0.9, 0.9, 0.9);
-        rastery := WriteTXFTextH12(4, rastery, pMob.Name);
+        rastery := WriteGLUTTextH12(4, rastery, pMob.Name);
         glColor4fv(@TEXT_COLOR);
         if pMob.ObjectClass = ocDoor then
           if pMob.DoorIsOpen then
-            rastery := WriteTXFTextH12(4, rastery, 'Door is OPEN')
+            rastery := WriteGLUTTextH12(4, rastery, 'Door is OPEN')
           else
-            rastery := WriteTXFTextH12(4, rastery, 'Door is CLOSED');
+            rastery := WriteGLUTTextH12(4, rastery, 'Door is CLOSED');
       end;
 
     ocMob:
@@ -1198,7 +1170,7 @@ begin
         WriteMobNameCon(Name);
         glColor4fv(@TEXT_COLOR);
         if TypeTag <> '' then
-          rastery := WriteTXFTextH12(4, rastery, TypeTag);
+          rastery := WriteGLUTTextH12(4, rastery, TypeTag);
         WriteMobLevelHealth;
       end;  { ocMob }
 
@@ -1207,7 +1179,7 @@ begin
         WriteMobNameCon(FullName);
         glColor4fv(@TEXT_COLOR);
         if Guild <> '' then
-          rastery := WriteTXFTextH12(4, rastery, '<' + Guild + '>');
+          rastery := WriteGLUTTextH12(4, rastery, '<' + Guild + '>');
         WriteMobLevelHealth;
       end;  { ocPlayer }
 
@@ -1216,7 +1188,7 @@ begin
         WriteMobNameCon(FullName);
         glColor4fv(@TEXT_COLOR);
         if Guild <> '' then
-          rastery := WriteTXFTextH12(4, rastery, '<' + Guild + '>');
+          rastery := WriteGLUTTextH12(4, rastery, '<' + Guild + '>');
         WriteMobLevelHealth;
       end;  { ocLocalPlayer }
 
@@ -1233,12 +1205,7 @@ begin
     ' ' + ZDeltaStr(pMob, false);
   if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).Speed <> 0) then
     s := s + '  Speed: ' + TDAOCMovingObject(pMob).SpeedString;
-  rastery := WriteTXFTextH10(4, rastery, s);
-
-  if FTargetHUDWidth = 0 then
-    FTargetHUDWidth := FMaxTXFTextWidth + 7;
-    
-  glDisable(GL_TEXTURE_2D);
+  rastery := WriteGLUTTextH10(4, rastery, s);
 end;
 
 procedure TfrmGLRender.SetupRadarProjectionMatrix;
@@ -1512,9 +1479,8 @@ begin
 
   if FFrameStats <> '' then begin
     glDisable(GL_LIGHTING);
-    glEnable(GL_TEXTURE_2D);
     glColor3f(1, 1, 0);
-    WriteTXFTextH10(3, 15, FFrameStats);
+    WriteGLUTTextH10(3, 15, FFrameStats);
     glDisable(GL_TEXTURE_2D);
   end;
 end;
@@ -1641,18 +1607,16 @@ begin
   ShadedRect(rasterx, rastery, rasterx + 124, rastery - 43);
   inc(rasterx, 2);
 
-  glEnable(GL_TEXTURE_2D);
+  glDisable(GL_BLEND);
   glColor4f(1, 1, 1, 1);
   with FCurrConn do begin
     if FZoneName <> '' then
-      rastery := WriteTXFTextH10(rasterx, rastery, FZoneName);
+      rastery := WriteGLUTTextH10(rasterx, rastery, FZoneName);
     s := Format('(%d,%d,%d)', [PlayerZoneX, PlayerZoneY, PlayerZoneZ]);
-    rastery := WriteTXFTextH10(rasterx, rastery, s);
+    rastery := WriteGLUTTextH10(rasterx, rastery, s);
     s := 'Heading ' + IntToStr(PlayerZoneHead) + ' Speed ' + LocalPlayer.SpeedString;
-    WriteTXFTextH10(rasterx, rastery, s);
+    WriteGLUTTextH10(rasterx, rastery, s);
   end;
-
-  glDisable(GL_TEXTURE_2D);
 end;
 
 procedure TfrmGLRender.DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
@@ -1823,13 +1787,11 @@ begin
 
   ptMouse.X := ptMouse.X + 1;
   ptMouse.Y := ptMouse.Y + 2;
-  glEnable(GL_TEXTURE_2D);
   if Assigned(pNearest) then begin
-    ptMouse.Y := WriteTXFTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
-    ptMouse.Y := WriteTXFTextH10(ptMouse.X, ptMouse.Y, ZDeltaStr(pNearest, true));
+    ptMouse.Y := WriteGLUTTextH10(ptMouse.X, ptMouse.Y, pNearest.Name);
+    ptMouse.Y := WriteGLUTTextH10(ptMouse.X, ptMouse.Y, ZDeltaStr(pNearest, true));
   end;
-  WriteTXFTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
-  glDisable(GL_TEXTURE_2D);
+  WriteGLUTTextH10(ptMouse.X, ptMouse.Y, Format('%d,%d Dist %d', [ZoneX, ZoneY, iDist]));
 end;
 
 procedure TfrmGLRender.MobListMouseDown(Sender: TObject;
@@ -1959,26 +1921,6 @@ begin
     's=' + FCurrConn.ServerIP + '&';
 end;
 
-function TfrmGLRender.WriteTXFTextH10(X, Y: integer; const s: string): integer;
-var
-  iWidth:   integer;
-begin
-  Result := Y - 13;
-  iWidth := FTxfH10.RenderStringXYBind(X, Result, s);
-  if iWidth > FMaxTXFTextWidth then
-    FMaxTXFTextWidth := iWidth;
-end;
-
-function TfrmGLRender.WriteTXFTextH12(X, Y: integer; const s: string): integer;
-var
-  iWidth:   integer;
-begin
-  Result := Y - 13;
-  iWidth := FTxfH12.RenderStringXYBind(X, Result, s);
-  if iWidth > FMaxTXFTextWidth then
-    FMaxTXFTextWidth := iWidth;
-end;
-
 procedure TfrmGLRender.CreateObjectListBox;
 begin
   lstObjects := TLockableListBox.Create(Self);
@@ -2052,12 +1994,10 @@ begin
   if not Assigned(FCurrConn.UnknownStealthers.Head) then
     exit;
     
-  glEnable(GL_TEXTURE_2D);
   glColor3f(0, 0, 0);
-  WriteTXFTextH12(glMap.ClientWidth - 117, 15, 'Stealther in proximity');
+  WriteGLUTTextH12(glMap.ClientWidth - 117, 15, 'Stealther in proximity');
   glColor3f(1, 0, 0);
-  WriteTXFTextH12(glMap.ClientWidth - 118, 16, 'Stealther in proximity');
-  glDisable(GL_TEXTURE_2D);
+  WriteGLUTTextH12(glMap.ClientWidth - 118, 16, 'Stealther in proximity');
 end;
 
 procedure TfrmGLRender.SetSmoothingOpts;
@@ -2255,10 +2195,10 @@ begin
   glLoadIdentity();
 
   glDisable(GL_BLEND);
-  glEnable(GL_TEXTURE_2D);
-
+  glDisable(GL_LIGHTING);
+  
   glColor3f(1.0, 1.0, 1.0);
-  WriteTXFTextH12(5, glMap.ClientHeight, 'No connection assigned.');
+  WriteGLUTTextH12(5, glMap.ClientHeight, 'No connection assigned.');
 end;
 
 procedure TfrmGLRender.RENDERPrefsMinFPSChanged(Sender: TObject);

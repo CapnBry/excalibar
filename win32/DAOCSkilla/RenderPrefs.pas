@@ -30,7 +30,6 @@ type
     FObjectClassFilter: TDAOCObjectClasses;
     FOnObjectFilterChanged: TNotifyEvent;
     FHasOpenGL13: boolean;
-    FHasGLUT: boolean;
     FDrawFriendlyPlayers:  boolean;
     FObjectConFilter: TDAOCConColors;
     FMobListSortOrder: TMobListSortOrder;
@@ -53,7 +52,6 @@ type
     procedure DoOnMobListOptionsChanged;
     procedure DoOnMobTriangleSizeChanged;
     procedure DoOnMinFPSChanged;
-    procedure SetHasGLUT(const Value: boolean);
     procedure SetHasOpenGL13(const Value: boolean);
     procedure SetDrawFriendlyPlayers(const Value: boolean);
     procedure SetObjectConFilter(const Value: TDAOCConColors);
@@ -125,7 +123,6 @@ type
     property AlternateMobListText: boolean read FAlternateMobListText write SetAlternateMobListText;
     property DrawFriendlyPlayers: boolean read FDrawFriendlyPlayers write SetDrawFriendlyPlayers;
     property HasOpenGL13: boolean read FHasOpenGL13 write SetHasOpenGL13;
-    property HasGLUT: boolean read FHasGLUT write SetHasGLUT;
     property HighlightMobs: boolean read FHighlightMobs write SetHighlightMobs;
     property GroupByRealm: boolean read FGroupByRealm write SetGroupByRealm;
     property GroupByClass: boolean read FGroupByClass write SetGroupByClass;
@@ -372,7 +369,6 @@ begin
   Result.InvaderWarnMinTicks := InvaderWarnMinTicks;
   Result.HasOpenGL13 := HasOpenGL13;
   Result.GroupByRealm := GroupByRealm;
-  Result.HasGLUT := HasGLUT;
   Result.DrawFriendlyPlayers := DrawFriendlyPlayers;
   Result.DrawGrid := DrawGrid;
   Result.ObjectConFilter := ObjectConFilter;
@@ -598,12 +594,6 @@ procedure TRenderPreferences.SetGroupByRealm(const Value: boolean);
 begin
   FGroupByRealm := Value;
   DoOnMobListOptionsChanged;
-end;
-
-procedure TRenderPreferences.SetHasGLUT(const Value: boolean);
-begin
-  FHasGLUT := Value;
-  DrawHUD := FHasGLUT and DrawHUD;
 end;
 
 procedure TRenderPreferences.SetHasOpenGL13(const Value: boolean);
