@@ -1,3 +1,20 @@
+Teerex (21/Nov/02)
+------------------
+ + Fixed bug where some dead players would still be counted as alive in the
+   mobcount panel even though they had 0 health.
+
+Teerex (20/Nov/02)
+------------------
+ + Added ability to turn off rendering of objects (graves / drops) in the
+   map area.  Still displays in mob list.
+ + Added Cabalist epic to class guessing.  This is done on speculation
+   and may not be accurate.
+   
+Teerex (08/Nov/02)
+------------------
+ + Changes to the tcp fragment assembly code, fixes short tcp packets on
+   Linux only.
+
 Teerex (29/Oct/02)
 ------------------
  + Preferences are now saved when you turn them on and off via the menus
