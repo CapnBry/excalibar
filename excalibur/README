@@ -11,10 +11,6 @@ Excalibur is released under the GNU Public License.
 See the file COPYING for more details.
 --------------------------------------------------------------------------------
 
-Please note that this program requires the daoccrypt library which is not
-included with the program.
-
-
 The maps used in Excalibur have been contributed through Mapfiend (he has a
 readme file in maps/Maps_Readme.txt).. You may also visit Mapfiend's site
 directly at:  http://k-r-g.com/mapfiend
