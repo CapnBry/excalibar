@@ -16,9 +16,9 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
-  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent, 
+  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns,
-  MapNavigator
+  MapNavigator, PipeThread
 {$IFDEF WINPCAP}
   ,PReader2
 {$ENDIF WINPCAP}
@@ -75,6 +75,7 @@ type
     procedure tmrUpdateCheckTimer(Sender: TObject);
     procedure lblUpdatesClick(Sender: TObject);
     procedure chkTrackLoginsClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
 {$IFDEF WINPCAP}
     FPReader:   TPacketReader2;
@@ -90,6 +91,9 @@ type
     FProcessPackets:    boolean;
     FSegmentFromCollector:    TEthernetSegment;
     FChatLogXIEnabled:  boolean;
+    FCollectorPipe:     TNamedPipeThread;
+    FPacket:        TDAOCPacket;
+    FCBTHook:       HHOOK;
 
 {$IFDEF WINPCAP}
     procedure OpenAdapter(const AAdapterName: string);
@@ -116,6 +120,8 @@ type
     procedure UpdateQuickLaunchProfileList;
     procedure ChatLogXI(const s: string);
     procedure LogLocalPlayerXI;
+    procedure SetCBTHook;
+    procedure ClearCBTHook;
   protected
     procedure DAOCRegionChanged(Sender: TObject);
     procedure DAOCPlayerPosUpdate(Sender: TObject);
@@ -145,9 +151,13 @@ type
     procedure DAOCAttemptNPCRightClickFailed(ASender: TObject);
     procedure DAOCLocalHealthUpdate(ASender: TObject);
     procedure DAOCDoorPositionUpdate(ASender: TObject; ADoor: TDAOCObject);
+    procedure PIPEData(ASender: TObject; AData: Pointer; ADataLen: integer);
+    procedure PIPEConnected(ASender: TObject);
+    procedure PIPEDisconnected(ASender: TObject);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
+    procedure InjectPacket(APacket: TDAOCPacket);
 
     property ProcessPackets: boolean read FProcessPackets write FProcessPackets;
   end;
@@ -273,7 +283,7 @@ begin
   Log('    under the General Public License (GPL) Version 2.');
   Log('  See LICENSE.TXT for more information regarding licensing.');
   Log('--==========================================================--');
-  
+
   SetupDAOCConnectionObj;
 
 {$IFDEF WINPCAP}
@@ -283,6 +293,13 @@ begin
 {$ENDIF WINPCAP}
 
   FProcessPackets := true;
+
+  FPacket := TDAOCPacket.Create;
+  FCollectorPipe := TNamedPipeThread.Create('daocskilla');
+  FCollectorPipe.OnPipeConnected := PIPEConnected;
+  FCollectorPipe.OnPipeDisconnected := PIPEDisconnected;
+  FCollectorPipe.OnPipeData := PIPEData;
+  FCollectorPipe.Resume;
 
 {$IFNDEF OPENGL_RENDERER}
   btnGLRender.Visible := false;
@@ -295,6 +312,7 @@ begin
   FPReader.Free;
 {$ENDIF WINPCAP}
 
+  FPacket.Free;
   CloseChatLog
 end;
 
@@ -405,6 +423,9 @@ begin
     CloseAdapter;
 {$ENDIF WINPCAP}
 
+  if frmConnectionConfig.InjectClientProcess then
+    SetCBTHook;
+
   OpenCollectionServer;
   if not frmConnectionConfig.ProcessLocally then
     OpenCollectionClient;
@@ -456,14 +477,15 @@ begin
     FConnection.KeyStrafeRight := ReadString('Keys', 'StrafeRight', FConnection.KeyStrafeRight);
 
     frmConnectionConfig.AdapterName := ReadString('Main', 'Adapter', '');
-    frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
-    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', {$IFDEF WINPCAP} true {$ELSE} false {$ENDIF});
-    frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
-    frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
-    frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
-    frmConnectionConfig.ServerSubnet := TServerSubnet(ReadInteger('Main', 'ServerSubnet', 0));
     frmConnectionConfig.CustomServerSubnet := ReadString('Main', 'CustomServerSubnet', '208.254.16.0');
+    frmConnectionConfig.InjectClientProcess := ReadBool('Main', 'InjectClientProcess', true);
+    frmConnectionConfig.LocalCollectorPort := ReadInteger('Main', 'LocalCollectorPort', DEFAULT_COLLECTOR_PORT);
+    frmConnectionConfig.ProcessLocally := ReadBool('Main', 'ProcessLocally', true);
+    frmConnectionConfig.PromiscuousCapture := ReadBool('Main', 'PromiscCapture', false);
     frmConnectionConfig.RemoteAdminEnabled := ReadBool('Main', 'RemoteAdminEnabled', true);
+    frmConnectionConfig.RemoteCollector := ReadString('Main', 'RemoteCollector', 'localhost');
+    frmConnectionConfig.ServerSubnet := TServerSubnet(ReadInteger('Main', 'ServerSubnet', 0));
+    frmConnectionConfig.SniffPackets := ReadBool('Main', 'SniffPackets', false);
     SetServerNet;
 
     frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
@@ -639,6 +661,9 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  FCollectorPipe.Shutdown;
+  ClearCBTHook;
+
 {$IFDEF WINPCAP}
   CloseAdapter;
   Application.ProcessMessages;  // get any packets pending out of the message q
@@ -940,6 +965,11 @@ begin
   end;
 {$ENDIF WINPCAP}
 
+  if frmConnectionConfig.InjectClientProcess then
+    SetCBTHook
+  else
+    ClearCBTHook;
+
   if frmConnectionConfig.LocalCollectorPort <> tcpCollectorServer.DefaultPort then begin
     CloseCollectionServer;
     OpenCollectionServer;
@@ -1002,8 +1032,10 @@ begin
   CloseCollectionServer;
 
   tcpCollectorServer.DefaultPort := frmConnectionConfig.LocalCollectorPort;
-  tcpCollectorServer.Active := true;
-  Log('Collection server activated on port ' + IntToStr(tcpCollectorServer.DefaultPort));
+  if tcpCollectorServer.DefaultPort <> 0 then begin
+    tcpCollectorServer.Active := true;
+    Log('Collection server activated on port ' + IntToStr(tcpCollectorServer.DefaultPort));
+  end;
 end;
 
 procedure TfrmMain.CloseCollectionClient;
@@ -1062,7 +1094,7 @@ begin
     not frmConnectionConfig.ProcessLocally
 end;
 
-function TfrmMain.SetServerNet : boolean;
+{$IFDEF WINPCAP}
 (*** Returns true if subnet changed ***)
 var
   dwNet:  DWORD;
@@ -1082,6 +1114,12 @@ begin
   BP_Instns[8].k := dwNet;
   Log('ServerNet set to ' + my_inet_htoa(dwNet));
 end;
+{$ELSE}
+function TfrmMain.SetServerNet : boolean;
+begin
+  Result := false;
+end;
+{$ENDIF WINPCAP}
 
 procedure TfrmMain.DAOCCharacterLogin(ASender: TObject);
 begin
@@ -1279,6 +1317,109 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCDoorPositionUpdate(ADoor);
 {$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.PIPEData(ASender: TObject; AData: Pointer;
+  ADataLen: integer);
+var
+  wDataSize:    WORD;
+  bIPType:      BYTE;
+  pData:      PChar;
+begin
+  // Log('PipeData: ' + IntToStr(ADataLen) + ' bytes');
+  pData := AData;
+  while ADataLen >= 3 do begin
+    wDataSize := PWORD(pData)^;
+    dec(ADataLen, 2);
+    inc(pData, 2);
+
+    bIPType := PBYTE(pData)^;
+    dec(ADataLen);
+    inc(pData);
+
+    if bIPType = 1 then
+      FPacket.IPProtocol := daocpUDP
+    else
+    FPacket.IPProtocol := daocpTCP;
+
+    FPacket.IsFromClient := PBYTE(pData)^ <> 0;
+    dec(ADataLen);
+    inc(pData);
+
+    if wDataSize <= ADataLen then begin
+      FPacket.LinkDataToPacket(pData, wDataSize);
+      try
+        InjectPacket(FPacket);
+      except
+        on E: Exception do
+          Log('Error in ' + FPacket.HandlerName + ': ' + e.Message);
+      end;
+      dec(ADataLen, wDataSize);
+      inc(pData, wDataSize);
+    end
+    else
+      ADataLen := 0;
+  end;
+end;
+
+procedure TfrmMain.Button1Click(Sender: TObject);
+begin
+  if FCBTHook = 0 then
+    SetCBTHook
+  else
+    ClearCBTHook;
+end;
+
+procedure TfrmMain.ClearCBTHook;
+begin
+  if FCBTHook <> 0 then begin
+    UnhookWindowsHookEx(FCBTHook);
+    FCBTHook := 0;
+    Log('Process hook deactivated');
+  end;
+end;
+
+procedure TfrmMain.SetCBTHook;
+var
+  hLib:     HINST;
+  pFunc:    Pointer;
+begin
+  if FCBTHook <> 0 then
+    exit;
+    
+  hLib := LoadLibrary('daocinject.dll');
+  if hLib = 0 then
+    exit;
+
+  try
+    pFunc := GetProcAddress(hLib, PChar(1));
+    if not Assigned(pFunc) then
+      exit;
+
+    FCBTHook := SetWindowsHookEx(WH_CBT, pFunc, hLib, 0);
+    if FCBTHook <> 0 then
+      Log('Process hook activated');
+  finally
+    FreeLibrary(hLib);
+  end;
+end;
+
+procedure TfrmMain.PIPEConnected(ASender: TObject);
+begin
+  Log('Pipe connected');
+end;
+
+procedure TfrmMain.PIPEDisconnected(ASender: TObject);
+begin
+  Log('Pipe disconnected');
+end;
+
+procedure TfrmMain.InjectPacket(APacket: TDAOCPacket);
+begin
+  if FProcessPackets then
+    FConnection.ProcessDAOCPacket(APacket)
+  else
+    DAOCPacket(Self, APacket);
 end;
 
 end.

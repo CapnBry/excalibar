@@ -48,7 +48,8 @@ uses
   glWindow in '..\Common\glWindow.pas',
   LowOnStat in '..\Common\DAOCAutomation\LowOnStat.pas' {frmLowOnStat},
   geScale in 'geScale.pas',
-  NamedPacketHandler in '..\Common\PacketSniff\NamedPacketHandler.pas';
+  NamedPacketHandler in '..\Common\PacketSniff\NamedPacketHandler.pas',
+  PipeThread in 'PipeThread.pas';
 
 {$R *.TLB}
 
