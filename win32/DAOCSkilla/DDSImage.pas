@@ -335,6 +335,8 @@ var
     begin if a > b then Result := a else Result := b; end;
 begin
   FPixelData.Clear;
+  if AStream.Size < sizeof(hdr) then
+    exit;
 
   AStream.Read(hdr, sizeof(hdr));
   if hdr.dwMagic <> DDS_HEADER_MAGIC then
