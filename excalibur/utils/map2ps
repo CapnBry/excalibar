@@ -1,9 +1,7 @@
-# map2ps v1.0
+# map2ps scaled
 # MastaMappa Copyleft 2004
-# I release this software to the public domain
+# I release this software to the public domain software
 # converts an Excalibur .map file to postscript (no labels)
-# suitable for gv or ps2pdf
-# version 2 has scaling
 
 
 if [ "$1" = "" ]
@@ -19,37 +17,64 @@ then
 	p=1
 	shift
 fi
+
+minmax $1 | read minx maxx miny maxy rangex rangey junk
+
+# minx  maxx  miny  maxy  rangex rangey
+# 17321 28874 20705 32531 11553  11826 
+# 22000 25000 22000 30000 3000   8000
+# 
+
 nawk '
+function max(x,y)
+{
+if (x >= y)
+	return x
+else
+	return y
+}
 BEGIN {
+	minx = '$minx'
+	miny = '$miny'
+	rx = '$rangex'
+	ry = '$rangey'
 	p='$p'
-	print "9 36 translate"
+	# R = 65535 # fullscale
+	R = int(max(rx,ry)*1.06)
+	if (R > 65535)
+		{
+		R = 65535
+		offx = 0
+		offy = 65535
+		offym = 0
+		}
+	else
+		{
+		offx = minx + int(rx/2) - int(R / 2)
+		offy = miny + int(ry/2) + int(R / 2)
+		offym = miny + int(ry/2) - int(R / 2)
+		}
+	print "18 108 translate"
 	print "/Helvetica findfont 15 scalefont setfont"
-	print "/mscale  { 8 72 mul 65535 div mul } def"
+	print "/mfscale  { 8 72 mul 65536 div mul } def"
+	print "/mscale  { 8 72 mul " R " div mul } def"
 	FS = ","
 	print "0 setgray"
 	print "0 0 moveto"
-	print "0 65535 mscale lineto"
-	print "65535 mscale 65535 mscale lineto"
-	print "65535 mscale 0 lineto"
+	print "0 65535 mfscale lineto"
+	print "65535 mfscale 65535 mfscale lineto"
+	print "65535 mfscale 0 lineto"
 	print "0 0 lineto"
 	if (p == 1)
 		print "stroke"
 	else
 		print "fill"
-	print ".5 setgray"
-	for (i = 10000; i < 65535; i += 10000)
-		{
-		print "0 " 65535 - i " mscale moveto"
-		print "60000 mscale " 65535 - i " mscale lineto"
-		print "stroke"
-		print i " mscale 5535 mscale moveto"
-		print i " mscale 65535 mscale  lineto"
-		print "stroke"
-		}
-	if (p == 1)
-		print "0 setgray"
+	if (R < 3000)
+		step = 100
+	else if (R < 25000)
+		step = 1000
 	else
-		print "1 setgray"
+		step = 10000
 	#                   R G B
 	rgb["blue"]     = " 0 0 1 "
 	rgb["green"]    = " 0 1 0 "
@@ -78,17 +103,42 @@ BEGIN {
 	rgb["grey"]    =   " .5 .5 .5 "
 
 	}
-NR == 1 { print "500 mscale 3000 mscale moveto (" $1 ") show"
-	mod = "2004"
+NR == 1 {
+	if (p == 1)
+		print "0 setgray"
+	else
+		print "1 setgray"
+	print "500 mfscale 3000 mfscale moveto (" $1 ") show"
+	mod = "2005"
 	if (FILENAME != "-")
 	{
 		cmd = "ls -l " FILENAME " 2>/dev/null"
 		cmd | getline x
 		close(cmd)
 		split(x,a, " ")
-		mod = sprintf("%s %02d %d", a[6] , a[7], (a[8] ~ ":" ? "2004" : a[8]))
+		mod = sprintf("%s %02d %d", a[6] , a[7], (a[8] ~ ":" ? "2005" : a[8]))
 	}
-	print "500 mscale 500 mscale moveto (MastaMappa " mod ") show"
+	print "500 mfscale 500 mfscale moveto (MastaMappa " mod ") show"
+	print "0 setgray"
+	print "500 mfscale -2500 mfscale moveto (offset = \(" offx "," offym "\)   width = " R "   gridsize = " step ") show"
+	#print "% ", offx, offy, 65536-offy
+	print -offx, "mscale", -(65536-offy), "mscale translate"
+	print ".5 setgray"
+	for (i = step; i < 65535; i += step)
+		{
+		if (i >= offym && i <= offy)
+			{
+			print offx " mscale " 65536 - i " mscale moveto"
+			print offx+R " mscale " 65536 - i " mscale lineto"
+			print "stroke"
+			}
+		if (i >= offx && i <= offx+R)
+			{
+			print i " mscale " 65536 - offym " mscale moveto"
+			print i " mscale " 65536 - offy " mscale  lineto"
+			print "stroke"
+			}
+		}
 	}
 $1 ~ /M|F/ {
 	print $5, "mscale", 65536 - $6, "mscale moveto"
@@ -101,3 +151,4 @@ $1 ~ /M|F/ {
 	print "stroke"
 	}
 END { print "showpage" }' $*
+
