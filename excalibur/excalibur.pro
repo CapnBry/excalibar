@@ -1,5 +1,8 @@
-SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp exMapInfo.cpp main.cpp
-HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h exMap.h exMessage.h 
+SOURCES	+= exMob.cpp exMap.cpp exLink.cpp exLineSimplify.cpp \
+  exPrefs.cpp exSniffer.cpp exPacket.cpp exConnection.cpp \
+  exMapInfo.cpp main.cpp
+HEADERS	+= exPrefs.h exSniffer.h exConnection.h exLink.h exPacket.h \
+  exMap.h exMessage.h 
 
 # SOURCES += exMessage.cpp
 # HEADERS += messages.ui.h
@@ -29,12 +32,17 @@ unix {
   MOC_DIR     = .moc
   OBJECTS_DIR = .obj
 }
-QMAKE_CXXFLAGS += -include excalibur.h
+
+QMAKE_CXXFLAGS  += -include excalibur.h
 #QMAKE_LFLAGS   += -pg -a
-FORMS	= formexcalibur.ui prefsdialog.ui
-TEMPLATE	=app
-CONFIG	+= qt warn_on release thread opengl network
+FORMS	        = formexcalibur.ui prefsdialog.ui
+TEMPLATE	= app
+CONFIG	        += qt warn_on release thread opengl network
 INCLUDEPATH	+= /usr/include/pcap/
-LIBS	+= -lpcap -lglut -lGLU -lXi
-DBFILE	= excalibur.db
+LIBS	        += -lpcap -lglut -lGLU -lXi
+DBFILE	        = excalibur.db
 LANGUAGE	= C++
+
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE += -O3 -mcpu=pentiumpro -march=pentiumpro \
+  -fomit-frame-pointer -funroll-loops -malign-double 
