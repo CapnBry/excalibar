@@ -1,18 +1,6 @@
 Andon (09/Feb/02)
 ------------------
 
-Bug fixes:
- + Fixed the change to getZoneName that would cause g++ to puke
-   when comparing its return to a const char*
- + Fixed a bug in the new log unknown data patch that could
-   potentially cause some major stack corruption.  The generation
-   of a temporary QString when it wasn't even needed to begin
-   with!
-
-
-Andon (09/Feb/02)
-------------------
-
 Additions:
  + Added the ability to toggle a few DEBUG features on or off
    at runtime... They are:
@@ -23,6 +11,13 @@ Additions:
 
     * More to come later
 
+Additions (SnowBlind):
+ + Added a new prefs tab for Map Circles to allow runtime changing
+   of circles radius (support for user entered numbers comming soon)
+ + Moved the Map Circles draw options from the Map Display to the
+   new prefs tap
+
+   * More to come later(maybe line thickness, and color)
 
 Andon (08/Feb/02)
 ------------------
