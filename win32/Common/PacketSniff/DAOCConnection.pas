@@ -782,6 +782,9 @@ end;
 
 procedure TDAOCConnection.ProcessEthernetSegment(ASegment: TEthernetSegment);
 begin
+  if not Assigned(ASegment.Data) then
+    exit;
+    
   if (ASegment.AsIP^.Protocol = SOL_UDP) and FActive then
     ProcessUDPSegment(ASegment)
 
