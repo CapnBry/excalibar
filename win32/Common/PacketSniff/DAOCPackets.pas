@@ -389,7 +389,6 @@ function TDAOCTCPPacketAssembler.ParsePacket(AThroughSeq: DWORD; var APacket: TD
 var
   wExpectedPackSize:  WORD;
   dwNewSize:          DWORD;
-  I:    DWORD;
   pFragment:  TTCPFragment;
 begin
   APacket := nil;
@@ -446,8 +445,7 @@ begin
   else begin
       { scoot all the data after this packet down to the beginning }
     dwNewSize := FPacketDataPos - wExpectedPackSize;
-    for I := 0 to dwNewSize - 1 do
-      PChar(FPacketDataBuff)[I] := PChar(FPacketDataBuff)[I + wExpectedPackSize];
+    Move(PChar(FPacketDataBuff)[wExpectedPackSize], FPacketDataBuff^, dwNewSize);
     FPacketDataPos := dwNewSize;
   end;
 
