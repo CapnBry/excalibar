@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCConnection, ComCtrls, DAOCObjs,
   StdCtrls, GLRenderObjects, MapElementList, DAOCRegion, GLUT, RenderPrefs,
-  DAOCClasses, QuickSinCos, MMSystem;
+  DAOCClasses, QuickSinCos, MMSystem, BackgroundHTTP;
 
 type
   TfrmGLRender = class(TForm)
@@ -73,6 +73,7 @@ type
     FTargetHUDWidth:  integer;
     FMouseLocX:   DWORD;
     FMouseLocY:   DWORD;
+    FHTTPFetch:   TBackgroundHTTPManager;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -116,6 +117,7 @@ type
     function PlayerMobListText(AMob: TDAOCPlayer) : string;
     procedure MapUnproject(var X, Y: DWORD; ANeedMVPSetup: boolean);
     function CompareObjectClasses(A, B: TDAOCObjectClass): integer;
+    procedure UpdateMapURLs;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -336,7 +338,8 @@ begin
     UpdateStayOnTop;
     
     FMapTexturesListList.AttemptMapDownload := FRenderPrefs.AttemptMapDownload;
-    FMapTexturesListList.MapBaseURL := FRenderPrefs.MapBaseURL;
+    FMapElementsListList.AttemptMapDownload := FRenderPrefs.AttemptMapDownload;
+    UpdateMapURLs;
   end
   else
     slideZoomChange(Self);
@@ -615,10 +618,13 @@ procedure TfrmGLRender.FormCreate(Sender: TObject);
 begin
   FRangeCircles := TRangeCircleList.Create;
 
+  FHTTPFetch := TBackgroundHTTPManager.Create;
   FMapElementsListList := TVectorMapElementListList.Create;
   FMapElementsListList.VectorMapDir := ExtractFilePath(ParamStr(0)) + 'maps\';
+  FMapElementsListList.HTTPFetch := FHTTPFetch;
   FMapTexturesListList := TTextureMapElementListList.Create;
   FMapTexturesListList.TextureMapDir := ExtractFilePath(ParamStr(0)) + 'maps\dds\';
+  FMapTexturesListList.HTTPFetch := FHTTPFetch;
   FMobTriangle := T3DArrowHead.Create;
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
@@ -630,6 +636,16 @@ begin
   FRenderPrefs.OnMobListOptionsChanged := RENDERPrefsMobListOptionChanged;
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
   FRenderPrefs.HasGLUT := Assigned(glutInit);
+
+  if FRenderPrefs.HasOpenGL13 then
+    Log('OpenGL 1.3:  Available')
+  else
+    Log('OpenGL 1.3:  NOT FOUND');
+
+  if FRenderPrefs.HasGLUT then
+    Log('OpenGL GLUT:  Available')
+  else
+    Log('OpenGL GLUT:  NOT FOUND');
 
   UpdateObjectCounts;
 end;
@@ -646,6 +662,8 @@ begin
   FMapTexturesListList.Free;
   FRangeCircles.Free;
   FRenderPrefs.Free;
+  FHTTPFetch.Shutdown;
+  FHTTPFetch.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -708,8 +726,8 @@ end;
 procedure TfrmGLRender.DAOCRegionChanged;
 begin
   Caption := FDControl.LocalPlayer.Name + S_CAPTION_SUFFIX;
+  UpdateMapURLs;
   FRenderPrefs.PlayerRealm := FDControl.LocalPlayer.Realm;
-  FRenderPrefs.PlayerLevel := FDControl.LocalPlayer.Level;
   DAOCSetGroundTarget;
 end;
 
@@ -773,8 +791,11 @@ end;
 
 procedure TfrmGLRender.tmrMinFPSTimer(Sender: TObject);
 begin
-  if FRenderPrefs.RedrawOnTimer then
+  if FRenderPrefs.RedrawOnTimer then begin
+    if FDControl.Active then
+      UpdateGlobalTickCount;
     Dirty;
+  end;
 end;
 
 procedure TfrmGLRender.DrawTargetHUD;
@@ -1570,7 +1591,7 @@ procedure TfrmGLRender.MobListMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   pnlLeft.BeginDrag(false);
-  if lstObjects.ItemIndex < FFilteredObjects.Count then
+  if (lstObjects.ItemIndex <> -1) and (lstObjects.ItemIndex < FFilteredObjects.Count) then
     FDControl.SelectedObject := FFilteredObjects[lstObjects.ItemIndex];
 end;
 
@@ -1677,6 +1698,14 @@ begin
     RefreshFilteredList
   else
     Dirty;
+end;
+
+procedure TfrmGLRender.UpdateMapURLs;
+begin
+  FMapTexturesListList.MapBaseURL := FRenderPrefs.MapBaseURL +
+    's=' + FDControl.ServerIP + '&';
+  FMapElementsListList.MapBaseURL := FRenderPrefs.MapBaseURL +
+    's=' + FDControl.ServerIP + '&';
 end;
 
 end.
