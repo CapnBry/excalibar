@@ -27,11 +27,11 @@ object frmMacroing: TfrmMacroing
   object Label1: TLabel
     Left = 4
     Top = 4
-    Width = 477
+    Width = 481
     Height = 13
     Caption = 
-      'Macroing is active while the appropriate window is open.  Do not' +
-      ' use if you have not read the source.'
+      'Macroing is active while the appropriate window is open.  This c' +
+      'ode is unsupported and unmaintained.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clMaroon
     Font.Height = -11
