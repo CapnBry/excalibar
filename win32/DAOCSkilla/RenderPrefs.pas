@@ -41,6 +41,7 @@ type
     AttemptMapDownload: boolean;
     MapBaseURL:       string;
     InvaderWarning:   boolean;
+    InvaderWarnMinTicks:  DWORD;
     HasOpenGL13:      boolean;
 
     constructor Create;
@@ -148,7 +149,9 @@ begin
   Result.AlternateMobListText := AlternateMobListText;
   Result.AttemptMapDownload := AttemptMapDownload;
   Result.MapBaseURL := MapBaseURL;
-  Result.InvaderWarning := InvaderWarning; 
+  Result.InvaderWarning := InvaderWarning;
+  Result.InvaderWarnMinTicks := InvaderWarnMinTicks;
+  Result.HasOpenGL13 := HasOpenGL13; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -198,6 +201,7 @@ begin
     AttemptMapDownload := ReadBool('RenderPrefs', 'AttemptMapDownload', true);
     MapBaseURL := ReadString('RenderPrefs', 'MapBaseURL', 'http://capnbry.net/daoc/map.php?z=%d');
     InvaderWarning := ReadBool('RenderPrefs', 'InvaderWarning', true);
+    InvaderWarnMinTicks := ReadInteger('RenderPrefs', 'InvaderWarnMinTicks', 5000);
   end;
 end;
 
@@ -230,8 +234,9 @@ begin
     WriteBool('RenderPrefs', 'ViewFrustum', ViewFrustum);
     WriteBool('RenderPrefs', 'AlternateMobListText', AlternateMobListText);
     WriteBool('RenderPrefs', 'AttemptMapDownload', AttemptMapDownload);
-    WriteString('RenderPrefs', 'MapBaseURL', '');  // MapBaseURL
+    DeleteKey('RenderPrefs', 'MapBaseURL');  // WriteString('RenderPrefs', 'MapBaseURL', MapBaseURL);
     WriteBool('RenderPrefs', 'InvaderWarning', InvaderWarning);
+    WriteInteger('RenderPrefs', 'InvaderWarnMinTicks', InvaderWarnMinTicks);
   end;
 end;
 
