@@ -51,6 +51,7 @@ exMap::exMap(QWidget *parent, const char *name)
   edit_xofs = edit_yofs = 0;
   recache = true;
   map.setAutoDelete(true);
+  PNGLoader.initialize();
   PNGLoader.setParent(this);
 }
 
@@ -650,8 +651,6 @@ void exMap::mapRead() {
   if (PNGLoader.running())
     PNGLoader.abort();
  
-  while (PNGLoader.running());
- 
   if (! PNGLoader.running()) 
     PNGLoader.start();
 
@@ -1052,7 +1051,6 @@ exMapPNGLoader::~exMapPNGLoader (void) {m_bGhettoMutex = false;}
 void exMapPNGLoader::setParent ( exMap *parent )
 {
   this->parent = parent;
-  empldProgress.start();
 }
 
 void exMapPNGLoader::run (void)
@@ -1207,8 +1205,11 @@ exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void)
 
 void exMapPNGLoaderDialog::run (void)
 {
-  pdProgress->reset();
-  cleanup();
+  while (true)
+    msleep(10);
+
+/*  pdProgress->reset();
+  cleanup(); */
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)
