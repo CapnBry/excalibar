@@ -108,6 +108,7 @@ type
     procedure DAOCDeleteObject(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCObjectMoved(ASender: TObject; ADAOCObject: TDAOCObject);
     procedure DAOCSkillLevelChanged(ASender: TObject; AItem: TDAOCNameValuePair);
+    procedure DAOCSelectedObjectChanged(ASender: TObject; ADAOCObject: TDAOCObject);
   public
     procedure UpdateGLRender;
     procedure Log(const s: string);
@@ -343,6 +344,7 @@ begin
   FConnection.OnDeleteDAOCObject := DAOCDeleteObject;
   FConnection.OnDAOCObjectMoved := DAOCObjectMoved;
   FConnection.OnSkillLevelChanged := DAOCSkillLevelChanged;
+  FConnection.OnSelectedObjectChange := DAOCSelectedObjectChanged;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count));
 end;
@@ -765,8 +767,7 @@ procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.DeleteDAOCObject(ADAOCObject);
-  UpdateGLRender;
+  frmGLRender.DAOCDeleteObject(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 end;
 
@@ -774,8 +775,7 @@ procedure TfrmMain.DAOCNewObject(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.AddDAOCObject(ADAOCObject);
-  UpdateGLRender;
+  frmGLRender.DAOCAddObject(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
   CheckWriteMobseen(ADAOCObject);
 end;
@@ -784,8 +784,7 @@ procedure TfrmMain.DAOCObjectMoved(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
 {$IFDEF OPENGL_RENDERER}
-  frmGLRender.UpdateDAOCObject(ADAOCObject);
-  UpdateGLRender;
+  frmGLRender.DAOCUpdateObject(ADAOCObject);
 {$ENDIF OPENGL_RENDERER}
 end;
 
@@ -884,6 +883,14 @@ end;
 function TfrmMain.GetConfigFileName: string;
 begin
   Result := ChangeFileExt(ParamStr(0), '.ini');
+end;
+
+procedure TfrmMain.DAOCSelectedObjectChanged(ASender: TObject;
+  ADAOCObject: TDAOCObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCSelectedObjectChanged(ADAOCObject);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.
