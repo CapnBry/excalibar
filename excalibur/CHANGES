@@ -7,6 +7,13 @@ Changes:
    stored.
  + Fixed dynamic distance mob stale making every mob stale one 
    frame after it shows up.
+ + Removed space between map and surrounding controls on main form.
+   Replaced with 1 pixel sunken border.
+ + Changed mob list to hightlight the while line when selected.
+ + Moved code from exConnection::processPacket() to 
+   parsePlayerInventoryUpdate().
+ + Added label to count number of Albs/Hibs/Mids/Mobs. NOT YET WORKING PROPERLY.
+ + Added isPlayer() function to exMob.
 
 Teerex (03/Jun/02)
 ------------------
