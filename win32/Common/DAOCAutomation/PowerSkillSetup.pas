@@ -66,6 +66,7 @@ type
     procedure SelectItemForSkill;
     function HasMaterialsForItem : boolean;
     procedure SkillLevelChanged(AItem: TDAOCNameValuePair);
+    procedure RecipeToQuickbar(ASlot: integer);
 
     property PSItemList: TPowerSkillItemList read FPSItemList write SetPSItemList;
     property DAOCControl: TDAOCControl read FDControl write FDControl;
@@ -443,15 +444,34 @@ end;
 
 procedure TfrmPowerskill.btnToQuickbarClick(Sender: TObject);
 var
-  pRecipes:   TCraftRecipeCollection;
-  pItem:      TTradeSkillRecipe;
-  pTrWin:     TTradeRecipeWindow;
-  pQuWin:     TQuickbar;
   iQuickSlot: integer;
 begin
   if not InputQuery('Move to quickbar (Trade must be in slot 1)', 'Quickbar slot number', FLastQuickSlot) then
     exit;
   iQuickSlot := StrToInt(FLastQuickSlot);
+  RecipeToQuickbar(iQuickSlot);
+end;
+
+procedure TfrmPowerskill.FormCreate(Sender: TObject);
+begin
+  FLastQuickSlot := '10';
+end;
+
+procedure TfrmPowerskill.RecipeToQuickbar(ASlot: integer);
+{ Trade must be in slot 1 and not open before calling.  Slots
+  are numbered 1-10 }
+var
+  pRecipes:   TCraftRecipeCollection;
+  pItem:      TTradeSkillRecipe;
+  pTrWin:     TTradeRecipeWindow;
+  pQuWin:     TQuickbar;
+  pSelectedPowerskillDef: TPowerSkillItemDef;
+begin
+  pSelectedPowerskillDef := GetSelectedItem;
+  if not Assigned(pSelectedPowerskillDef) then begin
+    Log('PowerskillBuy: No recipe selected.');
+    exit;
+  end;
 
   FDControl.FocusDAOCWindow;
 
@@ -461,15 +481,15 @@ begin
   pRecipes := FDControl.TradeRecipes.FindRealmAndCraft(FPSItemList.RecipeRealm,
     FPSItemList.RecipeSkillName);
   if Assigned(pRecipes) then begin
-    pItem := pRecipes.FindDisplayName(GetSelectedItem.Name);
+    pItem := pRecipes.FindDisplayName(pSelectedPowerskillDef.Name);
     if Assigned(pItem) then begin
       pQuWin := TQuickbar.Create(FDControl.WindowManager);
-      pQuWin.ClearSlot(iQuickSlot);
+      pQuWin.ClearSlot(ASlot);
 
       pTrWin := TTradeRecipeWindow.Create(FDControl.WindowManager);
       pTrWin.ClickRecipe(pItem, pRecipes, FCurrentSkillLevel);
 
-      pQuWin.ClickSlot(iQuickSlot);
+      pQuWin.ClickSlot(ASlot);
       pQuWin.Free;
 
         { this is to get around a bug where the first click in recipe window
@@ -480,11 +500,6 @@ begin
   end;  { if assigned Recipes }
 
   FDControl.DoSendKeys('1');
-end;
-
-procedure TfrmPowerskill.FormCreate(Sender: TObject);
-begin
-  FLastQuickSlot := '10';
 end;
 
 end.
