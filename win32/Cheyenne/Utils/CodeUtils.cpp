@@ -5,6 +5,7 @@
 // not make macros out of min and max :-/
 #define NOMINMAX
 #include <winsock2.h>
+#include <crtdbg.h> // for assertions
 #include <commctrl.h> // for common control defs
 #include <io.h>
 #include <fcntl.h>
@@ -142,3 +143,102 @@ void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& 
             );
         } // end while result != -1
 } // end GET_LISTVIEW_SELECTED_ITEMS
+
+void WM_SIZING_LIMIT
+    (
+    const WPARAM WM_SIZING_WPARAM,
+    const LPARAM WM_SIZING_LPARAM,
+    const LONG MinWidth,
+    const LONG MinHeight
+    )
+{
+    // sanity checks
+    //_ASSERTE(MinWidth <= MaxWidth);
+    //_ASSERTE(MinHeight <= MaxHeight);
+    
+    // get rect pointer
+    RECT* const pr=reinterpret_cast<RECT* const>(WM_SIZING_LPARAM);
+    
+    // save current width and height
+    const LONG w=pr->right-pr->left;
+    const LONG h=pr->bottom-pr->top;
+    
+    switch(WM_SIZING_WPARAM)
+        {
+        case WMSZ_BOTTOM:
+            if(h < MinHeight)
+                {
+                pr->bottom=pr->top+MinHeight;
+                }
+            break;
+            
+        case WMSZ_TOP:
+            if(h < MinHeight)
+                {
+                pr->top=pr->bottom-MinHeight;
+                }
+            break;
+            
+        case WMSZ_LEFT:
+            if(w < MinWidth)
+                {
+                pr->left=pr->right-MinWidth;
+                }
+            break;
+            
+        case WMSZ_RIGHT:
+            if(w < MinWidth)
+                {
+                pr->right=pr->left+MinWidth;
+                }
+            break;
+            
+        case WMSZ_BOTTOMLEFT:
+            if(h < MinHeight)
+                {
+                pr->bottom=pr->top+MinHeight;
+                }
+            if(w < MinWidth)
+                {
+                pr->left=pr->right-MinWidth;
+                }
+            break;
+            
+        case WMSZ_BOTTOMRIGHT:
+            if(h < MinHeight)
+                {
+                pr->bottom=pr->top+MinHeight;
+                }
+            if(w < MinWidth)
+                {
+                pr->right=pr->left+MinWidth;
+                }
+            break;
+            
+        case WMSZ_TOPLEFT:
+            if(h < MinHeight)
+                {
+                pr->top=pr->bottom-MinHeight;
+                }
+            if(w < MinWidth)
+                {
+                pr->left=pr->right-MinWidth;
+                }
+            break;
+            
+        case WMSZ_TOPRIGHT:
+            if(h < MinHeight)
+                {
+                pr->top=pr->bottom-MinHeight;
+                }
+            if(w < MinWidth)
+                {
+                pr->right=pr->left+MinWidth;
+                }
+            break;
+        }
+    
+    // done
+    return;
+} // end WM_SIZING_LIMIT
+

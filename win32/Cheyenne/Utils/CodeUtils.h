@@ -191,6 +191,15 @@ void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str);
 void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& std_list);
 
+// windows message helpers
+void WM_SIZING_LIMIT
+    (
+    const WPARAM WM_SIZING_WPARAM,
+    const LPARAM WM_SIZING_LPARAM,
+    const LONG MinWidth,
+    const LONG MinHeight
+    );
+
 // intercept template functions
 template<typename T> bool is_near(const T& a,const T&b,const T& threshold=T(0.00001))
 {
