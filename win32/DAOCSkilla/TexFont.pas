@@ -72,8 +72,8 @@ type
     procedure GetStringMetrics(const s: string; var width, max_ascent, max_descent: integer);
     function RenderGlyph(c: integer) : integer;
     function RenderString(const s: string) : integer;
-    procedure RenderStringXY(X, Y: integer; const s: string);
-    procedure RenderStringXYBind(X, Y: integer; const s: string);
+    function RenderStringXY(X, Y: integer; const s: string) : integer;
+    function RenderStringXYBind(X, Y: integer; const s: string) : integer;
     procedure RenderFancyString(const s: string);
   end;
 
@@ -366,19 +366,17 @@ begin
     inc(Result, RenderGlyph(ord(s[I])));
 end;
 
-procedure TTexFont.RenderStringXY(X, Y: integer; const s: string);
-var
-  iAdvance: integer;
+function TTexFont.RenderStringXY(X, Y: integer; const s: string) : integer;
 begin
   glTranslatef(X, Y, 0);
-  iAdvance := RenderString(s);
-  glTranslatef(-(X + iAdvance), -Y, 0);
+  Result := RenderString(s);
+  glTranslatef(-(X + Result), -Y, 0);
 end;
 
-procedure TTexFont.RenderStringXYBind(X, Y: integer; const s: string);
+function TTexFont.RenderStringXYBind(X, Y: integer; const s: string) : integer;
 begin
   BindFontTexture;
-  RenderStringXY(X, Y, s);
+  Result := RenderStringXY(X, Y, s);
 end;
 
 procedure TTexFont.UnloadFont;
