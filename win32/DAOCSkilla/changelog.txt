@@ -1,3 +1,16 @@
+2004 Jan 5 - v1.72
+------------------
+  + Changed "Stuck going to dest" calculation so that it does not think
+    the player is stuck while turning.  Fix compliments of drmctchr.
+  + Added IncludeRecipes and ExcludeRecipes filter for powerskillbuy.
+  + Fixed bug where object filter wouldn't reset if you cancelled the
+    render prefs dialog.
+  + Fixed small memory leak not freeing old render preferences when
+    clicking ok on the render prefs dialog.
+  + Added mob triangle size options to render prefs.
+  + Added experimental starting of tradeskill progression on arrival
+    at forge node.
+
 2003 Dec 19 - v1.70
 -------------------
   + Added support for PPPoE.  *Tons* of thanks go to ogerwahn for

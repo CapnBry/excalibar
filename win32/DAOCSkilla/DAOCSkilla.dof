@@ -47,7 +47,7 @@ PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
 Packages=vcl;rtl;dbrtl;adortl;vcldb;vclx;bdertl;vcldbx;ibxpress;dsnap;cds;bdecds;qrpt;teeui;teedb;tee;dss;teeqr;visualclx;visualdbclx;dsnapcrba;dsnapcon;VclSmp;vclshlctrls;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;inetdb;nmfast;webdsnap;websnap;dbexpress;dbxcds;indy
-Conditionals=GLOBAL_TICK_COUNTER;OPENGL_RENDERER;WINPCAP;DAOC_AUTO_SERVER;DAOC_AUTO_SERVER
+Conditionals=GLOBAL_TICK_COUNTER;OPENGL_RENDERER;WINPCAP;DAOC_AUTO_SERVER
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
@@ -64,7 +64,7 @@ RootDir=C:\Utils\DAoCSkilla\testapp\
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=1
-MinorVer=70
+MinorVer=72
 Release=0
 Build=0
 Debug=0
@@ -77,7 +77,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Network Utility for Dark Age of Camelot
-FileVersion=1.70.0.0
+FileVersion=1.72.0.0
 InternalName=
 LegalCopyright=
 LegalTrademarks=
@@ -85,3 +85,12 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
+[HistoryLists\hlConditionals]
+Count=1
+Item0=GLOBAL_TICK_COUNTER;OPENGL_RENDERER;WINPCAP;DAOC_AUTO_SERVER
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=1
+Item0=..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
