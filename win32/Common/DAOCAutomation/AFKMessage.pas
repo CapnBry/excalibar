@@ -85,8 +85,7 @@ end;
 
 procedure TfrmAFK.FormShow(Sender: TObject);
 begin
-  if Assigned(FDControl) then
-    FDControl.AFKMessage := ''; 
+  SetDControl(FDControl);
 end;
 
 end.

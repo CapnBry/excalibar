@@ -43,6 +43,7 @@ type
       var Key: Char);
     procedure edtStackOddsCountKeyPress(Sender: TObject; var Key: Char);
     procedure edtStackOddsPctKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
     FDControl: TDAOCControl;
     function GetProgression: string;
@@ -84,41 +85,27 @@ implementation
 
 function TfrmMacroTradeSkills.GetProgression: string;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillProgression
-  else
-    Result := edtProgression.Text;
+  Result := edtProgression.Text;
 end;
 
 function TfrmMacroTradeSkills.GetTargetQuality: integer;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillTargetQuality
-  else
-    Result := StrToIntDef(edtTargetQual.Text, 0);
+  Result := StrToIntDef(edtTargetQual.Text, 0);
 end;
 
 function TfrmMacroTradeSkills.GetTargetSound: string;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillTargetSound
-  else
-    Result := edtTargetSound.Text;
+  Result := edtTargetSound.Text;
 end;
 
 procedure TfrmMacroTradeSkills.SetDControl(const Value: TDAOCControl);
 begin
-  if Assigned(Value) then begin
-    Value.TradeSkillProgression := Progression;
-    Value.TradeSkillTargetQuality := TargetQuality;
-    Value.TradeSkillTargetSound := TargetSound;
-    Value.TradeSkillStopIfFull := StopIfFull;
-    Value.TradeSkillOddsloadKey := OddsLoadKey;
-    Value.TradeSkillOddsloadCount := OddsLoadCount;
-    Value.TradeSkillOddsloadPct := trunc(OddsLoadPct * 10);
-  end
-  else if Assigned(FDControl) then begin
+  if Assigned(FDControl) then
     FDControl.TradeSkillProgression := '';
+
+  FDControl := Value;
+
+  if Assigned(FDControl) then begin
     FDControl.TradeSkillTargetQuality := TargetQuality;
     FDControl.TradeSkillTargetSound := TargetSound;
     FDControl.TradeSkillStopIfFull := StopIfFull;
@@ -127,7 +114,8 @@ begin
     FDControl.TradeSkillOddsloadPct := trunc(OddsLoadPct * 10);
   end;
 
-  FDControl := Value;
+  if Visible and Assigned(FDControl) then
+    FDControl.TradeSkillProgression := Progression;
 end;
 
 procedure TfrmMacroTradeSkills.SetProgression(const Value: string);
@@ -157,18 +145,15 @@ begin
     FDControl.TradeSkillTargetSound := Value;
 end;
 
-procedure TfrmMacroTradeSkills.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TfrmMacroTradeSkills.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  SetDControl(nil);
+  if Assigned(FDControl) then
+    FDControl.TradeSkillProgression := '';
 end;
 
 function TfrmMacroTradeSkills.GetStopIfFull: boolean;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillStopIfFull
-  else
-    Result := chkStopIfFull.Checked;
+  Result := chkStopIfFull.Checked;
 end;
 
 procedure TfrmMacroTradeSkills.SetStopIfFull(const Value: boolean);
@@ -219,18 +204,12 @@ end;
 
 function TfrmMacroTradeSkills.GetOddsLoadCount: integer;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillOddsloadCount
-  else
-    Result := StrToIntDef(edtStackOddsCount.Text, 0);
+  Result := StrToIntDef(edtStackOddsCount.Text, 0);
 end;
 
 function TfrmMacroTradeSkills.GetOddsLoadKey: string;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillOddsloadKey
-  else
-    Result := edtStackOddsProgression.Text;
+  Result := edtStackOddsProgression.Text;
 end;
 
 procedure TfrmMacroTradeSkills.SetOddsLoadCount(const Value: integer);
@@ -275,10 +254,7 @@ end;
 
 function TfrmMacroTradeSkills.GetOddsLoadPct: double;
 begin
-  if Assigned(FDControl) then
-    Result := FDControl.TradeSkillOddsloadPct / 10
-  else
-    Result := StrToFloatDef(edtStackOddsPct.Text, 0);
+  Result := StrToFloatDef(edtStackOddsPct.Text, 0);
 end;
 
 procedure TfrmMacroTradeSkills.SetOddsLoadPct(const Value: double);
@@ -303,7 +279,13 @@ end;
 
 procedure TfrmMacroTradeSkills.StartProgression;
 begin
-  FDControl.TradeskillStartProgression;  
+  if Assigned(FDControl) then
+    FDControl.TradeskillStartProgression;  
+end;
+
+procedure TfrmMacroTradeSkills.FormShow(Sender: TObject);
+begin
+  SetDControl(FDControl);
 end;
 
 end.

@@ -44,7 +44,6 @@ type
     procedure tmrTimeoutDelayTimer(Sender: TObject);
     procedure btnLowOnStatClick(Sender: TObject);
     procedure cbxConnectionListChange(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
   private
     FAutoSell:      boolean;
     FInSellOff:     boolean;
@@ -387,7 +386,7 @@ procedure TfrmMacroing.DAOCPathChanged(Sender: TObject);
 begin
   if Sender <> FCurrConn then
     exit;
-    
+
   if frmShowMapNodes.Visible then
     frmShowMapNodes.PathChanged(FCurrConn.CurrentPath);
 end;
@@ -396,7 +395,7 @@ procedure TfrmMacroing.DAOCStopAllActions(Sender: TObject);
 begin
   if Sender <> FCurrConn then
     exit;
-    
+
   if frmPowerskill.Visible then
     frmPowerskill.KeepBuying := false;
   if frmSpellcraftHelp.Visible then
@@ -418,7 +417,7 @@ begin
     exit;
     
     { ANode will not be assigned if we're arriving at a non-pathed destination }
-  if Assigned(ANode) and frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
+  if Assigned(ANode) and frmPowerskill.Visible then begin
     if ANode.IsNamed(FPSItemList.ForgeNodeName) then
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
       FCurrConn.ScheduleCallback(5000, ArrivedAtForge, 0);
@@ -430,9 +429,12 @@ end;
 
 procedure TfrmMacroing.ArrivedAtForge(Sender: TObject; AParm: Cardinal);
 begin
-  Log('I am at the forge');
-
+  if Sender <> FCurrConn then
+    exit;
+    
   if frmPowerskill.Visible then begin
+    Log('I am at the forge');
+    
     if FPSItemList.AutoQuickbarSlot <> 0 then begin
       frmPowerskill.RecipeToQuickbar(FPSItemList.AutoQuickbarSlot);
       frmMacroTradeSkills.Progression := IntToStr(FPSItemList.AutoQuickbarSlot);
@@ -447,11 +449,12 @@ end;
 
 procedure TfrmMacroing.ArrivedAtMerchant(Sender: TObject; AParm: Cardinal);
 begin
-  if not Visible then
+  if Sender <> FCurrConn then
     exit;
-    
-  Log('I am at the merchant');
+
   if frmPowerskill.Visible then begin
+    Log('I am at the merchant');
+    
     FSelectingNPC := true;
     frmPowerskill.SelectItemMaterialMerchant;
   end;
@@ -459,9 +462,7 @@ end;
 
 procedure TfrmMacroing.OpenMacroTradeSkillWindow;
 begin
-  if frmMacroTradeSkills.Visible then
-    frmMacroTradeSkills.Close
-  else
+  if not frmMacroTradeSkills.Visible then
     frmMacroTradeSkills.Show;
 end;
 
@@ -626,6 +627,9 @@ begin
     chkAutosell.Enabled := false;
 
     frmPowerskill.Close;
+    frmMacroTradeSkills.Close;
+    frmAFK.Close;
+    frmLowOnStat.Close;
     frmSpellcraftHelp.Close;
   end;
 
@@ -659,11 +663,12 @@ begin
 
   iSel := -1;
   if Assigned(FDAOCControlList) then
-    for I := 0 to FDAOCControlList.Count - 1 do begin
-      if FDAOCControlList[I] = FCurrConn then
-        iSel := I;
-      cbxConnectionList.Items.Add(FDAOCControlList[I].ServerIP);
-    end;
+    for I := 0 to FDAOCControlList.Count - 1 do
+      if FDAOCControlList[I].Active then begin
+        if FDAOCControlList[I] = FCurrConn then
+          iSel := I;
+        cbxConnectionList.Items.Add(FDAOCControlList[I].ServerIP);
+      end;  { if active }
 
   if iSel <> -1 then
     cbxConnectionList.ItemIndex := iSel;
@@ -673,11 +678,6 @@ procedure TfrmMacroing.cbxConnectionListChange(Sender: TObject);
 begin
   if Assigned(FDAOCControlList) then
     SetCurrentConnection(FDAOCControlList[cbxConnectionList.ItemIndex]);
-end;
-
-procedure TfrmMacroing.Button1Click(Sender: TObject);
-begin
-  SetCurrentConnection(nil);
 end;
 
 end.

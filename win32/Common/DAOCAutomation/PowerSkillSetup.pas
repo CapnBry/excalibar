@@ -303,7 +303,7 @@ var
 begin
   pItem := GetSelectedItem;
 
-  if Assigned(pItem) then begin
+  if Assigned(pItem) and Assigned(FDControl) then begin
     for I := 0 to pItem.Materials.Count - 1 do begin
       iCountNeeded := pItem.Materials[I].Count;
       iCountHeld := FDControl.LocalPlayer.Inventory.TotalCountOfItem(

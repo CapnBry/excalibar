@@ -450,6 +450,9 @@ var
   pTrWin:     TTradeRecipeWindow;
   pQuWin:     TQuickbar;
 begin
+  if not Assigned(FDControl) then
+    exit;
+    
   pSCSkill := FDControl.LocalPlayer.Skills.Find('Spellcrafting');
   if not Assigned(pSCSkill) then begin
     ShowMessage('Player does not appear to have Spellcrafting skill');
@@ -573,6 +576,9 @@ var
   pVendorItem:  TDAOCVendorItem;
   iMBuyQuantity:  integer;
 begin
+  if not (Visible and Assigned(FDControl)) then
+    exit;
+    
   FKeepBuying := true;
 
   UpdateTotalMaterials;

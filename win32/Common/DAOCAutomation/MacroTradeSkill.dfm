@@ -14,6 +14,7 @@ object frmMacroTradeSkills: TfrmMacroTradeSkills
   OldCreateOrder = False
   Scaled = False
   OnClose = FormClose
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lblProgression: TLabel
