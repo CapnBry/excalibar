@@ -128,7 +128,7 @@ const
 resourcestring
   S_NO_OGL13 = 'OpenGL 1.3 support required for terrain textures';
   S_CAPTION_SUFFIX = ' -- Press F1 for options';
-  
+
 {$R *.dfm}
 
 function RealmColor(ARealm: TDAOCRealm) : TColor;
@@ -153,6 +153,14 @@ begin
     else
       Result := clFuchsia;
   end;
+end;
+
+function min(a, b: integer) : integer;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
 end;
 
 { TfrmGLRender }
@@ -515,7 +523,10 @@ begin
 
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
-      clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
+      if pObj.Stealthed then
+        clMob := clBlack
+      else
+        clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
 
         { if the mob is on the move, draw a line to its destination }
       if FRenderPrefs.DrawAIDestination then begin
@@ -537,17 +548,15 @@ begin
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
       glRotatef(pObj.Head, 0, 0, 1);
 
-      if pObj.ObjectClass = ocPlayer then 
+      if pObj.ObjectClass = ocPlayer then
         DrawPlayerHighlightRing(TDAOCPlayer(pObj))
       else if FRenderPrefs.DrawTypeTag and (pObj.ObjectClass = ocMob) then
         DrawMobTypeTag(TDAOCMob(pObj));
 
-      if pObj.Stealthed then
-        SetGLColorFromTColor(clBlack, 1.0)
-      else if pObj.Stale then
-        SetGLColorFromTColor(clMob, 0.75)
+      if pObj.LiveDataConfidence < LIVE_DATA_CONFIDENCE_MAX then
+        SetGLColorFromTColor(clMob, pObj.LiveDataConfidencePct)
       else
-        glColor3ubv(PGLubyte(@clMob));
+        glColor3ubv(@clMob);
       FMobTriangle.GLRender(FRenderBounds);
 
       glPopMatrix();
@@ -688,6 +697,7 @@ procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCPlayer);
 var
   cl:     TColor;
   fSize:  GLfloat;
+  fAlphaMax:  GLfloat;
 begin
   cl := RealmColor(ADAOCObject.Realm);
 
@@ -695,16 +705,15 @@ begin
     fSize :=  FMobTriangle.Size * 1.75
   else
     fSize :=  FMobTriangle.Size * 1.33;
-    
+
   if ADAOCObject.IsDead then
     SetGLColorFromTColorDarkened(cl, 1, 0.25)
-  else if ADAOCObject.Realm <> FDControl.LocalPlayer.Realm then
-    if FInvaderHighlight then
-      SetGLColorFromTColor(cl, 1)
-    else
-      SetGLColorFromTColor(cl, 0.6)
-  else
-    SetGLColorFromTColor(cl, 1);
+  else begin
+    fAlphaMax := 1;
+    if (ADAOCObject.Realm <> FDControl.LocalPlayer.Realm) and FInvaderHighlight then
+      fAlphaMax := 0.6;
+    SetGLColorFromTColor(cl, fAlphaMax * ADAOCObject.LiveDataConfidencePct);
+  end;
 
   glShadeModel(GL_SMOOTH);
   
@@ -978,6 +987,8 @@ begin
     'y', 'Y':
       begin
         FRenderPrefs.DrawTypeTag := not FRenderPrefs.DrawTypeTag;
+        FRenderPrefs.AlternateMobListText := FRenderPrefs.DrawTypeTag;
+        lstObjects.Invalidate;
         Dirty;
         Key := #0;
       end;
@@ -1129,6 +1140,8 @@ begin
           sText := pMob.Name + ' ' + DAOCCharacterClassToStr(TDAOCPlayer(pMob).CharacterClass)
         else
           sText := pMob.Name + ' (' + DAOCCharacterClassToStr(TDAOCPlayer(pMob).CharacterClass) + ')'
+      else if FRenderPrefs.AlternateMobListText and (pMob is TDAOCMob) then
+        sText := TDAOCMob(pMob).TypeTag
       else
         sText := pMob.Name;
       TextOut(Rect.Left + 3, Rect.Top + 2, sText);
