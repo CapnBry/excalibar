@@ -184,7 +184,7 @@ Downloading and compiling Excalibur
 3) export QTDIR=/usr/lib/qt-3.0.4
    If you're using your distribution's version of QT, then the above line
    is dependant on where your distro installed QT.  Usually /usr/lib/qt or
-   /usr/lib/qt3.
+   /usr/lib/qt3 (Mandrake) or /usr/lib/qt-3.2 (RedHat 9).
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) 
