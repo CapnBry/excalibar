@@ -55,7 +55,7 @@ exMap::~exMap() {
 
 void exMap::dirty() {
   if (! is_dirty) { 
-    qApp->postEvent(this, new QPaintEvent(QRect(0,0,0,0)));
+    qApp->postEvent(this, new QPaintEvent(QRect(0,0,0,0),false));
     is_dirty = true;
   }
 }
@@ -329,6 +329,14 @@ void exMap::paintGL() {
 
       glCallList(listTriangle);
       glPopMatrix();
+
+      /* if the mob is within range, draw an agro circle around it */
+      if (prefs.agro_circles)
+          if ((m->isMob()) && (m->playerDist() < 1000))  {
+              glLineWidth(1.0);
+              qglColor( darkRed );
+              drawCircle(m->getX(), m->getY(), 500, 20);
+      }
     }
     m->stale();
   }
@@ -347,6 +355,23 @@ void exMap::paintGL() {
 
   glFlush();
 }
+
+void exMap::drawCircle(int center_x, int center_y, int radius, int segments)
+{
+     double angle;
+     int vectorx, vectory;
+
+     /* draw a circle from a bunch of short lines */
+     glBegin(GL_LINE_LOOP);
+     for (angle = -M_PI; angle < M_PI; angle += (2.0 * M_PI / (double) segments))
+     {
+         vectorx = (int)(center_x + ((double)radius * sin(angle)));
+         vectory = (int)(center_y + ((double)radius * cos(angle)));
+         glVertex3i(vectorx, vectory, 500);
+     }
+     glEnd();
+}
+
 
 void exMap::mousePressEvent(QMouseEvent *e) {
   exMob *m;

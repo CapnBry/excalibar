@@ -146,6 +146,8 @@ public:
   int stringInt(QStringList *sl, unsigned int sec);
   exMapInfo *getMap();
   void makeObjects(bool simple);
+
+  void drawCircle(int center_x, int center_y, int radius, int segments);
 };
 
 
