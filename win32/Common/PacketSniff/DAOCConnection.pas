@@ -16,6 +16,8 @@ type
   TSheduledCallback = procedure (Sender: TObject; AParm: LPARAM) of Object;
   TChatMessageEvent = procedure (Sender: TObject; const AWho, AMsg: string) of Object;
   TVersionEvent = procedure (Sender: TObject; AMajor, AMinor, ARelease: BYTE) of Object;
+  TCurrencyChangeEvent = procedure (Sender: TObject; AReason: TDAOCCurrencyChangeReason;
+    ADeltaAsCopper: integer) of object; 
 
   TAccountCharInfo = class(TObject)
   private
@@ -97,11 +99,12 @@ type
     FOnInventoryChanged: TNotifyEvent;
     FOnSkillLevelChanged: TNameValueModifiedNotify;
     FOnAfterPacket: TPacketEvent;
-    FOnMoneyChanged: TNotifyEvent;
+    FOnCurrencyChanged: TCurrencyChangeEvent;
     FOnDeleteDAOCObject: TDAOCObjectNotify;
     FOnSelectedObjectChange: TDAOCObjectNotify;
     FOnTradeSkillSuccess: TIntegerEvent;
     FOnTradeSkillFailure: TNotifyEvent;
+    FOnTradeSkillFailureWithLoss: TNotifyEvent;
     FOnTradeSkillCapped: TNotifyEvent;
     FOnSetGroundTarget: TNotifyEvent;
     FOnChatSayIncoming: TChatMessageEvent;
@@ -119,6 +122,8 @@ type
     FOnMobTargetChanged: TDAOCMobNotify;
     FOnUnknownStealther: TDAOCObjectNotify;
     FOnDelveItem: TDAOCInventoryItemNotify;
+    FOnBountyPointsChanged: TIntegerEvent;
+    FOnRealmPointsChanged: TIntegerEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -153,13 +158,18 @@ type
     FGroundTarget: TMapNode;
     FMaxObjectStaleTime: DWORD;
     FLastDelveRequestPos: BYTE;
+    FLastCurrencyChangeReason: TDAOCCurrencyChangeReason;
 
     procedure CPARSETradeSkillSuccess(ASender: TDAOCChatParser; AQuality: integer);
     procedure CPARSETradeSkillFailure(ASender: TDAOCChatParser);
+    procedure CPARSETradeSkillFailureWithLoss(ASender: TDAOCChatParser);
     procedure CPARSETradeSkillCapped(ASender: TDAOCChatParser);
     procedure CPARSECombatStyleSuccess(ASender: TDAOCChatParser);
     procedure CPARSECombatStyleFailure(ASender: TDAOCChatParser);
     procedure CPARSETargetChanged(ASender: TDAOCChatParser);
+    procedure CPARSERealmPointsChange(ASender: TDAoCChatParser; APoints: Integer);
+    procedure CPARSEBountyPointsChange(ASender: TDAoCChatParser; APoints: Integer);
+    procedure CPARSECurrencyChanged(ASender: TDAOCChatParser; AReason: TDAOCCurrencyChangeReason);
 
     procedure ParseSetEncryptionKey(pPacket: TDAOCPacket);
     procedure ParseSetPlayerRegion(pPacket: TDAOCPacket);
@@ -220,6 +230,7 @@ type
     procedure DoOnSetGroundTarget; virtual;
     procedure DoOnTradeSkillSuccess(AQuality: integer); virtual;
     procedure DoOnTradeSkillFailure; virtual;
+    procedure DoOnTradeSkillFailureWithLoss; virtual;
     procedure DoOnTradeSkillCapped; virtual;
     procedure DoOnSelectedObjectChanged(AObject: TDAOCObject); virtual;
     procedure DoOnNewDAOCObject(AObject: TDAOCObject); virtual;
@@ -230,7 +241,7 @@ type
     procedure DoOnPopupMessage(const AMessage: string); virtual;
     procedure DoOnProgressMeterClose; virtual;
     procedure DoOnProgressMeterOpen(const AMessage: string); virtual;
-    procedure DoOnMoneyChanged; virtual;
+    procedure DoOnCurrencyChanged(ADeltaAsCopper: integer); virtual;
     procedure DoOnSkillLevelChanged(AItem: TDAOCNameValuePair); virtual;
     procedure DoOnPlayerPosUpdate; virtual;
     procedure DoOnInventoryChanged; virtual;
@@ -311,7 +322,7 @@ type
     property OnCharacterLogin: TNotifyEvent read FOnCharacterLogin write FOnCharacterLogin;
     property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
     property OnSkillLevelChanged: TNameValueModifiedNotify read FOnSkillLevelChanged write FOnSkillLevelChanged;
-    property OnMoneyChanged: TNotifyEvent read FOnMoneyChanged write FOnMoneyChanged;
+    property OnCurrencyChanged: TCurrencyChangeEvent read FOnCurrencyChanged write FOnCurrencyChanged;
     property OnVendorWindow: TNotifyEvent read FOnVendorWindow write FOnVendorWindow;
     property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
     property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
@@ -321,6 +332,7 @@ type
     property OnSetGroundTarget: TNotifyEvent read FOnSetGroundTarget write FOnSetGroundTarget;
     property OnTradeSkillSuccess: TIntegerEvent read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
     property OnTradeSkillFailure: TNotifyEvent read FOnTradeSkillFailure write FOnTradeSkillFailure;
+    property OnTradeSkillFailureWithLoss: TNotifyEvent read FOnTradeSkillFailureWithLoss write FOnTradeSkillFailureWithLoss;
     property OnTradeSkillCapped: TNotifyEvent read FOnTradeSkillCapped write FOnTradeSkillCapped;
     property OnChatLog: TStringEvent read FOnChatLog write FOnChatLog;
     property OnChatSendIncoming: TChatMessageEvent read FOnChatSendIncoming write FOnChatSendIncoming;
@@ -335,6 +347,8 @@ type
     property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
     property OnUnknownStealther: TDAOCObjectNotify read FOnUnknownStealther write FOnUnknownStealther;
     property OnDelveItem: TDAOCInventoryItemNotify read FOnDelveItem write FOnDelveItem;
+    property OnBountyPointsChanged: TIntegerEvent read FOnBountyPointsChanged write FOnBountyPointsChanged;
+    property OnRealmPointsChanged: TIntegerEvent read FOnRealmPointsChanged write FOnRealmPointsChanged;
   end;
 
 
@@ -1411,8 +1425,13 @@ begin
 end;
 
 procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TDAOCPacket);
+var
+  dwPrevious: DWORD;
 begin
   pPacket.HandlerName := 'MoneyUpdate';
+
+  dwPrevious := FLocalPlayer.Currency.AsCopper;
+
   with FLocalPlayer.Currency do begin
     Copper := pPacket.getByte;
     Silver := pPacket.getByte;
@@ -1421,13 +1440,13 @@ begin
     Platinum := pPacket.getShort;
   end;  { with FLocalPlayer.Currency }
 
-  DoOnMoneyChanged;
+  DoOnCurrencyChanged(FLocalPlayer.Currency.AsCopper - dwPrevious);
 end;
 
-procedure TDAOCConnection.DoOnMoneyChanged;
+procedure TDAOCConnection.DoOnCurrencyChanged(ADeltaAsCopper: integer);
 begin
-  if Assigned(FOnMoneyChanged) then
-    FOnMoneyChanged(Self);
+  if Assigned(FOnCurrencyChanged) then
+    FOnCurrencyChanged(Self, FLastCurrencyChangeReason, ADeltaAsCopper);
 end;
 
 procedure TDAOCConnection.ParseRequestBuyItem(pPacket: TDAOCPacket);
@@ -1769,6 +1788,12 @@ begin
     FOnTradeskillFailure(Self);
 end;
 
+procedure TDAOCConnection.DoOnTradeSkillFailureWithLoss;
+begin
+  if Assigned(FOnTradeSkillFailureWithLoss) then
+    FOnTradeSkillFailureWithLoss(Self);
+end;
+
 procedure TDAOCConnection.DoOnTradeskillSuccess(AQuality: integer);
 begin
   if Assigned(FOnTradeskillSuccess) then
@@ -1779,9 +1804,12 @@ procedure TDAOCConnection.HookChatParseCallbacks;
 begin
   FChatParser.OnTradeSkillSuccess := CPARSETradeSkillSuccess;
   FChatParser.OnTradeSkillFailure := CPARSETradeSkillFailure;
-  FChatParser.OnTradeSkillFailureWithLoss := CPARSETradeSkillFailure;
+  FChatParser.OnTradeSkillFailureWithLoss := CPARSETradeSkillFailureWithLoss;
   FChatParser.OnTradeskillCapped := CPARSETradeSkillCapped;
   FChatParser.OnTargetChange := CPARSETargetChanged;
+  FChatParser.OnCurrencyChange := CPARSECurrencyChanged;
+  FChatParser.OnRealmPointsChange := CPARSERealmPointsChange;
+  FChatParser.OnBountyPointsChange := CPARSEBountyPointsChange;
 end;
 
 procedure TDAOCConnection.CPARSETradeSkillCapped(ASender: TDAOCChatParser);
@@ -2463,6 +2491,29 @@ procedure TDAOCConnection.DoOnDelveItem(AItem: TDAOCInventoryItem);
 begin
   if Assigned(FOnDelveItem) then
     FOnDelveItem(Self, AItem);
+end;
+
+procedure TDAOCConnection.CPARSEBountyPointsChange(ASender: TDAoCChatParser; APoints: Integer);
+begin
+  if Assigned(FOnBountyPointsChanged) then
+    FOnBountyPointsChanged(Self, APoints);
+end;
+
+procedure TDAOCConnection.CPARSECurrencyChanged(ASender: TDAOCChatParser;
+  AReason: TDAOCCurrencyChangeReason);
+begin
+  FLastCurrencyChangeReason := AReason;
+end;
+
+procedure TDAOCConnection.CPARSERealmPointsChange(ASender: TDAoCChatParser; APoints: Integer);
+begin
+  if Assigned(FOnRealmPointsChanged) then
+    FOnRealmPointsChanged(Self, APoints);
+end;
+
+procedure TDAOCConnection.CPARSETradeSkillFailureWithLoss(ASender: TDAOCChatParser);
+begin
+  DoOnTradeSkillFailureWithLoss;
 end;
 
 end.
