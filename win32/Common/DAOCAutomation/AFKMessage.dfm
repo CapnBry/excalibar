@@ -1,9 +1,10 @@
 object frmAFK: TfrmAFK
   Left = 187
   Top = 107
-  Width = 346
-  Height = 56
+  BorderStyle = bsDialog
   Caption = 'AFK Message'
+  ClientHeight = 29
+  ClientWidth = 338
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

@@ -1,9 +1,10 @@
 object frmTellMacro: TfrmTellMacro
   Left = 871
   Top = 219
-  Width = 294
-  Height = 60
+  BorderStyle = bsDialog
   Caption = 'Macro Script File'
+  ClientHeight = 33
+  ClientWidth = 286
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
