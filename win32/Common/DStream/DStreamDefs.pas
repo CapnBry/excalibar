@@ -56,6 +56,8 @@ const
   DPACKET_AUTH_RESPONSE = $0a;  // NOTIMPL
   DPACKET_SQUELCH = $0b;
   DPACKET_RESUME = $0c;
+  DPACKET_KEYS = $0d;   // NOTIMPL
+  DPACKET_MOUSE = $0e;  // NOTIMPL
 
 function DStreamPointToData(AHeader: PDStream_Header) : Pointer;
 
