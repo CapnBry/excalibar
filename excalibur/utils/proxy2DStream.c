@@ -1,7 +1,8 @@
 /*
 
 public domain software
-Tue Mar  9 13:17:03 CST 2004 MastaMappa
+Tue Mar  9 13:17:03 EST 2004 MastaMappa
+Nov 20 15:16 MastaMappa Fixed the heading code
 
 this program allows you to use the java map editor with the DStream app
 1. start DStream
@@ -12,7 +13,9 @@ example:
 
 DAOC and DStream are running on you PC @ 192.168.1.50
 proxy2DStream 192.168.1.50 # on your *nix box at 192.168.1.51
-java -jar editor & # then Link to 192.168.1.51:19789
+java -jar editor.jar & # then Link to 192.168.1.51:19789
+
+this is a chatty (verbose) version...
 
 */
 
@@ -122,6 +125,16 @@ uint32 val;
 	return val;
 }
 
+round(double z)
+{
+int i;
+	i = z;
+	z -= i;
+	if (z >= .5)
+		i++;
+	return i;
+}
+
 parsepacket()
 {
 struct dstream_header dheader;
@@ -182,6 +195,7 @@ int i;
 		}
 		if (daoc_data.data[7] != DAOC_LocalPosUpdateFromClient) 
 			break;
+		showraw(daoc_data.data_size); 
 		p = &daoc_data.data[12];
 		z = get_LEshort();
 		x = get_LEshort();
@@ -189,12 +203,10 @@ int i;
 		{
 		int zone;
 		int heading;
-			zone = *p++;
-			heading = get_LEshort(); /* wrong, fix this */
+			zone = get_BEshort();
+			heading = (((get_LEshort() & 0xfff) * 90 / 0x400) + 180) % 360;
 		newdata = 1; /* tell the main loop we got new data */
-/*
 		printf("%d %d %d zone=%d head=%d\n", x, y, z, zone, heading);
-*/
 		}
 #if 0
 		printf("DAOC data, %s %s server len %d\n", (daoc_data.protocol ? "TCP" : "UDP"), (daoc_data.origin ? "to" : "from"), daoc_data.data_size);
