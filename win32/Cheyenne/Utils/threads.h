@@ -150,6 +150,9 @@ private:
             std::cerr << "caught exception " << e.what() << " in thread id " << pMe->dwThreadID << std::endl;
             std::cerr << "type: " << typeid(e).name() << std::endl;
             
+            // flush all
+            ::flushall();
+            
             // rethrow
             throw;
             }
