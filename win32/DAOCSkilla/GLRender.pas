@@ -1974,7 +1974,7 @@ begin
   pObj := FDControl.UnknownStealthers.Head;
   while Assigned(pObj) do begin
     glTranslatef(pObj.X, pObj.Y, 0);
-    FUnknownStealther.Alpha := pObj.LiveDataConfidencePct / 2;
+    FUnknownStealther.Alpha := pObj.LiveDataConfidencePct * 0.33;
     FUnknownStealther.GLRender(FRenderBounds);
     glTranslatef(-pObj.X, -pObj.Y, 0);
 
