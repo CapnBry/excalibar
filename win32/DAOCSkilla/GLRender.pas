@@ -1159,7 +1159,7 @@ begin
       TextOut(Rect.Left + 150, Rect.Top + 2, sText);
 
         { HEALTH }
-      if pMob is TDAOCMovingObject then
+      if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).HitPoints > 0) then
         sText := IntToStr(TDAOCMovingObject(pMob).HitPoints)
       else
         sText := '';
