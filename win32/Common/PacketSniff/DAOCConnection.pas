@@ -112,6 +112,7 @@ type
     FOnVersionNumsSet: TVersionEvent;
     FOnRegionChanged: TNotifyEvent;
     FOnPingReply: TIntegerEvent;
+    FOnMobTargetChanged: TDAOCMobNotify;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -186,6 +187,7 @@ type
     procedure ParseServerPingRequest(pPacket: TDAOCPacket);
     procedure ParseGroupMembersUpdate(pPacket: TDAOCPacket);
     procedure ParseGroupWindowUpdate(pPacket: TDAOCPacket);
+    procedure ParseAggroIndicator(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -227,6 +229,7 @@ type
     procedure DoOnCombatStyleFailure; virtual;
     procedure DoVersionNumsSet; virtual;
     procedure DoOnPingReply; virtual;
+    procedure DoOnMobTargetChanged(AMob: TDAOCMob); virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -309,7 +312,8 @@ type
     property OnCombatStyleSuccess: TStringEvent read FOnCombatStyleSuccess write FOnCombatStyleSuccess;
     property OnCombatStyleFailure: TNotifyEvent read FOnCombatStyleFailure write FOnCombatStyleFailure;
     property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
-    property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply; 
+    property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply;
+    property OnMobTargetChanged: TDAOCMobNotify read FOnMobTargetChanged write FOnMobTargetChanged;
   end;
 
 
@@ -746,6 +750,7 @@ begin
     $09:  ParseMobUpdate(pPacket);
     $0a:  ParseDeleteObject(pPacket);
     $12:  ParsePlayerHeadUpdate(pPacket);
+    $14:  ParseAggroIndicator(pPacket);
     $1f:  ParseSetPlayerRegion(pPacket);
     $29:  ParsePopupMessage(pPacket);
     $36:  ParseRegionServerInfomation(pPacket);
@@ -1185,6 +1190,7 @@ var
   pOldObject: TDAOCObject;
 begin
   pPacket.HandlerName := 'NewObject (' + DAOCObjectClassToStr(AClass) + ')';
+  pOldObject := nil;
 
   case AClass of
     ocObject:
@@ -1192,7 +1198,7 @@ begin
         tmpObject := TDAOCObject.Create;
         with TDAOCObject(tmpObject) do begin
           InfoID := pPacket.getShort;
-          PlayerID := InfoID;
+          PlayerID := 0;
           pPacket.seek(2);
           HeadWord := pPacket.getShort;
           Z := pPacket.getShort;
@@ -1208,8 +1214,8 @@ begin
         tmpObject := TDAOCMob.Create;
         with TDAOCMob(tmpObject) do begin
           InfoID := pPacket.getShort;  //+0
-          PlayerID := InfoID;
-          pPacket.seek(2);  //+2 converted to float
+          PlayerID := 0;
+          SpeedWord := pPacket.getShort;
           HeadWord := pPacket.getShort; //+4
           Z := pPacket.getShort;//+6
           X := pPacket.getLong;//+8
@@ -1222,6 +1228,16 @@ begin
           pPacket.getByte;  //+17  shl 2
           Name := pPacket.getPascalString;//+18
           TypeTag := pPacket.getPascalString;
+            { the destination is usually set in the update packet before the client
+              requests the NewObject.  This may not be a good idea, but it is the
+              easy fix }
+          pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
+          if Assigned(pOldObject) and not pOldObject.Stale and
+            (pOldObject is TDAOCMovingObject) then begin
+            DestinationX := pOldObject.DestinationX;
+            DestinationY := pOldObject.DestinationY;
+            DestinationZ := pOldObject.DestinationZ;
+          end;
         end;  { with TDAOCMob }
       end;  { ocMob }
 
@@ -1252,7 +1268,8 @@ begin
   end;  { case AClass }
 
   if Assigned(tmpObject) then begin
-    pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
+    if not Assigned(pOldObject) then
+      pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
     if Assigned(pOldObject) then
       DoOnDeleteDAOCObject(pOldObject);
     FDAOCObjs.AddOrReplace(tmpObject);
@@ -1618,7 +1635,17 @@ begin
 end;
 
 procedure TDAOCConnection.DoOnDeleteDAOCObject(AObject: TDAOCObject);
+var
+  I:    integer;
 begin
+    { make sure nobody still has this poor fella as a target }
+  for I := 0 to FDAOCObjs.Count - 1 do
+    if (FDAOCObjs[I] is TDAOCMovingObject) and
+      (TDAOCMob(FDAOCObjs[I]).Target = AObject) then begin
+      TDAOCMob(FDAOCObjs[I]).Target := nil;
+      DoOnMobTargetChanged(TDAOCMob(FDAOCObjs[I]));
+    end;
+
   if Assigned(FOnDeleteDAOCObject) then
     FOnDeleteDAOCObject(Self, AObject);
 end;
@@ -2131,6 +2158,37 @@ begin
   for I := 0 to FDAOCObjs.Count - 1 do
     if FDAOCObjs[I].ObjectClass = ocPlayer then
       TDAOCPlayer(FDAOCObjs[I]).IsInGroup := false;
+end;
+
+procedure TDAOCConnection.ParseAggroIndicator(pPacket: TDAOCPacket);
+var
+  wTarget:  WORD;
+  wAggressor: WORD;
+  pTarget:    TDAOCObject;
+  pAggressor: TDAOCObject;
+begin
+  pPacket.HandlerName := 'AggroIndicator';
+  wTarget := pPacket.getShort;
+  wAggressor := pPacket.getShort;
+
+  pAggressor := FDAOCObjs.FindByInfoID(wAggressor);
+
+  if pAggressor is TDAOCMob then begin
+    if FLocalPlayer.InfoID = wTarget then
+      pTarget := FLocalPlayer
+    else
+      pTarget := FDAOCObjs.FindByInfoID(wTarget);
+    if pTarget is TDAOCMovingObject then begin
+      TDAOCMob(pAggressor).Target := TDAOCMovingObject(pTarget);
+      DoOnMobTargetChanged(TDAOCMob(pAggressor));
+    end;
+  end;
+end;
+
+procedure TDAOCConnection.DoOnMobTargetChanged(AMob: TDAOCMob);
+begin
+  if Assigned(FOnMobTargetChanged) then
+    FOnMobTargetChanged(Self, AMob);
 end;
 
 end.
