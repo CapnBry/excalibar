@@ -120,7 +120,7 @@ object frmDebugging: TfrmDebugging
   end
   object tmrPlayback: TTimer
     Enabled = False
-    Interval = 100
+    Interval = 50
     OnTimer = tmrPlaybackTimer
     Left = 196
     Top = 16
