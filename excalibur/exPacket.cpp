@@ -64,43 +64,43 @@ QDataStream &operator>>(QDataStream &s, exPacket &p) {
   return s;
 }
 
-uint8_t exPacket::getByte(void) {
+uint8_t exPacket::getByte (void) {
   uint8_t v;  
-  Q_ASSERT(d.size() >= (offset+1));
+  Q_ASSERT(d.size() >= (unsigned)(offset+1));
   v=(uint8_t) (data[offset]);
   offset++;
   return v;
 }
 
-char exPacket::getChar(void) {
+char exPacket::getChar (void) {
   char v;
-  Q_ASSERT(d.size() >= (offset));
+  Q_ASSERT(d.size() >= (unsigned)(offset));
   v=(char) (data[offset]);
   offset++;
   return v;
 }
 
-uint16_t exPacket::getShort(void) {
+uint16_t exPacket::getShort (void) {
   uint16_t v;  
-  Q_ASSERT(d.size() >= (offset+2));
+  Q_ASSERT(d.size() >= (unsigned)(offset+2));
   v=(uint16_t) ((data[offset]<<8)+(data[offset+1]));
   offset+=2;
   return v;
 }
 
-uint32_t exPacket::getLong(void) {
+uint32_t exPacket::getLong (void) {
   uint32_t v;
-  Q_ASSERT(d.size() >= (offset+4));
+  Q_ASSERT(d.size() >= (unsigned)(offset+4));
   v=(uint32_t) ((data[offset]<<24)+(data[offset+1]<<16)+(data[offset+2]<<8)+(data[offset+3]));
   offset+=4;
   return v;
 }
 
-QString exPacket::getPascalString(void) {
+QString exPacket::getPascalString (void) {
   QString v;
   uint8_t l;
   l=getByte();
-  Q_ASSERT(d.size() >= (offset+l));
+  Q_ASSERT(d.size() >= (unsigned)(offset+l));
   for (uint8_t ui=0;ui<l;ui++) {
      v.append((char)(data[offset+ui]));
   }
@@ -115,7 +115,7 @@ QString exPacket::getZeroString(uint16_t minlen) {
 
   start=offset;
   do {
-    Q_ASSERT(d.size() >= (offset + 1));
+    Q_ASSERT(d.size() >= (unsigned)(offset + 1));
     c=(char)(data[offset]);
     if (c != 0) {
       v.append(c);
@@ -127,9 +127,9 @@ QString exPacket::getZeroString(uint16_t minlen) {
   return v;
 }
 
-QByteArray exPacket::getBytes(int16_t l) {
+QByteArray exPacket::getBytes(uint16_t l) {
   QByteArray v(l);
-  Q_ASSERT(d.size() >= (offset + l));
+  Q_ASSERT(d.size() >= (unsigned)(offset + l));
   for (int8_t i=0;i<l;i++) {
      v[i]=data[offset+i];
   }
@@ -137,8 +137,8 @@ QByteArray exPacket::getBytes(int16_t l) {
   return v;
 }  
 
-void exPacket::skip(int16_t l) {
-  Q_ASSERT(d.size() >= (offset + l));
+void exPacket::skip(uint16_t l) {
+  Q_ASSERT(d.size() >= (unsigned)(offset + l));
   offset+=l;
 }
 

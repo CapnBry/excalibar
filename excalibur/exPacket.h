@@ -32,7 +32,7 @@
 class exPacket {
   public:
     uint8_t    *data;
-    int16_t    offset;
+    uint16_t    offset;
     QByteArray  d;
     bool        from_server;
     bool        is_udp;
@@ -48,10 +48,10 @@ class exPacket {
     uint32_t       getLong         (void);
     QString        getPascalString (void);
     QString        getZeroString   (uint16_t minlen = 0);
-    QByteArray     getBytes        (int16_t  l);
+    QByteArray     getBytes        (uint16_t  l);
     QString        getDataAsString (void);
     
-    void           skip            (int16_t l);
+    void           skip            (uint16_t l);
     
     void           decrypt         (QString key);
 };
