@@ -15,6 +15,7 @@ type
   TIntegerEvent = procedure (Sender: TObject; AVal: integer) of Object;
   TSheduledCallback = procedure (Sender: TObject; AParm: LPARAM) of Object;
   TChatMessageEvent = procedure (Sender: TObject; const AWho, AMsg: string) of Object;
+  TVersionEvent = procedure (Sender: TObject; AMajor, AMinor, ARelease: BYTE) of Object;
 
   TAccountCharInfo = class(TObject)
   private
@@ -59,6 +60,9 @@ type
     FServerAddr: DWORD;
     FUDPServerAddr: DWORD;
     FActive:  boolean;
+    FVersionMajor: byte;
+    FVersionMinor: byte;
+    FVersionRelease: byte;
     FCryptKey:  TDAOCCryptKey;
     FCryptKeySet: boolean;
     FLargestDAOCPacketSeen:   integer;
@@ -101,6 +105,7 @@ type
     FOnDAOCObjectMoved: TDAOCObjectNotify;
     FOnCombatStyleFailure: TNotifyEvent;
     FOnCombatStyleSuccess: TStringEvent;
+    FOnVersionNumsSet: TVersionEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -200,6 +205,7 @@ type
     procedure DoOnDAOCObjectMoved(AObject: TDAOCObject); virtual;
     procedure DoOnCombatStyleSuccess(AStyle: string); virtual;
     procedure DoOnCombatStyleFailure; virtual;
+    procedure DoVersionNumsSet; virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -272,10 +278,41 @@ type
     property OnChatBroadcast: TStringEvent read FOnChatBroadcast write FOnChatBroadcast;
     property OnCombatStyleSuccess: TStringEvent read FOnCombatStyleSuccess write FOnCombatStyleSuccess;
     property OnCombatStyleFailure: TNotifyEvent read FOnCombatStyleFailure write FOnCombatStyleFailure;
+    property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
   end;
 
 
 implementation
+
+{ TAccountCharInfoList }
+
+function TAccountCharInfoList.FindOrAddChar(const AName: string): TAccountCharInfo;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if AnsiSameText(Items[I].Name, AName) then begin
+      Result := Items[I];
+      exit;
+    end;
+
+  Result := TAccountCharInfo.Create;
+  Result.FName := AName;
+  Add(Result);
+end;
+
+function TAccountCharInfoList.GetItems(iIndex: integer): TAccountCharInfo;
+begin
+  Result := TAccountCharInfo(inherited Items[iIndex]);
+end;
+
+{ TAccountCharInfo }
+
+function TAccountCharInfo.AsString: string;
+begin
+  Result := Format('%s level %d %s region %d', [
+    FName, FLevel,  RealmToStr(FRealm), FRegionID]);
+end;
 
 { TDAOCConnection }
 
@@ -554,10 +591,16 @@ procedure TDAOCConnection.ParseSetEncryptionKey(pPacket: TDAOCPacket);
 begin
   pPacket.HandlerName := 'SetEncryptionKey';
 
-  pPacket.seek(1);  // ?
-  pPacket.seek(4);  // Version w x.yz
+    { version w x.yz }
+  pPacket.seek(2);  
+  FVersionMajor := pPacket.getByte;  // bigver  (x)
+  FVersionMinor := pPacket.getByte;  // minver  (y)
+  FVersionRelease := pPacket.getByte;// release (z)
+
   pPacket.getBytes(FCryptKey, 12);
   FCryptKeySet := true;
+
+  DoVersionNumsSet;
 end;
 
 procedure TDAOCConnection.ParseSetPlayerRegion(pPacket: TDAOCPacket);
@@ -1739,37 +1782,13 @@ end;
 
 procedure TDAOCConnection.SetMaxObjectDistance(const Value: double);
 begin
-  FMaxObjectDistSqr := Value * Value; 
+  FMaxObjectDistSqr := Value * Value;
 end;
 
-{ TAccountCharInfoList }
-
-function TAccountCharInfoList.FindOrAddChar(const AName: string): TAccountCharInfo;
-var
-  I: Integer;
+procedure TDAOCConnection.DoVersionNumsSet;
 begin
-  for I := 0 to Count - 1 do
-    if AnsiSameText(Items[I].Name, AName) then begin
-      Result := Items[I];
-      exit;
-    end;
-
-  Result := TAccountCharInfo.Create;
-  Result.FName := AName;
-  Add(Result);
-end;
-
-function TAccountCharInfoList.GetItems(iIndex: integer): TAccountCharInfo;
-begin
-  Result := TAccountCharInfo(inherited Items[iIndex]);
-end;
-
-{ TAccountCharInfo }
-
-function TAccountCharInfo.AsString: string;
-begin
-  Result := Format('%s level %d %s region %d', [
-    FName, FLevel,  RealmToStr(FRealm), FRegionID]);
+  if Assigned(FOnVersionNumsSet) then
+    FOnVersionNumsSet(Self, FVersionMajor, FVersionMinor, FVersionRelease);
 end;
 
 end.
