@@ -92,6 +92,7 @@ class exSniffer : public QObject, public QThread {
     bool realtime;
     bool link;
     bool capture;
+    QString local_ip_filter;
 
   public:
     exSniffer(bool doreal, bool dolink, bool docapture);
@@ -102,6 +103,7 @@ class exSniffer : public QObject, public QThread {
     void add(QByteArray *p);
     QByteArray *get();
     void processPacket(QByteArray *a);
+    void determineLocalIPs(void);
 };
 
 #else

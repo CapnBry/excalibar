@@ -31,6 +31,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <sched.h>
+#include <netdb.h>
 
 #if !defined(BSD) && !defined(_WIN32)
 # define MUST_DO_SELECT
@@ -223,7 +224,7 @@ exSniffer::exSniffer(bool doreal, bool dolink, bool docapture) {
   realtime=doreal;
   link=dolink;
   capture=docapture;
-
+  determineLocalIPs();
 }
 
 void exSniffer::add(QByteArray *p) {
@@ -273,7 +274,12 @@ void exSniffer::run() {
     return;
   }
 
+<<<<<<< exSniffer.cpp
+  f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp)" +
+      local_ip_filter;
+=======
   f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) and not host 192.168.100.4";
+>>>>>>> 1.6
   qWarning(QString("Filter: %1").arg(f));
   if (pcap_compile(pcap, &bpp, (char *)((const char *)f), 1, 0) == -1) {
      qFatal("Failed to compile pcap filter");
@@ -546,3 +552,38 @@ void exSniffer::processPacket(QByteArray *ba) {
     }
   }
 }
+
+void exSniffer::determineLocalIPs(void)
+{
+    char hostname[128];
+    struct hostent *h;
+    struct in_addr **ia;
+
+    local_ip_filter = "";
+
+    if (gethostname(hostname, sizeof(hostname) - 1) == -1)  {
+        qWarning("Could not get host name for local IP filter!");
+        return;
+    }
+
+    qWarning(QString("Hostname is %1").arg(hostname));
+
+    h = gethostbyname(hostname);
+    if ((!h) || (h->h_addrtype != AF_INET || !h->h_addr_list[0]))  {
+        qWarning("Could not look up host name for local IP filter!");
+        return;
+    }
+
+    ia = (in_addr **)h->h_addr_list;
+    while (*ia)  {
+          /* if we already have a host in the list, add an or */
+        if (local_ip_filter.length())
+          local_ip_filter.append(" or ");
+        local_ip_filter.append("host ").append(inet_ntoa(**ia));
+        ia++;
+    }  /* while we have addresses */
+
+    local_ip_filter.prepend(" and not (");
+    local_ip_filter.append(")");
+}
+
