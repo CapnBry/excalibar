@@ -392,17 +392,38 @@ bool cMsgProc::HandleTCPPacket(char* data,int data_size,bool from_server)
     // find the key when the third packet arrives 
     if(CntPackets == 3) 
         { 
-        //#pragma message("fix")
-        if(abfallanfang(p,data,::euro_server,::account_name.c_str(),1,30000))
+        CntPackets++;       
+
+        DWORD pid=GetPIDByWindowName("DAoCMWC");
+        if(pid==0)
+            {
+            pMain->StatusUpdate("unable to find game, you must run this program from the same machine as the game!\r\n");
+            return(false);
+            }
+            
+        // open game process
+        HANDLE hProc;
+        if((hProc=OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid))==NULL)
+            {
+            pMain->StatusUpdate("unable to open game process!\r\n");
+            return(false);
+            }
+            
+        bool status;
+        if(abfallanfang(p,data,::account_name.c_str(),hProc))
             {
             pMain->StatusUpdate("key found\r\n");
+            status=true;
             }
         else
             {
             pMain->StatusUpdate("key not found\r\n");
+            status=false;
             }
-        CntPackets++;       
-        return true;
+        
+        // done with this
+        CloseHandle(hProc);
+        return status;
         } 
     else if(CntPackets < 3) 
         { 

@@ -163,6 +163,21 @@ DWORD cMemory::FindGameProcess()
     return(0); 
 }
 */
+DWORD GetPIDByWindowName(const char* name)
+{
+  DWORD retVal; 
+  HWND h = FindWindow(name,NULL); 
+  if (h) 
+    {
+    if (GetWindowThreadProcessId(h,&retVal))
+        {
+        return retVal; 
+        }
+    }
+
+  return 0; 
+}
+
 DWORD cMemory::FindGameProcess() 
 { 
   HWND hDAOCWnd; 

@@ -183,18 +183,22 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	return 1;
 }
 
-bool GameRunning(void)
+DWORD GetPIDByWindowName(const char* name)
 {
-  HWND hDAOCWnd; 
   DWORD retVal; 
-  
-  hDAOCWnd = FindWindow("DAoCMWC", NULL); 
-  if (hDAOCWnd) 
+  HWND h = FindWindow(name,NULL); 
+  if (h) 
     {
-    if (GetWindowThreadProcessId(hDAOCWnd,&retVal))
+    if (GetWindowThreadProcessId(h,&retVal))
         {
-        return true; 
+        return retVal; 
         }
     }
-  return false; 
+
+  return 0; 
+}
+
+bool GameRunning(void)
+{
+  return(GetPIDByWindowName("DAoCMWC")!=0);
 } // end GameRunning

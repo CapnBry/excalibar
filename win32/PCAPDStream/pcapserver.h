@@ -15,7 +15,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define int_ntoa(x)	inet_ntoa(*((struct in_addr *)&x))
-#define VERSIONSTRING		"0.5"
+#define VERSIONSTRING		"0.6"
 #define CAPTIONSTRING		"PCAP-DStream Server"
 #define MAX_PENDING_CONNECTS	4  /* The backlog allowed for listen() */
 #define MAX_MSG_LENGTH 1024
@@ -48,6 +48,8 @@ bool GET_CHECK_BOOL(HWND hwnd,UINT control);
 void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str);
 void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 
+DWORD GetPIDByWindowName(const char* name);
+
 extern cMain *pMain;
 extern cSniffer *pSniffer;
 extern cDStream *pDStream;
@@ -63,6 +65,6 @@ typedef void (__cdecl*Brutus_T)(void*);
 extern Brutus_T Brutus;
 typedef void (__cdecl*trolok45_T)(void*,void*,unsigned int);
 extern trolok45_T trolok45;
-typedef bool (__cdecl *abfallanfang_T)(void*,void*,bool,const char*,int,int);
+typedef bool (__cdecl *abfallanfang_T)(void*,void*,const char*,HANDLE);
 extern abfallanfang_T abfallanfang;
 extern void* p;
