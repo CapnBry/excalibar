@@ -48,6 +48,7 @@ type
     function GetObjectClass : TDAOCObjectClass; virtual;
     function GetName : string; virtual;
   public
+    LongestUpdateTime:    DWORD;
     constructor Create; virtual;
 
     procedure Assign(ASrc: TDAOCObject);
@@ -566,6 +567,7 @@ constructor TDAOCObject.Create;
 begin
   inherited Create;
   Clear;
+  Touch;
 end;
 
 function TDAOCObject.Distance2D(AObject: TDAOCObject): double;
@@ -693,7 +695,13 @@ begin
 end;
 
 procedure TDAOCObject.Touch;
+var
+  dw:   DWORD;
 begin
+  dw := TicksSinceUpdate;
+  if (FLastUpdate > 0) and (dw > LongestUpdateTime) then
+    LongestUpdateTime := dw;
+    
   FLastUpdate := LocalTickCount;
   FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX;
 end;
@@ -865,23 +873,26 @@ begin
   if IsStale then
     exit;
 
+  { I think players are supposed to be updated every 4s, regardless of their speed,
+    but this code tries to be a little safer. }
+
   dwLastUpdateDelta := TicksSinceUpdate;
     { for players that aren't moving, they start going stale at
-      20s and time out after 90s }
+      10s and time out after 20s }
   if Speed = 0 then
-    if dwLastUpdateDelta < 20000 then
+    if dwLastUpdateDelta < 10000 then
       FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
     else
-      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 20000)
-        div 700, 0)
+      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 10000)
+        div 100, 0)
 
-    { players who are moving, stale period 7.5-15s }
+    { players who are moving, stale period 5s-10s }
   else
-    if dwLastUpdateDelta < 7500 then
+    if dwLastUpdateDelta < 5000 then
       FLiveDataConfidence := LIVE_DATA_CONFIDENCE_MAX
     else
-      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 7500)
-        div 75, 0);
+      FLiveDataConfidence := max(LIVE_DATA_CONFIDENCE_MAX - (dwLastUpdateDelta - 5000)
+        div 50, 0);
 
   if FLiveDataConfidence = 0 then
     FSpeedWord := 0;
@@ -952,7 +963,9 @@ begin
     exit;
     
   dwTicksSinceUpdate := TicksSinceUpdate;
-    { live mobs are stale from 60s-90s }
+    { live mobs are stale from 60s-90s.  It looks like they get an update every
+      ~10s or ~20s over UDP, so this allows for a dropped packet or two.  Plus
+      we have the DestinationCheck to back it up }
   if dwTicksSinceUpdate > 60000 then
     FLiveDataConfidence := max(
       LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 60000) div 300, 0);
