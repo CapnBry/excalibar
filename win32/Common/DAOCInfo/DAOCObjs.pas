@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, Graphics,
-  DAOCRegion, DAOCInventory, DAOCPlayerAttributes;
+  DAOCRegion, DAOCInventory, DAOCPlayerAttributes, DAOCConSystem;
 
 type
   TDAOCObjectClass = (ocUnknown, ocObject, ocMob, ocPlayer, ocLocalPlayer);
@@ -419,38 +419,15 @@ begin
 end;
 
 function TDAOCObject.GetConColor(AToLevel: integer): TColor;
-var
-  l_quanta:   integer;
-  l_steps_taken:  integer;
 begin
-  l_steps_taken := 0;
-  while (AToLevel > 0) and (AToLevel < 100) and (l_steps_taken > -3) and
-    (l_steps_taken < 3) do begin
-    l_quanta := (AToLevel div 10) + 1;
-    if l_quanta > 5 then
-      l_quanta := 5;
-
-    if (FLevel > (AToLevel - l_quanta)) and (FLevel <= AToLevel) then
-      break;
-
-    if FLevel < AToLevel then begin
-      dec(AToLevel, l_quanta);
-      dec(l_steps_taken);
-    end
-    else begin
-      inc(AToLevel, l_quanta);
-      inc(l_steps_taken);
-    end;
-  end;  { while AToLevel in range }
-
-  case l_steps_taken of
-    -3:  Result := clSilver;
-    -2:  Result := clLime;
-    -1:  Result := $ff3300;  // blue
-     0:  Result := clYellow;
-     1:  Result := $007fff;  // orange
-     2:  Result := clRed;
-     3:  Result := $ff00cc;  // purple
+  case DAOCConSystem.GetConColor(AToLevel, FLevel) of
+    ccGray:   Result := clSilver;
+    ccGreen:  Result := clLime;
+    ccBlue:   Result := $ff3300;  // blue
+    ccYellow: Result := clYellow;
+    ccOrange: Result := $007fff;  // orange
+    ccRed:    Result := clRed;
+    ccPurple: Result := $ff00cc;  // purple
     else
       Result := clBlack;
   end;  { cas l_steps_taken }
