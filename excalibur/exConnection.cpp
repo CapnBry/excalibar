@@ -631,7 +631,7 @@ void exConnection::parseSystemMessage (exPacket *p)
     QTextEdit *textbox;
 //    p->seek(7);
 	p->seek(4);
-    unsigned int MsgType	 = p->getByte();
+    uint8_t 	MsgType	 = p->getByte();
 	p->seek(3);
 
     char*        Message     = strdup(p->getZeroString().ascii());
