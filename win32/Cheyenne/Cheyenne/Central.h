@@ -34,9 +34,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <gl\glu.h>
 #include <gl\glut.h>
 #include "database.h"
+#include "VectorMapLoader.h"
 
 // predefine this
-class VectorMapLoader;
 
 class Central
 {
@@ -106,24 +106,6 @@ private:
     static LRESULT CALLBACK DataWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
     void DrawDataWindow(HDC hFront)const;
 
-    static void DrawGLUTFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
-    {
-        std::string::const_iterator it;
-        for(it=text.begin();it!=text.end();++it)
-            {
-            glutBitmapCharacter(font,int(*it));
-            }
-    };
-
-    static void DrawGLFontString(const std::string& text)
-    {
-        #if(1)
-        DrawGLUTFontString(text);
-        #else
-        glListBase(Central::FontListBase);
-        glCallLists(text.length(),GL_UNSIGNED_BYTE,text.c_str());
-        #endif
-    }
     void DrawCircle(float radius)const
     {
         // draw it
@@ -203,6 +185,7 @@ private:
     HFONT hTahomaBig;
     HGLRC hRenderContext;
     HDC hPPIDC;
+    const UINT DataWindowTimerId;
     bool bDisplayListsCreated;
     bool bTexturesCreated;
     float ProjectionX;
@@ -217,6 +200,12 @@ private:
     unsigned int CircleList;
 
     unsigned int IDToFollow;
+    mutable unsigned char IDToFollowZone; // this can be modified from DrawDataWindow() -- which
+                                          // is "conceptually const", but needs to change this
+                                          // variable
+    mutable unsigned char IDToFollowLevel;// this can be modified from DrawDataWindow() -- which
+                                          // is "conceptually const", but needs to change this
+                                          // variable
     unsigned int HookedActor;
     float FollowedActorHeadingDegrees;
 
@@ -238,7 +227,7 @@ private:
     mutable MutexLock CentralMutex;
 
     // vector map loader
-    VectorMapLoader* VmLoader;
+    VectorMapLoader VmLoader;
 
 }; // end Central
 

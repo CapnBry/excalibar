@@ -5,9 +5,8 @@
 #include <memory>
 #include <fstream>
 
-VectorMapLoader::VectorMapLoader(AsyncWindowSignal sig)
+VectorMapLoader::VectorMapLoader()
 {
-    MySignal=sig;
     bIsDone=false;
     ListBase=0;
 } // end VectorMapLoader
@@ -34,6 +33,14 @@ bool VectorMapLoader::MakeDisplayLists(void)
     return(true);
 } // end MakeDisplayLists
 
+void VectorMapLoader::Draw(const unsigned char MapNumber)const
+{
+    Maps[MapNumber].Draw();
+
+    // done
+    return;
+} // end Draw
+
 DWORD VectorMapLoader::Run(const bool& bContinue)
 {
     // load maps here
@@ -45,7 +52,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
     VectorMap vm;
     std::stringstream ss;
 
-    for(unsigned char map_cnt=0;map_cnt<=254;++map_cnt)
+    for(unsigned char map_cnt=0;(map_cnt<=254 && bContinue);++map_cnt)
         {
         // make it empty
         Maps[map_cnt].MakeEmpty();
@@ -102,7 +109,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
 
             // ignore rest of line
             map_file.read(&ch,1);
-            while(ch!=0x0D && ch!=0x0A)
+            while(ch!=0x0D && ch!=0x0A && bContinue)
                 {
                 if(map_file.eof() || !map_file.good())
                     {
@@ -121,7 +128,7 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
             ss.seekg(0);
 
             // get the data from the next line
-            while(!map_file.eof() && map_file.good())
+            while(!map_file.eof() && map_file.good() && bContinue)
                 {
                 // get next char -- don't skip the eol indicator
                 // because we use that
@@ -302,9 +309,6 @@ DWORD VectorMapLoader::Run(const bool& bContinue)
     // flag we are done
     bIsDone=true;
     
-    // set signal
-    MySignal.signal();
-
     // done
     return(0);
 } // end Run

@@ -41,6 +41,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "mapinfo.h"
 #include "times.h"
 #include "config.h"
+#include "gl\glut.h"
 
 // the logger
 EXTERN logger_t Logger;
@@ -50,5 +51,20 @@ EXTERN MapInfo Zones;
 EXTERN CheyenneClock Clock;
 // the config
 EXTERN CheyenneConfig Config;
+
+// global functions
+inline void DrawGLUTFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
+{
+    std::string::const_iterator it;
+    for(it=text.begin();it!=text.end();++it)
+        {
+        glutBitmapCharacter(font,int(*it));
+        }
+};
+
+inline void DrawGLFontString(const std::string& text)
+{
+    DrawGLUTFontString(text);
+}
 
 #endif // GLOBAL_H

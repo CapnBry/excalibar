@@ -17,4 +17,6 @@ Cheyenne TODO list:
 render context, so that will still have to be done in the GUI thread.
 
 - Fix vector map loader: Tir Na Nog map file does not load, and the loader intentionally omits this one.
+
+- Fix text display for vector maps being the wrong color
  

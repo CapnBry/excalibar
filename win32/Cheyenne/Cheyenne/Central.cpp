@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <fstream>
 #include "centralfunctors.h"
 #include "centraldialogs.h"
-#include "vectormaploader.h"
 #include "resource.h"
 
 const int DataChildId=1;
@@ -35,18 +34,16 @@ const int RedrawTimerId=1;
 const UINT INIT_GL_MSG=WM_USER+1;
 const UINT CALL_INIT_DISPLAY_MATRICES=WM_USER+2;
 const UINT RENDER_NOW=WM_USER+3;
-const UINT VECTOR_MAPS_LOADED=WM_USER+4;
 
 // init font list base statically
 const int Central::FontListBase=1000;
 
 Central::Central() :
-    NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
+    DataWindowTimerId(1),NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
     ProjectionX(600000.0f),ProjectionY(500000.0f),
     XLimit(2000000.0f),YLimit(2000000.0f),ProjectionWidthX(10000.0f),ProjectionWidthY(10000.0f),
     ZoomIncrement(5000.0f),PanIncrement(5000.0f),
-    VmLoader(NULL)
-
+    IDToFollowZone(255),IDToFollowLevel(0)
 {
     hMainWnd=NULL;
     hDataWnd=NULL;
@@ -77,13 +74,6 @@ Central::~Central()
     while(MessageInputFifo.size() != 0)
         {
         delete MessageInputFifo.Pop();
-        }
-
-    // make sure this got deleted
-    if(VmLoader)
-        {
-        delete(VmLoader);
-        VmLoader=NULL;
         }
 
     // don't need the font anymore
@@ -422,6 +412,17 @@ LRESULT CALLBACK Central::DataWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARA
             }
             break;
 
+        case WM_TIMER:
+            {
+            HDC hDC=GetDC(hWnd);
+            if(pMe)
+                {
+                pMe->DrawDataWindow(hDC);
+                }
+            ReleaseDC(hWnd,hDC);
+            }
+            break;
+
         default:
             return(::DefWindowProc(hWnd,uMsg,wParam,lParam));
         } // end switch message
@@ -434,83 +435,143 @@ void Central::DrawDataWindow(HDC hFront)const
 
     RECT rClient;
     GetClientRect(hDataWnd,&rClient);
-
-    if(HookedActor == 0)
-        {
-        // 0 ID is not really an actor
-        FillRect(hFront,&rClient,(HBRUSH)(COLOR_WINDOW+1));
-
-        return;
-        }
-
-    Actor Hooked=GetDatabase().CopyActorById(HookedActor);
-
-    // we want to draw:
-    /*
-    Name Surname
-    Guild
-    Realm=get realm name
-    Level=%level%
-    Health=%health&
-    Endurance=%endurance%
-    Mana=%mana%
-    Zone=get zone name
-    Loc=%<x,y,z>%  <-- this shoud be in zone relative coords
-    Heading=heading degrees
-    Speed=%speed%
-    Valid Time=%valid time%
-    Last Update=%last update%
-    */
-    
-    // get realm name
+    std::ostringstream oss;
     std::string RealmName;
 
-    switch(Hooked.GetRealm())
+    if(HookedActor != 0)
         {
-        case Actor::Albion:
-            RealmName="Albion";
-            break;
-        case Actor::Hibernia:
-            RealmName="Hibernia";
-            break;
-        case Actor::Midgard:
-            RealmName="Midgard";
-            break;
-        default:
-            RealmName="MOB";
-            break;
+
+        Actor Hooked=GetDatabase().CopyActorById(HookedActor);
+
+        // we want to draw:
+        /*
+        Name Surname
+        Guild
+        Realm=get realm name
+        Level=%level%
+        Health=%health&
+        Endurance=%endurance%
+        Mana=%mana%
+        Zone=get zone name
+        Loc=%<x,y,z>%  <-- this shoud be in zone relative coords
+        Heading=heading degrees
+        Speed=%speed%
+        Valid Time=%valid time%
+        Last Update=%last update%
+        */
+    
+        // get realm name
+        switch(Hooked.GetRealm())
+            {
+            case Actor::Albion:
+                RealmName="Albion";
+                break;
+            case Actor::Hibernia:
+                RealmName="Hibernia";
+                break;
+            case Actor::Midgard:
+                RealmName="Midgard";
+                break;
+            default:
+                RealmName="MOB";
+                break;
+            }
+
+        // get zone name and coordinates
+        unsigned int x,y;
+        unsigned short z;
+        unsigned char zone;
+        const MapInfo::ZoneInfo& HookedZone=Zones.GetZoneFromGlobal
+            (
+            Hooked.GetRegion(),
+            unsigned int(Hooked.GetMotion().GetXPos()),
+            unsigned int(Hooked.GetMotion().GetYPos()),
+            unsigned int(Hooked.GetMotion().GetZPos()),
+            x,
+            y,
+            z,
+            zone
+            );
+
+        oss << "Hooked Actor:\n"
+            << Hooked.GetName().c_str() << " " << Hooked.GetSurname().c_str() << "\n"
+            << "Guild=" << Hooked.GetGuild().c_str() << "\n"
+            << RealmName.c_str() << "\n"
+            << "Level=" << unsigned int(Hooked.GetLevel()) << "\n"
+            << "Health=" << unsigned int(Hooked.GetHealth()) << "%\n"
+            << "Endurance=" << "%\n"
+            << "Mana=" << "%\n"
+            << "Zone=" << HookedZone.ZoneFile.c_str() << "\n"
+            << "Loc=<" << x << "," << y << "," << z << ">\n"
+            << "Heading=" << Hooked.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
+            << "Speed=" << Hooked.GetMotion().GetSpeed() << "\n"
+            << "Valid Time=" << Hooked.GetMotion().GetValidTime().Seconds() << "\n"
+            << "Last Update=" << Hooked.GetLastUpdateTime().Seconds() << "\n\n";
+        }
+    
+    if(IDToFollow != 0)
+        {
+        // get followed actor
+        Actor Followed=GetDatabase().CopyActorById(IDToFollow);
+        // get zone name and coordinates
+        unsigned int x,y;
+        unsigned short z;
+        unsigned char zone;
+        const MapInfo::ZoneInfo& FollowedZone=Zones.GetZoneFromGlobal
+            (
+            Followed.GetRegion(),
+            unsigned int(Followed.GetMotion().GetXPos()),
+            unsigned int(Followed.GetMotion().GetYPos()),
+            unsigned int(Followed.GetMotion().GetZPos()),
+            x,
+            y,
+            z,
+            zone
+            );
+
+        // save zone and level
+        IDToFollowZone=zone;
+        IDToFollowLevel=Followed.GetLevel();
+
+        // get realm name
+        switch(Followed.GetRealm())
+            {
+            case Actor::Albion:
+                RealmName="Albion";
+                break;
+            case Actor::Hibernia:
+                RealmName="Hibernia";
+                break;
+            case Actor::Midgard:
+                RealmName="Midgard";
+                break;
+            case Actor::MOB:
+            default:
+                RealmName="MOB";
+                break;
+            }
+
+        oss << "Followed Actor:\n"
+            << Followed.GetName().c_str() << " " << Followed.GetSurname().c_str() << "\n"
+            << "Guild=" << Followed.GetGuild().c_str() << "\n"
+            << RealmName.c_str() << "\n"
+            << "Level=" << unsigned int(Followed.GetLevel()) << "\n"
+            << "Health=" << unsigned int(Followed.GetHealth()) << "%\n"
+            << "Endurance=" << "%\n"
+            << "Mana=" << "%\n"
+            << "Zone=" << FollowedZone.ZoneFile.c_str() << "\n"
+            << "Loc=<" << x << "," << y << "," << z << ">\n"
+            << "Heading=" << Followed.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
+            << "Speed=" << Followed.GetMotion().GetSpeed() << "\n"
+            << "Valid Time=" << Followed.GetMotion().GetValidTime().Seconds() << "\n"
+            << "Last Update=" << Followed.GetLastUpdateTime().Seconds() << "\n\n";
+        }
+    else
+        {
+        IDToFollowZone=255;
         }
 
-    // get zone name and coordinates
-    unsigned int x,y;
-    unsigned short z;
-    unsigned char zone;
-    const MapInfo::ZoneInfo& HookedZone=Zones.GetZoneFromGlobal
-        (
-        Hooked.GetRegion(),
-        unsigned int(Hooked.GetMotion().GetXPos()),
-        unsigned int(Hooked.GetMotion().GetYPos()),
-        unsigned int(Hooked.GetMotion().GetZPos()),
-        x,
-        y,
-        z,
-        zone
-        );
-
-    std::ostringstream oss;
-    oss << Hooked.GetName().c_str() << " " << Hooked.GetSurname().c_str() << "\n"
-        << "Guild=" << Hooked.GetGuild().c_str() << "\n"
-        << RealmName.c_str() << "\n"
-        << "Level=" << unsigned int(Hooked.GetLevel()) << "\n"
-        << "Health=" << unsigned int(Hooked.GetHealth()) << "%\n"
-        << "Endurance=" << "%\n"
-        << "Mana=" << "%\n"
-        << "Zone=" << HookedZone.ZoneFile.c_str() << "\n"
-        << "Loc=<" << x << "," << y << "," << z << ">\n"
-        << "Heading=" << Hooked.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
-        << "Speed=" << Hooked.GetMotion().GetSpeed() << "\n"
-        << "Valid Time=" << Hooked.GetMotion().GetValidTime().Seconds() << "\n"
-        << "Last Update=" << Hooked.GetLastUpdateTime().Seconds() << "\n"
+    oss << "Global Database Statistics:\n"
         << "Current Time=" << Clock.Current().Seconds() << "\n"
         << "Albs=" << stats.GetNumAlbs() << "\n"
         << "Hibs=" << stats.GetNumHibs() << "\n"
@@ -529,6 +590,9 @@ void Central::DrawDataWindow(HDC hFront)const
 
     // fill with white
     FillRect(hBack,&rClient,(HBRUSH)(COLOR_WINDOW+1));
+
+    // move text over just a little bit
+    rClient.left += 1;
 
     // draw text in the back buffer
     DrawText
@@ -669,8 +733,8 @@ LRESULT CALLBACK Central::WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lP
             SelectObject(hDC,hOldObj);
             ReleaseDC(hWnd,hDC);
 
-            // set redraw timer
-            //SetTimer(hWnd,RedrawTimerId,50,NULL);
+            // set data window timer
+            SetTimer(pMe->hDataWnd,pMe->DataWindowTimerId,1000,NULL);
             }
             break;
 
@@ -684,7 +748,7 @@ LRESULT CALLBACK Central::WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lP
 
         case WM_DESTROY:
             // kill timer
-            //KillTimer(hWnd,RedrawTimerId);
+            KillTimer(pMe->hDataWnd,pMe->DataWindowTimerId);
             PostQuitMessage(0);
             break;
 
@@ -692,15 +756,6 @@ LRESULT CALLBACK Central::WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lP
         case RENDER_NOW:
             // redraw
             pMe->DrawPPI();
-            break;
-
-        case VECTOR_MAPS_LOADED:
-            // vector maps finished loading, 
-            // make display lists and delete
-            pMe->VmLoader->SetListBase(pMe->VectorMapListBase);
-            pMe->VmLoader->MakeDisplayLists();
-            delete(pMe->VmLoader);
-            pMe->VmLoader=NULL;
             break;
 
         case WM_KEYDOWN:
@@ -1487,16 +1542,8 @@ void Central::DestroyDisplayLists(void)
 
 void Central::LoadVectorMaps(void)
 {
-    if(VmLoader)
-        {
-        return;
-        }
-
-    // create vector map loader
-    VmLoader=new VectorMapLoader(AsyncWindowSignal(hMainWnd,VECTOR_MAPS_LOADED,0,0));
-    
     // start it up, it will post a message to us when it finishes
-    VmLoader->Go();
+    VmLoader.Go();
 
     // done
     return;
@@ -1594,10 +1641,54 @@ void Central::RenderActor(const Actor& ThisActor)const
             case Actor::Hibernia:
                 glColor3f(0.0f,0.75f,0.0f);
                 break;
+            case Actor::MOB:
+                {
+                if(Config.GetShowMOBConColor())
+                    {
+                    switch(Actor::GetRelativeCon(IDToFollowLevel,ThisActor.GetLevel()))
+                        {
+                        case Actor::Gray:
+                            glColor4f(0.25f,0.25f,0.25f,1.0f);
+                            break;
+
+                        case Actor::Green:
+                            glColor4f(0.0f,1.0f,0.0f,1.0f);
+                            break;
+
+                        case Actor::Blue:
+                            glColor4f(0.0f,0.0f,1.0f,1.0f);
+                            break;
+
+                        case Actor::Orange:
+                            glColor4f(1.0f,0.5f,0.0f,1.0f);
+                            break;
+
+                        case Actor::Red:
+                            glColor4f(1.0f,0.0f,0.0f,1.0f);
+                            break;
+
+                        case Actor::Purple:
+                            glColor4f(0.5f,0.0f,0.5f,1.0f);
+                            break;
+
+                        default:
+                        case Actor::Yellow:
+                            glColor3f(1.0f,1.0f,0.0f);
+                            break;
+                        } // end switch relative con
+                    } // end if show mob con colors
+                else
+                    {
+                    // show all as yellow
+                    glColor4f(1.0f,1.0f,0.0f,1.0f);
+                    }
+                }
+                break;
+
             default:
                 glColor3f(0.0f,0.0f,0.0f);
                 break;
-            }
+            } // end switch get realm
 
         // store position with display offsets
         Motion Position;
@@ -1801,7 +1892,11 @@ void Central::RenderWorld(void)const
 
                 if(Config.GetVectorMapInPPI())
                     {
-                    glCallList(VectorMapListBase + unsigned int(i));
+                    if((Config.GetVectorMapOnlyInFollowedZone() && i==IDToFollowZone) || 
+                       !Config.GetVectorMapOnlyInFollowedZone())
+                        {
+                        VmLoader.Draw(i);
+                        }
                     }
 
                 // reenable these
@@ -1873,5 +1968,3 @@ void Central::DrawPPI(void)
     // done
     return;
 } // end DrawPPI
-
-

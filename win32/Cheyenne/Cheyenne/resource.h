@@ -36,6 +36,8 @@
 #define IDC_PLAYMIDCREATESOUND          1016
 #define IDC_VECTORMAPINPPI              1016
 #define IDC_MIDCREATESOUND              1017
+#define IDC_VECTORONLYINFOLLOWED        1018
+#define IDC_SHOWMOBCONCOLOR             1019
 #define IDC_RADIUS2                     1022
 #define IDC_ENABLED2                    1023
 #define IDC_RADIUS3                     1024
@@ -60,7 +62,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

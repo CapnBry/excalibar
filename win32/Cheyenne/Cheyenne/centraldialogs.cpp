@@ -219,6 +219,9 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
             SET_CHECK_BOOL(hWnd,IDC_UPDATEWHENRENDERED,param->GetUpdateWhenRendered());
             SET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI,param->GetTexturesInPPI());
             SET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI,param->GetVectorMapInPPI());
+            SET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED,param->GetVectorMapOnlyInFollowedZone());
+            SET_CHECK_BOOL(hWnd,IDC_SHOWMOBCONCOLOR,param->GetShowMOBConColor());
+            
             }
             break;
 
@@ -243,6 +246,8 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
                     param->ModifyUpdateWhenRendered() = GET_CHECK_BOOL(hWnd,IDC_UPDATEWHENRENDERED);
                     param->ModifyTexturesInPPI() = GET_CHECK_BOOL(hWnd,IDC_TEXTURESINPPI);
                     param->ModifyVectorMapInPPI() = GET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI);
+                    param->ModifyVectorMapOnlyInFollowedZone() = GET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED);
+                    param->ModifyShowMOBConColor() = GET_CHECK_BOOL(hWnd,IDC_SHOWMOBCONCOLOR);
 
                     EndDialog(hWnd,IDOK);
                     break;

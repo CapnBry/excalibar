@@ -1,6 +1,10 @@
 #pragma once
 
-#include "central.h"
+#include "global.h"
+#include <gl\gl.h>
+#include <gl\glu.h>
+#include <gl\glut.h>
+#include <map>
 
 class VectorMapTriplet
 {
@@ -20,9 +24,7 @@ class VectorMapTriplet
         return(*this);
     }
 
-
     float x,y,z;
-
 }; 
 
 class VectorMapColor
@@ -83,6 +85,17 @@ public:
     {
         // draw
 
+        switch(GetType())
+            {
+            case 'P':
+                glBegin(GL_POINTS);
+                break;
+
+            default:
+                glBegin(GL_LINE_STRIP);
+                break;
+            }
+        
         // get color
         std::map<std::string,VectorMapColor>::const_iterator cit;
         cit=ColorMap.find(Color);
@@ -103,14 +116,33 @@ public:
             {
             glVertex3f(it->x,it->y,1.0f);//it->z); render it flat for now
 
+            /*
             if(GetType() == 'P')
                 {
                 // draw name too
                 glRasterPos3f(it->x+10.0f,it->y,1.0f);
                 glColor4f(1.0f,1.0f,1.0f,1.0f);
-                Central::DrawGLFontString(Name);
+                DrawGLFontString(Name);
 
                 }
+            */
+            }
+
+        if(GetType() == 'P')
+            {
+            // end current drawing operation
+            glEnd();
+
+            // draw name too
+            it=Triplets.begin();
+            glRasterPos3f(it->x+10.0f,it->y,1.0f);
+            glColor4f(1.0f,1.0f,1.0f,1.0f);
+            DrawGLFontString(Name);
+            }
+        else
+            {
+            // end here
+            glEnd();
             }
     }
 
@@ -147,7 +179,7 @@ private:
     std::map<std::string,VectorMapColor> ColorMap;
 
     std::list<VectorMapTriplet> Triplets;
-};
+}; // end VectorMapItem
 
 class VectorMap
 {
@@ -191,26 +223,18 @@ public:
 
     void Draw(void)const
     {
+        // if we are not used, do nothing
+        if(!IsUsed())
+            {
+            return;
+            }
+
         // draw all items
         std::list<VectorMapItem>::const_iterator it;
 
         for(it=Vectors.begin();it!=Vectors.end();++it)
             {
-            switch(it->GetType())
-                {
-                case 'P':
-                    glBegin(GL_POINTS);
-                    break;
-
-                default:
-                    glBegin(GL_LINE_STRIP);
-                    break;
-                }
-            
             it->Draw();
-
-            // done
-            glEnd();
             }
     }
 
@@ -225,27 +249,10 @@ public:
         // make a new display list
         glNewList(ListNum,GL_COMPILE);
 
-        // draw all items
-        std::list<VectorMapItem>::const_iterator it;
+        // draw
+        Draw();
 
-        for(it=Vectors.begin();it!=Vectors.end();++it)
-            {
-            switch(it->GetType())
-                {
-                case 'P':
-                    glBegin(GL_POINTS);
-                    break;
-
-                default:
-                    glBegin(GL_LINE_STRIP);
-                    break;
-                }
-            
-            it->Draw();
-
-            // done
-            glEnd();
-            }
+        // done
         glEndList();
     }
 
@@ -265,18 +272,19 @@ private:
     std::string Name;
     unsigned int ListNum;
     bool bUsed;
-};
+}; // end class VectorMap
 
 class VectorMapLoader : public Thread
 {
 public:
-    VectorMapLoader(AsyncWindowSignal sig);
+    VectorMapLoader();
     virtual ~VectorMapLoader();
 
     bool IsDone(void)const{return(bIsDone);};
     void SetListBase(unsigned int base){ListBase=base;};
 
     bool MakeDisplayLists(void);
+    void Draw(const unsigned char MapNumber)const;
 
 protected:
 private:
@@ -290,5 +298,4 @@ private:
     VectorMap Maps[256];
     bool bIsDone;
     unsigned int ListBase;
-    AsyncWindowSignal MySignal;
 };
