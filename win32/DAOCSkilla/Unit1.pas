@@ -62,11 +62,12 @@ type
     Appendmobseenfile1: TMenuItem;
     Appenddelveseenfile1: TMenuItem;
     N1: TMenuItem;
+    atnMacroing: TAction;
+    Macroing1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure btnMacroingClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnDeleteCharClick(Sender: TObject);
     procedure btnLoginClick(Sender: TObject);
@@ -89,6 +90,7 @@ type
     procedure atnAppendDelveseenExecute(Sender: TObject);
     procedure atnAppendMobseenExecute(Sender: TObject);
     procedure atnDumpMobListExecute(Sender: TObject);
+    procedure atnMacroingExecute(Sender: TObject);
   private
 {$IFDEF DAOC_AUTO_SERVER}
     FIConnection: IDAOCControl;
@@ -172,7 +174,7 @@ procedure CreateOptionalForms;
 implementation
 
 uses
-  PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
+  DAOCRegion, PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
   SpellcraftHelp, Macroing, LowOnStat, VCLMemStrms, RemoteAdmin,
   StringParseHlprs, SkillaLog
 {$IFDEF OPENGL_RENDERER}
@@ -255,6 +257,7 @@ begin
   pConn := TDAOCControl(Sender);
   Log('New connection: ' + pConn.ClientIP + '->' + pConn.ServerIP);
 
+  frmMacroing.DAOCConnect(Sender);
 {$IFDEF OPENGL_RENDERER}
   if atnAutoLaunchRadar.Checked then
     ShowGLRenderer;
@@ -268,6 +271,7 @@ begin
   // CloseChatLog;
   atnDumpMobList.Enabled := FDControlList.Count > 0;
 
+  frmMacroing.DAOCDisconnect(Sender);
 {$IFDEF OPENGL_RENDERER}
   if atnAutoLaunchRadar.Checked then
     frmGLRender.Close;
@@ -347,6 +351,7 @@ begin
 
   dmdRemoteAdmin.DAOCControlList := FDControlList;
   dmdRemoteAdmin.Enabled := atnRemoteAdminEnable.Checked;
+  frmMacroing.DAOCControlList := FDControlList;
 
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCConnectionList := FDControlList;
@@ -382,7 +387,7 @@ begin
     Top := ReadInteger('Main', 'Top', Top);
     atnRemoteAdminEnable.Checked := ReadBool('Main', 'RemoteAdminEnabled', false);
     atnAutoLaunchRadar.Checked := ReadBool('Main', 'AutoLaunchExcal', true);
-    //btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
+    atnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
     FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
 
@@ -534,12 +539,12 @@ end;
 
 procedure TfrmMain.DAOCInventoryChanged(Sender: TObject);
 begin
-  frmMacroing.DAOCInventoryChanged;
+  frmMacroing.DAOCInventoryChanged(Sender);
 end;
 
 procedure TfrmMain.DAOCVendorWindow(Sender: TObject);
 begin
-  frmMacroing.DAOCVendorWindow;
+  frmMacroing.DAOCVendorWindow(Sender);
 end;
 
 procedure TfrmMain.Log(const s: string);
@@ -549,12 +554,12 @@ end;
 
 procedure TfrmMain.DAOCPathChanged(Sender: TObject);
 begin
-  frmMacroing.DAOCPathChanged;
+  frmMacroing.DAOCPathChanged(Sender);
 end;
 
 procedure TfrmMain.DAOCStopAllActions(Sender: TObject);
 begin
-  frmMacroing.DAOCStopAllActions;
+  frmMacroing.DAOCStopAllActions(Sender);
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -577,6 +582,9 @@ begin
 {$ELSE}
 //  FConnection.Free;
 {$ENDIF DAOC_AUTO_SERVER}
+
+ FDControlList.Clear;
+ FreeAndNil(FDControlList);
 end;
 
 procedure TfrmMain.DAOCDeleteObject(Sender: TObject; ADAOCObject: TDAOCObject);
@@ -604,7 +612,7 @@ end;
 
 procedure TfrmMain.DAOCSkillLevelChanged(Sender: TObject; AItem: TDAOCNameValuePair);
 begin
-  frmMacroing.DAOCSkillLevelChanged(AItem);
+  frmMacroing.DAOCSkillLevelChanged(Sender, AItem);
 end;
 
 function TfrmMain.GetConfigFileName: string;
@@ -645,15 +653,6 @@ procedure TfrmMain.DAOCChatLog(Sender: TObject; const s: string);
 begin
   FDebugLogState.DAOCChatLog(Sender, s);
   dmdRemoteAdmin.DAOCChatLog(Sender, s);
-end;
-
-procedure TfrmMain.btnMacroingClick(Sender: TObject);
-begin
-  // frmMacroing.DAOCControl := FConnection;
-  if frmMacroing.Visible then
-    frmMacroing.Close
-  else
-    frmMacroing.Show;
 end;
 
 procedure TfrmMain.DAOCPingReply(Sender: TObject; ATime: integer);
@@ -756,27 +755,27 @@ end;
 
 procedure TfrmMain.DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
 begin
-  frmMacroing.DAOCArriveAtGotoDest(ANode);
+  frmMacroing.DAOCArriveAtGotoDest(Sender, ANode);
 end;
 
 procedure TfrmMain.DAOCSelectNPCSuccess(Sender: TObject);
 begin
-  frmMacroing.DAOCSelectNPCSuccess;
+  frmMacroing.DAOCSelectNPCSuccess(Sender);
 end;
 
 procedure TfrmMain.DAOCSelectNPCFailed(Sender: TObject);
 begin
-  frmMacroing.DAOCSelectNPCFailed;
+  frmMacroing.DAOCSelectNPCFailed(Sender);
 end;
 
 procedure TfrmMain.DAOCAttemptNPCRightClickFailed(Sender: TObject);
 begin
-  frmMacroing.DAOCAttemptNPCRightClickFailed;
+  frmMacroing.DAOCAttemptNPCRightClickFailed(Sender);
 end;
 
 procedure TfrmMain.DAOCLocalHealthUpdate(Sender: TObject);
 begin
-  frmMacroing.DAOCLocalHealthUpdate;
+  frmMacroing.DAOCLocalHealthUpdate(Sender);
 end;
 
 procedure TfrmMain.UpdateQuickLaunchProfileList;
@@ -884,6 +883,7 @@ begin
       TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
 
       DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', DAOCWindowClass);
+      DefaultLocalPlayerLevel := ReadInteger('ConnectionState', 'Level', DefaultLocalPlayerLevel);
       SendKeysSlashDelay := ReadInteger('Main', 'SendKeysSlashDelay', SendKeysSlashDelay);
       TurnUsingFaceLoc := ReadBool('Main', 'TurnUsingFaceLoc', TurnUsingFaceLoc);
       InventoryLookupEnabled := ReadBool('Main', 'InventoryLookupEnabled', InventoryLookupEnabled);
@@ -891,6 +891,7 @@ begin
       KeySelectFriendly := ReadString('Keys', 'SelectFriendly', KeySelectFriendly);
       KeyStrafeLeft := ReadString('Keys', 'StrafeLeft', KeyStrafeLeft);
       KeyStrafeRight := ReadString('Keys', 'StrafeRight', KeyStrafeRight);
+
     end;  { with connection }
 
     Free;
@@ -911,6 +912,7 @@ begin
       WriteString('Keys', 'SelectFriendly', KeySelectFriendly);
       WriteString('Keys', 'StrafeLeft', KeyStrafeLeft);
       WriteString('Keys', 'StrafeRight', KeyStrafeRight);
+      WriteInteger('ConnectionState', 'Level', DefaultLocalPlayerLevel);
     end;  { with connection }
 
     Free;
@@ -1065,6 +1067,14 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCMobInventoryChanged(Sender, AObj);
 {$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.atnMacroingExecute(Sender: TObject);
+begin
+  if frmMacroing.Visible then
+    frmMacroing.Close
+  else
+    frmMacroing.Show;
 end;
 
 end.

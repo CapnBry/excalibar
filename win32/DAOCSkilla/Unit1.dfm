@@ -157,6 +157,9 @@ object frmMain: TfrmMain
       object SetDAoCpath1: TMenuItem
         Action = atnSetDaocPath
       end
+      object Macroing1: TMenuItem
+        Action = atnMacroing
+      end
       object ViewDaocSkillainternallog1: TMenuItem
         Action = atnSkillaLog
       end
@@ -251,6 +254,11 @@ object frmMain: TfrmMain
       Caption = 'Append delveseen file'
       Checked = True
       OnExecute = atnAppendDelveseenExecute
+    end
+    object atnMacroing: TAction
+      Category = 'Windows'
+      Caption = 'Macroing...'
+      OnExecute = atnMacroingExecute
     end
   end
 end
