@@ -112,52 +112,98 @@ private:
 class MoveToActor : public CSLCommandAPI
 {
 public:
+    MoveToActor(){proxy=0;};
+    ~MoveToActor(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToActor(*this));};
 protected:
 private:
+    std::string Name;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class MoveToActor
 
 class MoveToTarget: public CSLCommandAPI
 {
 public:
+    MoveToTarget(){proxy=0;};
+    ~MoveToTarget(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToTarget(*this));};
 protected:
 private:
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class MoveToTarget
 
 class MoveToPointRelative : public CSLCommandAPI
 {
 public:
+    MoveToPointRelative(){proxy=0;};
+    ~MoveToPointRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToPointRelative(*this));};
 protected:
 private:
+    int x_relative;
+    int y_relative;
+    double  time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class MoveToPointRelative
 
 class MoveToActorRelative : public CSLCommandAPI
 {
 public:
+    MoveToActorRelative(){proxy=0;};
+    ~MoveToActorRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToActorRelative(*this));};
 protected:
 private:
+    std::string Name;
+    float angle_radians;
+    float distance;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class MoveToActorRelative
 
 class MoveToTargetRelative : public CSLCommandAPI
 {
 public:
+    MoveToTargetRelative(){proxy=0;};
+    ~MoveToTargetRelative(){delete proxy;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
     virtual csl::CSLCommandAPI* Clone(void)const{return(new MoveToTargetRelative(*this));};
 protected:
 private:
+    float angle_degrees;
+    float distance;
+    double time_limit;
+    csl::CSLCommandAPI* proxy;
 }; // end class MoveToTargetRelative
+
+class HeadTo : public CSLCommandAPI
+{
+public:
+    HeadTo(){proxy=0;};
+    ~HeadTo(){delete proxy;};
+    virtual bool Extract(std::istream& arg_stream);
+    virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new HeadTo(*this));};
+protected:
+private:
+    float SetTurnDir(const float final_heading,const float current_heading);
+    float heading_radians;
+    double time_limit;
+    double start_time;
+    bool turn_left;
+    csl::CSLCommandAPI* proxy;
+}; // end class HeadTo
 
 class HeadPoint : public CSLCommandAPI
 {

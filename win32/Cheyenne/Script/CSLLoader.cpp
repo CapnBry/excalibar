@@ -88,12 +88,17 @@ void CSLLoader::Init(void)
     CmdLookup.insert(lookup_value("MoveToActorRelative",new csl::MoveToActorRelative));
     /*
     params:
-    name front/left/back/right distance_from time_limit
+    name angle_degrees distance_from time_limit
     */
     CmdLookup.insert(lookup_value("MoveToTargetRelative",new csl::MoveToTargetRelative));
     /*
     params:
-    front/left/back/right distance_from time_limit
+    angle_degrees distance_from time_limit
+    */
+    CmdLookup.insert(lookup_value("HeadTo",new csl::HeadTo));
+    /*
+    params:
+    heading_degrees time_limit
     */
     CmdLookup.insert(lookup_value("HeadPoint",new csl::HeadPoint));
     /*
@@ -118,12 +123,12 @@ void CSLLoader::Init(void)
     CmdLookup.insert(lookup_value("HeadActorRelative",new csl::HeadActorRelative));
     /*
     params:
-    name front/left/back/right distance_from time_limit
+    name angle_degrees distance_from time_limit
     */
     CmdLookup.insert(lookup_value("HeadTargetRelative",new csl::HeadTargetRelative));
     /*
     params:
-    front/left/back/right distance_from time_limit
+    angle_degrees distance_from time_limit
     */
     CmdLookup.insert(lookup_value("KeyboardPress",new csl::KeyboardPress));
     /*

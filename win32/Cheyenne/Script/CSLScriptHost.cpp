@@ -550,6 +550,9 @@ void CSLScriptHost::RefreshActors(void)
     // lock
     AutoLock al(MyLock);
 
+    // copy by id returns an empty actor if the one we 
+    // are looking for is not found
+    
     // refresh followed actor
     ReferenceActor=database->CopyActorById(ReferenceActor.GetInfoId());
     

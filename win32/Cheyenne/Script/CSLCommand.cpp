@@ -152,14 +152,14 @@ bool MoveToPoint::Extract(std::istream& arg_stream)
 {
     arg_stream >> std::ws >> x >> std::ws >> y >> std::ws >> time_limit >> std::ws;
     
-    if(x<=0 || x > 65535)
+    if(x<0 || x > 65535)
         {
-        ::Logger << "[MoveToPoint::Extract] expected x to be (0,65535]" << std::endl;
+        ::Logger << "[MoveToPoint::Extract] expected x to be [0,65535]" << std::endl;
         return(false);
         }
-    else if(y<=0 || y > 65535)
+    else if(y<0 || y > 65535)
         {
-        ::Logger << "[MoveToPoint::Extract] expected y to be (0,65535]" << std::endl;
+        ::Logger << "[MoveToPoint::Extract] expected y to be [0,65535]" << std::endl;
         return(false);
         }
     else if(time_limit<=0.0 || time_limit > 3600.0f)
@@ -168,8 +168,8 @@ bool MoveToPoint::Extract(std::istream& arg_stream)
         return(false);
         }
 
-    // init to 0
-    start_time=0.0;
+    // init to -
+    start_time=-1.0;
     moving=false;
     
     // done
@@ -179,13 +179,13 @@ bool MoveToPoint::Extract(std::istream& arg_stream)
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& params)
 {
     // make sure we are following someone
-    if(!params.followed_actor)
+    if(!params.followed_actor->GetInfoId())
         {
         ::Logger << "[MoveToPoint::Execute] move to <" << x << "," << y << "> failed to complete in "
-                 << time_limit << " seconds because there is no followed actor" << std::endl;
+                 << time_limit << " seconds because there is no followed (reference) actor" << std::endl;
         
         // clear these
-        start_time=0.0;
+        start_time=-1.0;
         last_heading_check=0.0;
 
         // release move key
@@ -198,7 +198,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
         } // end if no followed actor
     
     // check start time
-    if(start_time==0.0)
+    if(start_time==-1.0)
         {
         // we have not been executed before, init start time to now
         start_time=params.current_time->Seconds();
@@ -228,8 +228,8 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
             moving=false;
             }
         
-        // reset this to 0
-        start_time=0.0;
+        // reset this to initial value
+        start_time=-1.0;
         last_heading_check=0.0;
         
         // do not halt the script because of this error, but print 
@@ -308,8 +308,8 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
             // clear flag
             moving=false;
             
-            // reset this to 0
-            start_time=0.0;
+            // reset this to initial value
+            start_time=-1.0;
             last_heading_check=0.0;
             
             // we don't need to execute again
@@ -325,52 +325,634 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
 
 bool MoveToActor::Extract(std::istream& arg_stream)
 {
-    return(true);
+    arg_stream >> std::ws >> Name >> std::ws >> time_limit >> std::ws;
+    
+    if(Name.length() == 0)
+        {
+        ::Logger << "[MoveToActor::Extract] expected a non zero length argument.\n";
+        return(false);
+        }
+    else if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[MoveToActor::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        proxy=0; // init to 0
+        return(true);
+        }
 } // end MoveToActor::Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToActor::Execute(csl::EXECUTE_PARAMS& params)
 {
-    return(std::make_pair(true,true));
+    if(!proxy)
+        {
+        Actor MoveTo;
+        if(!params.database->CopyActorByName(Name,MoveTo))
+            {
+            // did not find it
+            ::Logger << "[MoveToActor::Execute] Could not find actor with name \"" << Name << "\"" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // init the proxy
+            unsigned int x,y;
+            unsigned short z;
+            unsigned char zone;
+            
+            // get zone relative current coordinates
+            ::Zones.GetZoneFromGlobal
+                (
+                MoveTo.GetRegion(),
+                unsigned int(MoveTo.GetMotion().GetXPos()),
+                unsigned int(MoveTo.GetMotion().GetYPos()),
+                unsigned short(MoveTo.GetMotion().GetZPos()),
+                x,
+                y,
+                z,
+                zone
+                );
+            
+            // make a stream with command arguments for move to point
+            std::stringstream ss;
+            ss << x << " " << y << " " << time_limit << std::endl;
+            csl::MoveToPoint* mtp=new csl::MoveToPoint;
+            if(!mtp->Extract(ss))
+                {
+                delete mtp;
+                // move to point extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, mtp will do the rest of my job for me
+            proxy=mtp;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
 } // end MoveToActor::Execute
 
 bool MoveToTarget::Extract(std::istream& arg_stream)
 {
-    return(true);
+    arg_stream >> std::ws >> time_limit >> std::ws;
+    
+    if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[MoveToTarget::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        proxy=0; // init to 0
+        return(true);
+        }
 } // end MoveToTarget::Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToTarget::Execute(csl::EXECUTE_PARAMS& params)
 {
-    return(std::make_pair(true,true));
+    if(!proxy)
+        {
+        if(!params.targetted_actor->GetInfoId())
+            {
+            // did not find it
+            ::Logger << "[MoveToTarget::Execute] no target!" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // make a stream with command arguments for move to actor
+            std::stringstream ss;
+            ss << params.targetted_actor->GetName() << " " << time_limit << std::endl;
+            csl::MoveToActor* mta=new csl::MoveToActor;
+            if(!mta->Extract(ss))
+                {
+                delete mta;
+                // move to actor extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, mta will do the rest of my job for me
+            proxy=mta;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
 } // end MoveToTarget::Execute
 
 bool MoveToPointRelative::Extract(std::istream& arg_stream)
 {
+    arg_stream >> std::ws >> x_relative >> std::ws >> y_relative >> std::ws >> time_limit >> std::ws;
+    
+    if(x_relative<=0 || x_relative > 65535)
+        {
+        ::Logger << "[MoveToPointRelative::Extract] expected x to be (0,65535]" << std::endl;
+        return(false);
+        }
+    else if(y_relative<=0 || y_relative > 65535)
+        {
+        ::Logger << "[MoveToPointRelative::Extract] expected y to be (0,65535]" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[MoveToPointRelative::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+        
+    // done
     return(true);
 } // end MoveToPointRelative::Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToPointRelative::Execute(csl::EXECUTE_PARAMS& params)
 {
-    return(std::make_pair(true,true));
+    if(!proxy)
+        {
+        if(!params.followed_actor->GetInfoId())
+            {
+            // did not find it
+            ::Logger << "[MoveToPointRelative::Execute] no followed (reference) actor!" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // init the proxy
+            unsigned int x,y;
+            unsigned short z;
+            unsigned char zone;
+            
+            // get zone relative current coordinates
+            ::Zones.GetZoneFromGlobal
+                (
+                params.followed_actor->GetRegion(),
+                unsigned int(params.followed_actor->GetMotion().GetXPos()),
+                unsigned int(params.followed_actor->GetMotion().GetYPos()),
+                unsigned short(params.followed_actor->GetMotion().GetZPos()),
+                x,
+                y,
+                z,
+                zone
+                );
+
+            // add offsets
+            x+=x_relative;
+            y+=y_relative;
+            
+            // make a stream with command arguments for move to point
+            std::stringstream ss;
+            ss << x << " " << y << " " << time_limit << std::endl;
+            csl::MoveToPoint* mtp=new csl::MoveToPoint;
+            if(!mtp->Extract(ss))
+                {
+                delete mtp;
+                // move to point extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, mtp will do the rest of my job for me
+            proxy=mtp;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if no proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
 } // end MoveToPointRelative::Execute
 
 bool MoveToActorRelative::Extract(std::istream& arg_stream)
 {
+    arg_stream >> std::ws >> Name 
+               >> std::ws >> angle_radians 
+               >> std::ws >> distance 
+               >> std::ws >> time_limit
+               >> std::ws;
+               
+    if(Name.length() == 0)
+        {
+        ::Logger << "[MoveToActorRelative::Extract] expected a non zero length name.\n";
+        return(false);
+        }
+    else if(angle_radians<0.0f || angle_radians >= 360.0f)
+        {
+        ::Logger << "[MoveToActorRelative::Extract] expected angle to be [0,360)" << std::endl;
+        return(false);
+        }
+    else if(distance < 0.0f || distance > 65535.0f)
+        {
+        ::Logger << "[MoveToActorRelative::Extract] expected distance to be [0,65535]" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0f || time_limit > 3600.0f)
+        {
+        ::Logger << "[MoveToActorRelative::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    
+    // convert to radians
+    angle_radians *= 3.1415926535897932384626433832795f/180.0f;
+    
     return(true);
 } // end MoveToActorRelative::Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToActorRelative::Execute(csl::EXECUTE_PARAMS& params)
 {
-    return(std::make_pair(true,true));
+    if(!proxy)
+        {
+        Actor MoveTo;
+        if(!params.database->CopyActorByName(Name,MoveTo))
+            {
+            // did not find it
+            ::Logger << "[MoveToActorRelative::Execute] Could not find actor with name \"" << Name << "\"" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // init the proxy
+            unsigned int x,y;
+            unsigned short z;
+            unsigned char zone;
+            float rel_x;
+            float rel_y;
+            
+            // get point relative to actor
+            MoveTo.GetMotion().GetPointRelative(angle_radians,distance,rel_x,rel_y);
+            
+            // get zone relative offset coordinates
+            ::Zones.GetZoneFromGlobal
+                (
+                MoveTo.GetRegion(),
+                unsigned int(rel_x),
+                unsigned int(rel_y),
+                unsigned short(MoveTo.GetMotion().GetZPos()),
+                x,
+                y,
+                z,
+                zone
+                );
+            
+            // we want to move to <x,y>
+            // make a stream with command arguments for move to point
+            std::stringstream ss;
+            ss << x << " " << y << " " << time_limit << std::endl;
+            csl::MoveToPoint* mtp=new csl::MoveToPoint;
+            if(!mtp->Extract(ss))
+                {
+                delete mtp;
+                // move to point extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, mtp will do the rest of my job for me
+            proxy=mtp;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
 } // end MoveToActorRelative::Execute
 
 bool MoveToTargetRelative::Extract(std::istream& arg_stream)
 {
+    arg_stream >> std::ws >> angle_degrees 
+               >> std::ws >> distance 
+               >> std::ws >> time_limit
+               >> std::ws;
+               
+    if(angle_degrees<0.0f || angle_degrees >= 360.0f)
+        {
+        ::Logger << "[MoveToTargetRelative::Extract] expected angle to be [0,360)" << std::endl;
+        return(false);
+        }
+    else if(distance < 0.0f || distance > 65535.0f)
+        {
+        ::Logger << "[MoveToTargetRelative::Extract] expected distance to be [0,65535]" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0f || time_limit > 3600.0f)
+        {
+        ::Logger << "[MoveToTargetRelative::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    
+    // don't convert to radians, we want degrees here
+    
     return(true);
 } // end Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS MoveToTargetRelative::Execute(csl::EXECUTE_PARAMS& params)
 {
-    return(std::make_pair(true,true));
+    if(!proxy)
+        {
+        if(!params.targetted_actor->GetInfoId())
+            {
+            // did not find it
+            ::Logger << "[MoveToTargetRelative::Execute] no target!" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // init the proxy
+            // make a stream with command arguments for move to actor relative
+            std::stringstream ss;
+            ss << params.targetted_actor->GetName() 
+               << " " << angle_degrees 
+               << " " << distance
+               << " " << time_limit 
+               << std::endl;
+            csl::MoveToActorRelative* mtar=new csl::MoveToActorRelative;
+            if(!mtar->Extract(ss))
+                {
+                delete mtar;
+                // move to point extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, mtar will do the rest of my job for me
+            proxy=mtar;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
+} // end Execute
+
+bool HeadTo::Extract(std::istream& arg_stream)
+{
+    arg_stream >> std::ws >> heading_radians 
+               >> std::ws >> time_limit
+               >> std::ws;
+    
+    if(heading_radians<0.0f || heading_radians>=360.0f)
+        {
+        ::Logger << "[HeadTo::Extract] expected heading to be [0,360)" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0f || time_limit > 3600.0f)
+        {
+        ::Logger << "[HeadTo::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    
+    // convert to radians
+    heading_radians *= 3.1415926535897932384626433832795f/180.0f;
+    
+    // init to initial value
+    start_time=-1.0;
+    
+    return(true);
+} // end Extract
+
+float HeadTo::SetTurnDir(const float final_heading,const float current_heading)
+{
+    const float pi=3.1415926535897932384626433832795f;
+    const float two_pi=pi*2.0f;
+    float delta_heading=fmod(final_heading-current_heading,two_pi);
+    
+    if(delta_heading > two_pi)
+        {
+        delta_heading-=two_pi;
+        }
+    else if(delta_heading <= -two_pi)
+        {
+        delta_heading+=two_pi;
+        }
+    
+    if(delta_heading < 0.0f)
+        {
+        // left
+        turn_left=true;
+        }
+    else
+        {
+        // right
+        turn_left=false;
+        }
+
+    // return radians to turn
+    return(fabs(delta_heading));
+} // end SetTurnDir
+
+csl::CSLCommandAPI::EXECUTE_STATUS HeadTo::Execute(csl::EXECUTE_PARAMS& params)
+{
+    // angular tolerance (5°) in radians
+    const float tolerance=5.0f*3.1415926535897932384626433832795f/180.0f;
+    
+    // radians per second for turn rate 90°/second
+    const float radians_sec=90.0f*3.1415926535897932384626433832795f/180.0f;
+    
+    // check start time
+    if(start_time==-1.0)
+        {
+        // save it
+        start_time=params.current_time->Seconds();
+        }
+    
+    // make sure we have someone to follow (reference)
+    if(!params.followed_actor->GetInfoId())
+        {
+        // no followed actor!
+        
+        // reinit
+        delete proxy;
+        proxy=0;
+        start_time=-1.0;
+        
+        ::Logger << "[HeadTo::Execute] no followed (reference) actor!" << std::endl;
+        return(std::make_pair(false,true));
+        }
+    
+    // check for proxy: this determines if we are just starting a turn,
+    // or if we are waiting for an in-progress turn to complete
+    if(!proxy)
+        {
+        // check time limit expired
+        if(start_time + time_limit < params.current_time->Seconds())
+            {
+            // reinit
+            start_time=-1.0;
+
+            // time limit expired, bail out
+            ::Logger << "[HeadTo::Execute] time limit expired!" << std::endl;
+            return(std::make_pair(false,true));
+            } // end if time limit expired
+        
+        // we currently are not turning, check to see which 
+        // way to turn would be fastest
+        const float delta_heading=SetTurnDir
+            (
+            heading_radians,
+            params.followed_actor->GetMotion().GetHeading()
+            );
+        
+        /*
+        THIS IS THE EXIT POINT!
+        */
+        // check if we are within tolerance, if so
+        // then we are done -- delta_heading
+        // has already been fabs()'ed so we don't need
+        // to check the sign
+        if(delta_heading <= tolerance)
+            {
+            // we're already there!
+
+            // set to initial value
+            start_time=-1.0;
+            
+            // return success and go to next command
+            return(std::make_pair(true,true));
+            }
+        
+        // start turn
+        if(turn_left)
+            {
+            // press left key and don't release it
+            params.keyboard->PressVK("VK_LEFT");
+            }
+        else
+            {
+            // press right key and don't release it
+            params.keyboard->PressVK("VK_RIGHT");
+            }
+        
+        // see how long this should take
+        const double time_to_go=delta_heading/radians_sec;
+        
+        // make a stream with command arguments for delay
+        std::stringstream ss;
+        ss << time_to_go << std::endl; 
+        // set up a delay proxy to wait that long
+        csl::Delay* dly=new csl::Delay;
+        if(!dly->Extract(ss))
+            {
+            delete dly;
+            // delay extract failed
+            return(std::make_pair(false,true));
+            }
+        
+        // save as proxy, dly will do the rest of my job for me
+        proxy=dly;
+        
+        // done, stay on this command
+        return(std::make_pair(true,false));
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+
+            if(!status.first)
+                {
+                // there was a problem and we will not execute anymore
+                // so we have to reinit
+
+                // init to initial value
+                start_time=-1.0;
+                }
+                
+            // release turn key
+            if(turn_left)
+                {
+                // release left key (use press and release, just
+                // release doesn't always work)
+                params.keyboard->PressAndReleaseVK("VK_LEFT");
+                }
+            else
+                {
+                // release right key (use press and release, just
+                // release doesn't always work)
+                params.keyboard->PressAndReleaseVK("VK_RIGHT");
+                }
+            } // end if proxy finished executing
+        
+        // done, but we need to execute again (no proxy when we finish execution)
+        // also, return proxy fail status in case there was a problem
+        // if there was, we have already deleted the proxy and don't have to worry
+        // about that or about reinitializing
+        return(std::make_pair(status.first,false));
+        } // end else proxy
 } // end Execute
 
 bool HeadPoint::Extract(std::istream& arg_stream)
@@ -436,10 +1018,8 @@ csl::CSLCommandAPI::EXECUTE_STATUS HeadTargetRelative::Execute(csl::EXECUTE_PARA
 bool KeyboardPress::Extract(std::istream& arg_stream)
 {
     // skip leading whitespace
-    arg_stream >> std::ws;
+    arg_stream >> std::ws >> ch;
 
-    arg_stream >> ch;
-    
     if(ch=='\0')
         {
         // woops
@@ -460,11 +1040,9 @@ csl::CSLCommandAPI::EXECUTE_STATUS KeyboardPress::Execute(csl::EXECUTE_PARAMS& p
 bool KeyboardHold::Extract(std::istream& arg_stream)
 {
     // skip leading whitespace
-    arg_stream >> std::ws;
-
-    arg_stream >> ch;
+    arg_stream >> std::ws >> ch;
     
-    if(ch=='0')
+    if(ch=='\0')
         {
         // woops
         ::Logger << "[KeyboardHold::Extract] expected a non zero length argument.\n";
@@ -484,11 +1062,9 @@ csl::CSLCommandAPI::EXECUTE_STATUS KeyboardHold::Execute(csl::EXECUTE_PARAMS& pa
 bool KeyboardRelease::Extract(std::istream& arg_stream)
 {
     // skip leading whitespace
-    arg_stream >> std::ws;
-
-    arg_stream >> ch;
+    arg_stream >> std::ws >> ch;
     
-    if(ch=='0')
+    if(ch=='\0')
         {
         // woops
         ::Logger << "[KeyboardRelease::Extract] expected a non zero length argument.\n";
@@ -741,15 +1317,15 @@ bool Delay::Extract(std::istream& arg_stream)
     else
         {
         //::Logger << "[Delay::Extract] I will delay " << param << " seconds" << std::endl;
-        // init to zero
-        start_time=0.0;
+        // init
+        start_time=-1.0;
         return(true);
         }
 } // end Delay::Extract
 
 csl::CSLCommandAPI::EXECUTE_STATUS Delay::Execute(csl::EXECUTE_PARAMS& params)
 {
-    if(start_time==0.0)
+    if(start_time==-1.0)
         {
         // this is our first execution, set start time
         start_time=params.current_time->Seconds();
@@ -767,7 +1343,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS Delay::Execute(csl::EXECUTE_PARAMS& params)
     
     // reset start time, we may be called again and in this
     // case, we must act like we were never executed
-    start_time=0.0;
+    start_time=-1.0;
     
     //::Logger << "[Delay::Execute] I have delayed " << param << " seconds" << std::endl;
     // success, move on to next command
