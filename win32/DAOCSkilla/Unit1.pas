@@ -399,7 +399,7 @@ begin
     FConnection.TrackCharacterLogins := ReadBool('Main', 'TrackLogins', true);
     chkTrackLogins.Checked := FConnection.TrackCharacterLogins;
     FCheckForUpdates := ReadBool('Main', 'CheckForUpdates', true);
-    FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', 0);
+    FLastUpdateCheck := ReadDateTime('Main', 'LastUpdateCheck', Now);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
@@ -565,9 +565,11 @@ begin
     { we want to free the connection before our destroy because the connection
       might fire callbacks as it closes.  Firing a callback to a sub-form
       which is already destroyed is a bad thing }
-  FConnection := nil;
 {$IFDEF DAOC_AUTO_SERVER}
+  FConnection := nil;
   FIConnection := nil;  // interface release frees obj
+{$ELSE}
+  FConnection.Free;
 {$ENDIF DAOC_AUTO_SERVER}
 end;
 
