@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>632</width>
-            <height>233</height>
+            <height>235</height>
         </rect>
     </property>
     <property name="caption">
@@ -175,70 +175,6 @@
             </widget>
             <widget class="QGroupBox">
                 <property name="name">
-                    <cstring>GroupBox5</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>300</x>
-                        <y>10</y>
-                        <width>170</width>
-                        <height>120</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Map Circles</string>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout5_2</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>150</width>
-                            <height>92</height>
-                        </rect>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>6</number>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>AgroCircles</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Draw Agro Circles</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>RangeCircles</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Draw Range Circles</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>AgroFading</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Distance Fading</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
                     <cstring>GroupBox4</cstring>
                 </property>
                 <property name="geometry">
@@ -363,6 +299,134 @@
                         </widget>
                     </vbox>
                 </widget>
+            </widget>
+        </widget>
+        <widget class="QWidget">
+            <property name="name">
+                <cstring>tab</cstring>
+            </property>
+            <attribute name="title">
+                <string>Map Circles</string>
+            </attribute>
+            <widget class="QSpinBox">
+                <property name="name">
+                    <cstring>PlayerCircle2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>208</x>
+                        <y>70</y>
+                        <width>100</width>
+                        <height>24</height>
+                    </rect>
+                </property>
+                <property name="suffix">
+                    <string> radius</string>
+                </property>
+                <property name="maxValue">
+                    <number>2000</number>
+                </property>
+                <property name="minValue">
+                    <number>100</number>
+                </property>
+                <property name="lineStep">
+                    <number>100</number>
+                </property>
+                <property name="value">
+                    <number>100</number>
+                </property>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox5</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>10</y>
+                        <width>170</width>
+                        <height>120</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Draw Options</string>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout5_2</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>150</width>
+                            <height>92</height>
+                        </rect>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>AgroCircles</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Draw Agro Circles</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>RangeCircles</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Draw Range Circles</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>AgroFading</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Distance Fading</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </widget>
+            <widget class="QSpinBox">
+                <property name="name">
+                    <cstring>PlayerCircle1</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>210</x>
+                        <y>30</y>
+                        <width>100</width>
+                        <height>24</height>
+                    </rect>
+                </property>
+                <property name="suffix">
+                    <string> radius</string>
+                </property>
+                <property name="maxValue">
+                    <number>2000</number>
+                </property>
+                <property name="minValue">
+                    <number>100</number>
+                </property>
+                <property name="lineStep">
+                    <number>100</number>
+                </property>
+                <property name="value">
+                    <number>100</number>
+                </property>
             </widget>
         </widget>
         <widget class="QWidget">
@@ -895,15 +959,22 @@
         <receiver>PrefsDialog</receiver>
         <slot>MapSimplifyRange_valueChanged(int)</slot>
     </connection>
+    <connection>
+        <sender>PlayerCircle1</sender>
+        <signal>valueChanged(const QString&amp;)</signal>
+        <receiver>PrefsDialog</receiver>
+        <slot>SpinBox1_valueChanged(const QString&amp;)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
 </includes>
 <slots>
-    <slot>SliderAliveColor_valueChanged(int v)</slot>
-    <slot>SliderDeadColor_valueChanged(int v)</slot>
-    <slot>ItemAutoUpload_toggled(bool)</slot>
-    <slot>MapSimplifyRange_valueChanged(int val)</slot>
+    <slot>SliderAliveColor_valueChanged( int v )</slot>
+    <slot>SliderDeadColor_valueChanged( int v )</slot>
+    <slot>ItemAutoUpload_toggled( bool )</slot>
+    <slot>MapSimplifyRange_valueChanged( int val )</slot>
+    <slot>SpinBox1_valueChanged( const QString &amp; )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
