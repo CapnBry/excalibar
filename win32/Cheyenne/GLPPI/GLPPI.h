@@ -126,6 +126,67 @@ private:
     StateFlagType StateFlags; // the render state flags
 }; // end class GLRenderState
 
+
+class ActorRenderPrefs
+{
+public:
+    ActorRenderPrefs()
+    {
+        m_RenderName=true;
+        m_RenderSurname=true;
+        m_RenderGuild=true;
+        m_RenderHealth=true;
+        m_RenderLevel=true;
+        m_NumSet=5;
+    }
+    ActorRenderPrefs(const ActorRenderPrefs& s){set(s);};
+    ~ActorRenderPrefs(){};
+    
+    ActorRenderPrefs& operator=(const ActorRenderPrefs& s){set(s);return(*this);};
+
+    void SetRenderName(const bool b){BookKeepSet(b,ModifyRenderName());};
+    void SetRenderSurname(const bool b){BookKeepSet(b,ModifyRenderSurname());};
+    void SetRenderGuild(const bool b){BookKeepSet(b,ModifyRenderGuild());};
+    void SetRenderHealth(const bool b){BookKeepSet(b,ModifyRenderHealth());};
+    void SetRenderLevel(const bool b){BookKeepSet(b,ModifyRenderLevel());};
+    
+protected:
+
+private:
+    void BookKeepSet(const bool to,bool& b)
+        {
+        if(to)
+            {
+            if(!b)
+                {
+                ModifyNumSet()++;
+                }
+            }
+        else
+            {
+            if(b)
+                {
+                ModifyNumSet()--;
+                }
+            }
+        }
+
+    void set(const ActorRenderPrefs& s)
+        {
+        MEMBER_ASSIGN(RenderName);
+        MEMBER_ASSIGN(RenderSurname);
+        MEMBER_ASSIGN(RenderGuild);
+        MEMBER_ASSIGN(RenderHealth);
+        MEMBER_ASSIGN(RenderLevel);
+        }
+    
+    DECL_MEMBER_ACCESSOR_NOSET(bool,RenderName);
+    DECL_MEMBER_ACCESSOR_NOSET(bool,RenderSurname);
+    DECL_MEMBER_ACCESSOR_NOSET(bool,RenderGuild);
+    DECL_MEMBER_ACCESSOR_NOSET(bool,RenderHealth);
+    DECL_MEMBER_ACCESSOR_NOSET(bool,RenderLevel);
+    DECL_MEMBER_ACCESSOR_NOSET(int,NumSet);
+}; // end ActorRenderPrefs
 class GLPPI
 {
 friend class VmTextProxy;
@@ -190,7 +251,7 @@ public:
 
     // rendering functions
     void RenderBegin(void);
-        void RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId);
+        void RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,const ActorRenderPrefs& Prefs);
         void RenderVectorMap(const VectorMap& Map);
         void RenderZone
             (

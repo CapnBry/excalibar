@@ -130,7 +130,7 @@ void GLPPI::InitPixelFormat(void)
     DescribePixelFormat(WrappedDC,iPF,sizeof(PIXELFORMATDESCRIPTOR),&pfd);
     
     Logger << "[GLPPI::InitPixelFormat] closest match pixel format:\n"
-           << "\tpfd.dwFlags=" << pfd.dwFlags << "\n"
+           << "\tpfd.dwFlags=0x" << std::hex << pfd.dwFlags << std::dec << "\n"
            << "\tpfd.iPixelType=" << (int)pfd.iPixelType << "\n"
            << "\tpfd.cColorBits=" << (int)pfd.cColorBits << "\n"
            << "\tpfd.cAlphaBits=" << (int)pfd.cAlphaBits << "\n"
@@ -377,11 +377,18 @@ void GLPPI::InitFonts(void)
     LOG_FUNC << "Loading fonts\n";
 
     // load our font and make it active
-    TextEngine.LoadFont("CheyenneFont",AppendFileToPath(InitialDir,"fonts\\arial.fnt"));
-    TextEngine.SetActiveFont("CheyenneFont");
-    TextEngine.SetHeight(14);
-    TextEngine.SetWidthScale(1.0f);
-    
+    try
+        {
+        TextEngine.LoadFont("CheyenneFont",AppendFileToPath(InitialDir,"fonts\\arial.fnt"));
+        TextEngine.SetActiveFont("CheyenneFont");
+        TextEngine.SetHeight(14);
+        TextEngine.SetWidthScale(1.0f);
+        }
+    catch(const char*& s)
+        {
+        // if we get here, TextEngine was not able to load the font file
+        LOG_FUNC << "TextEngine raised exception (" << s << ") while loading the font file. Fonts may not be available.\n";
+        }
     // done
     return;
 } // end InitFonts
@@ -760,7 +767,7 @@ void GLPPI::RenderBegin(void)
     return;
 } // end RenderBegin
 
-void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId)
+void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId,const ActorRenderPrefs& Prefs)
 {
     // push matrix stack
     glPushMatrix();
@@ -830,6 +837,54 @@ void GLPPI::RenderActor(const Actor& ThisActor,const GLPPI::TextureId& TexId)
         
     // restore colors
     glColor4fv(&PreAlphaColors[0]);
+    
+    if(Prefs.GetNumSet() != 0)
+        {
+        // draw text
+        const float StartX=ActorVertexX + (0.5f*ActorVertexX);
+        const float YInc=TextEngine.GetHeight() + (TextEngine.GetHeight()*0.1f);
+        float StartY=(Prefs.GetNumSet()*YInc) + (Prefs.GetNumSet()*0.5f);
+        
+        if(Prefs.GetRenderName())
+            {
+            TextEngine.StringOut(StartX,StartY,ThisActor.GetName());
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderSurname())
+            {
+            TextEngine.StringOut(StartX,StartY,ThisActor.GetSurname());
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderGuild())
+            {
+            TextEngine.StringOut(StartX,StartY,ThisActor.GetGuild());
+            StartY+=YInc;
+            }
+
+        std::ostringstream oss;
+        
+        if(Prefs.GetRenderHealth())
+            {
+            oss << (unsigned int)ThisActor.GetHealth();
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+
+        if(Prefs.GetRenderLevel())
+            {
+            oss << (unsigned int)ThisActor.GetLevel();
+            TextEngine.StringOut(StartX,StartY,oss.str());
+            oss.seekp(0);
+            oss.str("");
+            oss.clear();
+            StartY+=YInc;
+            }
+        } // end if there is text to render
 
     // pop matrix stack
     glPopMatrix();
