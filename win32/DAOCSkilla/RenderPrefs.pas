@@ -177,7 +177,7 @@ begin
     DrawAIDestination := ReadBool('RenderPrefs', 'DrawAIDestination', true);
     TrackMapClick := ReadBool('RenderPrefs', 'TrackMapClick', true);
     TrackInGameSelect := ReadBool('RenderPrefs', 'TrackInGameSelect', true);
-    DrawTypeTag := ReadBool('RenderPrefs', 'DrawTypeTag', true);
+    DrawTypeTag := ReadBool('RenderPrefs', 'DrawTypeTag', false);
     DrawFrameStats := ReadBool('RenderPrefs', 'DrawFrameStats', false);
     RedrawOnAdd := ReadBool('RenderPrefs', 'RedrawOnAdd', true);
     RedrawOnDelete := ReadBool('RenderPrefs', 'RedrawOnDelete', true);
