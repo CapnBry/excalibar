@@ -208,6 +208,7 @@
         <action name="GLMapFade"/>
         <action name="ItemUpload"/>
         <action name="Preferences"/>
+        <action name="ShowMsgs"/>
         <action name="EditorSpawn"/>
     </item>
 </menubar>
@@ -404,6 +405,17 @@
             <number>4194373</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>ShowMsgs</cstring>
+        </property>
+        <property name="text">
+            <string>Show Msg Window</string>
+        </property>
+        <property name="accel">
+            <number>4194381</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -483,6 +495,12 @@
         <receiver>FormExcalibur</receiver>
         <slot>MobFilter_returnPressed()</slot>
     </connection>
+    <connection>
+        <sender>ShowMsgs</sender>
+        <signal>activated()</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>showMsgs()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -504,6 +522,7 @@
     <slot>ProfileExit_activated()</slot>
     <slot>EditorSpawn_activated()</slot>
     <slot>MobFilter_returnPressed()</slot>
+    <slot>showMsgs( )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

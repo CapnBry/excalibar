@@ -29,6 +29,7 @@
 #include <qstring.h>
 #include <qfile.h>
 #include <qsplitter.h>
+#include <qtabwidget.h>
 #include <qframe.h>
 #include <qaction.h>
 #include <qlabel.h>
@@ -36,6 +37,7 @@
 #include <math.h>
 #include <qmessagebox.h>
 #include "exConnection.h"
+#include "exMessage.h"
 #include "exItem.h"
 
 exConnection::exConnection(exNet * s, bool dolink, bool docapture)
@@ -86,6 +88,8 @@ void exConnection::setup()
     ex = new FormExcalibur;
     ex->Map->setConnection(this);
     connect(ex->ListViewMobs, SIGNAL(selectionChanged(QListViewItem *)), this, SLOT(listSelectionChanged(QListViewItem *)));
+
+	msgui = new exMessagesUi;
 
     alive = true;
     mobs.setAutoDelete(true);
@@ -622,16 +626,28 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
 
 void exConnection::parseSystemMessage (exPacket *p)
 {
-/* NOTE: This code is disabled because it currently has no use
-
+    exMessage *msg;
+    QWidget *tab;
+    QTextEdit *textbox;
     p->seek(7);
 
-    uint8_t      MessageType = p->getByte();
+    p->getByte();
+
     char*        Message     = strdup(p->getZeroString().ascii());
 
-    qWarning("Type: %x - Message: %s", MessageType, Message);
+//    qWarning("Type: %x - Message: %s", MessageType, Message);
 
-*/
+    msg = new exMessage( new QString( Message));
+    msg->parseMsg();
+
+    // Insert it into the ALL tab
+    tab = msgui->tabWidget->page( 0);
+    textbox = (QTextEdit*)tab->childAt( 10, 10);
+    textbox->append( "[" + msg->getMsgType() + "] " + msg->getFormattedText());
+
+    tab = msgui->tabWidget->page( msg->getType());
+    textbox = (QTextEdit*)tab->childAt( 10, 10);
+    textbox->append( msg->getFormattedText());
 }
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)

@@ -1,3 +1,8 @@
+Druppy (16/Feb/02)
+-----------------
+Changes:
+	+ Added a message view window
+
 Andon (16/Feb/02)
 -----------------
 
@@ -35,7 +40,7 @@ Additions (Andon):
  + Optimized some of the code in exPacket.. Providing some
    preliminary support for non-32-bit platforms.
 
-Bug fixes:
+ Bug fixes:
  + Fixed a bug where range circles were missing their last
    segment, at least on my machine.
  + Fixed normals on pyramid object for better lighing.

@@ -44,6 +44,7 @@ class exConnection;
 #include "exPrefs.h"
 #include "exLink.h"
 #include "exFilter.h"
+#include "messages.h"
 
 class exConnection : public QObject {
   Q_OBJECT
@@ -79,6 +80,7 @@ public slots:
   void replaytimer();
 public:
   FormExcalibur *ex;
+  exMessagesUi  *msgui;
   QString playername;
   int playerx, playery, playerz, playerhead, playerspeed,playerzone, playerlevel;
   int player_health, player_mana, player_endurance;

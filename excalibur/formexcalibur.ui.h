@@ -44,7 +44,7 @@ void FormExcalibur::resizeEvent(QResizeEvent *e) {
     QWidget::resizeEvent(e);
  }
 
-void FormExcalibur::showEvent(QShowEvent *e) {
+void FormExcalibur::showEvent(QShowEvent *e) { 
     HSplitter->resize(centralWidget()->size());
     QMainWindow::showEvent(e);
 }
@@ -147,4 +147,11 @@ void FormExcalibur::MobFilter_returnPressed()
   if( !Map->c) return;
   
   Map->c->setFilter( MobFilter->text());
+}
+
+
+void FormExcalibur::showMsgs( )
+{
+	printf( "In here\n");
+    Map->c->msgui->show( );
 }
