@@ -1,0 +1,114 @@
+#!/bin/sh
+
+# cmap (compress map)
+# Jun 13 2003 more public domain software by the MastaMappa
+# joins .map files with 2 point segments back into long lines
+
+awk '
+BEGIN { c = ","; SUBSEP = FS = OFS = c }
+$1 ~ /^[FM]$/ && $4 == 2 {
+	f_m = $1
+	type = $2
+	clr = $3
+	p1 = $5 c $6 c $7
+	p2 = $8 c $9 c $10
+	found = 0
+	for (l in num)
+	{
+		if (fm[l] != f_m)
+			continue
+		if (t[l] != type)
+			continue
+		if (color[l] != clr)
+			continue
+		if (e[l] == p1)
+		{
+			e[l] = p2
+			list[l] = list[l] c p2
+			num[l]++
+			found++
+			merge(l)
+		}
+ 		else if (b[l] == p2)
+		{
+			b[l] = p1
+			list[l] = p1 c list[l]
+			num[l]++
+			found++
+			merge(l)
+		}
+		else if (e[l] == p2)
+		{
+			e[l] = p1
+			list[l] = list[l] c p1
+			num[l]++
+			found++
+			merge(l)
+		}
+ 		else if (b[l] == p1)
+		{
+			b[l] = p2
+			list[l] = p2 c list[l]
+			num[l]++
+			found++
+			merge(l)
+		}
+		if (found != 0)
+			break
+	}
+	if (found == 0)
+	{
+		nl++
+		fm[nl] = f_m
+		t[nl] = type
+		color[nl] = clr
+		b[nl] = p1
+		e[nl] = p2
+		list[nl] = p1 c p2
+		num[nl] = 2
+	}
+	next
+	}
+	{ print }
+END	{
+		for (l in num)
+		{
+			print fm[l], t[l], color[l], num[l], list[l]
+		}
+	}
+
+function merge(n,	l, merg)
+{
+	merg = 0
+	for (l in num)
+	{
+		if (n == l)
+			continue
+		if (fm[l] != fm[n])
+			continue
+		if (t[l] != t[n])
+			continue
+		if (color[l] != color[n])
+			continue
+		if (b[l] == e[n])
+		{
+			b[l] = b[n]
+			sub( c e[n] "$", "", list[n])
+			list[l] = list[n] c list[l]
+			num[l] = num[l] + num[n] - 1
+			delete num[n]
+			merg++
+		}
+		else if (b[n] == e[l])
+		{
+			e[l] = e[n]
+			sub( "^" b[n] c, "", list[n])
+			list[l] = list[l] c list[n]
+			num[l] = num[l] + num[n] - 1
+			delete num[n]
+			merg++
+		}
+		if (merg != 0)
+			break
+	}
+} ' $*
