@@ -391,6 +391,7 @@ procedure TDAOCControl.DoSendKeys(const S: string);
 var
   I:      integer;
   hFore:  HWND;
+  MKey:   WORD;
 begin
   if S = '' then
     exit;
@@ -403,9 +404,10 @@ begin
 
   if hFore = FDAOCHWND then begin
     if (FSendKeysSlashDelay > 0) and (S[1] = '/') then begin
-      SendVKDown(ord('/'), true);
+      MKey := VkKeyScan('/');
+      SendVKDown(Lo(MKey), true);
       sleep(FSendKeysSlashDelay);
-      SendVKDown(ord('/'), false);
+      SendVKDown(Lo(MKey), false);
       sleep(FSendKeysSlashDelay);
       SndKey32.SendKeys(PChar(S)+1, false)
     end
