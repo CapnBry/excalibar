@@ -30,6 +30,7 @@ class exMob;
 #include "exConnection.h"
 #include "exFilter.h"
 
+using namespace std;
 
 class exInventoryItem;
 

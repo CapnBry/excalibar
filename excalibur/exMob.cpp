@@ -451,7 +451,7 @@ double exMob::playerDist() {
   ydist = y - c->playery;
   zdist = z - c->playerz;
 
-  lastdist=sqrt(xdist*xdist+ydist*ydist); // zdist*zdist
+  lastdist=sqrt((double)xdist*xdist+ydist*ydist); // zdist*zdist
 
   _lastdist=exTick;
   return lastdist;

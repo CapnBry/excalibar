@@ -36,7 +36,7 @@ class exConnection;
 #include <qmemarray.h>
 #include <qdatetime.h>
 #include <qtimer.h>
-#include <iostream.h>
+#include <iostream>
 #include "formexcalibur.h"
 #include "exPacket.h"
 #include "exMob.h"
@@ -47,6 +47,8 @@ class exConnection;
 #include "exFilter.h"
 #include "exMessage.h"
 #include "messages.h"
+
+using namespace std;
 
 template <class T>
 class exMobList : public QPtrDict<T> {
