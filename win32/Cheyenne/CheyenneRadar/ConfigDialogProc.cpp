@@ -280,6 +280,7 @@ void SyncDialogToConfig(HWND hWnd)
     SET_CHECK_BOOL(hWnd,IDC_SIMPLIFYLINES,::RadarConfig.GetSimplifyLines());
     ss << "Simplify Vector Maps (" << ::RadarConfig.GetSimplifyLinesTolerance() << ")";
     SET_EDIT_STRING(hWnd,IDC_SIMPLIFYLINES,ss.str());
+    ss.str("");
     
     // friendly group
     SET_CHECK_BOOL(hWnd,IDC_SHOWFRIENDLYNAME,::RadarConfig.GetPrefsSameRealm().GetRenderName());
