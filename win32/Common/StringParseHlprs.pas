@@ -30,6 +30,7 @@ function StringBeginsWith(const sLine, sTarget: string) : boolean;
 function StringEndsWith(const sLine, sTarget: string) : boolean;
 function StringContains(const sLine, sTarget: string) : boolean;
 function RemoveThe(const sLine: string) : string;
+function WildMatch(const AWild, AString: string) : boolean;
 
 implementation
 
@@ -114,6 +115,56 @@ begin
     Result := copy(sLine, 4, Length(sLine))
   else
     Result := sLine;
+end;
+
+function WildMatch(const AWild, AString: string) : boolean;
+{ Simple case-sensitive globbing wildcard search }
+var
+  s, w, cp, mp: PChar;
+begin
+  s := PChar(AString);
+  w := PChar(AWild);
+  mp := nil;
+  cp := nil;
+
+	while (s^ <> #0) and (w^ <> '*') do begin
+    if (w^ <> s^) and (w^ <> '?') then begin
+      Result := false;
+      exit;
+    end;
+
+    inc(w);
+    inc(s);
+	end;
+
+  while s^ <> #0 do begin
+    if w^ = '*' then begin
+      inc(w);
+      if w^ = #0 then begin
+        Result := true;
+        exit;
+      end;
+
+      mp := w;
+      cp := s + 1;
+    end
+
+    else if (w^ = s^) or (w^ = '?') then begin
+      inc(w);
+      inc(s);
+    end
+
+    else begin
+      w := mp;
+      s := cp;
+      inc(cp);
+    end;
+	end;  { while s^ }
+
+  while w^ = '*' do
+    inc(w);
+
+  Result := w^ = #0;
 end;
 
 end.
