@@ -82,6 +82,9 @@ public:
             return(false);
             }
 
+        // done with this
+        CloseHandle(hThread);
+        
         // done
         return(true);
     };
