@@ -31,6 +31,7 @@ class exConnection;
 #include <qsemaphore.h>
 #include <qptrdict.h>
 #include <qdict.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <qmemarray.h>
 #include <qdatetime.h>

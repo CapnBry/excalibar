@@ -18,12 +18,13 @@
  *
  */
 
-#include <netinet/ip.h>
 #include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <linux/netfilter_ipv4.h>
 #include <arpa/inet.h>
 #include <qstring.h>
 #include <qfile.h>

@@ -154,9 +154,9 @@ bool exMap::isNVidiaModuleLoaded() {
        
     }
 
+  fclose (fModules);
   }
 
-  fclose (fModules);
   delete [] chModuleList;
 
   return false;

@@ -23,8 +23,9 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in_systm.h>
 #include <netinet/ip.h>
-#include <netinet/ether.h>
+#include <netinet/if_ether.h>
 #include <netinet/udp.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -183,11 +184,19 @@ exTCPFragment::exTCPFragment(QByteArray *tcppacket, unsigned int baseseq) {
   struct tcphdr *tcp;
 
   d=tcppacket->data();
-  tcp=(struct tcphdr *) (d+sizeof(struct iphdr));
+  tcp=(struct tcphdr *) (d+sizeof(struct ip));
   dataptr=(const char *)tcp;
+#ifdef __FreeBSD__
+  dataptr+=4 * tcp->th_off;
+#else
   dataptr+=4 * tcp->doff;
+#endif
   dlen=tcppacket->size() - (dataptr - d);
+#ifdef __FreeBSD__
+  from=(ntohl(tcp->th_seq) - baseseq);
+#else
   from=(ntohl(tcp->seq) - baseseq);
+#endif
   data.duplicate(dataptr,dlen);
 }
 
@@ -252,7 +261,11 @@ void exSniffer::run() {
   }
 #endif
 
-  pcap=pcap_open_live("any", 2000, 0x0100, 250, buff);
+#ifdef __FreeBSD__  
+  pcap=pcap_open_live(INTERFACE, 2000, 0x0100, 250, buff);
+#else
+  pcap=pcap_open_live("any", 2000, 0x100, 250, buff);
+#endif
   if (!pcap) {
     qFatal(QString("pcap failed open: %1").arg(buff));
     return;
@@ -298,7 +311,11 @@ void exSniffer::run() {
 }
 
 void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
+#ifdef __FreeBSD__
+  struct ip *iph;
+#else
   struct iphdr *ip;
+#endif
   QByteArray *ba;
 
   if (ph->caplen != ph->len) {
@@ -306,7 +323,11 @@ void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
     return;
   }
 
+#ifdef __FreeBSD__
+  if (ph->caplen < (sizeof(struct ether_header)+sizeof(struct ip))) {
+#else
   if (ph->caplen < (sizeof(struct ether_header)+sizeof(struct iphdr))) {
+#endif
     qWarning("Undersized packet. Dropped.");
     return;
   }
@@ -316,17 +337,39 @@ void exSniffer::handlePacket(const struct pcap_pkthdr *ph, const u_char *data) {
    * we simply add the size of the header here.
    */
 
+#ifdef __FreeBSD__
+  iph=(struct ip *)(data+16);
+#else
   ip=(struct iphdr *)(data+16);
+#endif
 
+#ifdef __FreeBSD__
+  iph=(struct ip *)(data+sizeof(struct ether_header));
+#endif
+
+#ifdef __FreeBSD__
+  switch (iph->ip_p) {
+    case IPPROTO_TCP:
+    case IPPROTO_UDP:
+#else
   switch (ip->protocol) {
     case SOL_TCP:
     case SOL_UDP:
+#endif
       ba=new QByteArray();
+#ifdef __FreeBSD__
+      ba->duplicate((char *)iph, ntohs(iph->ip_len));
+#else
       ba->duplicate((char *)ip, ntohs(ip->tot_len));
+#endif
       add(ba);
       break;
     default:
+#ifdef __FreeBSD__
+      qWarning("Got non TCP/UDP packet: %d",iph->ip_p);
+#else
       qWarning("Got non TCP/UDP packet");
+#endif
       break;
   }
 }
@@ -348,7 +391,11 @@ void exSniffer::customEvent(QCustomEvent *e) {
 }
 
 void exSniffer::processPacket(QByteArray *ba) {
+#ifdef __FreeBSD__
+  struct ip *iph;
+#else
   struct iphdr *ip;
+#endif
   struct udphdr *udp;
   struct tcphdr *tcp;
   char *data;
@@ -362,16 +409,34 @@ void exSniffer::processPacket(QByteArray *ba) {
   int len, plen;
 
   data=ba->data();
+#ifdef __FreeBSD__
+  iph=(struct ip *) data;
+#else
   ip=(struct iphdr *) data;
+#endif
 
+#ifdef __FreeBSD__
+  if (iph->ip_p == IPPROTO_UDP) {
+    udp=(struct udphdr *) (data+sizeof(struct ip));
+    n=nets.find((void *)iph->ip_dst.s_addr);
+#else
   if (ip->protocol == SOL_UDP) {
     udp=(struct udphdr *) (data+sizeof(struct iphdr));
     n=nets.find((void *)ip->daddr);
+#endif
     if (! n)
       return;
+#ifdef __FreeBSD__
+    len=ntohs(udp->uh_ulen);
+#else
     len=ntohs(udp->len);
+#endif
     len-=sizeof(struct udphdr);
+#ifdef __FreeBSD__
+    data+=sizeof(struct ip)+sizeof(struct udphdr);
+#else
     data+=sizeof(struct iphdr)+sizeof(struct udphdr);
+#endif
     while (len > 2) {
       plen=(data[0]<<8) + data[1] + 3;
       data+=2;
@@ -385,39 +450,81 @@ void exSniffer::processPacket(QByteArray *ba) {
       len-=plen;
       data+=plen;
     }
+#ifdef __FreeBSD__
+  } else if (iph->ip_p == IPPROTO_TCP) {
+    tcp=(struct tcphdr *) (data+sizeof(struct ip));
+#else
   } else if (ip->protocol == SOL_TCP) {
     tcp=(struct tcphdr *) (data+sizeof(struct iphdr));
+#endif
     
+#ifdef __FreeBSD__
+    if ((tcp->th_flags & TH_SYN) && (tcp->th_flags & TH_ACK)) {
+      n=nets.take((void *)iph->ip_dst.s_addr);
+#else
     if ((tcp->syn) && (tcp->ack)) {
       n=nets.take((void *)ip->daddr);
+#endif
       if (n) {
         delete n;
       }
       n=new exNet();
+#ifdef __FreeBSD__
+      n->n_client_addr=iph->ip_dst.s_addr;
+      n->n_server_addr=iph->ip_src.s_addr;
+      n->server=new exTCP(ntohl(tcp->th_seq)+1);
+      n->client=new exTCP(ntohl(tcp->th_ack));
+#else
       n->n_client_addr=ip->daddr;
       n->n_server_addr=ip->saddr;
       n->server=new exTCP(ntohl(tcp->seq)+1);
       n->client=new exTCP(ntohl(tcp->ack_seq));
+#endif
       n->c=new exConnection(n, link);
 
+#ifdef __FreeBSD__
+      nets.insert((void *)iph->ip_dst.s_addr, n);
+#else
       nets.insert((void *)ip->daddr, n);
+#endif
 
+#ifdef __FreeBSD__
+    } else if (tcp->th_flags & TH_FIN) {
+      n=nets.take((void *)iph->ip_dst.s_addr);
+#else
     } else if (tcp->fin) {
       n=nets.take((void *)ip->daddr);
-      if (! n) 
+#endif
+      if (! n)
+#ifdef __FreeBSD__
+        n=nets.take((void *)iph->ip_src.s_addr);
+#else
         n=nets.take((void *)ip->saddr);
+#endif
       if (n) {
         delete n;
       }
     } else {
       // A normal packet? Whoa..
+#ifdef __FreeBSD__
+      n=nets.find((void *)iph->ip_dst.s_addr);
+#else
       n=nets.find((void *)ip->daddr);
+#endif
       if (! n)
-        n=nets.find((void *)ip->saddr);
+#ifdef __FreeBSD__
+       n=nets.find((void *)iph->ip_src.s_addr);
+#else
+       n=nets.find((void *)ip->saddr);
+#endif
       if (! n)
         return;
       checkpackets=false;
+#ifdef __FreeBSD__
+      if (iph->ip_src.s_addr == n->n_client_addr) {
+#else
       if (ip->saddr == n->n_client_addr) {
+#endif
         serverpck=false;
         checkpackets=n->client->add(ba);
       } else {

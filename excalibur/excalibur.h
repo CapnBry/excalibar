@@ -26,6 +26,12 @@
 #define QT_MODULE_NETWORK
 #endif
 
+#ifdef __FreeBSD__
+ #define _BSD_SOURCE
+ /* For BSD support, change INTERFACE if yours isn't fxp0 */
+ #define INTERFACE "fxp0"
+#endif
+
 #undef ALPHA_QUALITY
 #ifdef ALPHA_QUALITY
 #warning "This is a ALPHA quality release. It most likely WILL break."
@@ -33,7 +39,7 @@
 
 #include "exPrefs.h"
 
-#define EX_VERSION "1.0.6"
+#define EX_VERSION "1.0.7"
 
 typedef long int exTimeType;
 extern exTimeType exTick;
