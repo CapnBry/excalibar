@@ -33,8 +33,8 @@ type
   private
     FCaptureStream:   TFileStream;
     FMobseenFile:   TFileStream;
-    FInPlayback:      boolean;
-    FDControl: TDAOCConnection;
+    FInPlayback:    boolean;
+    FDControl:      TDAOCConnection;
     
     function GetCaptureFile: string;
     procedure SetCaptureFile(const Value: string);
@@ -59,7 +59,7 @@ var
 implementation
 
 uses
-  Unit1;
+  Unit1, DAOCRegion;
   
 {$R *.dfm}
 
@@ -211,9 +211,9 @@ var
 begin
   if (ADAOCObject.ObjectClass = ocMob) and Assigned(FMobseenFile) and
     Assigned(FDControl.Zone) then begin
-    X := FDControl.Zone.ZoneConvertX(ADAOCObject.X);
-    Y := FDControl.Zone.ZoneConvertY(ADAOCObject.Y);
-    Z := FDControl.Zone.ZoneConvertZ(ADAOCObject.Z);
+    X := FDControl.Zone.ZoneToWorldX(ADAOCObject.X);
+    Y := FDControl.Zone.ZoneToWorldY(ADAOCObject.Y);
+    Z := ADAOCObject.Z;
     if (X >= 65535) or (Y > 65535) then
       exit;
     s := Format('MOBseen,%d,%d,%d,%d,%d,%s,%s'#13#10, [
