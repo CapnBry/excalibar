@@ -204,6 +204,7 @@ type
     chkDrawInfoPoints: TCheckBox;
     chkEasyMouseOvers: TCheckBox;
     chkRenderDoors: TCheckBox;
+    chkAttemptMapDownloads: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -246,6 +247,7 @@ type
     procedure edtMobTriangleMaxChange(Sender: TObject);
     procedure chkDrawInfoPointsClick(Sender: TObject);
     procedure chkEasyMouseOversClick(Sender: TObject);
+    procedure chkAttemptMapDownloadsClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -685,6 +687,7 @@ begin
   chkScaleMobTriangle.Checked := FRenderPrefs.ScaleMobTriangle;
   chkScaleMobTriangleClick(nil);
   chkEasyMouseOvers.Checked := FRenderPrefs.EasyMouseOvers;
+  chkAttemptMapDownloads.Checked := FRenderPrefs.AttemptMapDownload;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -943,6 +946,11 @@ end;
 procedure TfrmRenderPrefs.chkEasyMouseOversClick(Sender: TObject);
 begin
   FRenderPrefs.EasyMouseOvers := chkRenderPlayers.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkAttemptMapDownloadsClick(Sender: TObject);
+begin
+  FRenderPrefs.AttemptMapDownload := chkAttemptMapDownloads.Checked;
 end;
 
 end.

@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabFilter
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 2
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -820,6 +820,15 @@ object frmRenderPrefs: TfrmRenderPrefs
         Caption = 'Easy map mouse-overs'
         TabOrder = 7
         OnClick = chkEasyMouseOversClick
+      end
+      object chkAttemptMapDownloads: TCheckBox
+        Left = 8
+        Top = 216
+        Width = 313
+        Height = 17
+        Caption = 'Attempt to download texture and vector maps as needed'
+        TabOrder = 8
+        OnClick = chkAttemptMapDownloadsClick
       end
     end
   end
