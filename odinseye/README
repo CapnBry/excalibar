@@ -1,0 +1,26 @@
+Odin's Eye
+
+This program is copyright 2001 Slicer/Hackersquest
+<slicer@hackersquest.org> and is released under the GNU Public
+License. See the file COPYING for details.
+
+Please note that this program requires the daoccrypt library which is not
+included with the program.
+
+The maps will be autodownloaded the first time you run OE with the
+--update parameter. The maps were contributed through Mapfiend (he has a
+readme file in maps/Maps_Readme.txt) and downloaded from hackersquest.org
+
+OE will store edited maps in the usermaps/ directory, and any maps stored
+in this directory will override the default downloaded ones.
+
+To contact the author, please write to slicer@ethernalquest.org,
+or preferably use the "Odin's Eye" forum at
+http://www.hackersquest.org/boards/
+
+There's a small group of likeminded people hanging out in #odinseye on
+irc.trifocus.net if you're more into internet relayed chatting.
+
+Please read the file INSTALL for installation instructions. No support
+will be given to people who do not follow the INSTALL instructions
+to the letter.
