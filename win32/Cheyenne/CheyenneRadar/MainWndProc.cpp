@@ -597,84 +597,8 @@ LRESULT CALLBACK MainWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             break;
             
         case WM_SIZING:
-            {
-            RECT* pr=(RECT*)lParam;
-            // limit to 640x480
-            switch(wParam)
-                {
-                case WMSZ_BOTTOM:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->bottom=pr->top+480;
-                        }
-                    break;
-                    
-                case WMSZ_TOP:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->top=pr->bottom-480;
-                        }
-                    break;
-                    
-                case WMSZ_LEFT:
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->left=pr->right-640;
-                        }
-                    break;
-                    
-                case WMSZ_RIGHT:
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->right=pr->left+640;
-                        }
-                    break;
-                    
-                case WMSZ_BOTTOMLEFT:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->bottom=pr->top+480;
-                        }
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->left=pr->right-640;
-                        }
-                    break;
-                    
-                case WMSZ_BOTTOMRIGHT:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->bottom=pr->top+480;
-                        }
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->right=pr->left+640;
-                        }
-                    break;
-                    
-                case WMSZ_TOPLEFT:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->top=pr->bottom-480;
-                        }
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->left=pr->right-640;
-                        }
-                    break;
-                    
-                case WMSZ_TOPRIGHT:
-                    if(pr->bottom-pr->top < 480)
-                        {
-                        pr->top=pr->bottom-480;
-                        }
-                    if(pr->right-pr->left < 640)
-                        {
-                        pr->right=pr->left+640;
-                        }
-                    break;
-                }
-            }
+            // use utils function to set limits
+            WM_SIZING_LIMIT(wParam,lParam,640,480);
             break;
             
         case WM_SIZE:
