@@ -15,7 +15,12 @@ interface
   Gotar (32k, 19k) to W_Svea (9k, 45k), there'd have to be calculations to figure
   out if W_Svea was reachable from Gotar, then translate Gotar coords to regional
   then W_Svea to regional, then find the heading.  Since we don't have ZoneInfo,
-  that would be impossible.  
+  that would be impossible.
+
+  Headings are also different from the normal coordinate system.  0 is up, 180 is
+  down, and the value increases in a clockwise direction.  This means that all
+  trigonometric functions should have their X and Y swapped, and the Y should be
+  negated.
 ****)
 
 uses
@@ -183,15 +188,14 @@ function TMapNode.BearingTo(AX, AY: integer): integer;
 var
   dx:   integer;
 begin
-  dx := (AX - X);
+  dx := (X - AX);
   if dx = 0 then
     if Y < AY then
       Result := 180
     else
       Result := 0
   else
-      { arctan2's params are backward in the declaration, and our Y axis is reversed }
-    Result := Trunc(RadToDeg(ArcTan2(dx, Y - AY)));
+    Result := round(RadToDeg(ArcTan2(dx, AY - Y)));
 
   if Result < 0 then
     inc(Result, 360);
