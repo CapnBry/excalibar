@@ -194,8 +194,6 @@ type
     function GetSelectedObject: TDAOCObject;
     function GetUDPServerIP: string;
     procedure SetSelectedObject(const Value: TDAOCObject);
-  private
-    FClientAddr: DWORD;
   protected
     FChatParser:    TDAOCChatParser;
     FLocalPlayer:   TDAOCLocalPlayer;
