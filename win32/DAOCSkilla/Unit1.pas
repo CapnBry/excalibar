@@ -869,7 +869,7 @@ begin
       tcpCollectorClient.Port := DEFAULT_COLLECTOR_PORT;
     end;
 
-    tcpCollectorClient.Connect(2000);
+    tcpCollectorClient.Connect;
   except
     on E: Exception do
       Log(E.Message);

@@ -19,7 +19,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     502
-    304)
+    297)
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
@@ -213,7 +213,6 @@ object frmMain: TfrmMain
   end
   object tcpCollectorClient: TIdTCPClient
     OnStatus = tcpCollectorClientStatus
-    MaxLineAction = maException
     OnDisconnected = tcpCollectorClientDisconnected
     Host = '127.0.0.1'
     Port = 9867
@@ -223,14 +222,8 @@ object frmMain: TfrmMain
   object tcpCollectorServer: TIdTCPServer
     OnStatus = tcpCollectorServerStatus
     Bindings = <>
-    CommandHandlers = <>
     DefaultPort = 9867
-    Greeting.NumericCode = 0
-    MaxConnectionReply.NumericCode = 0
     OnExecute = tcpCollectorServerExecute
-    ReplyExceptionCode = 0
-    ReplyTexts = <>
-    ReplyUnknownCommand.NumericCode = 0
     Left = 396
     Top = 68
   end
