@@ -36,7 +36,7 @@ void VectorMapItem::BuildColorMap(void)
     // add color map values
     ColorMap.insert(std::make_pair(std::string("black"),VectorMapColor(0.0f,0.0f,0.0f,1.0f)));
     ColorMap.insert(std::make_pair(std::string("white"),VectorMapColor(1.0f,1.0f,1.0f,1.0f)));
-    ColorMap.insert(std::make_pair(std::string("gray"),VectorMapColor(0.5f,0.5f,0.5f,1.0f)));
+    ColorMap.insert(std::make_pair(std::string("gray"),VectorMapColor(0.6f,0.6f,0.6f,1.0f)));
     ColorMap.insert(std::make_pair(std::string("green"),VectorMapColor(0.0f,1.0f,0.0f,1.0f)));
     ColorMap.insert(std::make_pair(std::string("red"),VectorMapColor(1.0f,0.0f,0.0f,1.0f)));
     ColorMap.insert(std::make_pair(std::string("blue"),VectorMapColor(0.0f,0.0f,1.0f,1.0f)));
@@ -47,7 +47,7 @@ void VectorMapItem::BuildColorMap(void)
     ColorMap.insert(std::make_pair(std::string("yellow"),VectorMapColor(248.0f/255.0f,240.0f/255.0f,105.0f/255.0f,1.0f)));
 } // end VectorMapItem::BuildColorMap
 
-void VectorMapItem::Draw(void)const
+void VectorMapItem::Draw(VectorMapTextRenderer& Text)const
 {
     // draw
 
@@ -66,23 +66,32 @@ void VectorMapItem::Draw(void)const
     // get color
     std::map<std::string,VectorMapColor>::const_iterator cit;
     cit=ColorMap.find(Color);
+    
+    GLfloat r,g,b,a;
 
     if(cit==ColorMap.end())
         {
         // not defined, make black
-        glColor4f(0.0f,0.0f,0.0f,1.0f);
+        r=0.0f;
+        g=0.0f;
+        b=0.0f;
+        a=1.0f;
         }
     else
         {
         // use predefined color
-        glColor4f(cit->second.r,cit->second.g,cit->second.b,cit->second.a);
+        r=cit->second.r;
+        g=cit->second.g;
+        b=cit->second.b;
+        a=cit->second.a;
         }
+
+    glColor4f(r,g,b,a);
 
     std::list<VectorMapTriplet>::const_iterator it;
     for(it=Triplets.begin();it!=Triplets.end();++it)
         {
         glVertex3f(it->x,it->y,1.0f);//it->z); render it flat for now
-
         }
 
     if(GetType() == 'P' || GetType() == 'I')
@@ -92,11 +101,7 @@ void VectorMapItem::Draw(void)const
 
         // draw name too
         it=Triplets.begin();
-        glRasterPos3f(it->x+10.0f,it->y,1.0f);
-        glColor4f(1.0f,1.0f,1.0f,1.0f);
-        // this needs to be uncommented later
-        // removed for lib port, sf_devel.
-        //DrawGLFontString(Name);
+        Text.RenderText(it->x,it->y,r,g,b,Name);
         }
     else
         {
@@ -108,34 +113,15 @@ void VectorMapItem::Draw(void)const
 VectorMapLoader::VectorMapLoader()
 {
     bIsDone=false;
-    ListBase=0;
 } // end VectorMapLoader
 
 VectorMapLoader::~VectorMapLoader()
 {
 } // end ~VectorMapLoader
 
-bool VectorMapLoader::MakeDisplayLists(void)
+void VectorMapLoader::Draw(const unsigned int MapNumber,VectorMapTextRenderer& Text)const
 {
-    // make display lists here
-
-    if(!IsDone())
-        {
-        return(false);
-        }
-
-    for(unsigned int u=0;u<256;++u)
-        {
-        Maps[u].SetListNum(ListBase+u);
-        Maps[u].MakeDisplayList();
-        }
-
-    return(true);
-} // end MakeDisplayLists
-
-void VectorMapLoader::Draw(const unsigned int MapNumber)const
-{
-    Maps[MapNumber].Draw();
+    Maps[MapNumber].Draw(Text);
 
     // done
     return;

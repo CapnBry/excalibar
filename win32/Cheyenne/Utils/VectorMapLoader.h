@@ -24,6 +24,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <gl\glu.h>
 #include "..\Utils\threads.h"
 
+class VectorMapTextRenderer
+{
+public:
+    VectorMapTextRenderer(){};
+    virtual ~VectorMapTextRenderer(){};
+    virtual void RenderText(float ObjX,float ObjY,float Red,float Green,float Blue,const std::string& text)=0;
+}; // end class VectorMapTextRenderer
+
 class VectorMapTriplet
 {
     public:
@@ -99,7 +107,7 @@ public:
     void SetName(const std::string& s){Name=s;};
     void SetColor(const std::string& s){Color=s;};
 
-    void Draw(void)const;
+    void Draw(VectorMapTextRenderer& Text)const;
 
     void MakeEmpty(void)
     {
@@ -131,7 +139,7 @@ private:
 class VectorMap
 {
 public:
-    VectorMap(){ListNum=0;bUsed=false;};
+    VectorMap(){bUsed=false;};
     VectorMap(const VectorMap& s){set(s);};
     explicit VectorMap(const std::string& name):Name(name){};
     ~VectorMap(){};
@@ -163,12 +171,7 @@ public:
         Vectors.insert(Vectors.end(),s);
     }
 
-    void SetListNum(unsigned int num)
-    {
-        ListNum=num;
-    }
-
-    void Draw(void)const
+    void Draw(VectorMapTextRenderer& Text)const
     {
         // if we are not used, do nothing
         if(!IsUsed())
@@ -181,26 +184,8 @@ public:
 
         for(it=Vectors.begin();it!=Vectors.end();++it)
             {
-            it->Draw();
+            it->Draw(Text);
             }
-    }
-
-    void MakeDisplayList(void)const
-    {
-        // if we are not used, do nothing
-        if(!IsUsed())
-            {
-            return;
-            }
-
-        // make a new display list
-        glNewList(ListNum,GL_COMPILE);
-
-        // draw
-        Draw();
-
-        // done
-        glEndList();
     }
 
     bool IsUsed(void)const{return(bUsed);};
@@ -211,13 +196,11 @@ private:
     {
         Name=s.Name;
         Vectors=s.Vectors;
-        ListNum=s.ListNum;
         bUsed=s.bUsed;
     }
     
     std::list<VectorMapItem> Vectors;
     std::string Name;
-    unsigned int ListNum;
     bool bUsed;
 }; // end class VectorMap
 
@@ -228,10 +211,7 @@ public:
     virtual ~VectorMapLoader();
 
     bool IsDone(void)const{return(bIsDone);};
-    void SetListBase(unsigned int base){ListBase=base;};
-
-    bool MakeDisplayLists(void);
-    void Draw(const unsigned int MapNumber)const;
+    void Draw(const unsigned int MapNumber,VectorMapTextRenderer& Text)const;
     
     void MakeEmpty(void)
     {
@@ -253,5 +233,4 @@ private:
     
     VectorMap Maps[256];
     bool bIsDone;
-    unsigned int ListBase;
 };

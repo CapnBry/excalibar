@@ -27,6 +27,38 @@ extern logger_t Logger; // the logger
 extern MapInfo Zones; // zone info
 extern std::string InitialDir; // initial working directory
 
+class VmTextProxy : public VectorMapTextRenderer
+{
+public:
+    VmTextProxy
+        (
+        lfont::LFontRenderer& Text,
+        GLPPI& ppi
+        ) : TextRenderer(Text),PPI(ppi)
+    {
+    }
+    
+    virtual ~VmTextProxy(){};
+    virtual void RenderText
+        (
+        float ObjX,
+        float ObjY,
+        float Red,
+        float Green,
+        float Blue,
+        const std::string& text
+        )
+    {
+        GLdouble x,y,z;
+        PPI.GetScreenPosition(ObjX,ObjY,0.0,&x,&y,&z);
+        TextRenderer.SetColor(Red,Green,Blue);
+        TextRenderer.StringOut(float(x),float(y),text);
+    } 
+
+        lfont::LFontRenderer& TextRenderer;
+        GLPPI& PPI;
+}; // end class VmTextProxy
+
 GLPPI::GLPPI() :
     ActorXScale(0.01f),ActorYScale(0.0149f),
     XLimit(2000000.0f),YLimit(2000000.0f)
@@ -848,7 +880,7 @@ void GLPPI::RenderZone
     
     // draw vector map -- use null texture
     BindTexture(GLPPI::invalid_texture_id);
-    VmLoader.Draw(zone.ZoneNum);
+    VmLoader.Draw(zone.ZoneNum,VmTextProxy(TextEngine,*this));
     
     GLdouble x,y,z;
     GetScreenPosition(0,0,0,&x,&y,&z);

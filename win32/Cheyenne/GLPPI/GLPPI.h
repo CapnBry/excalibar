@@ -128,6 +128,7 @@ private:
 
 class GLPPI
 {
+friend class VmTextProxy;
 public:
     GLPPI();
     virtual ~GLPPI();
