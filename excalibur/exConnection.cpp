@@ -201,6 +201,7 @@ void exConnection::replaytimer()
     else  {
         nextpacket = NULL;
         timer.start(500, TRUE);
+//        qApp->quit();
     }
 }
 
