@@ -137,6 +137,7 @@ type
     destructor Destroy; override;
 
     procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
 
     procedure AddPoint(X, Y, Z: GLint);
     procedure ClearPoints;
@@ -721,7 +722,7 @@ begin
     if Y < FBounds.Top then
       FBounds.Top := Y;
     if X > FBounds.Right then
-      FBounds.Right := Y;
+      FBounds.Right := X;
     if Y > FBounds.Bottom then
       FBounds.Bottom := Y;
   end;
@@ -764,6 +765,12 @@ begin
   glEnd();
 
   glEndList();
+end;
+
+procedure TMapElementLine.GLRender(const ARenderBounds: TRect);
+begin
+  if RectsIntersect(FBounds, ARenderBounds) then
+    inherited;
 end;
 
 { TMapElementTerrrainTexture }
