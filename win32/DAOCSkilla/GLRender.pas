@@ -64,6 +64,9 @@ type
     FDirtyCount:    integer;
     FInvalidateCount: integer;
     FZoneName:      string;
+    FLastInvaderWarningTicks:   DWORD;
+    FInvaderWarningMinTicks:    DWORD;
+    FBoat:    TGLBoat;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -84,6 +87,7 @@ type
     procedure DrawGroundTarget;
     procedure DrawFrameStats;
     procedure DrawLineToMobTarget(AMob: TDAOCMob);
+    procedure DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
 
     procedure SetDControl(const Value: TDAOCConnection);
     procedure Log(const s: string);
@@ -120,7 +124,7 @@ var
 
 implementation
 
-uses Unit1;
+uses Unit1, GlobalTickCounter;
 
 const
   COL_NAME = 0;
@@ -128,7 +132,6 @@ const
   COL_HEALTH = 2;
 
 resourcestring
-  S_NO_OGL13 = 'OpenGL 1.3 support required for terrain textures';
   S_CAPTION_SUFFIX = ' -- Press F1 for options';
 
 {$R *.dfm}
@@ -289,10 +292,13 @@ begin
   else if iSize < 25 then
     iSize := 25;
   FMobTriangle.Size := iSize;
+  FBoat.Size := 2 * iSize;
   
   if Visible then begin
     FMobTriangle.GLCleanup;
     FMobTriangle.GLInitialize;
+    FBoat.GLCleanup;
+    FBoat.GLInitialize;
   end;
 
   Dirty;
@@ -415,9 +421,12 @@ begin
       Dirty;
 
     if FRenderPrefs.InvaderWarning and
-      (AObj.ObjectClass = ocPlayer) and (AObj.Realm <> FDControl.LocalPlayer.Realm) then
+      (AObj.ObjectClass = ocPlayer) and
+      (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive and
+      (GlobalTickCount - FLastInvaderWarningTicks >= FInvaderWarningMinTicks) then
       PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
-  end;
+      FLastInvaderWarningTicks := GlobalTickCount;
+  end;  { if onject in filter }
 end;
 
 procedure TfrmGLRender.DAOCDeleteObject(AObj: TDAOCObject);
@@ -524,28 +533,14 @@ begin
 
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
-    if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer, ocVehicle] then begin
+    if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
       if pObj.Stealthed then
         clMob := clBlack
       else
         clMob := pObj.GetConColor(FDControl.LocalPlayer.Level);
 
-        { if the mob is on the move, draw a line to its destination }
-      if FRenderPrefs.DrawAIDestination then begin
-        if (pObj.ObjectClass = ocMob) and Assigned(TDAOCMob(pObj).Target) then
-          DrawLineToMobTarget(TDAOCMob(pObj))
-        else if (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
-          glLineWidth(3.0);
-
-          SetGLColorFromTColor(clMob, 0.33);
-
-          glBegin(GL_LINES);
-            glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
-            glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
-          glEnd();
-        end;  { if destinaton set }
-      end;  { if draw AIDest }
+      DrawAIDestination(pObj, clMob);
 
       glPushMatrix();
       glTranslatef(pMovingObj.XProjected, pMovingObj.YProjected, 0);
@@ -563,12 +558,26 @@ begin
       FMobTriangle.GLRender(FRenderBounds);
 
       glPopMatrix();
-    end;  { if a class to draw }
+    end  { if a class to draw }
 
-    if pObj.ObjectClass = ocObject then begin
+    else if pObj.ObjectClass = ocObject then begin
       glPushMatrix();
       glTranslatef(pObj.X, pObj.Y, 0);
       FObjectTriangle.GLRender(FRenderBounds);
+      glPopMatrix();
+    end
+
+    else if pObj.ObjectClass = ocVehicle then begin
+      DrawAIDestination(pObj, FBoat.Color);  // brown
+
+      glPushMatrix();
+      glTranslatef(TDAOCVehicle(pObj).XProjected, TDAOCVehicle(pObj).YProjected, 0);
+      glRotatef(pObj.Head, 0, 0, 1);
+      if pObj.LiveDataConfidence < LIVE_DATA_CONFIDENCE_MAX then
+        FBoat.Alpha := pObj.LiveDataConfidencePct
+      else
+        FBoat.Alpha := 1;
+      FBoat.GLRender(FRenderBounds);
       glPopMatrix();
     end;
   end;  { for each object }
@@ -597,12 +606,14 @@ begin
   FObjectTriangle := T3DPyramid.Create;
   FGroundTarget := TGLBullsEye.Create;
   FVisibleRangeRep := TGLFlatViewFrustum.Create;
+  FBoat := TGLBoat.Create;
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
 
   UpdateObjectCounts;
+  FInvaderWarningMinTicks := 5000;
 end;
 
 procedure TfrmGLRender.FormDestroy(Sender: TObject);
@@ -628,6 +639,7 @@ begin
   FMapTexturesListList.GLCleanup;
   FGroundTarget.GLCleanup;
   FVisibleRangeRep.GLCleanup;
+  FBoat.GLCleanup;
 
   FGLInitsCalled := false;
 end;
@@ -642,7 +654,8 @@ begin
   FMapTexturesListList.GLInitialize;
   FGroundTarget.GLInitialize;
   FVisibleRangeRep.GLInitialize;
-  
+  FBoat.GLInitialize;
+
   CheckGLError;
 end;
 
@@ -891,6 +904,8 @@ begin
       end;
     VK_UP:
       begin
+        if lstObjects.Focused then
+          exit;
         dec(FMapToPlayerOffset.Y, FRange div 10);
         Key := 0;
       end;
@@ -901,6 +916,8 @@ begin
       end;
     VK_DOWN:
       begin
+        if lstObjects.Focused then
+          exit;
         inc(FMapToPlayerOffset.Y, FRange div 10);
         Key := 0;
       end;
@@ -1326,6 +1343,29 @@ begin
     s := 'Heading ' + IntToStr(PlayerZoneHead) + ' Speed ' + LocalPlayer.SpeedString;
     WriteGLUTTextH10(rasterx, rastery, s);
   end;
+end;
+
+procedure TfrmGLRender.DrawAIDestination(AObj: TDAOCObject; AColor: TColor);
+var
+  pMovingObj:   TDAOCMovingObject;
+begin
+  if not FRenderPrefs.DrawAIDestination then
+    exit;
+
+    { if the mob is on the move, draw a line to its destination }
+  if (AObj.ObjectClass = ocMob) and Assigned(TDAOCMob(AObj).Target) then
+    DrawLineToMobTarget(TDAOCMob(AObj))
+  else if (AObj.DestinationX <> 0) and (AObj.DestinationY <> 0) then begin
+    pMovingObj := TDAOCMovingObject(AObj);
+
+    glLineWidth(3.0);
+    SetGLColorFromTColor(AColor, 0.33);
+
+    glBegin(GL_LINES);
+      glVertex3f(pMovingObj.XProjected, pMovingObj.YProjected, 0);
+      glVertex3f(pMovingObj.DestinationX, pMovingObj.DestinationY, 0);
+    glEnd();
+  end;  { if destinaton set }
 end;
 
 end.
