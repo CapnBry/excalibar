@@ -1,3 +1,14 @@
+  + ~20% performance increase in UDP packet handling.
+  + Small performance increase in replaying packet captures.
+  + Fixed bug in GL error logging causing an exception to be thrown
+    instead of showing the error.
+  + GLUT no longer required for HUD.  HUD Text rendering also now twice
+    as fast.  Map points and TypeTags still use GLUT however, due to scaling
+    issues).
+  + Object list should no longer flash white when redrawing.
+  + Object list add / update / deletes are now 10x faster.
+  + Alb and Hib SpellCrafting helpers returned to ZIP (oops!).
+
 2003 Nov 09 - v1.59
 -------------------
   + Now throws an exception when DAOCPath is not set properly and a
