@@ -309,6 +309,8 @@ type
     procedure MergeVendorItemsToMaster;
     procedure UpdatePlayersInGuild;
     procedure ResetPlayersInGroup;
+    procedure AdjustObjLocForZone(AObj: TDAOCObject; AZoneNum: integer);
+    procedure AdjustObjDestForZone(AObj: TDAOCMovingObject; AZoneNum: integer);
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -740,6 +742,7 @@ end;
 procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TDAOCPacket);
 begin
   pPacket.HandlerName := 'LocalPosUpdateFromClient';
+{$IFDEF PRE_168}
   pPacket.seek(2);
   FLocalPlayer.SpeedWord := pPacket.getShort;
   FLocalPlayer.Z := pPacket.getShort;
@@ -747,6 +750,16 @@ begin
   FLocalPlayer.X := pPacket.getLong;
   FLocalPlayer.Y := pPacket.getLong;
   FLocalPlayer.HeadWord := pPacket.getShort;
+{$ELSE}
+  pPacket.seek(2);
+  FLocalPlayer.SpeedWord := pPacket.getShort;
+  FLocalPlayer.Z := pPacket.getShort;
+  FLocalPlayer.X := pPacket.getShort;
+  FLocalPlayer.Y := pPacket.getShort;
+  AdjustObjLocForZone(FLocalPlayer, pPacket.getByte);
+  pPacket.seek(1);
+  FLocalPlayer.HeadWord := pPacket.getShort;
+{$ENDIF}
 
   CheckZoneChanged;
 
@@ -1085,6 +1098,7 @@ begin
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then
     with TDAOCMovingObject(pDAOCObject) do begin
+{$IFDEF PRE_168}
       SpeedWord := pPacket.getShort;  //+2
       Z := pPacket.getShort;  //+4
       pPacket.seek(2);  //+6
@@ -1094,6 +1108,18 @@ begin
       pPacket.seek(2);  //+12 word and 0xfff
       pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
       HitPoints := pPacket.getByte; //+15
+{$ELSE}
+      SpeedWord := pPacket.getShort;  //+2
+      Z := pPacket.getShort;  //+4
+      X := pPacket.getShort;
+      Y := pPacket.getShort;
+      AdjustObjLocForZone(pDAOCObject, pPacket.getByte);
+      pPacket.seek(1);
+      HeadWord := pPacket.getShort;
+      pPacket.seek(2);
+      pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
+      HitPoints := pPacket.getByte;
+{$ENDIF}
 
       DoOnDAOCObjectMoved(pDAOCObject);
     end  { if obj found / With }
@@ -1111,19 +1137,8 @@ var
   wID:    WORD;
   pDAOCObject:  TDAOCObject;
   iIDOffset:  integer;
-  iZoneBase:  integer;
-  pZoneBase:  TDAOCZoneInfo;
   V162OrGreater:  boolean;
   bAddedObject:   boolean;
-  procedure SetZoneBase;
-  begin
-    if Assigned(pZoneBase) and (pZoneBase.ZoneNum = iZoneBase) then
-      exit
-    else if Assigned(FZone) and (FZone.ZoneNum = iZoneBase) then
-      pZoneBase := FZone
-    else
-      pZoneBase := FZoneList.FindZone(iZoneBase);
-  end;
 begin
   pPacket.HandlerName := 'MobUpdate';
 
@@ -1172,25 +1187,8 @@ begin
         HitPoints := pPacket.getByte;
         pPacket.seek(1);
 
-        pZoneBase := nil;
-
-          { adjust X, Y to global coords }
-        iZoneBase := pPacket.getByte;
-        SetZoneBase;
-        if Assigned(pZoneBase) then begin
-          X := pZoneBase.ZoneToWorldX(X);
-          Y := pZoneBase.ZoneToWorldY(Y);
-        end;
-
-          { adjust DestX, DestY to global coords }
-        if (DestinationX <> 0) and (DestinationY <> 0) then begin
-          iZoneBase := pPacket.getByte;
-          SetZoneBase;
-          if Assigned(pZoneBase) then begin
-            DestinationX := pZoneBase.ZoneToWorldX(DestinationX);
-            DestinationY := pZoneBase.ZoneToWorldY(DestinationY);
-          end;
-        end;  { if dest <> 0 }
+        AdjustObjLocForZone(pDAOCObject, pPacket.getByte);
+        AdjustObjDestForZone(TDAOCMovingObject(pDAOCObject), pPacket.getByte);
       end  { protocol }
       else begin
         X := pPacket.getLong;  //+0
@@ -1382,6 +1380,7 @@ begin
         with TDAOCPlayer(tmpObject) do begin
           PlayerID := pPacket.getShort;
           InfoID := pPacket.getShort;
+{$IFDEF PRE_168}
           X := pPacket.getLong;
           Y := pPacket.getLong;
           Z := pPacket.getShort;
@@ -1393,11 +1392,26 @@ begin
           Name := pPacket.getPascalString;
           Guild := pPacket.getPascalString;
           LastName := pPacket.getPascalString;
-
+{$ELSE}
+          X := pPacket.getShort;
+          Y := pPacket.getShort;
+          AdjustObjLocForZone(tmpObject, pPacket.getByte);
+          pPacket.seek(1);
+          Z := pPacket.getShort;
+          HeadWord := pPacket.getShort;
+          pPacket.seek(2);
+          Realm := TDAOCRealm(pPacket.getByte);
+          pPacket.seek(2);
+          Level := pPacket.getByte;
+          pPacket.seek(2);
+          Name := pPacket.getPascalString;
+          Guild := pPacket.getPascalString;
+          LastName := pPacket.getPascalString;
+{$ENDIF}
           IsInGuild := (FLocalPlayer.Guild <> '') and AnsiSameText(Guild, FLocalPlayer.Guild);
           UpdateRealmRank(TDAOCPlayer(tmpObject));
 
-             { if this guy is in our unknown stealther list, now we know who he is }
+            { if this guy is in our unknown stealther list, now we know who he is }
           pOldObject := FUnknownStealthers.FindByInfoID(tmpObject.InfoID);
           while Assigned(pOldObject) do begin
             FUnknownStealthers.Delete(pOldObject);
@@ -2847,6 +2861,41 @@ end;
 procedure TDAOCConnection.ParseNewVehicle(pPacket: TDAOCPacket);
 begin
   ParseNewObjectCommon(pPacket, ocVehicle);
+end;
+
+procedure TDAOCConnection.AdjustObjLocForZone(AObj: TDAOCObject;
+  AZoneNum: integer);
+var
+  pZoneBase:  TDAOCZoneInfo;
+begin
+  if Assigned(FZone) and (FZone.ZoneNum = AZoneNum) then
+    pZoneBase := FZone
+  else
+    pZoneBase := FZoneList.FindZone(AZoneNum);
+
+  if Assigned(pZoneBase) then begin
+    AObj.X := pZoneBase.ZoneToWorldX(AObj.X);
+    AObj.Y := pZoneBase.ZoneToWorldX(AObj.Y);
+  end;
+end;
+
+procedure TDAOCConnection.AdjustObjDestForZone(AObj: TDAOCMovingObject;
+  AZoneNum: integer);
+var
+  pZoneBase:  TDAOCZoneInfo;
+begin
+  if (AObj.DestinationX = 0) and (AObj.DestinationY = 0) then
+    exit;
+
+  if Assigned(FZone) and (FZone.ZoneNum = AZoneNum) then
+    pZoneBase := FZone
+  else
+    pZoneBase := FZoneList.FindZone(AZoneNum);
+
+  if Assigned(pZoneBase) then begin
+    AObj.DestinationX := pZoneBase.ZoneToWorldX(AObj.DestinationX);
+    AObj.DestinationY := pZoneBase.ZoneToWorldY(AObj.DestinationY);
+  end;
 end;
 
 end.
