@@ -1,7 +1,7 @@
 object frmSkillaLog: TfrmSkillaLog
   Left = 244
   Top = 107
-  Width = 495
+  Width = 550
   Height = 275
   BorderStyle = bsSizeToolWin
   Caption = 'Internal Log'
@@ -19,7 +19,7 @@ object frmSkillaLog: TfrmSkillaLog
   object Memo1: TMemo
     Left = 0
     Top = 0
-    Width = 487
+    Width = 542
     Height = 248
     Align = alClient
     Font.Charset = ANSI_CHARSET
