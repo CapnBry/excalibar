@@ -1,3 +1,14 @@
+Teerex (31/May/02)
+------------------
+Changes:
+ + Added Mandrake section to INSTALL doc.
+ + Optimized map paint to not draw objects not inside 
+   the viewport.
+ + Removed "Item" page from preferences, "Upload Items" 
+   from main menu.  Item upload no longer supported.
+ + Tiny paint optimization to those not rasterizing 
+   player names, and/or drawing player/merchant names.
+
 Teerex (26/May/02)
 ------------------
 Changes (not actually today, just catching up):
