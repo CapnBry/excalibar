@@ -105,7 +105,7 @@ implementation
 // {$DEFINE PASCAL_GETS}
 
 const
-  MAX_EXPECTED_DAOC_PACKET_SIZE = 4096;
+  MAX_EXPECTED_DAOC_PACKET_SIZE = 16384;
 
 procedure ODS(const s: string);
 begin
