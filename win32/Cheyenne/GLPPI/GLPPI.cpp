@@ -60,7 +60,7 @@ public:
 }; // end class VmTextProxy
 
 GLPPI::GLPPI() :
-    ActorXScale(0.01f),ActorYScale(0.015f),//ActorYScale(0.0149f),
+    ActorXScale(0.0101f),ActorYScale(0.01515f),//ActorYScale(0.0149f),
     XLimit(2000000.0f),YLimit(2000000.0f)
 {
     Wrapped=false;
