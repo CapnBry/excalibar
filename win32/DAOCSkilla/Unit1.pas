@@ -249,6 +249,7 @@ begin
   // CloseChatLog;
 
 {$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCConnectionList := FDControlList;
   if atnAutoLaunchRadar.Checked then
     frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}

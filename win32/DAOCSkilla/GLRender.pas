@@ -202,7 +202,7 @@ const
   COL_HEALTH = 2;
 
 resourcestring
-  S_CAPTION_SUFFIX = ' -- Press F1 for options, F11 to toggle active connection';
+  S_CAPTION_SUFFIX = ' -- Press F1 for options';
 
 {$R *.dfm}
 
@@ -886,10 +886,16 @@ begin
 end;
 
 procedure TfrmGLRender.DAOCRegionChanged(Sender: TObject);
+var
+  sCaption:   string;
 begin
-  if Sender <> FCurrConn then exit;
+  if (Sender <> FCurrConn) or not Assigned(FDAOCConnectionList) then exit;
 
-  Caption := FCurrConn.LocalPlayer.Name + S_CAPTION_SUFFIX;
+  sCaption := FCurrConn.LocalPlayer.Name + S_CAPTION_SUFFIX;
+  if FDAOCConnectionList.ActiveCount > 1 then
+    sCaption := sCaption + ' '  + IntToStr(FDAOCConnectionList.ActiveCount) +
+      ', active connections (F11 to toggle)';
+  Caption := sCaption;
   FRenderPrefs.PlayerRealm := FCurrConn.LocalPlayer.Realm;
   DAOCSetGroundTarget(Sender);
   LoadRegionPushpins;
@@ -2182,14 +2188,20 @@ begin
 end;
 
 procedure TfrmGLRender.SetDAOCConnectionList(const Value: TDAOCConnectionList);
+var
+  iActiveIdx: integer;
 begin
   FDAOCConnectionList := Value;
-    { if theres any connections in this list, then select the last one }
-  if FDAOCConnectionList.Count > 0 then
-    SetCurrentConnection(FDAOCConnectionList[FDAOCConnectionList.Count - 1])
+
+    { if theres any active connections in this list, then select the last one }
+  for iActiveIdx := FDAOCConnectionList.Count - 1 downto 0 do
+    if FDAOCConnectionList[iActiveIdx].Active then begin
+      SetCurrentConnection(FDAOCConnectionList[iActiveIdx]);
+      exit;
+    end;
 
     { else clear the current connection, because there isn't one }
-  else if Assigned(FCurrConn) then
+  if Assigned(FCurrConn) then
     SetCurrentConnection(nil);
 end;
 
