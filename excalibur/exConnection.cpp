@@ -500,7 +500,7 @@ END_EXPERIMENTAL_CODE
                           "," << z <<
                           "," << level <<
                           "," << name <<
-                          "," << (guild.length() ? guild : "") <<
+                          "," << (guild.length() ? guild : QString("")) <<
                           endl;
 	      } else if (isobj) {
                   objs.insert((void *) ((unsigned int) id), mob);
