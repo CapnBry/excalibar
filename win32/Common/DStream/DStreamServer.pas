@@ -109,6 +109,8 @@ type
     procedure DeleteBySocket(ASocket: TCustomWinSocket);
     function IndexOfSocket(ASocket: TCustomWinSocket) : integer;
     function FindSocket(ASocket: TCustomWinSocket) : TDStreamClientHandler;
+    function GetPort: integer;
+    procedure SetPort(const Value: integer);
   protected
     procedure Log(const s: string);
     procedure SOCKClientConnect(Sender: TObject; Socket: TCustomWinSocket);
@@ -134,6 +136,8 @@ type
     property Active: boolean read GetActive write SetActive;
     property AuthRequired: boolean read FAuthRequired write FAuthRequired;
     property Items[I: integer]: TDStreamClientHandler read GetItems; default;
+    property Port: integer read GetPort write SetPort;
+    
     property OnLog: TStringNotify read FOnLog write FOnLog;
   end;
 
@@ -590,6 +594,16 @@ begin
     FServerSock.Active := true;
     Log('DStream server active on port ' + IntToStr(FServerSock.Port));
   end;
+end;
+
+function TDStreamServer.GetPort: integer;
+begin
+  Result := FServerSock.Port;
+end;
+
+procedure TDStreamServer.SetPort(const Value: integer);
+begin
+  FServerSock.Port := Value;
 end;
 
 end.
