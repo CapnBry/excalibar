@@ -573,13 +573,13 @@ end;
 procedure TDStreamServer.SOCKClientConnect(Sender: TObject; Socket: TCustomWinSocket);
 begin
   AddNew(Socket);
-  Log(Format('New client connected %s, total %d', [SocketDesc(Socket), Count]));
+  Log(Format('DStream client connected from %s, total %d', [SocketDesc(Socket), Count]));
 end;
 
 procedure TDStreamServer.SOCKClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
 begin
   DeleteBySocket(Socket);
-  Log(Format('Client %s disconnected, total %d', [SocketDesc(Socket), Count]));
+  Log(Format('DStream client %s disconnected, total %d', [SocketDesc(Socket), Count]));
 end;
 
 procedure TDStreamServer.SOCKClientError(Sender: TObject; Socket: TCustomWinSocket;
