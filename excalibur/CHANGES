@@ -1,3 +1,15 @@
+Teerex (22/May/03)
+------------------
+ + Removed the --druppy-leak command line option, and the associated
+   message dialog.
+ + Upped optimization settings in excalibur.pro.  PentiumPro/Pentium II
+   or greated now required.
+ + Optimized some of the floating point math to use contant multiplies
+   rather than slow divides.  
+ + Removed (int) casts and replaced with faster fld/fistp.
+ + exMob::updateProjected* now computes both cached X and Y values at 
+   the same time.
+
 Teerex (15/May/03)
 ------------------
  + Modified OSX/FreeBSD sniffer fragment code to match Linux version.
