@@ -1,0 +1,14 @@
+#!/bin/sh
+
+GAMEPATH=/mnt/windows/camelot
+SIZE=512
+
+for X in ${GAMEPATH}/zones/zone* ; do 
+  if [ -d $X ] ; then 
+    zn=`basename $X`
+    zn=${zn:4} 
+    python mapper.py -settings excal_maps.ini -zone $zn -out zone${zn}.png -scale ${SIZE}
+
+    mv zone${zn}.png ../maps/.
+  fi
+done
