@@ -174,9 +174,6 @@ bool Sniffer::Go(tsfifo<CheyenneMessage*>* p)
     // save pointers
     MessageOutputFifo=p;
 
-    // kick off default UDP connection
-    DefaultUDPConnection->Go(MessageOutputFifo);
-
     // set flags
     bRunning=true;
     bContinue=true;
@@ -352,12 +349,12 @@ void Sniffer::HandleTCP(struct tcp_stream *a_tcp, void **this_time_not_needed)
             if (a_tcp->client.count_new || a_tcp->client.count_new_urg)
                 {
                 // new data for client
-                connection->FromTCPServer(a_tcp->client.data,a_tcp->client.count_new);
+                connection->FromTCPServer((unsigned char*)a_tcp->client.data,a_tcp->client.count_new,MessageOutputFifo);
                 }
             else
                 {
                 // new data for server
-                connection->FromTCPClient(a_tcp->server.data,a_tcp->server.count_new);
+                connection->FromTCPClient((unsigned char*)a_tcp->server.data,a_tcp->server.count_new,MessageOutputFifo);
                 }
             } // end if NIDS_DATA
             break;
@@ -388,18 +385,12 @@ void Sniffer::HandleUDP(struct tuple4 * addr, char * buf, int len, struct ip * i
     if(src==FromClient)
         {
         // from client to server
-        connection->FromUDPClient(buf,len);
+        connection->FromUDPClient((unsigned char*)buf,len,MessageOutputFifo);
         }
     else if(src==FromServer)
         {
         // from server to client
-        connection->FromUDPServer(buf,len);
-        }
-    else
-        {
-        // the database always attempts to return a valid
-        // connection for UDP
-        connection->FromUDPUnknown(buf,len);
+        connection->FromUDPServer((unsigned char*)buf,len,MessageOutputFifo);
         }
 
     // done
@@ -599,9 +590,6 @@ void Sniffer::NewConnection(const tuple4& key)
     // add it to map
     sniff_map_insert_result result=sniff_map.insert(value);
     
-    // start processing
-    conn->Go(MessageOutputFifo);
-
     // we had better have added a new value!
     _ASSERTE(result.second == true);
 

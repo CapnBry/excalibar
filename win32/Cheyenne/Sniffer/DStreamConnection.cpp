@@ -43,6 +43,9 @@ DStreamConnection::DStreamConnection()
     ZeroMemory(&ModifyLocalAddr(),sizeof(SOCKADDR_IN));
     ZeroMemory(&ModifyRemoteAddr(),sizeof(SOCKADDR_IN));
     
+    // init to null
+    fifo=0;
+    
     // create
     ReadBuf=new unsigned char[TempBufferSize];
 
@@ -141,7 +144,7 @@ bool DStreamConnection::Open
     if(err==SOCKET_ERROR)
         {
         closesocket(s);
-        LOG_FUNC << "unable to connect to remote address!\n";
+        LOG_FUNC << "unable to connect to remote address, error " << WSAGetLastError() << "\n";
         return(false);
         }
 
@@ -238,6 +241,9 @@ void DStreamConnection::Close(void)
 DWORD DStreamConnection::Run(const bool& bContinue)
 {
     LOG_FUNC << "thread started with ID " << GetCurrentThreadId() << "\n";
+    
+    // save fifo
+    fifo=reinterpret_cast<tsfifo<CheyenneMessage*>*>(GoParam);
     
     while(bContinue)
         {
@@ -537,11 +543,37 @@ void DStreamConnection::ProcessInput(buffer_space::Buffer& Input)
 
             case dstream_opcodes::DPACKET_DAOC_DATA:
                 {
-                LOG_FUNC << "got DAOC DATA packet:\n";
                 dstream::DPACKET_DAOC_DATA* msg=reinterpret_cast<dstream::DPACKET_DAOC_DATA*>(payload);
                 
                 // for now, print it
+                /*
+                LOG_FUNC << "got DAOC DATA packet:\n";
                 Logger << msg->data_size << " bytes " << (msg->protocol==0?"TCP ":"UDP ") << (msg->origin==0?"from server\n":"from client\n");
+                std::ostringstream ss;
+                ss << std::hex;
+                for(unsigned short i=0;i<msg->data_size;++i)
+                    {
+                    ss << "0x";
+
+                    std::streamsize sz=ss.width(2);
+                    std::ostringstream::char_type of=ss.fill('0');
+                    
+                    ss << (unsigned int)msg->data[i];
+                    
+                    ss.width(sz);
+                    ss.fill(of);
+                    
+                    if(isprint(msg->data[i]))
+                        {
+                        ss << " (" << msg->data[i] << ")\n";
+                        }
+                    else
+                        {
+                        ss << " ()\n";
+                        }
+                    } // end for all bytes in payload
+                Logger << ss.str() << std::endl;
+                */
                 
                 // find in the SniffMap and pass along to the appropriate connection class
                 if(DAOCConnection* conn=FindConnection(msg->connectionid))
@@ -552,12 +584,12 @@ void DStreamConnection::ProcessInput(buffer_space::Buffer& Input)
                         if(msg->protocol==0)
                             {
                             // tcp
-                            conn->FromTCPServer((char*)&msg->data[0],msg->data_size);
+                            conn->FromTCPServer(&msg->data[0],msg->data_size,fifo);
                             }
                         else
                             {
                             // udp
-                            conn->FromUDPServer((char*)&msg->data[0],msg->data_size);
+                            conn->FromUDPServer(&msg->data[0],msg->data_size,fifo);
                             }
                         } // end if from server
                     else
@@ -566,12 +598,12 @@ void DStreamConnection::ProcessInput(buffer_space::Buffer& Input)
                         if(msg->protocol==0)
                             {
                             // tcp
-                            conn->FromTCPClient((char*)&msg->data[0],msg->data_size);
+                            conn->FromTCPClient(&msg->data[0],msg->data_size,fifo);
                             }
                         else
                             {
                             // udp
-                            conn->FromUDPClient((char*)&msg->data[0],msg->data_size);
+                            conn->FromUDPClient(&msg->data[0],msg->data_size,fifo);
                             }
                         } // end else from client
                     } // end if connection exists
@@ -644,9 +676,6 @@ DAOCConnection* DStreamConnection::AddConnection(const dstream::uint32 id)
         // create
         conn=new DAOCConnection;
         
-        // start with my "go" parameter
-        conn->Go(static_cast<tsfifo<CheyenneMessage*>*>(GoParam));
-
         // insert it
         SniffMap.insert(sniff_map_value_type(id,conn));
         }
@@ -666,9 +695,6 @@ void DStreamConnection::RemoveConnection(const dstream::uint32 id)
         
         // erase it
         SniffMap.erase(it);
-        
-        // stop
-        conn->Stop();
         
         // delete
         delete conn;

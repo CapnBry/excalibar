@@ -54,45 +54,29 @@ class DAOCConnection
 {
 public:
     DAOCConnection();
-    DAOCConnection(const DAOCConnection& s);
     virtual ~DAOCConnection();
 
-    DAOCConnection& operator=(const DAOCConnection& s);
-
-    // thread api
-    bool Go(tsfifo<CheyenneMessage*>* p);
-    void Stop(void);
 
 	// sniffing api
-    virtual void FromTCPServer(const char* bytes,const unsigned int& length);
-    virtual void FromTCPClient(const char* bytes,const unsigned int& length);
-    virtual void FromUDPServer(const char* bytes,const unsigned int& length);
-    virtual void FromUDPClient(const char* bytes,const unsigned int& length);
-    virtual void FromUDPUnknown(const char* bytes,const unsigned int& length);
+    virtual void FromTCPServer(const unsigned char* bytes,const unsigned int& length,tsfifo<CheyenneMessage*>* fifo);
+    virtual void FromTCPClient(const unsigned char* bytes,const unsigned int& length,tsfifo<CheyenneMessage*>* fifo);
+    virtual void FromUDPServer(const unsigned char* bytes,const unsigned int& length,tsfifo<CheyenneMessage*>* fifo);
+    virtual void FromUDPClient(const unsigned char* bytes,const unsigned int& length,tsfifo<CheyenneMessage*>* fifo);
 
     // crypto
     void Decrypt(unsigned char* data,int data_size);
     static void DAOCConnection::exCrypt_c(unsigned char *data, int data_size, const char *key, int key_size);
 
     // opcode reference
-    static const char* GetOpcodeName(opcodes::c_opcode_t opcode);
+    const char* GetOpcodeName(opcodes::c_opcode_t opcode)const;
 
 protected:
 
 private:
-    // messages
-    void BuildMessages(void);
-
-    void set(const DAOCConnection& s);
-
-    // functions for extracting messages sizes from
-    // sniffed data
-    unsigned short GetSizeFromBuf(bool bTCP,bool bFromServer,const unsigned char* buf) const;
-    void BuildMessagesFromTCPServer(unsigned char* buffer);
-    void BuildMessagesFromTCPClient(unsigned char* buffer);
-    void BuildMessagesFromUDPServer(unsigned char* buffer);
-    void BuildMessagesFromUDPClient(unsigned char* buffer);
-
+    // disallow these
+    DAOCConnection(const DAOCConnection& s);
+    DAOCConnection& operator=(const DAOCConnection& s);
+    
     // message parsing
     daocmessages::crypt_and_version* ParseCryptAndVersion(int& ndx,const unsigned char* buffer)const;
     daocmessages::self_id_position* ParseSelfIDPosition(int& ndx,const unsigned char* buffer)const;
@@ -114,7 +98,13 @@ private:
     void ParseNameRealmZone(int& ndx,const unsigned char* buffer);
 
     // debug
-    void PrintPacket(bool bTCP,bool bFromServer,const unsigned char* buffer);
+    void PrintPacket
+        (
+        const bool bTCP,
+        const bool bFromServer,
+        const unsigned char* buffer,
+        const unsigned short len
+        )const;
 
     // encryption and version info
     unsigned char serverprotocol;
@@ -123,29 +113,10 @@ private:
     char crypt_key[12];
     bool bCryptSet;
 
-    // thread info
-    static DWORD WINAPI ThreadFunc(PVOID context);
-    DWORD Run(void);
-
-    HANDLE hThread;
-    DWORD dwThreadID;
-    bool bContinue;
-    bool bRunning;
-    
-    // messaging i/o
-    tsfifo<CheyenneMessage*>* fifo;
-    EventSignal data_signal;
-
     // player character info
     std::list<std::pair<std::string,unsigned char> > PlayerCharacterList;
     typedef std::list<std::pair<std::string,unsigned char> >::iterator PlayerCharacterListIterator;
     unsigned char player_realm;
-
-    // buffers
-    buffer_space::Buffer* FromTCPServerBuf;
-    buffer_space::Buffer* FromTCPClientBuf;
-    buffer_space::Buffer* FromUDPServerBuf;
-    buffer_space::Buffer* FromUDPClientBuf;
 
     // opcode/name cross reference
     static char* OpcodeReference[256];

@@ -16,8 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
+#define NOMINMAX
 #include <assert.h>
 #include <crtdbg.h>
+#include <sstream>
 #include "daocconnection.h"
 #include "..\Utils\buffer.h"
 #include "..\Utils\signals.h"
@@ -211,22 +213,11 @@ void SkipData(int& start,int bytes)
 
 DAOCConnection::DAOCConnection()
 {
-    FromTCPServerBuf=new buffer_space::Buffer;
-    FromTCPClientBuf=new buffer_space::Buffer;
-    FromUDPServerBuf=new buffer_space::Buffer;
-    FromUDPClientBuf=new buffer_space::Buffer;
-
     bCryptSet=false;
     self_id=0;
     self_region=0;
     player_realm=0;
-    fifo=NULL;
     serverprotocol=1; // 1.62 protocol, previous protocols are 0x31
-
-    hThread=NULL;
-    dwThreadID=0;
-    bContinue=false;
-    bRunning=false;
 
     // make the opcode cross reference table
     for(int i=0;i<256;++i)
@@ -265,31 +256,8 @@ DAOCConnection::DAOCConnection()
     return;
 } // end DAOCConnection()
 
-DAOCConnection::DAOCConnection(const DAOCConnection& s)
-{
-    // need to allocate these here too
-    FromTCPServerBuf=new buffer_space::Buffer;
-    FromTCPClientBuf=new buffer_space::Buffer;
-    FromUDPServerBuf=new buffer_space::Buffer;
-    FromUDPClientBuf=new buffer_space::Buffer;
-
-    hThread=NULL;
-    dwThreadID=0;
-    bContinue=false;
-    bRunning=false;
-
-    // set
-    set(s);
-
-    // done
-    return;
-} // end DAOCConnection(DAOCConnection&)
-
 DAOCConnection::~DAOCConnection()
 {
-    // stop thread if running
-    Stop();
-
     // log opcode counts
     Logger << "[DAOCConnection::~DAOCConnection] used-opcode count:\n";
 
@@ -301,323 +269,69 @@ DAOCConnection::~DAOCConnection()
             }
         }
 
-    // free these up
-    delete FromTCPServerBuf;
-    delete FromTCPClientBuf;
-    delete FromUDPServerBuf;
-    delete FromUDPClientBuf;
-
     // done
     return;
 } // end ~DAOCConnection
 
-const char* DAOCConnection::GetOpcodeName(opcodes::c_opcode_t opcode)
+const char* DAOCConnection::GetOpcodeName(opcodes::c_opcode_t opcode)const
 {
     return(DAOCConnection::OpcodeReference[opcode]);
 } // end GetOpcodeName
 
-DAOCConnection& DAOCConnection::operator=(const DAOCConnection& s)
+void DAOCConnection::PrintPacket
+    (
+    const bool bTCP,
+    const bool bFromServer,
+    const unsigned char* buffer,
+    const unsigned short len
+    )const
 {
-    // check for self-assignment
-    if(this != &s)
-        {
-        set(s);
-        }
-    
-    // done
-    return(*this);
-} // end operator=(DAOCConnection)
-
-void DAOCConnection::set(const DAOCConnection& s)
-{
-    *FromTCPServerBuf=*s.FromTCPServerBuf;
-    *FromTCPClientBuf=*s.FromTCPClientBuf;
-    *FromUDPServerBuf=*s.FromUDPServerBuf;
-    *FromUDPClientBuf=*s.FromUDPClientBuf;
-
-    bCryptSet=s.bCryptSet;
-    serverprotocol=s.serverprotocol;
-    memcpy(&crypt_key[0],&s.crypt_key[0],sizeof(crypt_key));
-    self_id=s.self_id;
-    self_region=s.self_region;
-    fifo=s.fifo;
-
-    // done
-    return;
-} // end set(DAOCConnection)
-
-void DAOCConnection::PrintPacket(bool bTCP,bool bFromServer,const unsigned char* buffer)
-{
-    // expect buffer to point to the first byte
-    // that contains the size of the message
-
-    // get size
-    unsigned short size=GetSizeFromBuf(bTCP,bFromServer,buffer);
-
     Logger << "[DAOCConnection::PrintPacket] packet:\n"
            << (bTCP?"TCP":"UDP")
            << (bFromServer?" From Server":" From Client")
            << " size="
-           << size
+           << len
            << "\n";
 
-
-    // we will print each line as 8 bits then as a char
-
-    for(int i=0;i<size;i+=4)
+    std::ostringstream ss;
+    ss << std::hex;
+    for(unsigned short i=0;i<len;++i)
         {
-        // alias a pointer to the buffer
-        word_builder* p=(word_builder*)&buffer[i];
+        ss << "0x";
 
-        Logger << (unsigned int)p->byte[0] << " " 
-               << (unsigned int)p->byte[1] << " " 
-               << (unsigned int)p->byte[2] << " " 
-               << (unsigned int)p->byte[3] << " "
-               << (isprint(p->byte[0]) ? p->byte[0] : '.')
-               << (isprint(p->byte[1]) ? p->byte[1] : '.')
-               << (isprint(p->byte[2]) ? p->byte[2] : '.')
-               << (isprint(p->byte[3]) ? p->byte[3] : '.') << "\n";
-
+        std::streamsize sz=ss.width(2);
+        std::ostringstream::char_type of=ss.fill('0');
+        
+        ss << (unsigned int)buffer[i];
+        
+        ss.width(sz);
+        ss.fill(of);
+        
+        if(isprint(buffer[i]))
+            {
+            ss << " (" << buffer[i] << ")\n";
+            }
+        else
+            {
+            ss << " ()\n";
+            }
         }
+    
+    Logger << ss.str() << std::endl;
 
     // done
     return;
 } // end PrintPacket
 
-void DAOCConnection::FromTCPServer(const char* bytes,const unsigned int& length)
-{
-    //Logger << "[DAOCConnection::FromTCPServer] len=" << length << "\n";
-
-    // add to buffer
-    if(FromTCPServerBuf->Insert(bytes,length))
-        {
-        // more data added, signal
-        data_signal.signal();
-        }
-
-    // done
-    return;
-} // end FromTCPServer
-
-void DAOCConnection::FromTCPClient(const char* bytes,const unsigned int& length)
-{
-    //Logger << "[DAOCConnection::FromTCPClient] len=" << length << "\n";
-
-    // add to buffer
-    if(FromTCPClientBuf->Insert(bytes,length))
-        {
-        // more data added, signal
-        data_signal.signal();
-        }
-
-    // done
-    return;
-} // end FromTCPClient
-
-void DAOCConnection::FromUDPServer(const char* bytes,const unsigned int& length)
-{
-    //Logger << "[DAOCConnection::FromUDPServer] len=" << length << "\n";
-
-    // add to buffer
-    if(FromUDPServerBuf->Insert(bytes,length))
-        {
-        // more data added, signal
-        data_signal.signal();
-        }
-
-    // done
-    return;
-} // end FromUDPServer
-
-void DAOCConnection::FromUDPClient(const char* bytes,const unsigned int& length)
-{
-    //Logger << "[DAOCConnection::FromUDPClient] len=" << length << "\n";
-
-    // add to buffer
-    if(FromUDPClientBuf->Insert(bytes,length))
-        {
-        // more data added, signal
-        data_signal.signal();
-        }
-
-    // done
-    return;
-} // end FromUDPClient
-
-void DAOCConnection::FromUDPUnknown(const char* bytes,const unsigned int& length)
-{
-    //Logger << "[DAOCConnection::FromUDPUnknown] len=" << length << "\n";
-
-    // done
-    return;
-} // end FromUDPUnknown
-
-void DAOCConnection::BuildMessages(void)
-{
-    unsigned char buffer[buffer_space::buffer_size]; // this should be at least the size of largest message
-    unsigned short size; // bytes
-    bool bBuiltMessage=false;
-
-    /*
-    #ifdef CHEYENNE_DEBUG
-    
-    if(FromTCPServerBuf->Size() || FromTCPClientBuf->Size() || FromUDPServerBuf->Size() || FromUDPClientBuf->Size())
-        {
-        Logger << "[DAOCConnection::BuildMessageList]"
-               << "\n\ttcp server: " << FromTCPServerBuf->Size()
-               << "\n\ttcp client: " << FromTCPClientBuf->Size()
-               << "\n\tudp server: " << FromUDPServerBuf->Size()
-               << "\n\tudp client: " << FromUDPClientBuf->Size()
-               << "\n";
-        }
-    #endif
-    */
-
-    //FromTCPServerBuf->Flush();
-    //FromTCPClientBuf->Flush();
-    //FromUDPServerBuf->Flush();
-    //FromUDPClientBuf->Flush();
-    //return;
-
-    // grab size from the buffers
-    // check to make sure we have 
-    // all the data, then make
-    // messages based on the extracted
-    // data
-
-    // use Peek() to get the size so that
-    // if we do not have all the data, we
-    // maintain the size in the buffer
-    
-    // the offsets (+2) are to adjust for the unsigned short
-    // size we just Peek()ed at
-
-    if(FromTCPServerBuf->Peek(buffer,2))
-        {
-        size=GetSizeFromBuf(true,true,buffer);
-        if(FromTCPServerBuf->Extract(buffer,size+2))
-            {
-            // flag
-            bBuiltMessage=true;
-
-            // decrypt
-            //Decrypt(&buffer[2],size);
-
-            // process
-            BuildMessagesFromTCPServer(buffer);
-            }
-        }
-
-    if(FromTCPClientBuf->Peek(buffer,2))
-        {
-        size=GetSizeFromBuf(true,false,buffer);
-        if(FromTCPClientBuf->Extract(buffer,size+2))
-            {
-            // flag
-            bBuiltMessage=true;
-
-            // decrypt
-            //Decrypt(&buffer[2],size);
-
-            // process
-            BuildMessagesFromTCPClient(buffer);
-            }
-        }
-
-    if(FromUDPServerBuf->Peek(buffer,2))
-        {
-        size=GetSizeFromBuf(false,true,buffer);
-        if(FromUDPServerBuf->Extract(buffer,size+2))
-            {
-            // flag
-            bBuiltMessage=true;
-
-            // decrypt
-            //Decrypt(&buffer[2],size);
-
-            // process
-            BuildMessagesFromUDPServer(buffer);
-            }
-        }
-
-    if(FromUDPClientBuf->Peek(buffer,2))
-        {
-        // flush, we dont really know what to 
-        // do with these messages
-        FromUDPClientBuf->Flush();
-
-        /*
-        size=GetSizeFromBuf(false,false,buffer);
-        if(FromUDPClientBuf->Extract(buffer,size+2))
-            {
-            // flag
-            bBuiltMessage=true;
-
-            // no decrypt
-            BuildMessagesFromUDPClient(buffer);
-
-            }
-        */
-        }
-
-    if(bBuiltMessage)
-        {
-        // since we build a message, check again for more messages immediately
-        // this allows us to process messages in groups -- we actually tend to
-        // receive them that way anyway
-
-        data_signal.signal();
-        }
-
-    // done
-    return;
-} // end BuildMessageList
-
-unsigned short DAOCConnection::GetSizeFromBuf
+void DAOCConnection::FromTCPServer
     (
-    bool bTCP,
-    bool bFromServer,
-    const unsigned char* buf
-    ) const
-{
-    unsigned short size;
-    int ndx=0;
-
-    GetData(size,ndx,buf);
-
-    if(bTCP)
-        {
-        if(bFromServer)
-            {
-            // tcp from server
-            size+=1;
-            }
-        else
-            {
-            // tcp from client
-            size+=10;
-            }
-        }
-    else
-        {
-        // from server or from client,
-        // the size computation is the same
-        size+=3;
-        }
-
-    //Logger << "[DAOCConnection::GetSizeFromBuf] size = " << size << "\n";
-    // done
-    return(size);
-} // end GetSizeFromBuf
-
-void DAOCConnection::BuildMessagesFromTCPServer
-    (
-    unsigned char* buffer
+    const unsigned char* buffer,
+    const unsigned int& length,
+    tsfifo<CheyenneMessage*>* fifo
     )
 {
-    int ndx=2; // start at offset 2 so we dont look at the size field
-               // want to maintain the size in the buffer though so 
-               // we can PrintPacket() if we want
+    int ndx=0; // start at offset 0 (where the opcode is)
+    
     opcode_t opcode;
 
     // get the opcode
@@ -625,6 +339,12 @@ void DAOCConnection::BuildMessagesFromTCPServer
     
     // increment count
     ++OpcodeCount[opcode];
+
+    /*
+    LOG_FUNC << "got opcode "
+           << (unsigned short)opcode 
+           << " (" << GetOpcodeName(opcode) << ")\n";
+    */
 
     // the main reason the contents of the case statements are
     // enclosed in curly braces is so that messages can be
@@ -723,7 +443,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             memcpy(&crypt_key[0],&msg->crypt_key[0],sizeof(crypt_key));
             bCryptSet=true;
 
-            Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got crypto and version: "
+            LOG_FUNC << "got crypto and version: "
                    << (unsigned int)serverprotocol << "\n";
 
             // put on fifo for server
@@ -735,7 +455,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             {
             ParseNameRealmZone(ndx,buffer);
 
-            Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
+            LOG_FUNC << "got opcode "
                    << (unsigned short)opcode 
                    << " (" << GetOpcodeName(opcode) << ")\n";
 
@@ -761,10 +481,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             // save my realm
             msg->realm=player_realm;
             
-            Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
-                   << (unsigned short)opcode 
-                   << " (" << GetOpcodeName(opcode) << ")\n";
-            PrintPacket(true,true,buffer);
+            PrintPacket(true,true,buffer,length);
             Logger << "realm set to " << (unsigned int)msg->realm << "\n";
             
 
@@ -809,7 +526,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             if(msg->object_id == self_id)
                 {
                 // log it 
-                Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got delete_object that matches self id (" << self_id << ")! Ignoring it...\n";
+                LOG_FUNC << "got delete_object that matches self id (" << self_id << ")! Ignoring it...\n";
 
                 // delete here since we are not passing it along
                 delete msg;
@@ -932,7 +649,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             // for the local player! We need to correct this here.
             msg->original_self_region=original_self_region;
 
-            Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
+            LOG_FUNC << "got opcode "
                    << (unsigned short)opcode 
                    << " (" << GetOpcodeName(opcode) << ")\n";
             //PrintPacket(true,true,buffer);
@@ -948,7 +665,7 @@ void DAOCConnection::BuildMessagesFromTCPServer
             daocmessages::stealth* msg=ParseStealth(ndx,buffer);
 
             Logger << "old stealth opcode " << unsigned int(opcode) << ":\n";
-            PrintPacket(true,true,buffer);
+            PrintPacket(true,true,buffer,length);
 
             // save my region
             msg->detected_region=unsigned char(self_region);
@@ -983,49 +700,36 @@ void DAOCConnection::BuildMessagesFromTCPServer
         } // end switch opcode
 
     
-    //Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got opcode "
-           //<< (unsigned short)opcode 
-           //<< " (" << GetOpcodeName(opcode) << ")\n";
-
     /*
     PrintPacket(true,true,buffer);
     */
     // done
     return;
-} // end BuildMessagesFromTCPServer
+} // end FromTCPServer
 
-void DAOCConnection::BuildMessagesFromTCPClient
+void DAOCConnection::FromTCPClient
     (
-    unsigned char* buffer
+    const unsigned char* buffer,
+    const unsigned int& length,
+    tsfifo<CheyenneMessage*>* fifo
     )
 {
-    int ndx=2; // start at offset 2 so we dont look at the size field
-               // want to maintain the size in the buffer though so 
-               // we can PrintPacket() if we want
+    int ndx=7; // start at offset 7 (where the opcode is)
 
-    unsigned short seq;
-    unsigned short srcid;
     opcode_t opcode;
-    unsigned short command;
-
-    // get sequence
-    GetData(seq,ndx,buffer);
-
-    // get src id
-    GetData(srcid,ndx,buffer);
-
-    // skip unknown
-    SkipData(ndx,2);
-
-    // get command
-    GetData(command,ndx,buffer);
     
-    // turn it into an opcode
-    opcode=(opcode_t)command;
+    // get the opcode
+    GetData(opcode,ndx,buffer);
     
     // increment count
     ++OpcodeCount[opcode];
 
+    /*
+    LOG_FUNC << "got opcode "
+           << (unsigned short)opcode 
+           << " (" << GetOpcodeName(opcode) << ")\n";
+    */
+           
     // the main reason the contents of the case statements are
     // enclosed in curly braces is so that messages can be
     // printed, logged, or whatever as soon as they are
@@ -1130,27 +834,29 @@ void DAOCConnection::BuildMessagesFromTCPClient
 
     // done
     return;
-} // end BuildMessagesFromTCPClient
+} // end FromTCPClient
 
-void DAOCConnection::BuildMessagesFromUDPServer
+void DAOCConnection::FromUDPServer
     (
-    unsigned char* buffer
+    const unsigned char* buffer,
+    const unsigned int& length,
+    tsfifo<CheyenneMessage*>* fifo
     )
 {
-    int ndx=2; // start at offset 2 so we dont look at the size field
-               // want to maintain the size in the buffer though so 
-               // we can PrintPacket() if we want
-    unsigned short seq;
+    int ndx=2; // start at offset 2 (where the opcode is)
     opcode_t opcode;
-
-    // get sequence
-    GetData(seq,ndx,buffer);
 
     // get opcode
     GetData(opcode,ndx,buffer);
 
     // increment count
     ++OpcodeCount[opcode];
+
+    /*
+    LOG_FUNC << "got opcode "
+           << (unsigned short)opcode 
+           << " (" << GetOpcodeName(opcode) << ")\n";
+    */       
 
     // the main reason the contents of the case statements are
     // enclosed in curly braces is so that messages can be
@@ -1251,19 +957,21 @@ void DAOCConnection::BuildMessagesFromUDPServer
 
     // done
     return;
-} // end BuildMessagesFromUDPServer
+} // end FromUDPServer
 
-void DAOCConnection::BuildMessagesFromUDPClient
+void DAOCConnection::FromUDPClient
     (
-    unsigned char* buffer
+    const unsigned char* buffer,
+    const unsigned int& length,
+    tsfifo<CheyenneMessage*>* fifo
     )
 {
     // no known messages
-
-    PrintPacket(false,false,buffer);
+    LOG_FUNC << "No known messages!\n";
+    PrintPacket(false,false,buffer,length);
     // done
     return;
-} // end BuildMessagesFromUDPClient
+} // end FromUDPClient
 
 void DAOCConnection::Decrypt(unsigned char* data,int data_size)
 {
@@ -1328,142 +1036,6 @@ void DAOCConnection::exCrypt_c(unsigned char *data, int data_size, const char *k
         key_pos++;
     } while (data_pos < data_size);
 }
-
-DWORD DAOCConnection::Run(void)
-{
-    Logger << "[DAOCConnection::Run] beginning execution.\n";
-
-    while(bContinue)
-        {
-        if(data_signal.wait(500))
-            {
-            // reset signal
-            data_signal.reset();
-
-            // have data, now process it
-            BuildMessages();
-            }
-        } // end forever
-
-    Logger << "[DAOCConnection::Run] exiting thread.\n";
-
-    // clear flag
-    bRunning=false;
-
-    // done
-    return(0);
-} // end Run
-
-bool DAOCConnection::Go(tsfifo<CheyenneMessage*>* p)
-{
-    if(bRunning)
-        {
-        Logger << "[DAOCConnection::Go] thread already running!" << "\n";
-
-        return(false);
-        }
-
-    // save pointers
-    fifo=p;
-
-    // oops check
-    _ASSERTE(fifo != NULL);
-
-    // set flags
-    bRunning=true;
-    bContinue=true;
-
-    // start thread
-    hThread=CreateThread
-        (
-        NULL,0,
-        (LPTHREAD_START_ROUTINE)ThreadFunc,
-        this,
-        0,
-        &dwThreadID
-        );
-
-    Logger << "[DAOCConnection::Go] thread id " << unsigned int(dwThreadID) << " created\n";
-
-    // oops check
-    if(!hThread || hThread==INVALID_HANDLE_VALUE)
-        {
-        hThread=NULL;
-
-        // clear flags
-        bRunning=false;
-        bContinue=false;
-
-        // done
-        return(false);
-        }
-
-    // done
-    return(true);
-} // end Go
-
-void DAOCConnection::Stop(void)
-{
-    // clear flag (thread will detect this and exit)
-    bContinue=false;
-
-    if(bRunning)
-        {
-        // wait for thread to exit
-        for(int i=0;i<10;++i)
-            {
-            // check flag
-            if(!bRunning)
-                {
-                Logger << "[DAOCConnection::Stop] thread terminated gracefully.\n";
-                break;
-                }
-        
-            // sleep a bit
-            Sleep(100);
-            }
-        }
-    else
-        {
-        Logger << "[DAOCConnection::Stop] thread has already terminated gracefully.\n";
-        }
-
-    // if thread is still running,
-    // forcibly terminate it
-
-    if(bRunning)
-        {
-        Logger << "[DAOCConnection::Stop] thread failed to terminate, forcibly terminating it.\n";
-        bRunning=false;
-        TerminateThread(hThread,-1);
-        }
-
-    // done
-    return;
-} // end Stop
-
-DWORD WINAPI DAOCConnection::ThreadFunc(PVOID context)
-{
-    DAOCConnection* pMe=static_cast<DAOCConnection*>(context);
-
-    _ASSERTE(pMe != NULL);
-
-    try
-        {
-        return(pMe->Run());
-        }
-    catch(std::exception& e)
-        {
-        // exception caught, terminate program
-        ::Logger << "[DAOCConnection::ThreadFunc] caught exception " << e.what() << "\n";
-
-        std::cerr << "[DAOCConnection::ThreadFunc] caught exception " << e.what() << std::endl;
-        std::cerr << "type: " << typeid(e).name() << std::endl;
-        
-        // rethrow
-        throw;
-        }
-} // end ThreadFunc
 
 daocmessages::crypt_and_version* DAOCConnection::ParseCryptAndVersion
     (

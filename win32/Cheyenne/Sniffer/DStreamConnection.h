@@ -194,4 +194,7 @@ private:
 
     // the sniff-map
     sniff_map_type SniffMap;
+    
+    // the fifo (from GoParam)
+    tsfifo<CheyenneMessage*>* fifo;
 }; // end class DStreamConnection
