@@ -121,6 +121,13 @@ DWORD Database::Run(const bool& bContinue)
 
     MessageInputFifo->Push(msg);
     }
+    {
+    daocmessages::stealth* msg=new daocmessages::stealth;
+    
+    msg->info_id=2;
+    
+    MessageInputFifo->Push(msg);
+    }
     */
         
     while(bContinue)
@@ -189,9 +196,19 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
     // store back
     ThisActor.ModifyMotion().SetXPos(x);
     ThisActor.ModifyMotion().SetYPos(y);
-
+    
     // set time
     ThisActor.ModifyMotion().ModifyValidTime() += CurrentAge;
+
+    // update stealth cycle if actor is stealthed
+    if(ThisActor.GetStealth())
+        {
+        // map 2 to 2PI (6.283185307179586476925286766559 radians)
+        double Radians=6.283185307179586476925286766559 * (0.5 * fmod(ThisActor.GetMotion().GetValidTime().Seconds(),2.0));
+        ThisActor.SetStealthCycleA(float(0.5+(0.5*cos(Radians))));
+        ThisActor.SetStealthCycleB(float(0.5+(0.5*cos(Radians-1.0471975511965977461542144610932)))); // offset -60°
+        ThisActor.SetStealthCycleC(float(0.5+(0.5*cos(Radians-2.0943951023931954923084289221863)))); // offset -120°
+        } // end if stealthed
 
     // fire event
     ActorEvents[DatabaseEvents::MaintenanceUpdate](ThisActor);
@@ -224,14 +241,14 @@ void Database::DoMaintenance(void)
                 break;
 
             case Actor::Object:
-                // 45 seconds
-                MaxAge=CheyenneTime(45.0);
+                // 300 seconds
+                MaxAge=CheyenneTime(300.0);
                 break;
 
             case Actor::Mob:
             default:
-                // 45 seconds
-                MaxAge=CheyenneTime(45.0);
+                // 60 seconds
+                MaxAge=CheyenneTime(60.0);
                 break;
             } // end switch actor type
 
@@ -299,7 +316,7 @@ void Database::IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor
 
 Actor* Database::GetActorById(const unsigned int& id)
 {
-    // find it
+    // find it (this works by INFO ID)
     actor_iterator it=Actors.find(id);
 
     // return NULL if not found
@@ -527,6 +544,14 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             ThisActor.ModifyMotion().SetSpeed(SpeedCorrection * ThisActor.GetMotion().GetSpeed());
             
+            ThisActor.SetStealth(p->visibility & 0x02 ? true:false);
+            
+            // set hp
+            if(p->hp <= 100)
+                {
+                ThisActor.SetHealth(p->hp);
+                }
+            
             // make sure the flag is cleared
             ThisActor.SetOld(false);
 
@@ -612,10 +637,20 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
             // save heading
             ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
+            
+            // save stealth
+            ThisActor.SetStealth(p->visibility & 0x02 ? true:false);
+
+            // set hp
+            if(p->hp <= 100)
+                {
+                ThisActor.SetHealth(p->hp);
+                }
 
             // make sure the flag is cleared
             ThisActor.SetOld(false);
 
+            // save update time
             ThisActor.SetLastUpdateTime(::Clock.Current());
 
             //ThisActor.Print(os);
@@ -1217,6 +1252,23 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
         case opcodes::stealth:
             {
+            const daocmessages::stealth* p=static_cast<const daocmessages::stealth*>(msg);
+            
+            // get actor
+            Actor* pa=GetActorById(p->info_id);
+            
+            if(!pa)
+                {
+                Logger << "[Database::HandleSniffedMessage] (stealth) unable to find id " << p->info_id << "\n";
+                break;
+                }
+
+            Actor& ThisActor=*pa;
+            
+            ThisActor.SetStealth(true);
+            
+            // clear flag
+            ThisActor.SetOld(false);
             }
             break;
 

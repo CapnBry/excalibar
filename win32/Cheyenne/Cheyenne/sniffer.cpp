@@ -336,7 +336,7 @@ DWORD Sniffer::Run(void)
 
     if (!nids_init())
         {
-        Logger << "[main] nids_init() failed! Exiting thread: " << &nids_errbuf[0] << "\n";
+        Logger << "[Sniffer::Run] nids_init() failed! Exiting thread: " << &nids_errbuf[0] << "\n";
         bRunning=false;
         return(-1);
         }	

@@ -79,7 +79,21 @@ private:
 class Actor
 {
 public:
-    Actor(){SetHealth(100);SetLevel(0);SetRealm(0);SetId(0);SetInfoId(0);SetTargetId(0);SetRegion(0);SetActorType(Player);};
+    Actor()
+    {
+        SetHealth(100);
+        SetLevel(0);
+        SetRealm(0);
+        SetId(0);
+        SetInfoId(0);
+        SetTargetId(0);
+        SetRegion(0);
+        SetActorType(Player);
+        SetStealth(false);
+        SetStealthCycleA(0.0f);
+        SetStealthCycleB(0.0f);
+        SetStealthCycleC(0.0f);
+    };
     Actor(const Actor& s){set(s);};
     virtual ~Actor(){};
 
@@ -298,6 +312,10 @@ private:
         MEMBER_ASSIGN(LastUpdateTime);
         MEMBER_ASSIGN(Region);
         MEMBER_ASSIGN(Old);
+        MEMBER_ASSIGN(Stealth);
+        MEMBER_ASSIGN(StealthCycleA);
+        MEMBER_ASSIGN(StealthCycleB);
+        MEMBER_ASSIGN(StealthCycleC);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -314,6 +332,13 @@ private:
     DECL_MEMBER(CheyenneTime,LastUpdateTime); // time this actor was last updated with live info
     DECL_MEMBER(unsigned char,Region); // the region this actor is currently in
     DECL_MEMBER(bool,Old); // true if the actor is "old"
+    DECL_MEMBER(bool,Stealth); // true when stealthed
+    DECL_MEMBER(float,StealthCycleA); // used for display purposes
+                                     // goes from 0 to 1 to 0 every 2 seconds
+    DECL_MEMBER(float,StealthCycleB); // used for display purposes
+                                     // goes from 0 to 1 to 0 every 2 seconds
+    DECL_MEMBER(float,StealthCycleC); // used for display purposes
+                                     // goes from 0 to 1 to 0 every 2 seconds
 }; // end class Actor
 
 #endif // ACTOR_H

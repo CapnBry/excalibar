@@ -218,6 +218,12 @@ void Central::OnDeleteActor(const Actor& ThisActor)
         // redraw
         InvalidateRect(hDataWnd,NULL,TRUE);
         }
+    
+    if(ThisActor.GetInfoId() == HookedActor)
+        {
+        // unassign
+        HookedActor=0;
+        }
 
     //Logger << "[Central::OnDeleteActor] Deleted " << ThisActor.GetName().c_str() << " from the list\n";
 
@@ -1431,6 +1437,8 @@ void Central::InitOpenGL(void)
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
     glPolygonMode(GL_FRONT,GL_FILL);
     glShadeModel(GL_SMOOTH);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
 
     // initialize the display lists
     InitDisplayLists();
@@ -1994,7 +2002,7 @@ void Central::RenderActor(const Actor& ThisActor)const
 
         // if AutoHookTarget is set and no hooked actor exists already
         // then set the hooked actor equal to the targeted actor
-        if(Config.GetAutoHookTarget() && HookedActor==0)
+        if(Config.GetAutoHookTarget())
             {
             HookedActor=ThisActor.GetInfoId();
             }
@@ -2090,19 +2098,41 @@ void Central::RenderActor(const Actor& ThisActor)const
             glColor4f(0.5f,0.0f,0.25f,1.0f);
             }
 
+        // store current color
+        float PreAlphaColors[4];
+        glGetFloatv(GL_CURRENT_COLOR,&PreAlphaColors[0]);
+
+        if(ThisActor.GetStealth())
+            {
+            // enable alpha blending
+            glEnable(GL_BLEND);
+            }
+        
         // draw actor symbol
         glBegin(GL_TRIANGLES);
 
+        glColor4f(PreAlphaColors[0],PreAlphaColors[1],PreAlphaColors[2],ThisActor.GetStealthCycleB());
         glTexCoord2f(0.5f,1.0f);
         glVertex3f(0.0f,ActorVertexY,0.0f);
 
+        glColor4f(PreAlphaColors[0],PreAlphaColors[1],PreAlphaColors[2],ThisActor.GetStealthCycleA());
         glTexCoord2f(0.0f,0.0f);
         glVertex3f(-ActorVertexX,-ActorVertexY,0.0f);
 
+        glColor4f(PreAlphaColors[0],PreAlphaColors[1],PreAlphaColors[2],ThisActor.GetStealthCycleC());
         glTexCoord2f(1.0f,0.0f);
         glVertex3f(ActorVertexX,-ActorVertexY,0.0f);
 
         glEnd();
+
+        if(ThisActor.GetStealth())
+            {
+            // disable alpha blending
+            glDisable(GL_BLEND);
+            }
+            
+        // restore colors
+        glColor4fv(&PreAlphaColors[0]);
 
         // disable textures
         glDisable(GL_TEXTURE_2D);

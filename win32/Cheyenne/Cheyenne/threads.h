@@ -79,6 +79,11 @@ public:
         return(true);
     };
     
+    void AsynchronousStop(void)
+    {
+        // clear flag (thread will detect this and exit)
+        bContinue=false;
+    }
     void Stop(void)
     {
         // clear flag (thread will detect this and exit)

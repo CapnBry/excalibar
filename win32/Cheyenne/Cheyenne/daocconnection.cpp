@@ -917,6 +917,9 @@ void DAOCConnection::BuildMessagesFromTCPServer
             {
             daocmessages::stealth* msg=ParseStealth(ndx,buffer);
 
+            Logger << "old stealth opcode " << unsigned int(opcode) << ":\n";
+            PrintPacket(true,true,buffer);
+
             // push it on fifo for database
             fifo->Push(msg);
             }
@@ -925,6 +928,13 @@ void DAOCConnection::BuildMessagesFromTCPServer
         case xp:
             break;
 
+        case 0x1E:
+        case 0x25:
+            // these are stealth opcodes according to excalibur
+            Logger << "new stealth opcode " << unsigned int(opcode) << ":\n";
+            PrintPacket(true,true,buffer);
+            break;
+            
         default:
             if(Config.GetLogUnknownPackets())
                 {
@@ -1019,8 +1029,7 @@ void DAOCConnection::BuildMessagesFromTCPClient
             // database knows not to use it
 
             msg->player_id=self_id;
-            msg->health=255;
-
+            
             // put on fifo for server
             fifo->Push(msg);
             }
@@ -1453,6 +1462,15 @@ daocmessages::player_pos_update* DAOCConnection::ParsePlayerPosUpdate
     // get heading
     GetData(msg->heading,ndx,buffer);
     msg->heading &= 0xFFF;
+    
+    // skip 2 unused
+    SkipData(ndx,2);
+    
+    // get visibility
+    GetData(msg->visibility,ndx,buffer);
+    
+    // get health (this may not be used -- if >100, its invalid)
+    GetData(msg->hp,ndx,buffer);
 
     // done
     return(msg);
@@ -1586,10 +1604,16 @@ daocmessages::player_head_update* DAOCConnection::ParsePlayerHeadUpdate
     msg->heading &=0xFFF;
 
     // skip unused
-    SkipData(ndx,4);
+    SkipData(ndx,1);
+    
+    // get stealth
+    GetData(msg->visibility,ndx,buffer);
+    
+    // skip unused
+    SkipData(ndx,2);
 
     // get HP (this may not be used -- if >100, its invalid)
-    GetData(msg->health,ndx,buffer);
+    GetData(msg->hp,ndx,buffer);
 
     // done
     return(msg);

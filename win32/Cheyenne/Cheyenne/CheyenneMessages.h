@@ -102,6 +102,8 @@ struct player_pos_update : public daocmessages::SniffedMessage
     unsigned int x;
     unsigned int y;
     unsigned short heading;
+    unsigned char hp;
+    unsigned char visibility;
     }; // end player_pos_update
 
 struct self_health_update : public daocmessages::SniffedMessage
@@ -147,9 +149,10 @@ struct player_head_update : public daocmessages::SniffedMessage
 
     unsigned short player_id;
     unsigned short heading;
-    unsigned char health; // depending on the source of the message, this field may
-                          // no be used. in this case, it should be set to -1 (255)
+    unsigned char hp;     // depending on the source of the message, this field may
+                          // not be used. in this case, it should be set to -1 (255)
                           // to indicate that it is not valid
+    unsigned char visibility;
     }; // end player_head_update
 
 struct equipment_item
