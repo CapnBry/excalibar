@@ -138,6 +138,7 @@ type
     FZone:      TDAOCZoneInfo;
     FRegionID:  integer;
     FDAOCObjs:  TDAOCObjectList;
+    FDAOCObjsStale: TDAOCObjectList;
     FVendorItems: TDAOCVendorItemList;
     FMasterVendorList: TDAOCMasterVendorList;
     FGroundTarget: TMapNode;
@@ -396,6 +397,7 @@ begin
   FVendorItems := TDAOCVendorItemList.Create;
   FMasterVendorList := TDAOCMasterVendorList.Create;
   FDAOCObjs := TDAOCObjectList.Create;
+  FDAOCObjsStale := TDAOCObjectList.Create;
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
@@ -413,6 +415,7 @@ begin
 
   FChatParser.Free;
   FDAOCObjs.Free;
+  FDAOCObjsStale.Free;
   FMasterVendorList.Free;
   FVendorItems.Free;
   FZoneList.Free;
@@ -1023,6 +1026,14 @@ begin
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
 
+  if not Assigned(pDAOCObject) then begin
+    pDAOCObject := FDAOCObjsStale.FindByInfoID(wID);
+    if Assigned(pDAOCObject) then 
+      Log(Format('MobUpdate: %4.4x after stale %dms', [
+        pDAOCObject.InfoID, pDAOCObject.TicksSinceUpdate]));
+    pDAOCObject := nil;
+  end;
+  
     { here we can add the object, even though we don't know what it is.
       The client will request the object via RequestObjectByInfoID
       and we'll just replace this object with the real mob.  Make sure
@@ -1232,7 +1243,7 @@ begin
               requests the NewObject.  This may not be a good idea, but it is the
               easy fix }
           pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
-          if Assigned(pOldObject) and not pOldObject.Stale and
+          if Assigned(pOldObject) and not pOldObject.IsStale and
             (pOldObject is TDAOCMovingObject) then begin
             DestinationX := pOldObject.DestinationX;
             DestinationY := pOldObject.DestinationY;
@@ -1270,6 +1281,8 @@ begin
   if Assigned(tmpObject) then begin
     if not Assigned(pOldObject) then
       pOldObject := FDAOCObjs.FindByInfoID(tmpObject.InfoID);
+        { BRY: this might actually be a bad idea since it is actually still
+          in the list and we're going to delete it /after/ the event }
     if Assigned(pOldObject) then
       DoOnDeleteDAOCObject(pOldObject);
     FDAOCObjs.AddOrReplace(tmpObject);
@@ -2022,9 +2035,19 @@ end;
 procedure TDAOCConnection.CheckForStaleObjects;
 var
   I:    integer;
+  pObj: TDAOCObject;
 begin
-  for I := 0 to FDAOCObjs.Count - 1 do
-    FDAOCObjs[I].CheckStale;
+  I := 0;
+  while I < FDAOCObjs.Count - 1 do begin
+    pObj := FDAOCObjs[I];
+    pObj.CheckStale;
+    if pObj.IsStale then begin
+      FDAOCObjsStale.Add(FDAOCObjs.Take(I));
+      DoOnDeleteDAOCObject(pObj);
+    end  { if stale }
+    else
+      inc(I);
+  end;  { for I to count }
 end;
 
 procedure TDAOCConnection.SetMaxObjectUpdtDistance(const Value: double);
