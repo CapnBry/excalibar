@@ -1500,41 +1500,33 @@ var
   sCmdLine:   string;
   pi:   TProcessInformation;
   si:   TStartupInfo;
-  sLastDir:   string;
 begin
   Result := false;
   if not Assigned(ALogin) then
     exit;
-    
-  sLastDir := GetCurrentDir;
-  if not SetCurrentDir(DAOCPath) then
+
+  sDLL := 'login.dll ' + FDAOCPath;
+  if (ALogin.ServerAddr = $3210FED0) then  // Pendragon
+    sDLL := sDLL + 'tgame.dll'
+  else
+    sDLL := sDLL + 'game.dll';
+
+  sCmdLine := Format('%s %s 10622 %s %s %s %d', [sDLL,
+    ALogin.ServerIP, ALogin.Account, ALogin.Password, ALogin.Name, ALogin.Realm]);
+
+  FillChar(si, sizeof(si), 0);
+  si.cb := sizeof(si);
+  FillChar(pi, sizeof(pi), 0);
+  if not CreateProcess(nil, PChar(sCmdLine),
+    nil, nil, false, CREATE_SUSPENDED, nil, nil, si, pi) then begin
+    MessageBox(0, PChar('Error ' + IntToStr(GetLastError) + ' launching'), 'QuickLaunch', MB_OK);
     exit;
-
-  try
-    if (ALogin.ServerAddr = $3210FED0) then  // Pendragon
-      sDLL := 'tgame.dll'
-    else
-      sDLL := 'game.dll';
-
-    sCmdLine := Format('%s %s 10622 %s %s %s %d', [sDLL,
-      ALogin.ServerIP, ALogin.Account, ALogin.Password, ALogin.Name, ALogin.Realm]);
-
-    FillChar(si, sizeof(si), 0);
-    si.cb := sizeof(si);
-    FillChar(pi, sizeof(pi), 0);
-    if not CreateProcess(nil, PChar(sCmdLine),
-      nil, nil, false, CREATE_SUSPENDED, nil, nil, si, pi) then begin
-      MessageBox(0, PChar('Error ' + IntToStr(GetLastError) + ' launching'), 'QuickLaunch', MB_OK);
-      exit;
-    end;
-
-    ResumeThread(pi.hThread);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-    Result := true;
-  finally
-    SetCurrentDir(sLastDir);
   end;
+
+  ResumeThread(pi.hThread);
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+  Result := true;
 end;
 
 function  TDAOCControl.LaunchCharacterIdx(AIndex: integer) : boolean;
