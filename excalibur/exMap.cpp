@@ -378,7 +378,7 @@ void exMap::paintGL() {
           if ((m->isMob()) && (m->playerDist() < 1000))  {
               glLineWidth(1.0);
               qglColor( darkRed );
-              drawCircle(m->getX(), m->getY(), 500, 20);
+              drawCircle(m->getX(), m->getY(), 500, 18);
       }
     }
     m->stale();
@@ -394,6 +394,10 @@ void exMap::paintGL() {
     glEnd();
   }
 
+  /* draw a couple range cirlces around the player */	
+  drawCircle(c->playerx, c->playery, 1000, 20); 
+  drawCircle(c->playerx, c->playery, 1500, 20); 
+	     
   is_dirty = false;
 
   glFlush();
