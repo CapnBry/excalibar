@@ -811,7 +811,7 @@ begin
   end;    { case class }
 
   s := 'Dist: ' + FormatFloat('0', pMob.Distance3D(FDControl.LocalPlayer));
-  if pMob is TDAOCMovingObject then
+  if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).Speed <> 0) then
     s := s + '  Speed: ' + IntToStr(TDAOCMovingObject(pMob).Speed);
   rastery := WriteGLUTTextH12(4, rastery, s);
 end;
