@@ -1405,7 +1405,9 @@ end;
 
 function TDAOCConnection.GetSelectedObject: TDAOCObject;
 begin
-  if FSelectedID = FLocalPlayer.InfoID then
+  if FSelectedID = 0 then
+    Result := nil
+  else if FSelectedID = FLocalPlayer.InfoID then
     Result := FLocalPlayer
   else
     Result := FDAOCObjs.FindByInfoID(FSelectedID);
