@@ -18,6 +18,7 @@ void* p=NULL;
 unsigned short port=0;
 std::string account_name;
 bool euro_server;
+bool promiscuous;
 
 // bit of code courtesy Cheyenne :)
 void SET_CHECK_BOOL(HWND hwnd,UINT control,bool bool_value)
@@ -95,6 +96,8 @@ void ReadIni(const std::string& filename)
     file >> std::ws;
     std::getline(file,::account_name);
     file >> std::ws >> ::euro_server;
+    file >> std::ws >> ::promiscuous;
+    
 } // end ReadIni
 
 void WriteIni(const std::string& filename)
@@ -106,7 +109,8 @@ void WriteIni(const std::string& filename)
         }
     
     file << (::account_name.length()?account_name:"<no account>") << std::endl
-         << ::euro_server << std::endl;
+         << ::euro_server << std::endl
+         << ::promiscuous << std::endl;
 } // end WriteIni
 
 unsigned short GetWord(unsigned char *data)

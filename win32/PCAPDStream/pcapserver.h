@@ -15,7 +15,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define int_ntoa(x)	inet_ntoa(*((struct in_addr *)&x))
-#define VERSIONSTRING		"0.6"
+#define VERSIONSTRING		"0.7"
 #define CAPTIONSTRING		"PCAP-DStream Server"
 #define MAX_PENDING_CONNECTS	4  /* The backlog allowed for listen() */
 #define MAX_MSG_LENGTH 1024
@@ -58,6 +58,7 @@ extern unsigned short port;
 
 extern std::string account_name;
 extern bool euro_server;
+extern bool promiscuous;
 
 typedef void* (__cdecl*Aurelia_T)(void);
 extern Aurelia_T Aurelia;

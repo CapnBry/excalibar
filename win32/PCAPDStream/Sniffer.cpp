@@ -160,6 +160,8 @@ void cSniffer::udp_callback(struct tuple4 * addr, char *data, int len, struct ip
 
 void cSniffer::SnifferThreadProc()
 {
+    nids_params.promisc=promiscuous; // promiscuous mode on/off
+
 	if (!nids_init())
 	{
 		pMain->StatusUpdate("WinPCAP error: %s\r\n",nids_errbuf);

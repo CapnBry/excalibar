@@ -13,6 +13,8 @@
 #define IDC_ADAPTERLIST                 1006
 #define IDC_CHECK1                      1007
 #define IDC_EURO                        1007
+#define IDC_EURO2                       1008
+#define IDC_PROMISC                     1008
 
 // Next default values for new objects
 // 

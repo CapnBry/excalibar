@@ -88,6 +88,8 @@ BEGIN
     EDITTEXT        IDC_ACCOUNT,59,84,83,14,ES_AUTOHSCROLL
     CONTROL         "Euro Server",IDC_EURO,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,150,87,54,10
+    CONTROL         "Promiscuous Mode",IDC_PROMISC,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,205,87,75,10
 END
 
 
@@ -173,7 +175,7 @@ BEGIN
             VALUE "InternalName", "pcapdstream"
             VALUE "LegalCopyright", "Copyright (C) 2004"
             VALUE "OriginalFilename", "pcapdstream.exe"
-            VALUE "PrivateBuild", "0.6"
+            VALUE "PrivateBuild", "0.7"
             VALUE "ProductName", " pcapdstr Application"
             VALUE "ProductVersion", "1, 0, 0, 1"
         END

@@ -51,6 +51,7 @@ INT_PTR CALLBACK SelectAdapterProc
             SendDlgItemMessage(hWnd,IDC_ADAPTERLIST,LB_SETCURSEL,0,0);
             SET_EDIT_STRING(hWnd,IDC_ACCOUNT,::account_name);
             SET_CHECK_BOOL(hWnd,IDC_EURO,::euro_server);
+            SET_CHECK_BOOL(hWnd,IDC_PROMISC,::promiscuous);
             
             break;
             
@@ -76,6 +77,9 @@ INT_PTR CALLBACK SelectAdapterProc
                     // get euro flag and account name
                     GET_EDIT_STRING(hWnd,IDC_ACCOUNT,::account_name);
                     euro_server=GET_CHECK_BOOL(hWnd,IDC_EURO);
+                    
+                    // get promiscuous mode
+                    promiscuous=GET_CHECK_BOOL(hWnd,IDC_PROMISC);
                     
                     // end dialog
                     EndDialog(hWnd,IDOK);
