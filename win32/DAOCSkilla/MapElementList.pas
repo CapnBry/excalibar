@@ -88,7 +88,7 @@ type
     procedure HTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest); virtual;
 {$ENDIF MSWINDOWS}
     procedure HTTPDownload(const AURL, ADestFile: string; ATag: integer = 0);
-    function HaveLatestVersion(const ALocalFile, ASection, AKey: string) : boolean;
+    function HaveLatestVersion(const ALocalFile, ASection: string) : boolean;
   public
     procedure GLInitialize;
     procedure GLRender(const ARenderBounds: TRect);
@@ -425,7 +425,7 @@ begin
 end;
 
 function TZoneGLRenderObjectListList.HaveLatestVersion(const ALocalFile,
-  ASection, AKey: string): boolean;
+  ASection: string): boolean;
 var
   sVersionDate:   string;
   dtVersion:      TDateTime;
@@ -441,7 +441,7 @@ begin
 
     { get the date of the latest version from the version file }
   with TINIFile.Create(FVersionFile) do begin
-    sVersionDate := ReadString(ASection, AKey, '');
+    sVersionDate := ReadString(ASection, ExtractFileName(ALocalFile), '');
     Free;
   end;
 
@@ -557,16 +557,16 @@ begin
   pTmpZone.OffsetY := AZone.BaseLoc.Y;
   pTmpZone.DrawInfoPoints := FDrawInfoPoints;
 
-  sDestFileName := FVectorMapCustomDir + AZone.MapName;
+  sDestFileName := FVectorMapCustomDir + ChangeFileExt(AZone.MapName, '.map');
     { custom map overrides all! }
   if FileExists(sDestFileName) then
     pTmpZone.LoadFromFile(sDestFileName)
 
   else begin
-    sDestFileName := FVectorMapDir + AZone.MapName;
+    sDestFileName := FVectorMapDir + ChangeFileExt(AZone.MapName, '.map');
     pTmpZone.FileName := sDestFileName;
 
-    if not HaveLatestVersion(sDestFileName, 'vector', Format('zone%03d.map', [AZone.ZoneNum])) then begin
+    if not HaveLatestVersion(sDestFileName, 'vector') then begin
       ForceDirectories(FVectorMapDir);
       HTTPDownload(FMapBaseURL + 'f=vector&z=' + IntToStr(AZone.ZoneNum), sDestFileName,
         AZone.ZoneNum);
@@ -666,16 +666,16 @@ begin
   pTmpZone.OffsetX := AZone.BaseLoc.X;
   pTmpZone.OffsetY := AZone.BaseLoc.Y;
 
-  sDestFileName := Format('%szone%3.3d.dds', [FTextureMapCustomDir, AZone.ZoneNum]);
+  sDestFileName := FTextureMapCustomDir + ChangeFileExt(AZone.MapName, '.dds');
     { custom map overrides all! }
   if FileExists(sDestFileName) then
     pTmpZone.LoadFromSingleDDSFile(sDestFileName)
 
   else begin
-    sDestFileName := Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]);
+    sDestFileName := FTextureMapDir + ChangeFileExt(AZone.MapName, '.dds');
     pTmpZone.FileName := sDestFileName;
 
-    if not HaveLatestVersion(sDestFileName, 'dds', Format('zone%03d.dds', [AZone.ZoneNum])) then begin
+    if not HaveLatestVersion(sDestFileName, 'dds') then begin
       ForceDirectories(FTextureMapDir);
       HTTPDownload(FMapBaseURL + 'f=dds&z=' + IntToStr(AZone.ZoneNum), sDestFileName,
         AZone.ZoneNum);
