@@ -67,7 +67,7 @@ type
     procedure DAOCPathChanged;
     procedure DAOCStopAllActions;
     procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
-    procedure DAOCArriveAtGotoDest;
+    procedure DAOCArriveAtGotoDest(ANode: TMapNode);
     procedure DAOCSelectNPCSuccess;
     procedure DAOCSelectNPCFailed;
     procedure DAOCAttemptNPCRightClickFailed;
@@ -366,14 +366,15 @@ begin
     frmPowerskill.SkillLevelChanged(AItem);
 end;
 
-procedure TfrmMacroing.DAOCArriveAtGotoDest;
+procedure TfrmMacroing.DAOCArriveAtGotoDest(ANode: TMapNode);
 begin
-  if frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
-    if IsAtForgeNode then
+    { ANode will not be assigned if we're arriving at a non-pathed destination }
+  if Assigned(ANode) and frmPowerskill.Visible and frmMacroTradeSkills.Visible then begin
+    if ANode.IsNamed(FPSItemList.ForgeNodeName) then
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
       FDControl.ScheduleCallback(5000, ArrivedAtForge, 0);
 
-    if IsAtMerchantNode then
+    if ANode.IsNamed(FPSItemList.MerchantNodeName) then
       FDControl.ScheduleCallback(5000, ArrivedAtMerchant, 0);
   end;
 end;
