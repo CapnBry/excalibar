@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabExtras
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 1
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -801,6 +801,15 @@ object frmRenderPrefs: TfrmRenderPrefs
         TabOrder = 6
         Value = 300
         OnChange = edtMobTriangleMaxChange
+      end
+      object chkEasyMouseOvers: TCheckBox
+        Left = 8
+        Top = 192
+        Width = 237
+        Height = 17
+        Caption = 'Easy map mouse-overs'
+        TabOrder = 7
+        OnClick = chkEasyMouseOversClick
       end
     end
   end

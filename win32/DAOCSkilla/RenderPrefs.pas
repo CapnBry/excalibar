@@ -85,6 +85,7 @@ type
     SmoothLines:      boolean;
     SmoothPolygons:   boolean;
     SmoothPoints:     boolean;
+    EasyMouseOvers:   boolean;
 
     constructor Create;
 
@@ -201,6 +202,7 @@ type
     Label26: TLabel;
     Label27: TLabel;
     chkDrawInfoPoints: TCheckBox;
+    chkEasyMouseOvers: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -242,6 +244,7 @@ type
     procedure edtMobTriangleNomChange(Sender: TObject);
     procedure edtMobTriangleMaxChange(Sender: TObject);
     procedure chkDrawInfoPointsClick(Sender: TObject);
+    procedure chkEasyMouseOversClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -313,6 +316,7 @@ begin
   Result.MobTriangleNom := MobTriangleNom;
   Result.ScaleMobTriangle := ScaleMobTriangle;
   Result.DrawInfoPoints := DrawInfoPoints;
+  Result.EasyMouseOvers := EasyMouseOvers;
 end;
 
 constructor TRenderPreferences.Create;
@@ -399,6 +403,7 @@ begin
     MobTriangleNom := ReadInteger('RenderPrefs', 'MobTriangleNom', 150);
     ScaleMobTriangle := ReadBool('RenderPrefs', 'ScaleMobTriangle', true);
     DrawInfoPoints := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
+    EasyMouseOvers  := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
   end;
 end;
 
@@ -450,6 +455,7 @@ begin
     WriteInteger('RenderPrefs', 'MobTriangleNom', MobTriangleNom);
     WriteBool('RenderPrefs', 'ScaleMobTriangle', ScaleMobTriangle);
     WriteBool('RenderPrefs', 'DrawInfoPoints', DrawInfoPoints);
+    WriteBool('RenderPrefs', 'DrawInfoPoints', EasyMouseOvers);
   end;
 end;
 
@@ -675,7 +681,8 @@ begin
   edtMobTriangleMax.Value := FRenderPrefs.MobTriangleMax;
   edtMobTriangleNom.Value := FRenderPrefs.MobTriangleNom;
   chkScaleMobTriangle.Checked := FRenderPrefs.ScaleMobTriangle;
-  chkScaleMobTriangleClick(nil); 
+  chkScaleMobTriangleClick(nil);
+  chkEasyMouseOvers.Checked := FRenderPrefs.EasyMouseOvers;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
@@ -929,6 +936,11 @@ end;
 procedure TfrmRenderPrefs.chkDrawInfoPointsClick(Sender: TObject);
 begin
   FRenderPrefs.DrawInfoPoints := chkDrawInfoPoints.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkEasyMouseOversClick(Sender: TObject);
+begin
+  FRenderPrefs.EasyMouseOvers := chkRenderPlayers.Checked;
 end;
 
 end.

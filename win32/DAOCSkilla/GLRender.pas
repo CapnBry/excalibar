@@ -161,6 +161,7 @@ type
     procedure AdjustMobTriangleSize;
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
     procedure DisplaySelectedObjectInventory;
+    procedure CheckMouseOverUnproject;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   public
@@ -311,9 +312,9 @@ begin
     glLoadIdentity();
 
     SetSmoothingOpts;
+
       { at origin }
-    if GetAsyncKeyState(VK_CONTROL) <> 0 then
-      MapUnproject(FMouseLocX, FMouseLocY, false);
+    CheckMouseOverUnproject;
     DrawMapElements;
     DrawGrid;
     DrawUnknownStealthers;
@@ -1673,6 +1674,13 @@ var
   fx, fy, fz: GLdouble;
   pt:         TPoint;
 begin
+  pt := glMap.ScreenToClient(Mouse.CursorPos);
+  if (pt.X < 0) or (pt.Y < 0) or (pt.X > glMap.Width) or (pt.Y > glMap.Height) then begin
+    X := 0;
+    Y := 0;
+    exit;
+  end;
+
   if ANeedMVPSetup then begin
     SetupRadarProjectionMatrix;
     glMatrixMode(GL_MODELVIEW);
@@ -1683,7 +1691,6 @@ begin
   glGetDoublev(GL_MODELVIEW_MATRIX, @modmatrix);
   glGetIntegerv(GL_VIEWPORT, @viewport);
 
-  pt := glMap.ScreenToClient(Mouse.CursorPos);
   gluUnProject(pt.X, glMap.Height - pt.Y, 0, modmatrix, projmatrix, viewport,
     @fx, @fy, @fz);
 
@@ -1708,7 +1715,8 @@ var
   ZoneY:    Cardinal;
   pNearest: TDAOCObject;
 begin
-  if (GetAsyncKeyState(VK_CONTROL) = 0) or not Assigned(FDControl.Zone) then
+  // (GetAsyncKeyState(VK_CONTROL) = 0) or
+  if not Assigned(FDControl.Zone) or ((FMouseLocX = 0) and (FMouseLocY = 0)) then
     exit;
 
     { distance from here to the mouse }
@@ -2078,6 +2086,17 @@ begin
       ShowMessage(s);
     end;
   end;  { if object selected }
+end;
+
+procedure TfrmGLRender.CheckMouseOverUnproject;
+begin
+  if (FRenderPrefs.EasyMouseOvers and (GetForegroundWindow = Handle)) or
+    (GetAsyncKeyState(VK_CONTROL) <> 0) then
+    MapUnproject(FMouseLocX, FMouseLocY, false)
+  else begin
+    FMouseLocX := 0;
+    FMouseLocY := 0;
+  end;
 end;
 
 end.
