@@ -22,6 +22,24 @@ IN TESTING
     window.
   + Added MerchantName property to powerskill profile.
   + Added a better error message when a .NOD file could not be found.
+  + Added ability to override SelectNearestFriendly and QuickSell from
+    daocskilla.ini.
+  + Powerskill Buy's quickbar now closes using the X instead of
+    pressing 1 again.
+  + Added StrafeLeft and StrafeRight to DAOCControl.
+  + If right clicking at the merchant node fails, the character will
+    now strafe right a little and try again.
+  + DAOCWindows uses a UI.ini to define windows now.
+  + Added chat.log Extra Info (XI).  Adds mob health and level to chat
+    log, as well as LocalPlayer's name, level, health, endurance, and
+    mana.  Thanks go to ridethereindeer for the idea.
+  + Fixed bug with tradeskills that have more than one item per group
+    tier (eg Alchemy) where the TradeRecipeWindow was selecting the
+    wrong recipe.
+  + Fixed vector maps with the color DarkGrey in them.
+  + Added low on stat macroing dialog to send a message when a specific
+    stat (Health, End, Mana) drops below a set percentage. Thanks to
+    drmctchr for the idea.
 
 2004 Jan 05 - v1.72
 -------------------

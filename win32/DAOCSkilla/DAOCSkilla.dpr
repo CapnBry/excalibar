@@ -45,7 +45,8 @@ uses
   RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
   zlib2 in '..\Components\ZLib\zlib2.pas',
   QuickLaunchChars in 'QuickLaunchChars.pas',
-  glWindow in '..\Common\glWindow.pas';
+  glWindow in '..\Common\glWindow.pas',
+  LowOnStat in '..\Common\DAOCAutomation\LowOnStat.pas' {frmLowOnStat};
 
 {$R *.TLB}
 
@@ -64,6 +65,7 @@ begin
   Application.CreateForm(TfrmMacroing, frmMacroing);
   Application.CreateForm(TfrmConnectionConfig, frmConnectionConfig);
   Application.CreateForm(TdmdRemoteAdmin, dmdRemoteAdmin);
+  Application.CreateForm(TfrmLowOnStat, frmLowOnStat);
   CreateOptionalForms;
   Application.Run;
 end.
