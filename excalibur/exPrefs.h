@@ -61,6 +61,7 @@ public:
   bool agro_circles;
   bool agro_fading;
   bool dump_unknown_packets;
+  bool MobListColors;
 
   bool select_target;
 

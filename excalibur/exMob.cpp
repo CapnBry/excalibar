@@ -152,18 +152,18 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
     clr=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     cols.setColor(QColorGroup::Base, clr);
   }
-  else if ( !isObj() )
+  else if ( !isObj() && prefs.MobListColors)
     {
     int ldif=(c->playerlevel / 10) + 1;
     int l=this->getLevel();
     if (l < (c->playerlevel - ldif * 3)) /* gray */
       clr = QColor( 139, 137, 137);
     else if (l <= (c->playerlevel - ldif * 2)) /* green */
-      clr = QColor(0,255,0);
+      clr = QColor(0,153,0);
     else if (l <= (c->playerlevel - ldif * 1)) /* blue */
       clr = QColor(0,0,255);
     else if (l <= c->playerlevel) /* yellow */
-      clr = QColor(255,255,0);
+      clr = QColor(255,153,0);
     else if (l <= (c->playerlevel + ldif * 2)) /* red */
       clr = QColor(255,0,0);
     else /* purple */

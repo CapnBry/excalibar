@@ -92,7 +92,7 @@
     </widget>
     <widget class="QTabWidget">
         <property name="name">
-            <cstring>Property_Shet</cstring>
+            <cstring>MiscTab</cstring>
         </property>
         <property name="geometry">
             <rect>
@@ -958,6 +958,46 @@
                 </property>
             </widget>
         </widget>
+        <widget class="QWidget">
+            <property name="name">
+                <cstring>tab</cstring>
+            </property>
+            <attribute name="title">
+                <string>Misc</string>
+            </attribute>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>MobListColorsBox</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>8</x>
+                        <y>10</y>
+                        <width>131</width>
+                        <height>51</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Mob List Colors</string>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>MobListColors</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>101</width>
+                            <height>21</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Enabled</string>
+                    </property>
+                </widget>
+            </widget>
+        </widget>
     </widget>
 </widget>
 <connections>
@@ -1014,12 +1054,12 @@
     <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
 </includes>
 <slots>
-    <slot>SliderAliveColor_valueChanged( int v )</slot>
-    <slot>SliderDeadColor_valueChanged( int v )</slot>
-    <slot>ItemAutoUpload_toggled( bool )</slot>
-    <slot>MapSimplifyRange_valueChanged( int val )</slot>
-    <slot>PrefsDialog_destroyed( QObject * )</slot>
-    <slot>TextLabel1_3_destroyed( QObject * )</slot>
+    <slot>SliderAliveColor_valueChanged(int v)</slot>
+    <slot>SliderDeadColor_valueChanged(int v)</slot>
+    <slot>ItemAutoUpload_toggled(bool)</slot>
+    <slot>MapSimplifyRange_valueChanged(int val)</slot>
+    <slot>PrefsDialog_destroyed(QObject *)</slot>
+    <slot>TextLabel1_3_destroyed(QObject *)</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

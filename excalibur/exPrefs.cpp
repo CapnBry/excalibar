@@ -119,6 +119,8 @@ void exPrefs::show() {
 
   dlg->EnableExperimentalCode->setChecked(enable_experimental_code);
 
+  dlg->MobListColors->setChecked(MobListColors);
+
   dlg->show();
   dlg->raise();
 }
@@ -160,6 +162,8 @@ void exPrefs::accept() {
   enable_experimental_code=dlg->EnableExperimentalCode->isChecked();
 
   dump_unknown_packets=dlg->ShowUnknown->isChecked();
+
+  MobListColors=dlg->MobListColors->isChecked();
 
   frm=f.first();
   if (frm) {
@@ -221,6 +225,8 @@ void exPrefs::loadSettings() {
 
   dump_unknown_packets=s.readBoolEntry("/Excalibur/ShowUnknown", FALSE);
   enable_experimental_code=s.readBoolEntry("/Excalibur/EnableExperimentalCode",FALSE);
+
+  MobListColors=s.readBoolEntry("/Excalibur/MobListColors",TRUE);
 }
 
 void exPrefs::saveSettings() {
@@ -259,6 +265,7 @@ void exPrefs::saveSettings() {
 
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
   s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);
+  s.writeEntry("/Excalibur/MobListColors", MobListColors);
   exItem::save();
 }
 
