@@ -410,6 +410,8 @@ begin
 
     { zone didn't load.  Try to get it from the woooooooorld wide web }
   if FAttemptMapDownload and Assigned(FHTTPFetch) and (pTmpZone.Count = 0) then begin
+    ForceDirectories(FVectorMapDir);
+
     pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
     pHTTPRequest.URL := FMapBaseURL + 'f=vector&z=' + IntToStr(AZone.ZoneNum);
     pHTTPRequest.Tag := AZone.ZoneNum;
@@ -494,6 +496,8 @@ begin
     { zone didn't load.  Try to get it from the woooooooorld wide web }
   if FAttemptMapDownload and Assigned(FHTTPFetch) and (pTmpZone.Count = 0) and
     (AZone.ZoneType in [dztOverworld, dztHousing])  then begin
+    ForceDirectories(FTextureMapDir);
+    
     pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
     pHTTPRequest.URL := FMapBaseURL + 'f=dds&z=' + IntToStr(AZone.ZoneNum);
     pHTTPRequest.Tag := AZone.ZoneNum;
