@@ -45,11 +45,13 @@ type
     FLiveDataConfidence:  integer;
     FNext:        TDAOCObject;
     FPrev:        TDAOCObject;
+    FHitPoints:   BYTE;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
     function GetObjectClass : TDAOCObjectClass; virtual;
     function GetName : string; virtual;
+    procedure SetHitPoints(const Value: BYTE);
   public
     LongestUpdateTime:    DWORD;
     constructor Create; virtual;
@@ -85,6 +87,7 @@ type
     property DestinationZ: WORD read FDestinationZ write SetDestinationZ;
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
+    property HitPoints: BYTE read FHitPoints write SetHitPoints;
     property IsStale: boolean read GetIsStale;
     property Level: integer read FLevel write SetLevel;
     property Realm: TDAOCRealm read FRealm write SetRealm;
@@ -146,10 +149,8 @@ type
     function GetYProjected: DWORD;
     function GetIsDead: boolean;
     function GetIsAlive: boolean;
-    procedure SetHitPoints(const Value: BYTE);
     function GetSpeedString: string;
   protected
-    FHitPoints:  BYTE;
     FSpeedWord:  WORD;
     FProjectedX:  DWORD;
     FProjectedY:  DWORD;
@@ -176,7 +177,6 @@ type
     property IsAlive: boolean read GetIsAlive;
     property IsDead: boolean read GetIsDead;
     property IsSwimming: boolean read GetIsSwimming;
-    property HitPoints: BYTE read FHitPoints write SetHitPoints;
     property Inventory: TDAOCInventory read FInventory;
   end;
 
@@ -184,6 +184,8 @@ type
   protected
     function GetName : string; override;
     function GetObjectClass : TDAOCObjectClass; override;
+  public
+    procedure CheckStale; override;
   end;
 
   TDAOCVehicle = class(TDAOCMovingObject)
@@ -519,11 +521,6 @@ begin
   FSpeedWord := 0;
 end;
 
-procedure TDAOCMovingObject.SetHitPoints(const Value: BYTE);
-begin
-  FHitPoints := Value and $7f;  // bit $80 means *something*
-end;
-
 procedure TDAOCMovingObject.SetSpeedWord(const Value: WORD);
 begin
   FSpeedWord := Value;
@@ -692,7 +689,7 @@ end;
 
 procedure TDAOCObject.SetLevel(const Value: integer);
 begin
-  FLevel := Value;
+  FLevel := Value and $7f;  // $80 not targetable?
   Touch;
 end;
 
@@ -827,6 +824,11 @@ end;
 function TDAOCObject.GetLiveDataConfidencePct: single;
 begin
   Result := FLiveDataConfidence * (1 / LIVE_DATA_CONFIDENCE_MAX);
+end;
+
+procedure TDAOCObject.SetHitPoints(const Value: BYTE);
+begin
+  FHitPoints := Value and $7f;  // bit $80 means *something*
 end;
 
 { TDAOCLocalPlayer }
@@ -996,12 +998,12 @@ begin
     exit;
     
   dwTicksSinceUpdate := TicksSinceUpdate;
-    { live mobs are stale from 30s-60s.  It looks like they get an update every
+    { live mobs are stale from 20s-40s.  It looks like they get an update every
       ~10s or ~20s over UDP, so this allows for a dropped packet or two.  Plus
       we have the DestinationCheck to back it up }
-  if dwTicksSinceUpdate > 30000 then
+  if dwTicksSinceUpdate > 20000 then
     FLiveDataConfidence := max(
-      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 30000) div 300, 0);
+      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 20000) div 400, 0);
 end;
 
 function TDAOCMob.GetObjectClass: TDAOCObjectClass;
@@ -1155,6 +1157,21 @@ begin
 end;
 
 { TDAOCUnknownMovingObject }
+
+procedure TDAOCUnknownMovingObject.CheckStale;
+var
+  dwTicksSinceUpdate:   DWORD;
+begin
+  inherited;
+  if IsStale then
+    exit;
+
+    { stale in 20-30s }
+  dwTicksSinceUpdate := TicksSinceUpdate;
+  if dwTicksSinceUpdate > 20000 then
+    FLiveDataConfidence := max(
+      LIVE_DATA_CONFIDENCE_MAX - (dwTicksSinceUpdate - 20000) div 100, 0);
+end;
 
 function TDAOCUnknownMovingObject.GetName: string;
 begin
