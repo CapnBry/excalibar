@@ -14,7 +14,7 @@ interface
 
 uses
   SysUtils, Classes, IdBaseComponent, IdComponent, IdTCPServer, Contnrs,
-  DAOCControl, MapNavigator, StringParseHlprs
+  DAOCControl, DAOCControlList, MapNavigator, StringParseHlprs
 {$IFDEF VER130}
 ,Forms
 {$ENDIF}
@@ -42,23 +42,28 @@ type
   private
     FActions:   TObjectList;
     FPS1:       string;
-    FDControl:  TDAOCControl;
     FChatConnections: TObjectList;
     FCommandParams:   string;
-    FCommandParamOffset: integer;  // 1-based
+    FCommandParamOffset: integer;
+    FDControl:        TDAOCControl;
+    FDAOCControlList: TDAOCControlList;  // 1-based
 
     function FindAction(const AKey: string) : TStringActionLink;
     procedure AddAction(const AKey: string; AHandler: TRequestActionHandler;
       const AHelp: string = '');
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
-    function ExpandPromptString : string;
+    function ExpandPromptString(AConn: TClientConn) : string;
     procedure RemoveChatConnection(AConn: TClientConn);
     procedure Log(const s: string);
+    procedure SetDAOCControlList(const Value: TDAOCControlList);
   protected
     function ParseParamWord : string;
     function ParseParamInt : integer;
+    function GetCtrl(AConn: TClientConn) : TDAOCControl;
+    function CheckCtrl(AConn: TClientConn) : TDAOCControl;
 
+    procedure HandleConnection(AConn: TClientConn; const ACmd: string);
     procedure HandleAutoMode(AConn: TClientConn; const ACmd: string);
     procedure HandleCommission(AConn: TClientConn; const ACmd: string);
     procedure HandleCurrency(AConn: TClientConn; const ACmd: string);
@@ -114,7 +119,7 @@ type
   public
     procedure DAOCChatLog(Sender: TObject; const s: string);
     
-    property DAOCControl: TDAOCControl read FDControl write FDControl;
+    property DAOCControlList: TDAOCControlList read FDAOCControlList write SetDAOCControlList;
     property PS1: string read FPS1 write FPS1;
     property Enabled: boolean read GetEnabled write SetEnabled;
   end;
@@ -139,17 +144,13 @@ procedure TdmdRemoteAdmin.tcpRemoteAdminExecute(AThread: TIdPeerThread);
 var
   sCmd:   string;
   iPos:   integer;
-  pAction:  TStringActionLink;
+  pAction:    TStringActionLink;
 begin
     { send the prompt }
   if FPS1 <> '' then
-    AThread.Connection.Write(ExpandPromptString);
-    
+    AThread.Connection.Write(ExpandPromptString(AThread.Connection));
+
   sCmd := AThread.Connection.ReadLn;
-  if not Assigned(FDControl) then begin
-    AThread.Connection.WriteLn('500 Internal error - No DAOC control assigned.');
-    exit;
-  end;
 
     { convert backspace to destructive backspace }
   iPos := Pos(#8, sCmd);
@@ -162,8 +163,17 @@ begin
     iPos := Pos(#8, sCmd);
   end;
 
-  if sCmd = '' then
-    exit;
+    { always let EXIT get through }
+  if AnsiSameText(sCmd, 'EXIT') then
+    FDControl := nil
+  else begin
+    FDControl := CheckCtrl(AThread.Connection);
+    if not Assigned(FDControl) then
+      exit;
+
+    if sCmd = '' then
+      exit;
+  end;  { if not EXIT }
 
   pAction := FindAction(sCmd);
   if Assigned(pAction) then begin
@@ -319,6 +329,8 @@ begin
     '(propmt) Sets the telnet prompt string (default "[\c@\s: \o]$ ")');
   AddAction('DumpChat', HandleDumpChat,
     '(on|off) Turns on and off dumping of chat log text to the current connection.');
+  AddAction('Connection', HandleConnection,
+    '([index]) Select which connection index to act on, or blank for a list.');
 end;
 
 procedure TdmdRemoteAdmin.AddAction(const AKey: string;
@@ -390,15 +402,13 @@ begin
     AConn.WriteLn('500 Unknown variable: ' + sVar);
 end;
 
-procedure TdmdRemoteAdmin.HandleQuit(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleQuit(AConn: TClientConn; const ACmd: string);
 begin
   FDControl.QuitDAOC;
   AConn.Writeln('200 Exiting Dark Age of Camelot.');
 end;
 
-procedure TdmdRemoteAdmin.HandleQuickbarPage(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleQuickbarPage(AConn: TClientConn; const ACmd: string);
 var
   iPage:      integer;
 begin
@@ -407,12 +417,11 @@ begin
   AConn.Writeln('200 Quickbar page set to ' + IntToStr(iPage) + '.')
 end;
 
-procedure TdmdRemoteAdmin.HandleTurnTo(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleTurnTo(AConn: TClientConn; const ACmd: string);
 var
   sHead:    string;
   iHead:    integer;
-begin                           
+begin
   sHead := ParseParamWord;
   if sHead = '' then begin
     AConn.WriteLn('500 Invalid heading specified (none).');
@@ -435,23 +444,20 @@ begin
   FDControl.SetPlayerHeading(iHead, 5000);
 end;
 
-procedure TdmdRemoteAdmin.HandleJump(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleJump(AConn: TClientConn; const ACmd: string);
 begin
   FDControl.Jump;
   AConn.WriteLn('200 Jumping.');
 end;
 
-procedure TdmdRemoteAdmin.HandleTurnRateRecal(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleTurnRateRecal(AConn: TClientConn; const ACmd: string);
 begin
   FDControl.TurnRateRecalibrate;
   AConn.WriteLn('200 Turn rate metric recalibrated (' +
     IntToStr(FDControl.TurnRate) + ').');
 end;
 
-procedure TdmdRemoteAdmin.HandleGotoXY(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleGotoXY(AConn: TClientConn; const ACmd: string);
 var
   sAX:    string;
   sAY:    string;
@@ -481,7 +487,7 @@ var
   sNode:      string;
   pNode:      TMapNode;
 begin
-  sNode := copy(ACmd, 10, Length(ACmd));
+  sNode := FCommandParams;
   if sNode = '' then begin
     AConn.WriteLn('500 Invalid GotoNode name (NULL).');
     exit;
@@ -497,8 +503,7 @@ begin
   AConn.WriteLn('200 GotoNode en route to node (' + sNode + ').');
 end;
 
-procedure TdmdRemoteAdmin.HandleLeftClick(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleLeftClick(AConn: TClientConn; const ACmd: string);
 var
   sAX:    string;
   sAY:    string;
@@ -523,8 +528,7 @@ begin
   AConn.WriteLn('200 Left clicked at (' + sAX + ',' + sAY + ').');
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeList(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeList(AConn: TClientConn; const ACmd: string);
 var
   sParam: string;
   pNode:  TMapNode;
@@ -548,12 +552,11 @@ begin
   end;
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeAdd(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeAdd(AConn: TClientConn; const ACmd: string);
 var
   sName:      string;
 begin
-  sName := copy(ACmd, 9, Length(ACmd));
+  sName := FCommandParams;
   try
     FDControl.NodeAddAtPlayerPos(sName);
     FDControl.MapNodes.Sort;
@@ -564,8 +567,7 @@ begin
   end;
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeNearest(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeNearest(AConn: TClientConn; const ACmd: string);
 var
   pNode:  TMapNode;
 begin
@@ -579,8 +581,7 @@ begin
        pNode.BearingFrom(FDControl.LocalPlayer.X, FDControl.LocalPlayer.Y)]));
 end;
 
-procedure TdmdRemoteAdmin.HandleZone(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleZone(AConn: TClientConn; const ACmd: string);
 begin
   if Assigned(FDControl.Zone) then begin
     AConn.WriteLn('200 Current zone info follows');
@@ -591,8 +592,7 @@ begin
     AConn.WriteLn('300 No zone info found for zone.');
 end;
 
-procedure TdmdRemoteAdmin.HandleRightClick(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleRightClick(AConn: TClientConn; const ACmd: string);
 var
   sAX:    string;
   sAY:    string;
@@ -635,15 +635,13 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleSlashCommand(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleSlashCommand(AConn: TClientConn; const ACmd: string);
 begin
   FDControl.DoSendKeys(ACmd + '[cr]');
   AConn.WriteLn('200 Sent command ' + ACmd);
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeSave(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeSave(AConn: TClientConn; const ACmd: string);
 var
   iStartPos:  Integer;
   sFName:     string;
@@ -667,15 +665,13 @@ begin
   end;  { try/except }
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeClear(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeClear(AConn: TClientConn; const ACmd: string);
 begin
   FDControl.MapNodes.Clear;
   AConn.WriteLn('200 Map node list cleared.');
 end;
 
-procedure TdmdRemoteAdmin.HandleSet(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleSet(AConn: TClientConn; const ACmd: string);
 var
   sVar:   string;
 begin
@@ -692,13 +688,12 @@ begin
     AConn.WriteLn('500 Unknown variable: ' + sVar);
 end;
 
-procedure TdmdRemoteAdmin.HandlePathTo(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandlePathTo(AConn: TClientConn; const ACmd: string);
 var
   sNode:      string;
   pNode:      TMapNode;
 begin
-  sNode := copy(ACmd, 8, Length(ACmd));
+  sNode := FCommandParams;
   if sNode = '' then begin
     AConn.WriteLn('500 Invalid PathTo node name (NULL).');
     exit;
@@ -716,8 +711,7 @@ begin
     AConn.WriteLn('300 PathTo cannot path to node (' + sNode + ').');
 end;
 
-procedure TdmdRemoteAdmin.HandleNodeLoad(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleNodeLoad(AConn: TClientConn; const ACmd: string);
 var
   iStartPos:  Integer;
   sFName:     string;
@@ -741,8 +735,7 @@ begin
   end;  { try/except }
 end;
 
-procedure TdmdRemoteAdmin.HandleMoveInv(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleMoveInv(AConn: TClientConn; const ACmd: string);
 var
   sFromBag: string;
   sFromPos: string;
@@ -786,8 +779,7 @@ begin
   Result := ParseWord(FCommandParams, FCommandParamOffset);
 end;
 
-procedure TdmdRemoteAdmin.HandleTurnToNode(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleTurnToNode(AConn: TClientConn; const ACmd: string);
 var
   sNode:  string;
   pNode:  TMapNode;
@@ -807,8 +799,7 @@ begin
     AConn.WriteLn('300 TurnToNode invalid map node name specified (' + sNode + ').');
 end;
 
-procedure TdmdRemoteAdmin.HandleLinkNearestTo(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleLinkNearestTo(AConn: TClientConn; const ACmd: string);
 var
   sNode:      string;
   pSrcNode:   TMapNode;
@@ -820,7 +811,7 @@ begin
     exit;
   end;
 
-  sNode := copy(ACmd, 15, Length(ACmd));
+  sNode := FCommandParams;
   if sNode = '' then begin
     AConn.WriteLn('500 LinkNearestTo invalid map node name specified (NULL).');
     exit;
@@ -844,8 +835,7 @@ begin
   end;
 end;
 
-procedure TdmdRemoteAdmin.HandleDumpPath(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleDumpPath(AConn: TClientConn; const ACmd: string);
 var
   sNode:      string;
   pNode:      TMapNode;
@@ -858,7 +848,7 @@ begin
     exit;
   end;
 
-  sNode := copy(ACmd, 10, Length(ACmd));
+  sNode := FCommandParams;
   if sNode = '' then begin
     AConn.WriteLn('500 Invalid DumpPath destination node name (NULL).');
     exit;
@@ -902,8 +892,7 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleSpells(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleSpells(AConn: TClientConn; const ACmd: string);
 var
   I:    integer;
 begin
@@ -914,8 +903,7 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleAbilities(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleAbilities(AConn: TClientConn; const ACmd: string);
 var
   I:  integer;
 begin
@@ -926,8 +914,7 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleSpecializations(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleSpecializations(AConn: TClientConn; const ACmd: string);
 var
   I:  integer;
 begin
@@ -949,21 +936,30 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleCloseDialog(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleCloseDialog(AConn: TClientConn; const ACmd: string);
 begin
   AConn.WriteLn('200 Closing dialog.');
   FDControl.CloseDialog;
 end;
 
 procedure TdmdRemoteAdmin.HandleCurrency(AConn: TClientConn; const ACmd: string);
+var
+  FDControl:  TDAOCControl;
 begin
+  FDControl := CheckCtrl(AConn);
+  if not Assigned(AConn) then
+    exit;
   AConn.WriteLn('200 Current currency: ' + FDControl.LocalPlayer.Currency.AsText + '.');
 end;
 
-procedure TdmdRemoteAdmin.HandleCommission(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleCommission(AConn: TClientConn; const ACmd: string);
+var
+  FDControl:  TDAOCControl;
 begin
+  FDControl := CheckCtrl(AConn);
+  if not Assigned(AConn) then
+    exit;
+
   if FDControl.TradeCommissionNPC = '' then
     AConn.WriteLn('200 No tradeskill commission assigned.')
   else
@@ -986,8 +982,7 @@ begin
     AConn.WriteLn('200 Automation mode set to none.');
 end;
 
-procedure TdmdRemoteAdmin.HandleQuickLaunchList(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleQuickLaunchList(AConn: TClientConn; const ACmd: string);
 var
   I:  integer;
 begin
@@ -998,8 +993,7 @@ begin
   AConn.WriteLn('.');
 end;
 
-procedure TdmdRemoteAdmin.HandleQuickLaunch(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandleQuickLaunch(AConn: TClientConn; const ACmd: string);
 var
   sIndex: string;
   iIndex: integer;
@@ -1052,7 +1046,7 @@ procedure TdmdRemoteAdmin.HandleSelectNPC(AConn: TClientConn; const ACmd: string
 var
   sName:      string;
 begin
-  sName := copy(ACmd, 11, Length(ACmd));
+  sName := FCommandParams;
   try
     FDControl.SelectNPC(sName);
     AConn.WriteLn('200 Attempting to select (' + sName + ').');
@@ -1066,7 +1060,7 @@ procedure TdmdRemoteAdmin.HandleSendkeys(AConn: TClientConn; const ACmd: string)
 var
   sKeys:      string;
 begin
-  sKeys := copy(ACmd, 10, Length(ACmd));
+  sKeys := FCommandParams;
   try
     FDControl.DoSendKeys(sKeys);
     AConn.WriteLn('200 Performing SendKeys (' + sKeys + ').');
@@ -1097,17 +1091,23 @@ begin
   end;
 end;
 
-procedure TdmdRemoteAdmin.HandlePrompt(AConn: TClientConn;
-  const ACmd: string);
+procedure TdmdRemoteAdmin.HandlePrompt(AConn: TClientConn; const ACmd: string);
 begin
-  FPS1 := copy(ACmd, 8, Length(ACmd));
+  FPS1 := FCommandParams;
   AConn.WriteLn('200 Prompt set to ' + FPS1);
 end;
 
-function TdmdRemoteAdmin.ExpandPromptString: string;
+function TdmdRemoteAdmin.ExpandPromptString(AConn: TClientConn) : string;
 var
-  P:    PChar;
+  P:          PChar;
+  FDControl:  TDAOCControl;
 begin
+  FDControl := GetCtrl(AConn);
+  if not Assigned(FDControl) then begin
+    Result := 'NULL> ';
+    exit;
+  end;
+
   P := PChar(FPS1);
   Result := '';
 
@@ -1150,7 +1150,7 @@ var
   I:    integer;
 begin
   for I := 0 to FChatConnections.Count - 1 do
-    TClientConn(FChatConnections[I]).Write(s);
+    TClientConn(FChatConnections[I]).WriteLn(s);
 end;
 
 procedure TdmdRemoteAdmin.tcpRemoteAdminDisconnect(AThread: TIdPeerThread);
@@ -1165,7 +1165,7 @@ var
   bOn:    boolean;
   sOn:    string;
 begin
-  sOn := copy(ACmd, 10, Length(ACmd));
+  sOn := FCommandParams;
   bOn := StringParseHlprs.StrToBool(sOn);
   iIdx := FChatConnections.IndexOf(AConn);
   if bOn then begin
@@ -1199,6 +1199,64 @@ end;
 procedure TdmdRemoteAdmin.Log(const s: string);
 begin
   frmMain.Log(s);
+end;
+
+procedure TdmdRemoteAdmin.SetDAOCControlList(const Value: TDAOCControlList);
+begin
+  FDAOCControlList := Value;
+end;
+
+function TdmdRemoteAdmin.CheckCtrl(AConn: TClientConn): TDAOCControl;
+begin
+  Result := GetCtrl(AConn);
+  if not Assigned(Result) then
+    AConn.WriteLn('500 No available connections');
+end;
+
+function TdmdRemoteAdmin.GetCtrl(AConn: TClientConn): TDAOCControl;
+begin
+  if Assigned(FDAOCControlList) then begin
+    Result := TDAOCControl(AConn.Tag);
+    if FDAOCControlList.IndexOf(Result) = -1 then
+      if FDAOCControlList.Count > 0 then
+        Result := FDAOCControlList[0]
+      else
+        Result := nil;
+  end
+  else
+    Result := nil;
+
+  if AConn.Tag <> Integer(Result) then begin
+    AConn.WriteLn('201 Warning: Active connection has changed');
+    AConn.Tag := Integer(Result);
+  end;
+end;
+
+procedure TdmdRemoteAdmin.HandleConnection(AConn: TClientConn; const ACmd: string);
+var
+  sConnection:  string;
+  I:      integer;
+begin
+  sConnection := Trim(FCommandParams);
+  if sConnection = '' then begin
+    AConn.WriteLn('201 Connection list follows');
+    for I := 0 to FDAOCControlList.Count - 1 do
+      with FDAOCControlList[I] do
+        AConn.WriteLn(Format('%2d) Server %s (%s) Character %s',  [
+          I, ServerIP, AccountCharacterList.ServerName, LocalPlayer.Name]));
+    AConn.WriteLn('.');
+  end
+
+    { not list }
+  else begin
+    I := StrToIntDef(sConnection, -1);
+    if (I = -1) or (I >= FDAOCControlList.Count) then
+      AConn.WriteLn('500 Invalid connection number specified "' + IntToStr(I) + '"')
+    else begin
+      AConn.WriteLn('200 Connection changed.');
+      AConn.Tag := Integer(FDAOCControlList[I]);
+    end;
+  end;
 end;
 
 end.
