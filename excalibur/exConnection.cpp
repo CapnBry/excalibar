@@ -630,5 +630,5 @@ void exConnection::dumpPacket(unsigned int command, exPacket *p)
 	      (p->from_server) ? "FROM" : "TO",
 	      command,
               p->getlen());
-    printf (p->getDataAsString());
+    printf ("%s", p->getDataAsString().ascii());
 }

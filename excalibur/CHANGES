@@ -1,3 +1,14 @@
+Andon (10/Feb/02)
+------------------
+
+Bug fixes:
+ + Fixed a SERIOUS stack corruption issue with the dump unknown
+   data code..  Using printf on a plain string is BAD BAD BAD,
+   Any packet containing a %* in it could cause a stack corrup-
+   tion. It's been fixed, and there's no longer a security risk
+   associated with that code.
+
+
 Andon (09/Feb/02)
 ------------------
 
@@ -12,12 +23,13 @@ Additions:
     * More to come later
 
 Additions (SnowBlind):
- + Added a new prefs tab for Map Circles to allow runtime changing
+ + Added a new prefs tab for Map Circles to allow runtime changing.
    of circles radius (support for user entered numbers comming soon)
  + Moved the Map Circles draw options from the Map Display to the
-   new prefs tap
+   new prefs tab.
 
-   * More to come later(maybe line thickness, and color)
+   * More to come later (maybe line thickness, and color)
+
 
 Andon (08/Feb/02)
 ------------------
