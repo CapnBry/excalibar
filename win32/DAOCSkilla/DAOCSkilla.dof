@@ -64,7 +64,7 @@ RootDir=C:\Utils\DAoCSkilla\testapp\
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=1
-MinorVer=40
+MinorVer=41
 Release=0
 Build=0
 Debug=0
@@ -77,7 +77,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Network Utility for Dark Age of Camelot
-FileVersion=1.40.0.0
+FileVersion=1.41.0.0
 InternalName=
 LegalCopyright=
 LegalTrademarks=
@@ -99,5 +99,6 @@ Item7=DAOC_AUTO_SERVER,OPENGL_RENDERER,REMOTE_ADMIN
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=1
+Count=2
 Item0=..\components\glWindow;..\components\zlib
+Item1=$(DELPHI)\Lib\Debug;..\components\glWindow;..\components\zlib
