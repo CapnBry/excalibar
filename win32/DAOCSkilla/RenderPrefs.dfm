@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabMobList
+    ActivePage = tabGraphics
     Align = alTop
     MultiLine = True
-    TabIndex = 4
+    TabIndex = 5
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -738,7 +738,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 152
         Width = 384
         Height = 124
-        TabOrder = 4
+        TabOrder = 9
         inherited pnlBottom: TPanel
           Height = 35
         end
@@ -748,7 +748,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 130
         Width = 33
         Height = 21
-        TabOrder = 5
+        TabOrder = 8
         OnExit = edtAlertIntervalExit
         OnKeyPress = edtAlertIntervalKeyPress
       end
@@ -758,7 +758,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 249
         Height = 17
         Caption = 'Play alerts (can be used w/o Use mob filter list)'
-        TabOrder = 6
+        TabOrder = 7
         OnClick = chkPlayAlertClick
       end
       object rbnFilterSubstring: TRadioButton
@@ -766,8 +766,13 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 114
         Width = 81
         Height = 17
+        Hint = 
+          'Filter and alerts use a case-insensitive substring search to det' +
+          'ect a match'
         Caption = 'Substring'
-        TabOrder = 7
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
         OnClick = rbnFilterSubstringClick
       end
       object rbnFilterWildcard: TRadioButton
@@ -776,8 +781,13 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 114
         Width = 73
         Height = 17
+        Hint = 
+          'Filter and alerts use a case-insensitive wildcard (*) to detect ' +
+          'a match'
         Caption = 'Wildcard'
-        TabOrder = 8
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 5
         OnClick = rbnFilterSubstringClick
       end
       object rbnFilterRegex: TRadioButton
@@ -786,8 +796,13 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 114
         Width = 69
         Height = 17
+        Hint = 
+          'Filter and alerts use the mob name as a regular expression to de' +
+          'tect a match'
         Caption = 'Regex'
-        TabOrder = 9
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 6
         OnClick = rbnFilterSubstringClick
       end
     end
@@ -834,6 +849,27 @@ object frmRenderPrefs: TfrmRenderPrefs
         Width = 78
         Height = 13
         Caption = 'Redraw map on:'
+      end
+      object Label32: TLabel
+        Left = 180
+        Top = 244
+        Width = 29
+        Height = 13
+        Caption = '1 FPS'
+      end
+      object Label33: TLabel
+        Left = 376
+        Top = 244
+        Width = 35
+        Height = 13
+        Caption = '10 FPS'
+      end
+      object Label34: TLabel
+        Left = 288
+        Top = 244
+        Width = 29
+        Height = 13
+        Caption = '5 FPS'
       end
       object chkSmoothLines: TCheckBox
         Left = 8

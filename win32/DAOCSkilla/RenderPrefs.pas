@@ -235,6 +235,9 @@ type
     rbnFilterWildcard: TRadioButton;
     rbnFilterRegex: TRadioButton;
     Label31: TLabel;
+    Label32: TLabel;
+    Label33: TLabel;
+    Label34: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
