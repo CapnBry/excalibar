@@ -29,16 +29,28 @@ type
     property OffsetY: integer read FOffsetY write FOffsetY;
   end;
 
-  TRangeCircle = class(TGLRenderObject)
+  TGLCallListObject = class(TGLRenderObject)
+  protected
+    FGLList:    GLuint;
+  public
+    procedure GLInitialize; override;
+    procedure GLRender; override;
+    procedure GLCleanup; override;
+  end;
+
+  TRangeCircle = class(TGLCallListObject)
   private
-    FRange:   integer;
+    FRange:       integer;
+    FSmoothness:  integer;
+    procedure SetSmoothness(const Value: integer);
   public
     constructor Create; override;
-    constructor CreateRange(ARange: integer);
+    constructor CreateRange(ARange, ASmoothness: integer);
 
-    procedure GLRender; override;
+    procedure GLInitialize; override;
 
     property Range: integer read FRange write FRange;
+    property Smoothness: integer read FSmoothness write SetSmoothness;
   end;
 
   TRangeCircleList = class(TGLRenderObject)
@@ -55,15 +67,6 @@ type
 
     procedure Add(ACircle: TRangeCircle);
     property Items[I: integer]: TRangeCircle read GetItems; default;
-  end;
-
-  TGLCallListObject = class(TGLRenderObject)
-  protected
-    FGLList:    GLuint;
-  public
-    procedure GLInitialize; override;
-    procedure GLRender; override;
-    procedure GLCleanup; override;
   end;
 
   TMapElementPoint = class(TGLRenderObject)
@@ -178,29 +181,43 @@ constructor TRangeCircle.Create;
 begin
   inherited;
   FColor := clWhite;
+  FRange := 500;
+  FSmoothness := 36;
 end;
 
-constructor TRangeCircle.CreateRange(ARange: integer);
+constructor TRangeCircle.CreateRange(ARange, ASmoothness: integer);
 begin
   inherited Create;
-  
+
   FColor := clWhite;
   FRange := ARange;
+  FSmoothness := ASmoothness;
 end;
 
-procedure TRangeCircle.GLRender;
+procedure TRangeCircle.GLInitialize;
 var
   I:    integer;
 begin
   inherited;
 
+  glNewList(FGLList, GL_COMPILE);
+
   I := -180;
   glBegin(GL_LINE_LOOP);
   while I < 180 do begin
     glVertex3f(FRange * cos(I * D_TO_R), FRange * sin(I * D_TO_R), 0);
-    inc(I, 20);
+    inc(I, 360 div FSmoothness);
   end;
   glEnd();
+
+  glEndList;
+end;
+
+procedure TRangeCircle.SetSmoothness(const Value: integer);
+begin
+  if 360 mod Value <> 0 then
+    raise Exception.Create('Range Cicle smoothness must divide 360 evenly'); 
+  FSmoothness := Value;
 end;
 
 { TRangeCircleList }
@@ -253,6 +270,7 @@ var
 begin
   inherited;
 
+  glLineWidth(1.0);
   for I := 0 to FList.Count - 1 do
     Items[I].GLRender;
 end;
@@ -286,19 +304,37 @@ begin
   if AnsiSameText(AColor, 'white') then
     FColor := clWhite
   else if AnsiSameText(AColor, 'gray') then
-    FColor := clGray
+    FColor := clSilver
+  else if AnsiSameText(AColor, 'green') then
+    FColor := clLime
+  else if AnsiSameText(AColor, 'brown') then
+    FColor := $004080
+  else if AnsiSameText(AColor, 'orange') then
+    FColor := $007fff
+  else if AnsiSameText(AColor, 'blue') then
+    FColor := clBlue
+  else if AnsiSameText(AColor, 'red') then
+    FColor := clRed
+  else if AnsiSameText(AColor, 'pink') then
+    FColor := $ffcff
+  else if AnsiSameText(AColor, 'yellow') then
+    FColor := clYellow
+  else if AnsiSameText(AColor, 'cyan') then
+    FColor := clAqua
+  else if AnsiSameText(AColor, 'magenta') then
+    FColor := clMaroon
+  else if AnsiSameText(AColor, 'gold') then
+    FColor := $00ccff
+  else if AnsiSameText(AColor, 'darkgreen') then
+    FColor := clGreen
+  else if AnsiSameText(AColor, 'purple') then
+    FColor := clFuchsia
   else if AnsiSameText(AColor, 'silver') then
     FColor := clSilver
   else if AnsiSameText(AColor, 'black') then
     FColor := clBlack
-  else if AnsiSameText(AColor, 'brown') then
-    FColor := $004080
-  else if AnsiSameText(AColor, 'blue') then
-    FColor := clBlue
-  else if AnsiSameText(AColor, 'green') then
-    FColor := clGreen
-  else if AnsiSameText(AColor, 'red') then
-    FColor := clRed
+  else if AnsiSameText(AColor, 'darkgray') then
+    FColor := clGray
   else
     FColor := clFuchsia;
 end;
