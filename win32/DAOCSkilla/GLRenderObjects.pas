@@ -113,6 +113,13 @@ type
   end;
 
   TMapElementInfoPoint = class(TMapElementPoint)
+  private
+    FEnabled: boolean;
+  public
+    constructor Create; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
+    
+    property Enabled: boolean read FEnabled write FEnabled;
   end;
 
   PMapElementLinePoint = ^TMapElementLinePoint;
@@ -1185,6 +1192,20 @@ begin
     glDisable(GL_TEXTURE_2D);
     
   glEndList();
+end;
+
+{ TMapElementInfoPoint }
+
+constructor TMapElementInfoPoint.Create;
+begin
+  inherited;
+  FEnabled := true;
+end;
+
+procedure TMapElementInfoPoint.GLRender(const ARenderBounds: TRect);
+begin
+  if FEnabled then
+    inherited;
 end;
 
 end.

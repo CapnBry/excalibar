@@ -46,13 +46,18 @@ type
   TVectorMapElementList = class(TZoneGLRenderObjectList)
   private
     FFileName:  string;
+    FDrawInfoPoints: boolean;
+    procedure SetDrawInfoPoints(const Value: boolean);
   public
+    constructor Create;
+
     procedure ReloadFile;
     procedure DeleteFile;
     procedure LoadFromFile(const AFileName: string);
     procedure AppendFromFile(const AFileName: string);
     procedure Save(const ATitle: string);
 
+    property DrawInfoPoints: boolean read FDrawInfoPoints write SetDrawInfoPoints;
     property FileName: string read FFileName write FFileName;
   end;
 
@@ -107,16 +112,20 @@ type
     FVectorMapDir: string;
     FMapBaseURL: string;
     FVectorMapCustomDir: string;
+    FDrawInfoPoints: boolean;
     function GetItems(I: integer): TVectorMapElementList;
     procedure SetVectorMapDir(const Value: string);
     procedure SetVectorMapCustomDir(const Value: string);
+    procedure SetDrawInfoPoints(const Value: boolean);
   protected
     procedure AddZone(AZone: TDAOCZoneInfo); override;
     procedure HTTPComplete(ARequest: TBackgroundHTTPRequest); override;
     procedure HTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest); override;
   public
+    constructor Create;
     function FindZone(AZoneNum: integer) : TVectorMapElementList;
 
+    property DrawInfoPoints: boolean read FDrawInfoPoints write SetDrawInfoPoints;
     property Items[I: integer]: TVectorMapElementList read GetItems; default;
     property VectorMapDir: string read FVectorMapDir write SetVectorMapDir;
     property VectorMapCustomDir: string read FVectorMapCustomDir write SetVectorMapCustomDir;
@@ -174,8 +183,10 @@ begin
       if (CSV[0] = 'P') or (CSV[0] = 'I') then begin
         if CSV[0] = 'P' then
           tmpItem := TMapElementPoint.Create
-        else
+        else begin
           tmpItem := TMapElementInfoPoint.Create;
+          TMapElementInfoPoint(tmpItem).Enabled := FDrawInfoPoints;
+        end;
         tmpItem.OffsetX := FOffsetX;
         tmpItem.OffsetY := FOffsetY;
         Add(tmpItem);
@@ -206,6 +217,12 @@ begin
     FS.Free;
     CSV.Free;
   end;
+end;
+
+constructor TVectorMapElementList.Create;
+begin
+  inherited;
+  FDrawInfoPoints := true;
 end;
 
 procedure TVectorMapElementList.DeleteFile;
@@ -247,6 +264,16 @@ begin
   end;
 
   FS.Free;
+end;
+
+procedure TVectorMapElementList.SetDrawInfoPoints(const Value: boolean);
+var
+  I:    integer;
+begin
+  FDrawInfoPoints := Value;
+  for I := 0 to Count - 1 do
+    if Items[I] is TMapElementInfoPoint then
+      TMapElementInfoPoint(Items[I]).Enabled := Value;
 end;
 
 { TTextureMapElementList }
@@ -507,6 +534,7 @@ begin
   pTmpZone.ZoneNum := AZone.ZoneNum;
   pTmpZone.OffsetX := AZone.BaseLoc.X;
   pTmpZone.OffsetY := AZone.BaseLoc.Y;
+  pTmpZone.DrawInfoPoints := FDrawInfoPoints;
 
   sDestFileName := FVectorMapCustomDir + AZone.MapName;
     { custom map overrides all! }
@@ -525,6 +553,12 @@ begin
     else
       pTmpZone.LoadFromFile(sDestFileName)
   end;
+end;
+
+constructor TVectorMapElementListList.Create;
+begin
+  inherited;
+  FDrawInfoPoints := true;
 end;
 
 function TVectorMapElementListList.FindZone(AZoneNum: integer): TVectorMapElementList;
@@ -574,6 +608,19 @@ begin
   end;
 end;
 {$ENDIF MSWINDOWS}
+
+procedure TVectorMapElementListList.SetDrawInfoPoints(const Value: boolean);
+var
+  I:    integer;
+begin
+  if FDrawInfoPoints = Value then
+    exit;
+
+  FDrawInfoPoints := Value;
+
+  for I := 0 to Count - 1 do
+    Items[I].DrawInfoPoints := Value;
+end;
 
 procedure TVectorMapElementListList.SetVectorMapCustomDir(const Value: string);
 begin
@@ -677,3 +724,4 @@ begin
 end;
 
 end.
+

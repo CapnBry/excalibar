@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabRangeCircles
+    ActivePage = tabExtras
     Align = alTop
     MultiLine = True
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -189,7 +189,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       ImageIndex = 2
       object Label7: TLabel
         Left = 26
-        Top = 216
+        Top = 228
         Width = 339
         Height = 13
         Caption = 
@@ -198,14 +198,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label6: TLabel
         Left = 26
-        Top = 184
+        Top = 196
         Width = 258
         Height = 13
         Caption = 'Draw a line to an AI object'#39's destination while en-route.'
       end
       object Label5: TLabel
         Left = 26
-        Top = 152
+        Top = 164
         Width = 329
         Height = 13
         Caption = 
@@ -214,14 +214,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label4: TLabel
         Left = 26
-        Top = 120
+        Top = 132
         Width = 178
         Height = 13
         Caption = 'The vertical and horizontal crosshairs.'
       end
       object Label2: TLabel
         Left = 26
-        Top = 88
+        Top = 100
         Width = 358
         Height = 13
         Caption = 
@@ -230,21 +230,21 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label1: TLabel
         Left = 26
-        Top = 24
+        Top = 20
         Width = 290
         Height = 13
         Caption = 'Vector maps are the line art maps.  Place them in maps\*.map'
       end
       object Label16: TLabel
         Left = 26
-        Top = 248
+        Top = 260
         Width = 239
         Height = 13
         Caption = 'Draw a 10k x 10k overlay grid on the current zone.'
       end
       object Label23: TLabel
         Left = 28
-        Top = 56
+        Top = 68
         Width = 382
         Height = 13
         Caption = 
@@ -253,7 +253,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkViewFrustum: TCheckBox
         Left = 8
-        Top = 200
+        Top = 212
         Width = 241
         Height = 17
         Caption = 'Show Dark Age renderer "visible" area'
@@ -262,7 +262,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkVectorMaps: TCheckBox
         Left = 8
-        Top = 8
+        Top = 4
         Width = 241
         Height = 17
         Caption = 'Vector maps (V)'
@@ -271,7 +271,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkTextureMaps: TCheckBox
         Left = 8
-        Top = 72
+        Top = 84
         Width = 241
         Height = 17
         Caption = 'Background image maps (B)'
@@ -280,7 +280,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkRulers: TCheckBox
         Left = 8
-        Top = 104
+        Top = 116
         Width = 241
         Height = 17
         Caption = 'Map rulers (R)'
@@ -289,7 +289,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkHUD: TCheckBox
         Left = 8
-        Top = 136
+        Top = 148
         Width = 241
         Height = 17
         Caption = 'Selected object and player  HUD (H)'
@@ -298,7 +298,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkDrawGrid: TCheckBox
         Left = 8
-        Top = 232
+        Top = 244
         Width = 241
         Height = 17
         Caption = 'Draw location grid over background (G)'
@@ -307,7 +307,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkDestination: TCheckBox
         Left = 8
-        Top = 168
+        Top = 180
         Width = 241
         Height = 17
         Caption = 'AI destination vector (D)'
@@ -316,12 +316,21 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkPushpins: TCheckBox
         Left = 8
-        Top = 40
+        Top = 52
         Width = 241
         Height = 17
         Caption = 'Pushpins'
         TabOrder = 7
         OnClick = chkPushpinsClick
+      end
+      object chkDrawInfoPoints: TCheckBox
+        Left = 26
+        Top = 32
+        Width = 345
+        Height = 17
+        Caption = 'Include extra "Info" points'
+        TabOrder = 8
+        OnClick = chkDrawInfoPointsClick
       end
     end
     object tabFilter: TTabSheet

@@ -55,6 +55,7 @@ type
     Height: integer;
     Range:  integer;
     DrawHUD:          boolean;
+    DrawInfoPoints:   boolean;
     DrawMapVector:    boolean;
     DrawMapTexture:   boolean;
     DrawRulers:       boolean;
@@ -199,6 +200,7 @@ type
     Label25: TLabel;
     Label26: TLabel;
     Label27: TLabel;
+    chkDrawInfoPoints: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -239,6 +241,7 @@ type
     procedure edtMobTriangleMinChange(Sender: TObject);
     procedure edtMobTriangleNomChange(Sender: TObject);
     procedure edtMobTriangleMaxChange(Sender: TObject);
+    procedure chkDrawInfoPointsClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -309,6 +312,7 @@ begin
   Result.MobTriangleMax := MobTriangleMax;
   Result.MobTriangleNom := MobTriangleNom;
   Result.ScaleMobTriangle := ScaleMobTriangle;
+  Result.DrawInfoPoints := DrawInfoPoints;
 end;
 
 constructor TRenderPreferences.Create;
@@ -394,6 +398,7 @@ begin
     MobTriangleMax := ReadInteger('RenderPrefs', 'MobTriangleMax', 300);
     MobTriangleNom := ReadInteger('RenderPrefs', 'MobTriangleNom', 150);
     ScaleMobTriangle := ReadBool('RenderPrefs', 'ScaleMobTriangle', true);
+    DrawInfoPoints := ReadBool('RenderPrefs', 'DrawInfoPoints', true);
   end;
 end;
 
@@ -444,6 +449,7 @@ begin
     WriteInteger('RenderPrefs', 'MobTriangleMax', MobTriangleMax);
     WriteInteger('RenderPrefs', 'MobTriangleNom', MobTriangleNom);
     WriteBool('RenderPrefs', 'ScaleMobTriangle', ScaleMobTriangle);
+    WriteBool('RenderPrefs', 'DrawInfoPoints', DrawInfoPoints);
   end;
 end;
 
@@ -585,6 +591,7 @@ end;
 procedure TfrmRenderPrefs.chkVectorMapsClick(Sender: TObject);
 begin
   FRenderPrefs.DrawMapVector := chkVectorMaps.Checked;
+  chkDrawInfoPoints.Enabled := FRenderPrefs.DrawMapVector;
 end;
 
 procedure TfrmRenderPrefs.chkTextureMapsClick(Sender: TObject);
@@ -632,6 +639,8 @@ begin
   chkShowPurples.Checked := ccPurple in FRenderPrefs.ObjectConFilter;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
+  chkVectorMapsClick(nil);
+  chkDrawInfoPoints.Checked := FRenderPrefs.DrawInfoPoints;
   chkPushpins.Checked := FRenderPrefs.DrawPushPins;
   chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
   chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
@@ -915,6 +924,11 @@ end;
 procedure TfrmRenderPrefs.edtMobTriangleMaxChange(Sender: TObject);
 begin
   FRenderPrefs.MobTriangleMax := edtMobTriangleMax.Value;
+end;
+
+procedure TfrmRenderPrefs.chkDrawInfoPointsClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawInfoPoints := chkDrawInfoPoints.Checked;
 end;
 
 end.

@@ -828,8 +828,10 @@ begin
 
   if FRenderPrefs.DrawMapTexture then
     FMapTexturesListList.GLRender(FRenderBounds);
-  if FRenderPrefs.DrawMapVector then
+  if FRenderPrefs.DrawMapVector then begin
+    FMapElementsListList.DrawInfoPoints := FRenderPrefs.DrawInfoPoints;
     FMapElementsListList.GLRender(FRenderBounds);
+  end;
   if FRenderPrefs.DrawPushPins then
     FPushPins.GLRender(FRenderBounds);
 end;
