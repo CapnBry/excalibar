@@ -31,6 +31,8 @@ class exMob;
 
 class exMob : public QListViewItem {
   private:
+    ostream& operator << (ostream& os);
+
     unsigned int id;
     unsigned int infoid;
     QString name;
@@ -46,7 +48,7 @@ class exMob : public QListViewItem {
     bool mob;
     bool obj;
     bool current;
-	bool isKnown;
+    bool isKnown;
     exTimeType _lasttick;
     exTimeType _lastdist;
     double lastdist;
@@ -55,7 +57,8 @@ class exMob : public QListViewItem {
     unsigned int projectedX, projectedY;
     exConnection *c;
     Realm realm;
-	void exMob::setConnection( exConnection *con);
+    void exMob::setConnection( exConnection *con);
+
 
   public:
     exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
@@ -94,10 +97,9 @@ class exMob : public QListViewItem {
     void setHP(unsigned int hp);
     void setSpeed(unsigned int speed);
     void setRealm(Realm newr);
-	bool isFiltered(); 
-        static void setFilter( QString );
+    bool isFiltered();
+    static void setFilter( QString );
 
-    void dumpToStdOut();
 };
 
 #endif

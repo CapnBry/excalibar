@@ -39,12 +39,12 @@
 #include "exConnection.h"
 #include "exItem.h"
 
-template<class T>
-void exMobList<T>::dumpToStdOut()
+template <class T> ostream & exMobList<T>::operator << (ostream & os)
 {
   QPtrDictIterator<exMob> mobi(this);
   for (;mobi.current(); ++mobi)
-      mobi.current().dumpToStdOut();
+      os << mobi.current();
+  return os;
 }
 
 exConnection::exConnection(exNet * s, bool dolink, bool docapture)

@@ -441,11 +441,10 @@ bool exMob::isFiltered()
   return false;
 }
 
-void exMob::dumpToStdOut()
+ostream& exMob::operator << (ostream& os)
 {
-    cout << "exMob ID: " << id << " InfoID: " << infoid << " = "
-        << (isMob() ? "mob" : (isObj() ? "object" : "player")) << "\n"
-        << "  Name: [" << name << "] Surname: [" << surname << "] Guild: <" << guild << ">\n"
-        << flush;
+  return os << "exMob ID: " << id << " InfoID: " << infoid << " = "
+    << (isMob() ? "mob" : (isObj() ? "object" : "player")) << endl
+    << "  Name: [" << name << "] Surname: [" << surname << "] Guild: <" << guild << ">" << endl;
 }
 

@@ -50,7 +50,7 @@ class exConnection;
 template <class T>
 class exMobList : public QPtrDict<T> {
 public:
-    void dumpToStdOut(void);
+    ostream & operator << (ostream & os);
 };
 
 class exConnection : public QObject {
