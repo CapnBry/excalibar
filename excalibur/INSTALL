@@ -131,7 +131,15 @@ Prerequisite packages for Debian UNSTABLE
 
   And make sure you have an X11 client configured (so you can actually
   see Excalibur when you run it!))
-  
+
+Prerequisites for Mac OSX
+-------------------------
+You MUST used Qt 3.1.1+, or the preferences code doesn't work. 
+
+You may need the GLUT package installed, which you can found at:
+http://developer.apple.com/samplecode/Sample_Code/Graphics_3D/glut.htm
+the other packages are the same as any other install.
+
 ================
 Become superuser
 ================
@@ -173,7 +181,9 @@ Downloading and compiling Excalibur
    /usr/lib/qt3.
 4) cd excalibur
 5) $QTDIR/bin/qmake excalibur.pro
-6) make
+6) 
+   UNIX: make
+   OSX: make -f Makefile.OSX
 
 ===================================
 Generate Background Maps (optional)
