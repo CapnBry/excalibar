@@ -73,7 +73,7 @@ public:
         return(IntersectRect(&rIntersect,&rZone,&rDisplay) ? true:false);
     } // end IsZoneVisible
 
-    const int FontListBase;
+    static const int FontListBase;
     const int NumFontLists;
     const float XLimit;
     const float YLimit;
@@ -115,6 +115,15 @@ private:
             }
     };
 
+    static void DrawGLFontString(const std::string& text)
+    {
+        #if(1)
+        DrawGLUTFontString(text);
+        #else
+        glListBase(Central::FontListBase);
+        glCallLists(text.length(),GL_UNSIGNED_BYTE,text.c_str());
+        #endif
+    }
     void DrawCircle(float radius)const
     {
         // draw it

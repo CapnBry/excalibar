@@ -279,8 +279,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,0,0,3
- PRODUCTVERSION 0,0,0,3
+ FILEVERSION 1,1,1,3
+ PRODUCTVERSION 1,1,1,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -298,14 +298,14 @@ BEGIN
             VALUE "Comments", "Real-time sniffer/analyzer for Dark Age of Camelot\0"
             VALUE "CompanyName", "Cheyenne Developers\0"
             VALUE "FileDescription", "Cheyenne\0"
-            VALUE "FileVersion", "0, 0, 0, 3\0"
+            VALUE "FileVersion", "1, 1, 1, 3\0"
             VALUE "InternalName", "Cheyenne\0"
             VALUE "LegalCopyright", "2003, Cheyenne Developers\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "Cheyenne.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Cheyenne\0"
-            VALUE "ProductVersion", "0, 0, 0, 3\0"
+            VALUE "ProductVersion", "1, 1, 1, 3\0"
             VALUE "SpecialBuild", "\0"
         END
     END

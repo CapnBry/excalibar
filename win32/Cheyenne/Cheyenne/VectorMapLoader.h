@@ -106,8 +106,10 @@ public:
             if(GetType() == 'P')
                 {
                 // draw name too
-                glRasterPos3f(it->x+10.0f,it->y,2.0f);
-                Central::DrawGLUTFontString(Name);
+                glRasterPos3f(it->x+10.0f,it->y,1.0f);
+                glColor4f(1.0f,1.0f,1.0f,1.0f);
+                Central::DrawGLFontString(Name);
+
                 }
             }
     }

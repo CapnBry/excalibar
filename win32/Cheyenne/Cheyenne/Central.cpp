@@ -37,8 +37,11 @@ const UINT CALL_INIT_DISPLAY_MATRICES=WM_USER+2;
 const UINT RENDER_NOW=WM_USER+3;
 const UINT VECTOR_MAPS_LOADED=WM_USER+4;
 
+// init font list base statically
+const int Central::FontListBase=1000;
+
 Central::Central() :
-    FontListBase(1000),NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
+    NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
     ProjectionX(600000.0f),ProjectionY(500000.0f),
     XLimit(2000000.0f),YLimit(2000000.0f),ProjectionWidthX(10000.0f),ProjectionWidthY(10000.0f),
     ZoomIncrement(5000.0f),PanIncrement(5000.0f),
@@ -1611,24 +1614,24 @@ void Central::RenderActor(const Actor& ThisActor)const
             glListBase(FontListBase);
 
             //glCallLists(ThisActor.GetName().length(),GL_UNSIGNED_BYTE,ThisActor.GetName().c_str());
-            DrawGLUTFontString(ThisActor.GetName());
+            DrawGLFontString(ThisActor.GetName());
 
             if(Config.GetSurnameInPPI())
                 {
                 // surname
                 //glCallLists(1,GL_UNSIGNED_BYTE," ");
-                DrawGLUTFontString(std::string(" "));
+                DrawGLFontString(std::string(" "));
                 //glCallLists(ThisActor.GetSurname().length(),GL_UNSIGNED_BYTE,ThisActor.GetSurname().c_str());
-                DrawGLUTFontString(ThisActor.GetSurname());
+                DrawGLFontString(ThisActor.GetSurname());
                 }
 
             if(Config.GetGuildInPPI())
                 {
                 // guild
                 //glCallLists(1,GL_UNSIGNED_BYTE," ");
-                DrawGLUTFontString(std::string(" "));
+                DrawGLFontString(std::string(" "));
                 //glCallLists(ThisActor.GetGuild().length(),GL_UNSIGNED_BYTE,ThisActor.GetGuild().c_str());
-                DrawGLUTFontString(ThisActor.GetGuild());
+                DrawGLFontString(ThisActor.GetGuild());
                 }
 
             if(Config.GetLevelInPPI())
@@ -1637,7 +1640,7 @@ void Central::RenderActor(const Actor& ThisActor)const
                 char level[8];
                 sprintf(level," %u",unsigned int(ThisActor.GetLevel()));
                 //glCallLists(strlen(level),GL_UNSIGNED_BYTE,level);
-                DrawGLUTFontString(std::string(level));
+                DrawGLFontString(std::string(level));
                 }
 
             if(Config.GetHealthInPPI())
@@ -1646,7 +1649,7 @@ void Central::RenderActor(const Actor& ThisActor)const
                 char health[8];
                 sprintf(health," %u%%",unsigned int(ThisActor.GetHealth()));
                 //glCallLists(strlen(health),GL_UNSIGNED_BYTE,health);
-                DrawGLUTFontString(std::string(health));
+                DrawGLFontString(std::string(health));
                 }
             } // end if draw text in PPI
 
@@ -1777,7 +1780,7 @@ void Central::RenderWorld(void)const
 
                 glEnd();
             
-                glColor3f(0.0f,0.0f,0.0f);
+                glColor4f(0.0f,0.0f,0.0f,1.0f);
 
                 // disable textures for text and vector maps
                 glDisable(GL_TEXTURE_2D);
@@ -1794,7 +1797,7 @@ void Central::RenderWorld(void)const
                     );
 
                 //glCallLists(zone.ZoneFile.length(),GL_UNSIGNED_BYTE,zone.ZoneFile.c_str());
-                DrawGLUTFontString(zone.ZoneFile);
+                DrawGLFontString(zone.ZoneFile);
 
                 if(Config.GetVectorMapInPPI())
                     {

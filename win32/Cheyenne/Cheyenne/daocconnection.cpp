@@ -765,8 +765,46 @@ void DAOCConnection::BuildMessagesFromTCPServer
             {
             daocmessages::delete_object* msg=ParseDeleteObject(ndx,buffer);
 
-            // push it onto the fifo for the database
-            fifo->Push(msg);
+            // object id is an infoid
+            // if this is our "self_id" then ignore it --
+            // we can't delete ourselves!
+
+            // 90% sure I have seen Mythic send a this message for
+            // the "self" that is logged in. The DAoC client ignores it
+            // but (until now) the Cheyenne database processed it because there
+            // is no concept of "self" in the database. This is why the code to filter
+            // this message out is here: the daocconnection determines the "self-centric view", 
+            // and reports to the "world-centric" database.
+
+            // I am also fairly sure that this is a method used by Mythic's staff to 
+            // determine who is running a sniffer (this sniffer in particular) because you 
+            // will definately change your standard behavior when you "lose yourself" on the map.
+
+            // This may be the second strike against you:
+            // 1. You did something to attract the attention of a CSR who began the 
+            //    monitoring process against you (unless they do this stuff randomly, trolling as it were)
+            // 2. You changed your behaviour because of CSR activity that, if you were not running
+            //    a sniffer, you should not know about.
+            // 3. ?? 
+
+            // There are many valid and inobtrusive tactics that they can use to catch you; 
+            // if you like your account un-banned but still insist on running a sniffer,
+            // then paranoia is your best friend.
+
+            if(msg->object_id == self_id)
+                {
+                // log it 
+                Logger << "[DAOCConnection::BuildMessagesFromTCPServer] got delete_object that matches self id (" << self_id << ")! Ignoring it...\n";
+
+                // delete here since we are not passing it along
+                delete msg;
+                }
+            else
+                {
+
+                // push it onto the fifo for the database
+                fifo->Push(msg);
+                }
             }
             break;
 
