@@ -1,0 +1,593 @@
+unit NtDdNDIS;
+
+interface
+
+const
+  DD_NDIS_DEVICE_NAME = '\Device\UNKNOWN';  { or is it '\\Device\\UNKNOWN'? }
+
+
+//
+// NtDeviceIoControlFile IoControlCode values for this device.
+//
+// Warning:  Remember that the low two bits of the code specify how the
+//           buffers are passed to the driver!
+//
+
+//  _NDIS_CONTROL_CODE(request,method) \
+//            CTL_CODE(FILE_DEVICE_PHYSICAL_NETCARD, request, method, FILE_ANY_ACCESS)
+
+//  IOCTL_NDIS_QUERY_GLOBAL_STATS      _NDIS_CONTROL_CODE( 0, METHOD_OUT_DIRECT )
+//  IOCTL_NDIS_QUERY_ALL_STATS         _NDIS_CONTROL_CODE( 1, METHOD_OUT_DIRECT )
+
+
+//
+// NtDeviceIoControlFile InputBuffer/OutputBuffer record structures for
+// this device.
+//
+
+//
+// This is the type of an NDIS OID value.
+//
+
+// typedef ULONG NDIS_OID, *PNDIS_OID;
+
+
+//
+// IOCTL_NDIS_QUERY_ALL_STATS returns a sequence of these, packed
+// together (no padding is required since statistics all have
+// four or eight bytes of data).
+//
+
+// typedef struct _NDIS_STATISTICS_VALUE {
+//    NDIS_OID Oid;
+//    ULONG DataLength;
+//    UCHAR Data[1];            // variable length
+// } NDIS_STATISTICS_VALUE, *PNDIS_STATISTICS_VALUE;
+
+
+//
+// Object Identifiers used by NdisRequest Query/Set Information
+//
+
+//
+// General Objects
+//
+
+  OID_GEN_SUPPORTED_LIST             = $00010101;
+  OID_GEN_HARDWARE_STATUS            = $00010102;
+  OID_GEN_MEDIA_SUPPORTED            = $00010103;
+  OID_GEN_MEDIA_IN_USE               = $00010104;
+  OID_GEN_MAXIMUM_LOOKAHEAD          = $00010105;
+  OID_GEN_MAXIMUM_FRAME_SIZE         = $00010106;
+  OID_GEN_LINK_SPEED                 = $00010107;
+  OID_GEN_TRANSMIT_BUFFER_SPACE      = $00010108;
+  OID_GEN_RECEIVE_BUFFER_SPACE       = $00010109;
+  OID_GEN_TRANSMIT_BLOCK_SIZE        = $0001010A;
+  OID_GEN_RECEIVE_BLOCK_SIZE         = $0001010B;
+  OID_GEN_VENDOR_ID                  = $0001010C;
+  OID_GEN_VENDOR_DESCRIPTION         = $0001010D;
+  OID_GEN_CURRENT_PACKET_FILTER      = $0001010E;
+  OID_GEN_CURRENT_LOOKAHEAD          = $0001010F;
+  OID_GEN_DRIVER_VERSION             = $00010110;
+  OID_GEN_MAXIMUM_TOTAL_SIZE         = $00010111;
+  OID_GEN_PROTOCOL_OPTIONS           = $00010112;
+  OID_GEN_MAC_OPTIONS                = $00010113;
+
+  OID_GEN_XMIT_OK                    = $00020101;
+  OID_GEN_RCV_OK                     = $00020102;
+  OID_GEN_XMIT_ERROR                 = $00020103;
+  OID_GEN_RCV_ERROR                  = $00020104;
+  OID_GEN_RCV_NO_BUFFER              = $00020105;
+
+  OID_GEN_DIRECTED_BYTES_XMIT        = $00020201;
+  OID_GEN_DIRECTED_FRAMES_XMIT       = $00020202;
+  OID_GEN_MULTICAST_BYTES_XMIT       = $00020203;
+  OID_GEN_MULTICAST_FRAMES_XMIT      = $00020204;
+  OID_GEN_BROADCAST_BYTES_XMIT       = $00020205;
+  OID_GEN_BROADCAST_FRAMES_XMIT      = $00020206;
+  OID_GEN_DIRECTED_BYTES_RCV         = $00020207;
+  OID_GEN_DIRECTED_FRAMES_RCV        = $00020208;
+  OID_GEN_MULTICAST_BYTES_RCV        = $00020209;
+  OID_GEN_MULTICAST_FRAMES_RCV       = $0002020A;
+  OID_GEN_BROADCAST_BYTES_RCV        = $0002020B;
+  OID_GEN_BROADCAST_FRAMES_RCV       = $0002020C;
+
+  OID_GEN_RCV_CRC_ERROR              = $0002020D;
+  OID_GEN_TRANSMIT_QUEUE_LENGTH      = $0002020E;
+
+
+//
+// 802.3 Objects (Ethernet)
+//
+
+  OID_802_3_PERMANENT_ADDRESS        = $01010101;
+  OID_802_3_CURRENT_ADDRESS          = $01010102;
+  OID_802_3_MULTICAST_LIST           = $01010103;
+  OID_802_3_MAXIMUM_LIST_SIZE        = $01010104;
+
+  OID_802_3_RCV_ERROR_ALIGNMENT      = $01020101;
+  OID_802_3_XMIT_ONE_COLLISION       = $01020102;
+  OID_802_3_XMIT_MORE_COLLISIONS     = $01020103;
+
+  OID_802_3_XMIT_DEFERRED            = $01020201;
+  OID_802_3_XMIT_MAX_COLLISIONS      = $01020202;
+  OID_802_3_RCV_OVERRUN              = $01020203;
+  OID_802_3_XMIT_UNDERRUN            = $01020204;
+  OID_802_3_XMIT_HEARTBEAT_FAILURE   = $01020205;
+  OID_802_3_XMIT_TIMES_CRS_LOST      = $01020206;
+  OID_802_3_XMIT_LATE_COLLISIONS     = $01020207;
+
+
+//
+// 802.5 Objects (Token-Ring)
+//
+
+  OID_802_5_PERMANENT_ADDRESS        = $02010101;
+  OID_802_5_CURRENT_ADDRESS          = $02010102;
+  OID_802_5_CURRENT_FUNCTIONAL       = $02010103;
+  OID_802_5_CURRENT_GROUP            = $02010104;
+  OID_802_5_LAST_OPEN_STATUS         = $02010105;
+  OID_802_5_CURRENT_RING_STATUS      = $02010106;
+  OID_802_5_CURRENT_RING_STATE       = $02010107;
+
+  OID_802_5_LINE_ERRORS              = $02020101;
+  OID_802_5_LOST_FRAMES              = $02020102;
+
+  OID_802_5_BURST_ERRORS             = $02020201;
+  OID_802_5_AC_ERRORS                = $02020202;
+  OID_802_5_ABORT_DELIMETERS         = $02020203;
+  OID_802_5_FRAME_COPIED_ERRORS      = $02020204;
+  OID_802_5_FREQUENCY_ERRORS         = $02020205;
+  OID_802_5_TOKEN_ERRORS             = $02020206;
+  OID_802_5_INTERNAL_ERRORS          = $02020207;
+
+
+//
+// FDDI Objects
+//
+
+  OID_FDDI_LONG_PERMANENT_ADDR       = $03010101;
+  OID_FDDI_LONG_CURRENT_ADDR         = $03010102;
+  OID_FDDI_LONG_MULTICAST_LIST       = $03010103;
+  OID_FDDI_LONG_MAX_LIST_SIZE        = $03010104;
+  OID_FDDI_SHORT_PERMANENT_ADDR      = $03010105;
+  OID_FDDI_SHORT_CURRENT_ADDR        = $03010106;
+  OID_FDDI_SHORT_MULTICAST_LIST      = $03010107;
+  OID_FDDI_SHORT_MAX_LIST_SIZE       = $03010108;
+
+  OID_FDDI_ATTACHMENT_TYPE           = $03020101;
+  OID_FDDI_UPSTREAM_NODE_LONG        = $03020102;
+  OID_FDDI_DOWNSTREAM_NODE_LONG      = $03020103;
+  OID_FDDI_FRAME_ERRORS              = $03020104;
+  OID_FDDI_FRAMES_LOST               = $03020105;
+  OID_FDDI_RING_MGT_STATE            = $03020106;
+  OID_FDDI_LCT_FAILURES              = $03020107;
+  OID_FDDI_LEM_REJECTS               = $03020108;
+  OID_FDDI_LCONNECTION_STATE         = $03020109;
+
+  OID_FDDI_SMT_STATION_ID            = $03030201;
+  OID_FDDI_SMT_OP_VERSION_ID         = $03030202;
+  OID_FDDI_SMT_HI_VERSION_ID         = $03030203;
+  OID_FDDI_SMT_LO_VERSION_ID         = $03030204;
+  OID_FDDI_SMT_MANUFACTURER_DATA     = $03030205;
+  OID_FDDI_SMT_USER_DATA             = $03030206;
+  OID_FDDI_SMT_MIB_VERSION_ID        = $03030207;
+  OID_FDDI_SMT_MAC_CT                = $03030208;
+  OID_FDDI_SMT_NON_MASTER_CT         = $03030209;
+  OID_FDDI_SMT_MASTER_CT             = $0303020A;
+  OID_FDDI_SMT_AVAILABLE_PATHS       = $0303020B;
+  OID_FDDI_SMT_CONFIG_CAPABILITIES   = $0303020C;
+  OID_FDDI_SMT_CONFIG_POLICY         = $0303020D;
+  OID_FDDI_SMT_CONNECTION_POLICY     = $0303020E;
+  OID_FDDI_SMT_T_NOTIFY              = $0303020F;
+  OID_FDDI_SMT_STAT_RPT_POLICY       = $03030210;
+  OID_FDDI_SMT_TRACE_MAX_EXPIRATION  = $03030211;
+  OID_FDDI_SMT_PORT_INDEXES          = $03030212;
+  OID_FDDI_SMT_MAC_INDEXES           = $03030213;
+  OID_FDDI_SMT_BYPASS_PRESENT        = $03030214;
+  OID_FDDI_SMT_ECM_STATE             = $03030215;
+  OID_FDDI_SMT_CF_STATE              = $03030216;
+  OID_FDDI_SMT_HOLD_STATE            = $03030217;
+  OID_FDDI_SMT_REMOTE_DISCONNECT_FLAG= $03030218;
+  OID_FDDI_SMT_STATION_STATUS        = $03030219;
+  OID_FDDI_SMT_PEER_WRAP_FLAG        = $0303021A;
+  OID_FDDI_SMT_MSG_TIME_STAMP        = $0303021B;
+  OID_FDDI_SMT_TRANSITION_TIME_STAMP = $0303021C;
+  OID_FDDI_SMT_SET_COUNT             = $0303021D;
+  OID_FDDI_SMT_LAST_SET_STATION_ID   = $0303021E;
+  OID_FDDI_MAC_FRAME_STATUS_FUNCTIONS= $0303021F;
+  OID_FDDI_MAC_BRIDGE_FUNCTIONS      = $03030220;
+  OID_FDDI_MAC_T_MAX_CAPABILITY      = $03030221;
+  OID_FDDI_MAC_TVX_CAPABILITY        = $03030222;
+  OID_FDDI_MAC_AVAILABLE_PATHS       = $03030223;
+  OID_FDDI_MAC_CURRENT_PATH          = $03030224;
+  OID_FDDI_MAC_UPSTREAM_NBR          = $03030225;
+  OID_FDDI_MAC_DOWNSTREAM_NBR        = $03030226;
+  OID_FDDI_MAC_OLD_UPSTREAM_NBR      = $03030227;
+  OID_FDDI_MAC_OLD_DOWNSTREAM_NBR    = $03030228;
+  OID_FDDI_MAC_DUP_ADDRESS_TEST      = $03030229;
+  OID_FDDI_MAC_REQUESTED_PATHS       = $0303022A;
+  OID_FDDI_MAC_DOWNSTREAM_PORT_TYPE  = $0303022B;
+  OID_FDDI_MAC_INDEX                 = $0303022C;
+  OID_FDDI_MAC_SMT_ADDRESS           = $0303022D;
+  OID_FDDI_MAC_LONG_GRP_ADDRESS      = $0303022E;
+  OID_FDDI_MAC_SHORT_GRP_ADDRESS     = $0303022F;
+  OID_FDDI_MAC_T_REQ                 = $03030230;
+  OID_FDDI_MAC_T_NEG                 = $03030231;
+  OID_FDDI_MAC_T_MAX                 = $03030232;
+  OID_FDDI_MAC_TVX_VALUE             = $03030233;
+  OID_FDDI_MAC_T_PRI0                = $03030234;
+  OID_FDDI_MAC_T_PRI1                = $03030235;
+  OID_FDDI_MAC_T_PRI2                = $03030236;
+  OID_FDDI_MAC_T_PRI3                = $03030237;
+  OID_FDDI_MAC_T_PRI4                = $03030238;
+  OID_FDDI_MAC_T_PRI5                = $03030239;
+  OID_FDDI_MAC_T_PRI6                = $0303023A;
+  OID_FDDI_MAC_FRAME_CT              = $0303023B;
+  OID_FDDI_MAC_COPIED_CT             = $0303023C;
+  OID_FDDI_MAC_TRANSMIT_CT           = $0303023D;
+  OID_FDDI_MAC_TOKEN_CT              = $0303023E;
+  OID_FDDI_MAC_ERROR_CT              = $0303023F;
+  OID_FDDI_MAC_LOST_CT               = $03030240;
+  OID_FDDI_MAC_TVX_EXPIRED_CT        = $03030241;
+  OID_FDDI_MAC_NOT_COPIED_CT         = $03030242;
+  OID_FDDI_MAC_LATE_CT               = $03030243;
+  OID_FDDI_MAC_RING_OP_CT            = $03030244;
+  OID_FDDI_MAC_FRAME_ERROR_THRESHOLD = $03030245;
+  OID_FDDI_MAC_FRAME_ERROR_RATIO     = $03030246;
+  OID_FDDI_MAC_NOT_COPIED_THRESHOLD  = $03030247;
+  OID_FDDI_MAC_NOT_COPIED_RATIO      = $03030248;
+  OID_FDDI_MAC_RMT_STATE             = $03030249;
+  OID_FDDI_MAC_DA_FLAG               = $0303024A;
+  OID_FDDI_MAC_UNDA_FLAG             = $0303024B;
+  OID_FDDI_MAC_FRAME_ERROR_FLAG      = $0303024C;
+  OID_FDDI_MAC_NOT_COPIED_FLAG       = $0303024D;
+  OID_FDDI_MAC_MA_UNITDATA_AVAILABLE = $0303024E;
+  OID_FDDI_MAC_HARDWARE_PRESENT      = $0303024F;
+  OID_FDDI_MAC_MA_UNITDATA_ENABLE    = $03030250;
+  OID_FDDI_PATH_INDEX                = $03030251;
+  OID_FDDI_PATH_RING_LATENCY         = $03030252;
+  OID_FDDI_PATH_TRACE_STATUS         = $03030253;
+  OID_FDDI_PATH_SBA_PAYLOAD          = $03030254;
+  OID_FDDI_PATH_SBA_OVERHEAD         = $03030255;
+  OID_FDDI_PATH_CONFIGURATION        = $03030256;
+  OID_FDDI_PATH_T_R_MODE             = $03030257;
+  OID_FDDI_PATH_SBA_AVAILABLE        = $03030258;
+  OID_FDDI_PATH_TVX_LOWER_BOUND      = $03030259;
+  OID_FDDI_PATH_T_MAX_LOWER_BOUND    = $0303025A;
+  OID_FDDI_PATH_MAX_T_REQ            = $0303025B;
+  OID_FDDI_PORT_MY_TYPE              = $0303025C;
+  OID_FDDI_PORT_NEIGHBOR_TYPE        = $0303025D;
+  OID_FDDI_PORT_CONNECTION_POLICIES  = $0303025E;
+  OID_FDDI_PORT_MAC_INDICATED        = $0303025F;
+  OID_FDDI_PORT_CURRENT_PATH         = $03030260;
+  OID_FDDI_PORT_REQUESTED_PATHS      = $03030261;
+  OID_FDDI_PORT_MAC_PLACEMENT        = $03030262;
+  OID_FDDI_PORT_AVAILABLE_PATHS      = $03030263;
+  OID_FDDI_PORT_MAC_LOOP_TIME        = $03030264;
+  OID_FDDI_PORT_PMD_CLASS            = $03030265;
+  OID_FDDI_PORT_CONNECTION_CAPABILITIES= $03030266;
+  OID_FDDI_PORT_INDEX                = $03030267;
+  OID_FDDI_PORT_MAINT_LS             = $03030268;
+  OID_FDDI_PORT_BS_FLAG              = $03030269;
+  OID_FDDI_PORT_PC_LS                = $0303026A;
+  OID_FDDI_PORT_EB_ERROR_CT          = $0303026B;
+  OID_FDDI_PORT_LCT_FAIL_CT          = $0303026C;
+  OID_FDDI_PORT_LER_ESTIMATE         = $0303026D;
+  OID_FDDI_PORT_LEM_REJECT_CT        = $0303026E;
+  OID_FDDI_PORT_LEM_CT               = $0303026F;
+  OID_FDDI_PORT_LER_CUTOFF           = $03030270;
+  OID_FDDI_PORT_LER_ALARM            = $03030271;
+  OID_FDDI_PORT_CONNNECT_STATE       = $03030272;
+  OID_FDDI_PORT_PCM_STATE            = $03030273;
+  OID_FDDI_PORT_PC_WITHHOLD          = $03030274;
+  OID_FDDI_PORT_LER_FLAG             = $03030275;
+  OID_FDDI_PORT_HARDWARE_PRESENT     = $03030276;
+  OID_FDDI_SMT_STATION_ACTION        = $03030277;
+  OID_FDDI_PORT_ACTION               = $03030278;
+  OID_FDDI_IF_DESCR                  = $03030279;
+  OID_FDDI_IF_TYPE                   = $0303027A;
+  OID_FDDI_IF_MTU                    = $0303027B;
+  OID_FDDI_IF_SPEED                  = $0303027C;
+  OID_FDDI_IF_PHYS_ADDRESS           = $0303027D;
+  OID_FDDI_IF_ADMIN_STATUS           = $0303027E;
+  OID_FDDI_IF_OPER_STATUS            = $0303027F;
+  OID_FDDI_IF_LAST_CHANGE            = $03030280;
+  OID_FDDI_IF_IN_OCTETS              = $03030281;
+  OID_FDDI_IF_IN_UCAST_PKTS          = $03030282;
+  OID_FDDI_IF_IN_NUCAST_PKTS         = $03030283;
+  OID_FDDI_IF_IN_DISCARDS            = $03030284;
+  OID_FDDI_IF_IN_ERRORS              = $03030285;
+  OID_FDDI_IF_IN_UNKNOWN_PROTOS      = $03030286;
+  OID_FDDI_IF_OUT_OCTETS             = $03030287;
+  OID_FDDI_IF_OUT_UCAST_PKTS         = $03030288;
+  OID_FDDI_IF_OUT_NUCAST_PKTS        = $03030289;
+  OID_FDDI_IF_OUT_DISCARDS           = $0303028A;
+  OID_FDDI_IF_OUT_ERRORS             = $0303028B;
+  OID_FDDI_IF_OUT_QLEN               = $0303028C;
+  OID_FDDI_IF_SPECIFIC               = $0303028D;
+
+
+
+//
+// WAN objects
+//
+
+  OID_WAN_PERMANENT_ADDRESS          = $04010101;
+  OID_WAN_CURRENT_ADDRESS            = $04010102;
+  OID_WAN_QUALITY_OF_SERVICE         = $04010103;
+  OID_WAN_PROTOCOL_TYPE              = $04010104;
+  OID_WAN_MEDIUM_SUBTYPE             = $04010105;
+  OID_WAN_HEADER_FORMAT              = $04010106;
+
+  OID_WAN_GET_INFO                   = $04010107;
+  OID_WAN_SET_LINK_INFO              = $04010108;
+  OID_WAN_GET_LINK_INFO              = $04010109;
+
+  OID_WAN_LINE_COUNT                 = $0401010A;
+
+  OID_WAN_GET_BRIDGE_INFO            = $0401020A;
+
+  OID_WAN_SET_BRIDGE_INFO            = $0401020B;
+  OID_WAN_GET_COMP_INFO              = $0401020C;
+  OID_WAN_SET_COMP_INFO              = $0401020D;
+  OID_WAN_GET_STATS_INFO             = $0401020E;
+
+
+//
+// LocalTalk objects
+//
+
+  OID_LTALK_CURRENT_NODE_ID          = $05010102;
+
+  OID_LTALK_IN_BROADCASTS            = $05020101;
+  OID_LTALK_IN_LENGTH_ERRORS         = $05020102;
+
+  OID_LTALK_OUT_NO_HANDLERS          = $05020201;
+  OID_LTALK_COLLISIONS               = $05020202;
+  OID_LTALK_DEFERS                   = $05020203;
+  OID_LTALK_NO_DATA_ERRORS           = $05020204;
+  OID_LTALK_RANDOM_CTS_ERRORS        = $05020205;
+  OID_LTALK_FCS_ERRORS               = $05020206;
+
+
+//
+// Arcnet objects
+//
+
+  OID_ARCNET_PERMANENT_ADDRESS       = $06010101;
+  OID_ARCNET_CURRENT_ADDRESS         = $06010102;
+
+  OID_ARCNET_RECONFIGURATIONS        = $06020201;
+
+
+//
+// TAPI objects
+//
+  OID_TAPI_ACCEPT                    = $07030101;
+  OID_TAPI_ANSWER                    = $07030102;
+  OID_TAPI_CLOSE                     = $07030103;
+  OID_TAPI_CLOSE_CALL                = $07030104;
+  OID_TAPI_CONDITIONAL_MEDIA_DETECTION= $07030105;
+  OID_TAPI_CONFIG_DIALOG             = $07030106;
+  OID_TAPI_DEV_SPECIFIC              = $07030107;
+  OID_TAPI_DIAL                      = $07030108;
+  OID_TAPI_DROP                      = $07030109;
+  OID_TAPI_GET_ADDRESS_CAPS          = $0703010A;
+  OID_TAPI_GET_ADDRESS_ID            = $0703010B;
+  OID_TAPI_GET_ADDRESS_STATUS        = $0703010C;
+  OID_TAPI_GET_CALL_ADDRESS_ID       = $0703010D;
+  OID_TAPI_GET_CALL_INFO             = $0703010E;
+  OID_TAPI_GET_CALL_STATUS           = $0703010F;
+  OID_TAPI_GET_DEV_CAPS              = $07030110;
+  OID_TAPI_GET_DEV_CONFIG            = $07030111;
+  OID_TAPI_GET_EXTENSION_ID          = $07030112;
+  OID_TAPI_GET_ID                    = $07030113;
+  OID_TAPI_GET_LINE_DEV_STATUS       = $07030114;
+  OID_TAPI_MAKE_CALL                 = $07030115;
+  OID_TAPI_NEGOTIATE_EXT_VERSION     = $07030116;
+  OID_TAPI_OPEN                      = $07030117;
+  OID_TAPI_PROVIDER_INITIALIZE       = $07030118;
+  OID_TAPI_PROVIDER_SHUTDOWN         = $07030119;
+  OID_TAPI_SECURE_CALL               = $0703011A;
+  OID_TAPI_SELECT_EXT_VERSION        = $0703011B;
+  OID_TAPI_SEND_USER_USER_INFO       = $0703011C;
+  OID_TAPI_SET_APP_SPECIFIC          = $0703011D;
+  OID_TAPI_SET_CALL_PARAMS           = $0703011E;
+  OID_TAPI_SET_DEFAULT_MEDIA_DETECTION= $0703011F;
+  OID_TAPI_SET_DEV_CONFIG            = $07030120;
+  OID_TAPI_SET_MEDIA_MODE            = $07030121;
+  OID_TAPI_SET_STATUS_MESSAGES       = $07030122;
+
+
+//
+// Medium the Ndis Driver is running on (OID_GEN_MEDIA_SUPPORTED/
+// OID_GEN_MEDIA_IN_USE).
+//
+
+// typedef enum _NDIS_MEDIUM {
+//    NdisMedium802_3,
+//    NdisMedium802_5,
+//    NdisMediumFddi,
+//    NdisMediumWan,
+//    NdisMediumLocalTalk,
+//    NdisMediumDix,              // defined for convenience, not a real medium
+//    NdisMediumArcnetRaw,
+//    NdisMediumArcnet878_2
+//} NDIS_MEDIUM, *PNDIS_MEDIUM;
+
+
+//
+// Hardware status codes (OID_GEN_HARDWARE_STATUS).
+//
+
+// typedef enum _NDIS_HARDWARE_STATUS {
+//    NdisHardwareStatusReady,
+//    NdisHardwareStatusInitializing,
+//    NdisHardwareStatusReset,
+//    NdisHardwareStatusClosing,
+//    NdisHardwareStatusNotReady
+//} NDIS_HARDWARE_STATUS, *PNDIS_HARDWARE_STATUS;
+
+
+//
+// Defines the attachment types for FDDI (OID_FDDI_ATTACHMENT_TYPE).
+//
+
+//typedef enum _NDIS_FDDI_ATTACHMENT_TYPE {
+//    NdisFddiTypeIsolated = 1,
+//    NdisFddiTypeLocalA,
+//    NdisFddiTypeLocalB,
+//    NdisFddiTypeLocalAB,
+//    NdisFddiTypeLocalS,
+//    NdisFddiTypeWrapA,
+//    NdisFddiTypeWrapB,
+//    NdisFddiTypeWrapAB,
+//    NdisFddiTypeWrapS,
+//    NdisFddiTypeCWrapA,
+//    NdisFddiTypeCWrapB,
+//    NdisFddiTypeCWrapS,
+//    NdisFddiTypeThrough
+//} NDIS_FDDI_ATTACHMENT_TYPE, *PNDIS_FDDI_ATTACHMENT_TYPE;
+
+
+//
+// Defines the ring management states for FDDI (OID_FDDI_RING_MGT_STATE).
+//
+
+//typedef enum _NDIS_FDDI_RING_MGT_STATE {
+//    NdisFddiRingIsolated = 1,
+//    NdisFddiRingNonOperational,
+//    NdisFddiRingOperational,
+//    NdisFddiRingDetect,
+//    NdisFddiRingNonOperationalDup,
+//    NdisFddiRingOperationalDup,
+//    NdisFddiRingDirected,
+//    NdisFddiRingTrace
+//} NDIS_FDDI_RING_MGT_STATE, *PNDIS_FDDI_RING_MGT_STATE;
+
+
+//
+// Defines the Lconnection state for FDDI (OID_FDDI_LCONNECTION_STATE).
+//
+
+//typedef enum _NDIS_FDDI_LCONNECTION_STATE {
+//    NdisFddiStateOff = 1,
+//    NdisFddiStateBreak,
+//    NdisFddiStateTrace,
+//    NdisFddiStateConnect,
+//    NdisFddiStateNext,
+//    NdisFddiStateSignal,
+//    NdisFddiStateJoin,
+//    NdisFddiStateVerify,
+//    NdisFddiStateActive,
+//    NdisFddiStateMaintenance
+//} NDIS_FDDI_LCONNECTION_STATE, *PNDIS_FDDI_LCONNECTION_STATE;
+
+
+//
+// Defines the medium subtypes for WAN medium (OID_WAN_MEDIUM_SUBTYPE).
+//
+
+//typedef enum _NDIS_WAN_MEDIUM_SUBTYPE {
+//    NdisWanMediumHub,
+//    NdisWanMediumX_25,
+//    NdisWanMediumIsdn,
+//    NdisWanMediumSerial,
+//    NdisWanMediumFrameRelay,
+//    NdisWanMediumAtm,
+//    NdisWanMediumSonet,
+//    NdisWanMediumSW56K
+//} NDIS_WAN_MEDIUM_SUBTYPE, *PNDIS_WAN_MEDIUM_SUBTYPE;
+
+
+//
+// Defines the header format for WAN medium (OID_WAN_HEADER_FORMAT).
+//
+
+//typedef enum _NDIS_WAN_HEADER_FORMAT {
+//    NdisWanHeaderNative,       // src/dest based on subtype, followed by NLPID
+//    NdisWanHeaderEthernet      // emulation of ethernet header
+//} NDIS_WAN_HEADER_FORMAT, *PNDIS_WAN_HEADER_FORMAT;
+
+
+//
+// Defines the line quality on a WAN line (OID_WAN_QUALITY_OF_SERVICE).
+//
+
+//typedef enum _NDIS_WAN_QUALITY {
+//    NdisWanRaw,
+//    NdisWanErrorControl,
+//    NdisWanReliable
+//} NDIS_WAN_QUALITY, *PNDIS_WAN_QUALITY;
+
+
+//
+// Defines the state of a token-ring adapter (OID_802_5_CURRENT_RING_STATE).
+//
+
+//typedef enum _NDIS_802_5_RING_STATE {
+//    NdisRingStateOpened = 1,
+//    NdisRingStateClosed,
+//    NdisRingStateOpening,
+//    NdisRingStateClosing,
+//    NdisRingStateOpenFailure,
+//    NdisRingStateRingFailure
+//} NDIS_802_5_RING_STATE, *PNDIS_802_5_RING_STATE;
+
+
+
+//
+// Ndis Packet Filter Bits (OID_GEN_CURRENT_PACKET_FILTER).
+//
+
+  NDIS_PACKET_TYPE_DIRECTED          = $0001;
+  NDIS_PACKET_TYPE_MULTICAST         = $0002;
+  NDIS_PACKET_TYPE_ALL_MULTICAST     = $0004;
+  NDIS_PACKET_TYPE_BROADCAST         = $0008;
+  NDIS_PACKET_TYPE_SOURCE_ROUTING    = $0010;
+  NDIS_PACKET_TYPE_PROMISCUOUS       = $0020;
+  NDIS_PACKET_TYPE_SMT               = $0040;
+  NDIS_PACKET_TYPE_ALL_LOCAL         = $0080;
+  NDIS_PACKET_TYPE_MAC_FRAME         = $8000;
+  NDIS_PACKET_TYPE_FUNCTIONAL        = $4000;
+  NDIS_PACKET_TYPE_ALL_FUNCTIONAL    = $2000;
+  NDIS_PACKET_TYPE_GROUP             = $1000;
+
+
+//
+// Ndis Token-Ring Ring Status Codes (OID_802_5_CURRENT_RING_STATUS).
+//
+
+  NDIS_RING_SIGNAL_LOSS              = $00008000;
+  NDIS_RING_HARD_ERROR               = $00004000;
+  NDIS_RING_SOFT_ERROR               = $00002000;
+  NDIS_RING_TRANSMIT_BEACON          = $00001000;
+  NDIS_RING_LOBE_WIRE_FAULT          = $00000800;
+  NDIS_RING_AUTO_REMOVAL_ERROR       = $00000400;
+  NDIS_RING_REMOVE_RECEIVED          = $00000200;
+  NDIS_RING_COUNTER_OVERFLOW         = $00000100;
+  NDIS_RING_SINGLE_STATION           = $00000080;
+  NDIS_RING_RING_RECOVERY            = $00000040;
+
+
+//
+// Ndis protocol option bits (OID_GEN_PROTOCOL_OPTIONS).
+//
+
+  NDIS_PROT_OPTION_ESTIMATED_LENGTH  = $00000001;
+  NDIS_PROT_OPTION_NO_LOOPBACK       = $00000002;
+
+
+//
+// Ndis MAC option bits (OID_GEN_MAC_OPTIONS).
+//
+
+  NDIS_MAC_OPTION_COPY_LOOKAHEAD_DATA= $00000001;
+  NDIS_MAC_OPTION_RECEIVE_SERIALIZED = $00000002;
+  NDIS_MAC_OPTION_TRANSFERS_NOT_PEND = $00000004;
+  NDIS_MAC_OPTION_NO_LOOPBACK        = $00000008;
+
+implementation
+
+end.
