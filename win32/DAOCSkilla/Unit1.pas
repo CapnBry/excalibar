@@ -296,6 +296,7 @@ begin
 
     DAOCPath := FDAOCPath;
     MainHWND := Handle;
+    ZoneList.LoadFromMPKFile(FDAOCPath + 'zones\zones.mpk');
   end;
   
   LoadSettingsForConnection(AConn);
@@ -318,6 +319,13 @@ begin
 
   // dmdRemoteAdmin.DAOCControl := FConnection;
   dmdRemoteAdmin.Enabled := atnRemoteAdminEnable.Checked;
+
+  if not FileExists(FDAOCPath + 'gamedata.mpk') then
+    if MessageDlg('Your DAoC path is not set correctly.'#13 +
+      'DaocSkilla needs this set in order to function properly.'#13 +
+      'Currently set to: ' + FDAOCPath + #13#13 +
+      'Would you like to set it now?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      atnSetDaocPath.Execute;
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
