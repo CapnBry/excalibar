@@ -1,0 +1,88 @@
+How to install and build Cheyenne:
+
+1. What you will need
+
+TO RUN IT:
+- Some Win32 operating system. I use WinXP Pro, but Cheyenne has been seen to work on O/S's as old as NT4 SP6.
+- A graphics card and driver that supports OpenGL as an ICD (installable client driver, most modern cards fit this bill just fine)
+- WinPCAP 3.0 (later version should work with a recompile)
+- GLUT (the OpenGL Utility Toolkit) for Win32
+
+TO BUILD IT:
+- All of the above plus:
+- Microsoft Visual Studio 6
+- Microfoft Visual Studio Service Pack 5
+- June 2000 or later Microsoft Platform SDK (this may not be required, but I have it)
+- WinPCAP 3.0 (or later) developer's pack. The header files and lib files for this are included with Cheyenne
+- glpng v1.45 (or possibly later). 
+
+2. What are these zip files for?
+
+You should have received 5 zip files inside the main "redistributable" zip file:
+
+	shared.zip
+	Cheyenne.zip
+	libnids-1.16a-win32.zip
+	glpng.zip
+	Cheyenne_exe.zip
+
+
+- Shared.zip is a collection of things that were not necessarily created for Cheyenne's use. It contains header files and library files for the 
+other zip files. You don't need it unless you want to build Cheyenne.
+
+- Cheyenne.zip contains all the code for the Cheyenne executable. You don't need it unless you want to build Cheyenne.
+
+- libnids-1.16a.win32.zip contains my version of libnids. You don't need it unless you want to build Cheyenne.
+
+- glpng.zip contains the glpng library source code. You don't need it unless you want to build Cheyenne.
+
+- Cheyenne_exe.zip is a one-stop-install for Cheyenne. Everything you need to run Cheyenne is in here. There are no zone png maps because they
+are too big. Go to http://www.sourceforge.net/projects/excalibar and dig around for info on how to create the png files; they are very nice!
+
+- A word about the Cheyenne_exe directory structure: the "main" cheyenne files (exe, cfg, mapinfo, and regionoffsets) live in the cheyenne_exe
+directory. The actual maps (and .png if you got those some other way, I don't distribute them) live in the maps directory.
+
+3. How do I run it?
+
+- Install WinPCAP 3.0 and REBOOT (I had troubles if I didn't reboot after installation).
+
+- UNzip the Cheyenne_exe.zip file and run Cheyenne.exe. I personally recommend running Cheyenne on a different computer than the one you
+run DAoC on, but if you want to do it on the same machine, then you will want to up the priority of Cheyenne (System->Set Config).
+
+- Mouse wheel and +/- zoom in and out. If an Actor is not being followed, the arrow keys pan the display.
+
+4. How do I build it?
+
+- Get and install all the prerequisites from section 1
+
+- Plan your directory structure. Personally, I use:
+
+\users\me\cheyenne <-- cheyenne zip file goes here
+\users\me\shared <-- shared zip file goes here, but you will overwrite this after you build
+\users\me\glpng <-- glpng zip file goes here
+\users\me\libnids <-- libnids goes here
+\users\me\Cheyenne_exe <-- you'll populate this directory after you build everything.
+
+- Unzip everything into the directory you plan to use (see above ;)
+
+- Build the support libraries (they all have DSP files with them):
+	- glpng
+	- libnids
+
+- Copy the results (.lib files) of the support libraries into your "shared" directory. You should see the pattern as to where everything goes
+if you peeked into the shared.zip file. This overwrites what came in the shared.zip file.
+
+- Make sure the header files you used to build the support libraries are in your "shared" directory. This includes the WinPCAP developer headers as well as libnids headers. This is a pain, and one of these days I will automate it with a batch file or something.
+This overwrites what came in the shared.zip file. Oh, and the WinPCAP headers should overwrite the libnids headers.
+
+- Open the Cheyenne project.
+
+- Add your shared\include directory to the C++ preprocessor options for additional include directories. For me, that's \users\me\shared.
+
+- Add your shared\lib directory to the Linker input options for additional library path.
+
+- Build Cheyenne.
+
+- Copy the resultant exe from the debug (or release, if you built that version) directory to your Cheyenne_exe directory My dsp file will do this for me, but YMMV.
+
+- You're done.

@@ -1,0 +1,15 @@
+Cheyenne TODO list:
+
+- Speed up text rendering
+
+- Fix database issue when an infoid mapping is sometimes "lost". The total number of players should
+*always* be the number of infoid mappings minus 1 (locally generated players will not have mappings).
+
+- Test out sniffing multiple connections from the same instance of Cheyenne
+
+- Fix health not always updated problem
+
+- Fix "follow heading" display option
+
+- Implement vector map loading
+ 

@@ -1,0 +1,336 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAIN_MENU MENU DISCARDABLE 
+BEGIN
+    POPUP "&System"
+    BEGIN
+        MENUITEM "Set &Config",                 ID_SYSTEM_CONFIG
+        MENUITEM "E&xit",                       ID_SYSTEM_EXIT
+    END
+    POPUP "&Display"
+    BEGIN
+        MENUITEM "Set Camera &Follow",          ID_DISPLAY_CAMERA_FOLLOW
+        MENUITEM "Configure &Display",          ID_DISPLAY_CONFIG
+        MENUITEM "Configure &Sounds",           ID_DISPLAY_CONFIGURESOUNDS
+        MENUITEM "Set &Range Rings",            ID_DISPLAY_RANGERINGS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "A&bout",                      ID_HELP_ABOUT
+    END
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SET_CAMERA_FOLLOW DIALOG DISCARDABLE  0, 0, 183, 60
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Choose Actor to Follow"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_ACTOR_CB,7,24,96,103,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,126,23,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,126,39,50,14
+    PUSHBUTTON      "Don't Follow",IDC_FOLLOWNONE,126,7,50,14
+    LTEXT           "Available Actors:",IDC_STATIC,7,9,54,8
+END
+
+IDD_SETCONFIG DIALOG DISCARDABLE  0, 0, 119, 54
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Configure Cheyenne"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Raise Cheyenne's priority",IDC_RAISEPRIORITY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,7,94,10
+    DEFPUSHBUTTON   "OK",IDOK,7,33,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,62,33,50,14
+    CONTROL         "Log unknown packets",IDC_PRINTUNKNOWNPACKETS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,20,87,10
+END
+
+IDD_DISPLAYCONFIG DIALOG DISCARDABLE  0, 0, 214, 122
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Configure Display"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Render text in PPI",IDC_TEXTPPI,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,7,85,10
+    CONTROL         "Render guild in PPI",IDC_GUILDPPI,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,22,85,10
+    CONTROL         "Render surname in PPI",IDC_PPISURNAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,37,85,10
+    CONTROL         "Render level in PPI",IDC_PPILEVEL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,52,85,10
+    CONTROL         "Render Health in PPI",IDC_PPIHEALTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,67,83,10
+    CONTROL         "Render MOBs in PPI",IDC_RENDERMOBS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,7,85,10
+    CONTROL         "Render objects in PPI",IDC_RENDEROBJECTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,22,85,10
+    CONTROL         "Render players in PPI",IDC_RENDERPLAYERS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,37,85,10
+    CONTROL         "Follow Heading",IDC_FOLLOWHEADING,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,122,53,84,10
+    CONTROL         "Autofollow first actor",IDC_AUTOFOLLOWFIRST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,121,67,85,10
+    DEFPUSHBUTTON   "OK",IDOK,57,101,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,110,101,50,14
+    CONTROL         "Render dead in PPI",IDC_PPIDEAD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,82,85,10
+    CONTROL         "Update actors when rendered",IDC_UPDATEWHENRENDERED,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,121,
+                    78,85,18
+END
+
+IDD_SETRANGERINGS DIALOG DISCARDABLE  0, 0, 128, 151
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Define Range Rings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_RADIUS1,34,7,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED1,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,9,42,10
+    EDITTEXT        IDC_RADIUS2,34,26,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED2,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,28,42,10
+    EDITTEXT        IDC_RADIUS3,34,46,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED3,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,49,42,10
+    EDITTEXT        IDC_RADIUS4,34,66,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED4,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,68,42,10
+    EDITTEXT        IDC_RADIUS5,34,87,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED5,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,90,42,10
+    EDITTEXT        IDC_RADIUS6,34,109,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enabled",IDC_ENABLED6,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,79,111,42,10
+    DEFPUSHBUTTON   "OK",IDOK,7,130,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,69,130,50,14
+    LTEXT           "Radius:",IDC_STATIC,7,10,25,8
+    LTEXT           "Radius:",IDC_STATIC,7,29,25,8
+    LTEXT           "Radius:",IDC_STATIC,7,49,25,8
+    LTEXT           "Radius:",IDC_STATIC,7,69,25,8
+    LTEXT           "Radius:",IDC_STATIC,7,90,25,8
+    LTEXT           "Radius:",IDC_STATIC,7,112,25,8
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 186, 57
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Cheyenne"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,68,36,50,14
+    LTEXT           "Cheyenne: a real-time sniffer/analyzer for Dark Age of Camelot. Please read the included license.txt file for copyright information.",
+                    IDC_STATIC,7,7,172,30
+END
+
+IDD_SETSOUNDS DIALOG DISCARDABLE  0, 0, 144, 129
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Configure Sounds"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Play sound on create Albion actor",
+                    IDC_PLAYALBCREATESOUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,7,122,10
+    EDITTEXT        IDC_ALBCREATESOUND,55,20,82,14,ES_AUTOHSCROLL
+    CONTROL         "Play sound on create Hibernia actor",
+                    IDC_PLAYHIBCREATESOUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,39,129,10
+    EDITTEXT        IDC_HIBCREATESOUND,55,53,82,14,ES_AUTOHSCROLL
+    CONTROL         "Play sound on create Midgard actor",
+                    IDC_PLAYMIDCREATESOUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,72,128,10
+    EDITTEXT        IDC_MIDCREATESOUND,55,86,82,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,108,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,87,108,50,14
+    LTEXT           "Sound to play:",IDC_STATIC,7,23,46,8
+    LTEXT           "Sound to play:",IDC_STATIC,7,55,46,8
+    LTEXT           "Sound to play:",IDC_STATIC,7,88,46,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SET_CAMERA_FOLLOW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 53
+    END
+
+    IDD_SETCONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 112
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 47
+    END
+
+    IDD_DISPLAYCONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 115
+    END
+
+    IDD_SETRANGERINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 121
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 50
+    END
+
+    IDD_SETSOUNDS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 122
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,0,0,3
+ PRODUCTVERSION 0,0,0,3
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "Real-time sniffer/analyzer for Dark Age of Camelot\0"
+            VALUE "CompanyName", "Cheyenne Developers\0"
+            VALUE "FileDescription", "Cheyenne\0"
+            VALUE "FileVersion", "0, 0, 0, 3\0"
+            VALUE "InternalName", "Cheyenne\0"
+            VALUE "LegalCopyright", "2003, Cheyenne Developers\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "Cheyenne.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Cheyenne\0"
+            VALUE "ProductVersion", "0, 0, 0, 3\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_A                   ICON    DISCARDABLE     "icon1.ico"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
