@@ -161,6 +161,8 @@ void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
 
 void exMob::setHead(unsigned int nhead) {
   head=nhead & 0xfff;
+  /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
+  headrad = (head / 2048.0) * M_PI;
   touch();
 }
 
@@ -214,6 +216,34 @@ unsigned int exMob::getX() const {
 
 unsigned int exMob::getY() const {
    return y;
+}
+
+unsigned int exMob::getProjectedX() {
+    if (exTick == _lastprojectedX)
+	return projectedX;
+    
+    if (speed)
+	projectedX = x - (int)(sin(headrad) * 
+          ((double)speed * (double)(exTick - _lasttick) / 1000.0));
+    else
+	projectedX = x;
+    
+    _lastprojectedX = exTick;
+    return projectedX;
+}
+
+unsigned int exMob::getProjectedY() {
+    if (exTick == _lastprojectedY)
+	return projectedY;
+    
+    if (speed)
+	projectedY = y + (int)(cos(headrad) * 
+          ((double)speed * (double)(exTick - _lasttick) / 1000.0));
+    else
+	projectedY = y;
+    
+    _lastprojectedY = exTick;
+    return projectedY;
 }
 
 unsigned int exMob::getZ() const {

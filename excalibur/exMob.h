@@ -37,12 +37,16 @@ class exMob : public QListViewItem {
     unsigned int mana;
     unsigned int x,y,z;
     unsigned int head;
+    double headrad;
     unsigned int speed;
     bool mob;
     bool current;
     exTimeType _lasttick;
     exTimeType _lastdist;
     double lastdist;
+    exTimeType _lastprojectedX;
+    exTimeType _lastprojectedY;
+    unsigned int projectedX, projectedY;
     exConnection *c;
     Realm realm;
   public:
@@ -61,6 +65,8 @@ class exMob : public QListViewItem {
     unsigned int getX() const;
     unsigned int getY() const;
     unsigned int getZ() const;
+    unsigned int getProjectedX();
+    unsigned int getProjectedY();
     unsigned int getHead() const;
     unsigned int getSpeed() const;
     unsigned int getLevel() const;
