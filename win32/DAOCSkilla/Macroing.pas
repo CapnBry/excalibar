@@ -32,6 +32,7 @@ type
     Label2: TLabel;
     cbxConnectionList: TComboBox;
     Label3: TLabel;
+    lblMacroState: TLabel;
     procedure btnShowMapModesClick(Sender: TObject);
     procedure btnPowerskillBuyClick(Sender: TObject);
     procedure chkAutosellClick(Sender: TObject);
@@ -74,6 +75,7 @@ type
     procedure AutoSelectConnection;
     procedure SetCurrentConnection(AConn: TDAOCControl);
     procedure UpdateConnCbx;
+    procedure ShowMacroState(const s: string);
   protected
     function NoForgeNode : boolean;
   public
@@ -223,6 +225,8 @@ begin
     exit;
   end;
 
+  ShowMacroState('Checking autosell...');
+  
   iCnt := 0;
   pFirstItem := nil;
   with FCurrConn.LocalPlayer.Inventory do
@@ -241,6 +245,8 @@ begin
       end;  { If in bag and not 100%q }
 
   if (FInSellOff or (iCnt >= Random(7) + 1)) and Assigned(pFirstItem) then begin
+    ShowMacroState('Autoselling ' + pFirstItem.CountlessDescription);
+
     // Log('InvChg: Found item - ' + Items[I].Description);
     pWnd := TStatsWindow.Create(FCurrConn.WindowManager);
     pWnd.SelectInventoryBag(pFirstItem.BagPage);
@@ -275,6 +281,8 @@ begin
   FInAutoBuy := true;
 
   if frmPowerskill.Visible then begin
+    ShowMacroState('Performing autobuy');
+
     frmPowerskill.ExecutePurchases;
 
     if (NoMerchantNode or IsAtMerchantNode) and
@@ -282,6 +290,8 @@ begin
       FCurrConn.DoSendKeys('[esc]');
 
     if frmPowerskill.KeepBuying then begin
+        ShowMacroState('Heading to forge');
+        
 //      if frmPowerskill.HasMaterialsForItem then
         FCurrConn.PathToNodeName(FPSItemList.ForgeNodeName)
 //      else
@@ -297,6 +307,7 @@ begin
   FAutoSell := bWasAutoSell;
   FInAutoBuy := false;
   FSellingBeforeBuying := false;
+  ShowMacroState('');
   Log('Purchase complete');
 end;
 
@@ -337,9 +348,13 @@ begin
       exit;
 
     if IsAtForgeNode then begin
+      ShowMacroState('No materials, going from forge to merchant');
+
       FCurrConn.PathToNodeName(FPSItemList.MerchantNodeName);
       Result := true;
-    end;
+    end
+    else
+      ShowMacroState('No materials, but not at forge.');
   end;  { if frmPowerskill }
 end;
 
@@ -352,6 +367,8 @@ procedure TfrmMacroing.DAOCInventoryChanged(Sender: TObject);
 begin
   if not Visible or (Sender <> FCurrConn) then
     exit;
+
+  // ShowMacroState('Waiting for inventory change to complete');
 
   // Log('Setting timer to TIMEOUT_INVENTORYCHANGECOMPLETE');
   tmrTimeoutDelay.Tag := TIMEOUT_INVENTORYCHANGECOMPLETE;
@@ -376,6 +393,8 @@ begin
   if not Visible or (Sender <> FCurrConn) then
     exit;
 
+  ShowMacroState('Waiting for complete vendor item list to load');
+
   // Log('Setting timer to TIMEOUT_VENDORCHANGECOMPLETE');
   tmrTimeoutDelay.Tag := TIMEOUT_VENDORCHANGECOMPLETE;
   tmrTimeoutDelay.Enabled := false;
@@ -396,6 +415,8 @@ begin
   if Sender <> FCurrConn then
     exit;
 
+  ShowMacroState('');
+  
   if frmPowerskill.Visible then
     frmPowerskill.KeepBuying := false;
   if frmSpellcraftHelp.Visible then
@@ -415,16 +436,20 @@ procedure TfrmMacroing.DAOCArriveAtGotoDest(Sender: TObject; ANode: TMapNode);
 begin
   if Sender <> FCurrConn then
     exit;
-    
+
     { ANode will not be assigned if we're arriving at a non-pathed destination }
   if Assigned(ANode) and frmPowerskill.Visible then begin
-    if ANode.IsNamed(FPSItemList.ForgeNodeName) then
+    if ANode.IsNamed(FPSItemList.ForgeNodeName) then begin
+      ShowMacroState('At forge.  Waiting 5 seconds');
         { we wait 5s so we shouldn't get a "You move and cancel..." message }
       FCurrConn.ScheduleCallback(5000, ArrivedAtForge, 0);
+    end;
 
-    if ANode.IsNamed(FPSItemList.MerchantNodeName) then
+    if ANode.IsNamed(FPSItemList.MerchantNodeName) then begin
+      ShowMacroState('At merchant. Waiting 5 seconds');
       FCurrConn.ScheduleCallback(5000, ArrivedAtMerchant, 0);
-  end;
+    end;
+  end;  { if Node and PowerSkill.Visible }
 end;
 
 procedure TfrmMacroing.ArrivedAtForge(Sender: TObject; AParm: Cardinal);
@@ -433,14 +458,22 @@ begin
     exit;
     
   if frmPowerskill.Visible then begin
+    ShowMacroState('At forge');
     Log('I am at the forge');
-    
+
     if FPSItemList.AutoQuickbarSlot <> 0 then begin
+      ShowMacroState('Putting recipe in quickbar slot');
+
       frmPowerskill.RecipeToQuickbar(FPSItemList.AutoQuickbarSlot);
-      frmMacroTradeSkills.Progression := IntToStr(FPSItemList.AutoQuickbarSlot);
+      if FPSItemList.AutoQuickbarSlot = 10 then
+        frmMacroTradeSkills.Progression := '0'
+      else
+        frmMacroTradeSkills.Progression := IntToStr(FPSItemList.AutoQuickbarSlot);
     end;
 
     if FPSItemList.AutoStartProgression then begin
+      ShowMacroState('Crafting...');
+      
       OpenMacroTradeSkillWindow;
       frmMacroTradeSkills.StartProgression;
      end;
@@ -453,6 +486,7 @@ begin
     exit;
 
   if frmPowerskill.Visible then begin
+    ShowMacroState('Attempting to select merchant...');
     Log('I am at the merchant');
     
     FSelectingNPC := true;
@@ -486,6 +520,9 @@ end;
 
 procedure TfrmMacroing.InventoryChangeComplete;
 begin
+//  if FAutoSell or FInSellOff or FSellingBeforeBuying then
+//    ShowMacroState('Inventory change complete');
+  
     { most important thing is to start/complete the autosell if we have to.
       This can occur at both the forge or the merchant }
   DoAutoSell;
@@ -501,6 +538,8 @@ end;
 
 procedure TfrmMacroing.VendorChangeComplete;
 begin
+  ShowMacroState('Vendor change complete');
+
     { force a sell off before we start, selloff should reset to false
       even if we don't have autosell on }
   FInSellOff := true;
@@ -517,6 +556,8 @@ end;
 procedure TfrmMacroing.DAOCSelectNPCSuccess(Sender: TObject);
 begin
   if Visible and (Sender = FCurrConn) and FSelectingNPC then begin
+    ShowMacroState('Selected merchant, attempting right-click...');
+
     FSelectingNPC := false;
     FCurrConn.Stick;
     FCurrConn.AttemptNPCRightClick;
@@ -525,13 +566,16 @@ end;
 
 procedure TfrmMacroing.DAOCSelectNPCFailed(Sender: TObject);
 begin
-  if Sender = FCurrConn then
+  if Sender = FCurrConn then begin
+    ShowMacroState('Could not select merchant!');
     FSelectingNPC := false;
+  end;
 end;
 
 procedure TfrmMacroing.DAOCAttemptNPCRightClickFailed(Sender: TObject);
 begin
   if Visible and (Sender = FCurrConn) then begin
+    ShowMacroState('Right-click failed, moving around...');
       { srafe right a bit and try again }
     FCurrConn.StrafeRight(500);
     ArrivedAtMerchant(nil, 0);
@@ -550,7 +594,7 @@ procedure TfrmMacroing.DAOCLocalHealthUpdate(Sender: TObject);
 begin
   if Sender <> FCurrConn then
     exit;
-    
+
   if frmLowOnStat.Visible then
     frmLowOnStat.DAOCLocalHealthUpdate;
 end;
@@ -633,6 +677,7 @@ begin
     frmSpellcraftHelp.Close;
   end;
 
+  ShowMacroState('');
   frmPowerskill.DAOCControl := FCurrConn;
   frmMacroTradeSkills.DAOCControl := FCurrConn;
   frmAFK.DAOCControl := FCurrConn;
@@ -678,6 +723,17 @@ procedure TfrmMacroing.cbxConnectionListChange(Sender: TObject);
 begin
   if Assigned(FDAOCControlList) then
     SetCurrentConnection(FDAOCControlList[cbxConnectionList.ItemIndex]);
+end;
+
+procedure TfrmMacroing.ShowMacroState(const s: string);
+begin
+  if s = '' then
+    lblMacroState.Visible := false
+  else begin
+    lblMacroState.Caption := s;
+    lblMacroState.Visible := true;
+    lblMacroState.Update;
+  end;
 end;
 
 end.

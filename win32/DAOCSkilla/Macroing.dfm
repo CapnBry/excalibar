@@ -62,6 +62,14 @@ object frmMacroing: TfrmMacroing
     Font.Style = []
     ParentFont = False
   end
+  object lblMacroState: TLabel
+    Left = 260
+    Top = 24
+    Width = 65
+    Height = 13
+    Caption = 'lblMacroState'
+    Visible = False
+  end
   object chkAutosell: TCheckBox
     Left = 128
     Top = 52
