@@ -43,7 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 struct USERDATA
 {
-USERDATA() : scriptserver(23),ppi_id(1),data_id(2),Rendering(false),ReferenceSet(false),
+USERDATA() : ppi_id(1),data_id(2),Rendering(false),ReferenceSet(false),
              HookedSet(false),ReferenceTargetSet(false){};
 ~USERDATA(){};
 
@@ -60,8 +60,8 @@ GLPPI ppi;
 Database database;
 DStreamConnection dstream;
 ShareNetClientData sharenet;
-csl::CSLScriptHost scripthost;
-MiniShareServer<TelnetClientData> scriptserver; // must be created with a parameter
+//csl::CSLScriptHost scripthost;
+//MiniShareServer<TelnetClientData> scriptserver; // must be created with a parameter
 
 // "IPC" members
 tsfifo<CheyenneMessage*> ToDatabaseFifo; // the database Pop()'s this on a regular basis
@@ -746,8 +746,6 @@ LRESULT CALLBACK MainWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             data->sharenet.Stop();
             data->dstream.Stop();
             data->database.Stop();
-            data->scripthost.Stop();
-            data->scriptserver.Stop();
             data->ppi.Unwrap();
             
             // free this
@@ -862,24 +860,6 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     data->database.Go(&data->ToDatabaseFifo);
     data->sharenet.Go(&data->ToDatabaseFifo);
     data->dstream.Go(&data->ToDatabaseFifo);
-    
-    // this must be done before scripthost is started
-    data->scripthost.ChangeDatabase(&data->database);
-    
-    std::pair<tsfifo<std::string*>*,tsfifo<std::string*>*>* fifopair;
-    
-    fifopair=new std::pair<tsfifo<std::string*>*,tsfifo<std::string*>*>;
-    fifopair->first=&data->TelnetFifoReceive;
-    fifopair->second=&data->TelnetFifoSend;
-    data->scripthost.Go(fifopair); // CSLScriptHost expects a pair<fifo,fifo> as its go param
-                           // first is its input, second is its output. It deletes the pair
-                           // when it is done with it, but keeps the fifos (we own those)
-    fifopair=new std::pair<tsfifo<std::string*>*,tsfifo<std::string*>*>;
-    fifopair->first=&data->TelnetFifoSend;
-    fifopair->second=&data->TelnetFifoReceive;
-    data->scriptserver.Go(fifopair); // TelnetClientData expects a pair<fifo,fifo> as its go param
-                             // first is its input, second is its output. It deletes the pair
-                             // when it is done with it, but keeps the fifos (we own those)
     
     // set database config
     data->database.SaveChatMessages(::RadarConfig.GetSaveChatMessages());
@@ -1392,20 +1372,8 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         << "ShareNet Status: " << data->sharenet.GetStatusString() << "\n"
         << "ShareNet=" << data->sharenet.GetRemoteAddr() << "\n\n"
         << "DStream Status: " << data->dstream.GetStatusString() << "\n"
-        << "DStream=" << data->dstream.GetRemoteAddr() << "\n\n"
-        << "Scriptserver mini-server status: " << data->scriptserver.GetStatusString() << "\n";
+        << "DStream=" << data->dstream.GetRemoteAddr() << "\n\n";
         
-    // make running scripts string       
-    std::list<std::string> running_scripts;
-    std::list<std::string>::const_iterator it;
-    data->scripthost.GetRunningScripts(running_scripts);
-    
-    oss << unsigned int(running_scripts.size()) << " Running Scripts\n";
-    for(it=running_scripts.begin();it!=running_scripts.end();++it)
-        {
-        oss << *it << "\n";
-        } // end for all running scripts
-
     // draw double buffered to prevent flickering
     HDC hBack=CreateCompatibleDC(hFront);
     HBITMAP hBmp=CreateCompatibleBitmap(hBack,rClient.right-rClient.left,rClient.bottom-rClient.top);
