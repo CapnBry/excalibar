@@ -825,12 +825,19 @@ void GLPPI::RenderActor
     const Actor::RelativeCon& ConColor
     )
 {
-    // push matrix stack
-    glPushMatrix();
-    
     // get position to render this actor
     Motion RenderPosition;
     GetRenderPosition(ThisActor,RenderPosition);
+    
+    // don't bother if not visible
+    if(!IsVisible(RenderPosition.GetXPos(),RenderPosition.GetYPos()))
+        {
+        // do nothing
+        return;
+        }
+    
+    // push matrix stack
+    glPushMatrix();
     
     glTranslatef(RenderPosition.GetXPos(),RenderPosition.GetYPos(),0.0f);
 
@@ -1031,7 +1038,6 @@ void GLPPI::RenderZone
     // draw zone name
     TextEngine.SetColor(1.0f,1.0f,1.0f);
     TextEngine.StringOut(float(x),float(y),zone.ZoneFile);
-    //TextEngine.StringOut(0.0f,0.0f,zone.ZoneFile);
 
     glPopMatrix();
     
@@ -1105,6 +1111,15 @@ bool GLPPI::IsVisible(int BaseX, int BaseY, int MaxX, int MaxY)const
     RECT rIntersect;
 
     return(IntersectRect(&rIntersect,&r,&rDisplay) ? true:false);
+} // end IsVisible
+
+bool GLPPI::IsVisible(const float x, const float y)const
+{
+    RECT rDisplay={(LONG)ProjectionX,(LONG)ProjectionY,(LONG)(ProjectionX+ProjectionWidthX),(LONG)(ProjectionY+ProjectionWidthY)};
+    POINT pt;
+    pt.x=(LONG)x;
+    pt.y=(LONG)y;
+    return(PtInRect(&rDisplay,pt) ? true:false);
 } // end IsVisible
 
 void GLPPI::GetBoundingRectangle(const MapInfo::ZoneInfo& zone,int& BaseX,int& BaseY,int& MaxX,int& MaxY)const

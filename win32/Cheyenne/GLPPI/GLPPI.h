@@ -324,6 +324,7 @@ private:
     void AdjustPositionByRegion(Motion& Position,const unsigned char Region)const;
     void GetRenderPosition(const Actor& ThisActor,Motion& Position)const;
     bool IsVisible(int BaseX, int BaseY, int MaxX, int MaxY)const;
+    bool IsVisible(const float x, const float y)const;
     void GetBoundingRectangle(const MapInfo::ZoneInfo& zone,int& BaseX,int& BaseY,int& MaxX,int& MaxY)const;
     bool IsZoneVisible(const MapInfo::ZoneInfo& zone)const;
     void RecalcIncrements(void);
