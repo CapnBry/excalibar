@@ -125,14 +125,6 @@ Downloading and compiling Excalibur
 5) $QTDIR/bin/qmake excalibur.pro
 6) make
 
-===================================
-Getting the Excalibur Crypt library
-===================================
-
-1) cd ~/excalibur
-2) cvs -z9 -d:pserver:anonymous@cvs.excalibar.sourceforge.net:/cvsroot/excalibar co exCrypt 
-3) mv -f exCrypt/*.so .
-
 =================
 Running Excalibur
 =================
