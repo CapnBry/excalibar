@@ -1,6 +1,12 @@
+Teerex (10/Apr/02)
+------------------
+Changes:
+ + Fixed syntax error before '&' in exConnection.h 
+   and exMob.h using gcc3.
+
 Teerex (07/Apr/02)
 ------------------
-Chages:
+Changes:
  + Fixed mob list occasionally getting sorted
    erratically when new items are added
 
