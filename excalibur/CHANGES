@@ -1,4 +1,8 @@
-Teerec (03/Feb/02)
+Teerex (10/Feb/02)
+------------------
+ + Excalibur version 1.2.7 released.
+
+Teerex (03/Feb/02)
 ------------------
  + Fixed bug where mob health update of 100% wasn't being set.
 
