@@ -90,7 +90,7 @@ INT_PTR CALLBACK SimplifyLinesDialogProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARA
                     ss << str;
                     ss >> param->second;
                     
-                    if(param->second <= 0 || param->second > 200.0)
+                    if(param->second < 0 || param->second > 200.0)
                         {
                         MessageBox(hWnd,"Range must be [0,200]!", "Error",MB_OK);
                         }
