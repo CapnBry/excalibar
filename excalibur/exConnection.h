@@ -47,13 +47,19 @@ class exConnection;
 #include "exMessage.h"
 #include "messages.h"
 
+template <class T>
+class exMobList : public QPtrDict<T> {
+public:
+    void dumpToStdOut(void);
+};
+
 class exConnection : public QObject {
   Q_OBJECT
 protected:
-  QPtrDict<exMob> mobs;
-  QPtrDict<exMob> objs;
-  QPtrDict<exMob> players;
-  QPtrDict<exMob> mobinfo;
+  exMobList<exMob> mobs;
+  exMobList<exMob> objs;
+  exMobList<exMob> players;
+  exMobList<exMob> mobinfo;
   QPtrList<exMessage> messageList;
   QDict<int> playerzones;
   QDict<Realm> playerrealms;

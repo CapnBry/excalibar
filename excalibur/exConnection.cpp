@@ -39,6 +39,14 @@
 #include "exConnection.h"
 #include "exItem.h"
 
+template<class T>
+void exMobList<T>::dumpToStdOut()
+{
+  QPtrDictIterator<exMob> mobi(this);
+  for (;mobi.current(); ++mobi)
+      mobi.current().dumpToStdOut();
+}
+
 exConnection::exConnection(exNet * s, bool dolink, bool docapture)
 {
     QString fname;
