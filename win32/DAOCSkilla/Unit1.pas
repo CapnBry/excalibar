@@ -153,19 +153,20 @@ uses
 
 var
     { ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) }
-  BP_Instns: array[0..16] of Tbpf_insn = (
+  BP_Instns: array[0..17] of Tbpf_insn = (
     (code: BPF_LD + BPF_H + BPF_ABS; jt: 0; jf: 0; k: 12),  // load the ethernet protocol word (offset 12)
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 14; k: $0800),  // see if it is IP ($8000)
+    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 14; jf: 0; k: $8864),  // see if it is PPPoE ($8864)
+    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 14; k: $0800),  // see if it is IP ($0800)
 
       { source net 208.254.16.0/24 }
     (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 26),  // load the source DWORD
     (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-{4} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 3; jf: 0; k: $D0FE1000),  // is it 208.254.16.0
+{5} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 3; jf: 0; k: $D0FE1000),  // is it 208.254.16.0
 
       { dest net 208.254.16.0/24 }
     (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 30),  // load the dest DWORD
     (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-{7} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 8; k: $D0FE1000),  // is it 208.254.16.0?
+{8} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 8; k: $D0FE1000),  // is it 208.254.16.0?
 
       { udp }
     (code: BPF_LD + BPF_B + BPF_ABS; jt: 0; jf: 0; k: 23),  // load the IP proto byte (23)
@@ -984,10 +985,10 @@ begin
       dwNet := StrToHNet(frmConnectionConfig.CustomServerSubnet);
   end;
 
-  Result := dwNet <> BP_Instns[4].k;
+  Result := dwNet <> BP_Instns[5].k;
 
-  BP_Instns[4].k := dwNet;
-  BP_Instns[7].k := dwNet;
+  BP_Instns[5].k := dwNet;
+  BP_Instns[8].k := dwNet;
   Log('ServerNet set to ' + my_inet_htoa(dwNet));
 end;
 
