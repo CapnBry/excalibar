@@ -29,7 +29,7 @@ type
     property Modified: boolean read GetModified;
   end;
 
-  TNameValueModifiedNotify = procedure(Sender: TObject; AItem: TDAOCNameValuePair) of object;
+  TNameValueModifiedNotify = procedure (Sender: TObject; AItem: TDAOCNameValuePair) of object;
 
   TDAOCNameValueList = class(TObjectList)
   private
