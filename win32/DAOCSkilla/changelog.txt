@@ -1,3 +1,5 @@
+2003 Nov 14 - v1.61
+-------------------
   + ~20% performance increase in UDP packet handling.
   + Small performance increase in replaying packet captures.
   + Fixed bug in GL error logging causing an exception to be thrown
@@ -8,6 +10,8 @@
   + Object list should no longer flash white when redrawing.
   + Object list add / update / deletes are now 10x faster.
   + Alb and Hib SpellCrafting helpers returned to ZIP (oops!).
+  + Added "pushpins".  Press I (eye) from the radar dialog to add a
+    point at the current location.
 
 2003 Nov 09 - v1.59
 -------------------

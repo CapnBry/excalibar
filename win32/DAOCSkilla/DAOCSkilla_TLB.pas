@@ -1,4 +1,3 @@
-{$IFDEF PROFILE} {$O-} {$WARNINGS OFF} {$ENDIF }
 unit DAOCSkilla_TLB;
 
 // ************************************************************************ //
@@ -30,8 +29,7 @@ unit DAOCSkilla_TLB;
 
 interface
 
-{$IFNDEF PROFILE}uses ActiveX, Classes, Graphics, StdVCL, Variants, Windows;{$ENDIF}
-{$IFDEF PROFILE}uses ActiveX, Classes, Graphics, StdVCL, Variants, Windows ,Profint;{$ENDIF}
+uses ActiveX, Classes, Graphics, StdVCL, Variants, Windows;
   
 
 // *********************************************************************//
@@ -166,16 +164,12 @@ uses ComObj;
 
 class function CoCDAOCControl.Create: IDAOCControl;
 begin
-{$IFDEF PROFILE}asm DW 310FH; call Profint.ProfStop; end; Try; asm mov edx,43; mov eax,self; call Profint.ProfEnter; mov ecx,eax; DW 310FH; add[ecx].0,eax; adc[ecx].4,edx; end; {$ENDIF}
   Result := CreateComObject(CLASS_CDAOCControl) as IDAOCControl;
-{$IFDEF PROFILE}finally; asm DW 310FH; mov ecx,43; call Profint.ProfExit; mov ecx,eax; DW 310FH; add[ecx].0,eax; adc[ecx].4,edx; end; end; {$ENDIF}
 end;
 
 class function CoCDAOCControl.CreateRemote(const MachineName: string): IDAOCControl;
 begin
-{$IFDEF PROFILE}asm DW 310FH; call Profint.ProfStop; end; Try; asm mov edx,44; mov eax,self; call Profint.ProfEnter; mov ecx,eax; DW 310FH; add[ecx].0,eax; adc[ecx].4,edx; end; {$ENDIF}
   Result := CreateRemoteComObject(MachineName, CLASS_CDAOCControl) as IDAOCControl;
-{$IFDEF PROFILE}finally; asm DW 310FH; mov ecx,44; call Profint.ProfExit; mov ecx,eax; DW 310FH; add[ecx].0,eax; adc[ecx].4,edx; end; end; {$ENDIF}
 end;
 
 end.

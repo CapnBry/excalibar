@@ -54,7 +54,8 @@ uses
   RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
   zlib2 in '..\Components\ZLib\zlib2.pas',
   QuickLaunchChars in 'QuickLaunchChars.pas',
-  TexFont in 'TexFont.pas';
+  TexFont in 'TexFont.pas',
+  AddPushPin in 'AddPushPin.pas' {frmAddPushpin};
 
 {$R *.TLB}
 
