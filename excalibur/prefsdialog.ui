@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>PrefsDialog</class>
 <widget class="QDialog">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>634</width>
-            <height>250</height>
+            <width>636</width>
+            <height>330</height>
         </rect>
     </property>
     <property name="caption">
@@ -25,7 +25,7 @@
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>210</y>
+                <y>290</y>
                 <width>610</width>
                 <height>40</height>
             </rect>
@@ -41,7 +41,7 @@
                 <number>6</number>
             </property>
             <spacer>
-                <property name="name" stdset="0">
+                <property name="name">
                     <cstring>Horizontal Spacing2</cstring>
                 </property>
                 <property name="orientation">
@@ -65,7 +65,7 @@
                     <string>OK</string>
                 </property>
                 <property name="accel">
-                    <number>0</number>
+                    <string></string>
                 </property>
                 <property name="autoDefault">
                     <bool>true</bool>
@@ -82,7 +82,7 @@
                     <string>Cancel</string>
                 </property>
                 <property name="accel">
-                    <number>0</number>
+                    <string></string>
                 </property>
                 <property name="autoDefault">
                     <bool>true</bool>
@@ -99,7 +99,7 @@
                 <x>10</x>
                 <y>10</y>
                 <width>610</width>
-                <height>200</height>
+                <height>280</height>
             </rect>
         </property>
         <widget class="QWidget">
@@ -109,145 +109,6 @@
             <attribute name="title">
                 <string>Map Display</string>
             </attribute>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>GroupBox1</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>10</y>
-                        <width>110</width>
-                        <height>140</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>GL Smoothing</string>
-                </property>
-                <property name="alignment">
-                    <set>AlignHCenter</set>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout4</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>90</width>
-                            <height>110</height>
-                        </rect>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>0</number>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothPoints</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Points</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothLines</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Lines</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLSmoothPolygons</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Polygons</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>GroupBox2</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>125</x>
-                        <y>10</y>
-                        <width>165</width>
-                        <height>140</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Drawing Options</string>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout10</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>150</width>
-                            <height>110</height>
-                        </rect>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>-4</number>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLMapRotate</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Rotate Display</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>GLMapFill</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Fill Map Polygons</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>RasterizePlayerNames</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Player Names</string>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>RasterizeMerchantTypes</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Merchant Types</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </widget>
             <widget class="QGroupBox">
                 <property name="name">
                     <cstring>MapLoader</cstring>
@@ -281,9 +142,6 @@
                         </property>
                         <property name="margin">
                             <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>-4</number>
                         </property>
                         <widget class="QCheckBox">
                             <property name="name">
@@ -366,30 +224,6 @@
                         <string>Simplify</string>
                     </property>
                 </widget>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>MapSimplifyRangeLabel</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>5</x>
-                            <y>45</y>
-                            <width>95</width>
-                            <height>20</height>
-                        </rect>
-                    </property>
-                    <property name="font">
-                        <font>
-                            <pointsize>9</pointsize>
-                        </font>
-                    </property>
-                    <property name="text">
-                        <string>TextLabel1</string>
-                    </property>
-                </widget>
                 <widget class="QSlider">
                     <property name="name">
                         <cstring>MapSimplifyRange</cstring>
@@ -422,6 +256,30 @@
                     </property>
                     <property name="orientation">
                         <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>MapSimplifyRangeLabel</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>5</x>
+                            <y>45</y>
+                            <width>95</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="font">
+                        <font>
+                            <pointsize>9</pointsize>
+                        </font>
+                    </property>
+                    <property name="text">
+                        <string>Tolerance: 50</string>
                     </property>
                 </widget>
             </widget>
@@ -460,6 +318,218 @@
                         <string>Maintain</string>
                     </property>
                 </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox1</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>10</y>
+                        <width>110</width>
+                        <height>140</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>GL Smoothing</string>
+                </property>
+                <property name="alignment">
+                    <set>AlignHCenter</set>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout4</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>20</y>
+                            <width>90</width>
+                            <height>110</height>
+                        </rect>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>0</number>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothPoints</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Points</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothLines</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Lines</string>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>GLSmoothPolygons</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Polygons</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>groupBox12</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>450</x>
+                        <y>150</y>
+                        <width>144</width>
+                        <height>85</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Depth Fade Options</string>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>DepthFadeMinPctLabel</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Min. Fade</string>
+                        </property>
+                    </widget>
+                    <widget class="QSpinBox" row="1" column="1">
+                        <property name="name">
+                            <cstring>DepthFadeMinPct</cstring>
+                        </property>
+                        <property name="suffix">
+                            <string>%</string>
+                        </property>
+                        <property name="maxValue">
+                            <number>90</number>
+                        </property>
+                        <property name="minValue">
+                            <number>0</number>
+                        </property>
+                        <property name="lineStep">
+                            <number>10</number>
+                        </property>
+                        <property name="value">
+                            <number>40</number>
+                        </property>
+                    </widget>
+                    <widget class="QSpinBox" row="0" column="1">
+                        <property name="name">
+                            <cstring>DepthFadeRange</cstring>
+                        </property>
+                        <property name="maxValue">
+                            <number>5000</number>
+                        </property>
+                        <property name="minValue">
+                            <number>100</number>
+                        </property>
+                        <property name="lineStep">
+                            <number>100</number>
+                        </property>
+                        <property name="value">
+                            <number>500</number>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="0">
+                        <property name="name">
+                            <cstring>DepthFadeRangeLabel</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Range</string>
+                        </property>
+                    </widget>
+                </grid>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>GroupBox2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>125</x>
+                        <y>10</y>
+                        <width>155</width>
+                        <height>164</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Drawing Options</string>
+                </property>
+                <vbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLayoutWidget">
+                        <property name="name">
+                            <cstring>layout12</cstring>
+                        </property>
+                        <vbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>GLMapRotate</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Rotate Display</string>
+                                </property>
+                            </widget>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>GLMapFill</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Fill Map Polygons</string>
+                                </property>
+                            </widget>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>RasterizePlayerNames</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Player Names</string>
+                                </property>
+                            </widget>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>RasterizeMerchantTypes</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Merchant Types</string>
+                                </property>
+                            </widget>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>AgroLines</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Agro Lines</string>
+                                </property>
+                            </widget>
+                        </vbox>
+                    </widget>
+                </vbox>
             </widget>
         </widget>
         <widget class="QWidget">
@@ -503,9 +573,6 @@
                         <property name="margin">
                             <number>0</number>
                         </property>
-                        <property name="spacing">
-                            <number>-4</number>
-                        </property>
                         <widget class="QCheckBox">
                             <property name="name">
                                 <cstring>AgroCircles</cstring>
@@ -539,6 +606,79 @@
                             </property>
                             <property name="text">
                                 <string>Distance Fading</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>Alpha_Blending</cstring>
+                </property>
+                <property name="enabled">
+                    <bool>false</bool>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>419</x>
+                        <y>9</y>
+                        <width>180</width>
+                        <height>140</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Alpha Blending</string>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout15</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>23</y>
+                            <width>167</width>
+                            <height>110</height>
+                        </rect>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>0</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>AlphaSpeed</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Optimize for Speed</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>AlphaQuality</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Optimize for Quality</string>
+                            </property>
+                            <property name="checked">
+                                <bool>true</bool>
+                            </property>
+                        </widget>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>AlphaBorders</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Render Borders</string>
+                            </property>
+                            <property name="checked">
+                                <bool>true</bool>
                             </property>
                         </widget>
                     </vbox>
@@ -644,79 +784,6 @@
                             </property>
                         </widget>
                     </grid>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
-                    <cstring>Alpha_Blending</cstring>
-                </property>
-                <property name="enabled">
-                    <bool>false</bool>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>419</x>
-                        <y>9</y>
-                        <width>180</width>
-                        <height>140</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>Alpha Blending</string>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout15</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>23</y>
-                            <width>167</width>
-                            <height>110</height>
-                        </rect>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>0</number>
-                        </property>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>AlphaSpeed</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Optimize for Speed</string>
-                            </property>
-                        </widget>
-                        <widget class="QRadioButton">
-                            <property name="name">
-                                <cstring>AlphaQuality</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Optimize for Quality</string>
-                            </property>
-                            <property name="checked">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>AlphaBorders</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Render Borders</string>
-                            </property>
-                            <property name="checked">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                    </vbox>
                 </widget>
             </widget>
         </widget>
