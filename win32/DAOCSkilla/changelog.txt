@@ -1,3 +1,24 @@
+  + Added (possibly broken!) support for Keen, Blunt, and Barbed Footed
+    Flight Broadhead arrow recipes.
+  + Added support for all Albion materials in recipes.
+  + Fixed typo bug causing much bigger redraws of the mob list than
+    necessary.
+  + Added Hibernia materials for recipes (excluding leaves, whatever
+    the hell those are)
+  + F2 now toggles the mob list on and off.
+  + Mob list is now undockable from the radar window.
+  + Added Con Color object filter to radar.
+  + Object and Con filter now save across sessions.
+  + Reorganized radar preferences dialog.
+  + Added Range Circle configuration.
+  + Added group by object type option.
+  + Added group by ream UI.
+  + Added mob list sort order option (Name or Distance).
+  + Added UI for invader warning min ticks.
+  + Updaets to support per-realm Atlantis zones.
+
+2003 Oct 17 - v1.55
+-------------------
   + Enemy players which are selected will now show their name instead
     of their race.
   + Added filter option to not show players from your realm. (F)
@@ -8,6 +29,8 @@
     updates.  Also fixes distance calculation for mobs on the go.
   + Added hotkey (A) for invader warning.
   + Fixed bug with distances > 65000 overflowing.
+  + Added some code to keep mob list scrolled properly as objects are
+    added and removed.
 
 2003 Oct 13 - v1.54
 -------------------
