@@ -13,6 +13,21 @@ IN DEVELOPMENT
   + Initial DAOCSkilla 2.0 UI.
   + DaocPath no longer needs to be set in advance for many connection
     operations.
+  + Added render pref for "Attempt map download".  Automatically
+    disables if request is crashing.
+  + Autodownload no longer will try to download maps which are
+    unversioned.
+  + Autodownload no longer will version check one file then download
+    another, or download maps for zones < 100 multiple times.
+  + Added Redraw options to UI for Add, Update, Delete, and Timer, as
+    well as a MinFPS slider.
+  + Added mob filter and alert by regex, substring, or wildcard.
+    (Sjork)
+  + Downloaded maps now set their mtime to versiontime on download.
+  + Reduced overdraw flicker in radar object list.
+  + Added "Auto-scroll on select" to render prefs.
+  + Added "Show selected player inventory" to radar.
+  + Added context menu for radar, with "show zone info".
 
 2004 Feb 18 - v1.86
 -------------------

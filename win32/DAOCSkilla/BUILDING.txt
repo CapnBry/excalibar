@@ -54,7 +54,8 @@ application or its source code.
         cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32/Components
         cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32/DAOCSkilla
 
-2.  Open DAOCSkilla.dpr from the File | Open Project... menu
+2.  Open DAOCSkilla/DAOCSkilla.dpr from the File | Open Project... menu
+    in Delphi.
 
 3.  Run!
 
