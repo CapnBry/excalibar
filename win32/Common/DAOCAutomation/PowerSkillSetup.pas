@@ -509,6 +509,9 @@ var
   pItem:        TPowerSkillItemDef;
   pVendorItems: TDAOCVendorItemList;
 begin
+  if not Assigned(FPSItemList) then
+    exit;
+    
     { allow override of who to select }
   if FPSItemList.MerchantName <> '' then
     FDControl.SelectNPC(FPSItemList.MerchantName)
