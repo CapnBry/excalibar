@@ -1398,7 +1398,7 @@ daocmessages::mob_identity* DAOCConnection::ParseMobIdentity
     GetData(msg->level,ndx,buffer);
 
     // skip unused
-    SkipData(ndx,2);
+    SkipData(ndx,6);
 
     // get name
     GetPascalString(&msg->name,ndx,buffer);
