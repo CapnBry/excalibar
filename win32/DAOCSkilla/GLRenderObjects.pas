@@ -169,7 +169,9 @@ type
     procedure SetSize(const Value: integer);
   public
     constructor Create; override;
+
     procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
 
     property Size: integer read FSize write SetSize;
   end;
@@ -886,6 +888,16 @@ begin
     glVertex3i(-w, -w, 0);
   glEnd();
   glEndList();
+end;
+
+procedure T3DArrowHead.GLRender(const ARenderBounds: TRect);
+begin
+    { BRY: we should probably do a bounds check here, but I think the overhead
+      of doing the check is outweighed by the fact that most users will have
+      their map zoomed so they can always see all arrows.
+      The big cost would be because the arrowhead is rendered in modelspace,
+      not in world coordinates }
+  inherited;
 end;
 
 procedure T3DArrowHead.SetSize(const Value: integer);
