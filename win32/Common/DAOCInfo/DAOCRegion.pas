@@ -14,11 +14,12 @@ uses
 
 type
   TDAOCRealm = (drNeutral, drAlbion, drMidgard, drHibernia);
+  TDAOCZoneType = (dztUnknown, dztOverworld, dztCity, dztDungeon, dztHousing);
   TDAOCZoneInfoList = class;
 
 	TDAOCZoneInfo = class(TObject)
   private
-    FZoneType: integer;
+    FZoneType: TDAOCZoneType;
     FRotate: integer;
     FZoneNum: integer;
     FRegion: integer;
@@ -45,7 +46,7 @@ type
   	property Region: integer read FRegion;
     property BaseLoc: TPoint read FBaseLoc;
     property MaxLoc: TPoint read FMaxLoc;
-    property ZoneType: integer read FZoneType;
+    property ZoneType: TDAOCZoneType read FZoneType;
     property ZoneNum: integer read FZoneNum;
     property Rotate: integer read FRotate;
     property Name: string read GetName;
@@ -88,7 +89,7 @@ begin
     '  Zone type: %d'#13#10 +
     '  Rotate: %d'#13#10,
     [FZoneNum, FRegion, FMapName, FBaseLoc.X, FBaseLoc.Y,
-    MaxLoc.X, MaxLoc.Y, FZoneType, FRotate]); 
+    MaxLoc.X, MaxLoc.Y, ord(FZoneType), FRotate]); 
 end;
 
 function TDAOCZoneInfo.ContainsPoint(ARegion, AX, AY: integer): boolean;
@@ -113,7 +114,14 @@ begin
   FBaseLoc.Y := StrToIntDef('$' + ParseWord(AZoneInfo, iStartPos), -1);
   FMaxLoc.X := StrToIntDef('$' + ParseWord(AZoneInfo, iStartPos), -1);
   FMaxLoc.Y := StrToIntDef('$' + ParseWord(AZoneInfo, iStartPos), -1);
-  FZoneType := StrToIntDef(ParseWord(AZoneInfo, iStartPos), -1);
+  case StrToIntDef(ParseWord(AZoneInfo, iStartPos), 0) of
+    0:  FZoneType := dztOverworld;
+    1:  FZoneType := dztCity;
+    2:  FZoneType := dztDungeon;
+    3:  FZoneType := dztHousing;
+    else
+      FZoneType := dztUnknown;
+  end;
   FMapName := ParseWordEx(AZoneInfo, iStartPos, pcsFILENAME_CHARS);
   FZoneNum := StrToIntDef(ParseWord(AZoneInfo, iStartPos), -1);
   FRotate := StrToIntDef(ParseWord(AZoneInfo, iStartPos), -1);
