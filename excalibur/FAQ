@@ -80,10 +80,3 @@ A: Yes, you did, but that's not the one you're running..
 
 ==========
 
-Q: When I star Excalibur, I get the error: "libgcc not found" while loading
-   exCrypt.. What gives?
-
-A: You need to install gcc 3.0+.. You should have done so at compile time, be-
-   cause it's listed as a compile requirement! Did you neglect to read the
-   INSTALL file?
-
