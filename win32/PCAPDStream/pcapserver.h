@@ -22,7 +22,7 @@
 #define BUFSIZE 0xffff			   //65535 hoffe es reicht
 
 #include <winsock2.h>
-#include <stdio.h>
+#include <iostream>
 #include <Tlhelp32.h>
 //#include "PCAP/nids.h"
 extern "C" // gotta make extern "C" for a C library!
@@ -42,8 +42,27 @@ using namespace Network;
 unsigned short GetWord(unsigned char *data);
 void TestSegSearch(const char* cmd_line);
 void SelectDevice(HINSTANCE hInst);
+bool GameRunning(void);
+void SET_CHECK_BOOL(HWND hwnd,UINT control,bool bool_value);
+bool GET_CHECK_BOOL(HWND hwnd,UINT control);
+void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str);
+void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 
 extern cMain *pMain;
 extern cSniffer *pSniffer;
 extern cDStream *pDStream;
 extern bool bContinue;
+extern unsigned short port;
+
+extern std::string account_name;
+extern bool euro_server;
+
+typedef void* (__cdecl*Aurelia_T)(void);
+extern Aurelia_T Aurelia;
+typedef void (__cdecl*Brutus_T)(void*);
+extern Brutus_T Brutus;
+typedef void (__cdecl*trolok45_T)(void*,void*,unsigned int);
+extern trolok45_T trolok45;
+typedef bool (__cdecl *abfallanfang_T)(void*,void*,bool,const char*,int,int);
+extern abfallanfang_T abfallanfang;
+extern void* p;

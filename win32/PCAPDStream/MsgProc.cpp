@@ -341,12 +341,9 @@ bool cMsgProc::HandleGeneralPacket
         //PrintToStream(log_file,buf->ShowTheBuffer(),buf->NumUsedBytes());
         
         // decrypt a message in-place, starting just after the size
-        Mem.Decrypt
-            (
-            buf->ShowTheBuffer(2),
-            buf->UserStorage.DAOCMessageSize
-            );
-        
+        //#pragma message("fix")
+        trolok45(p,buf->ShowTheBuffer(2),buf->UserStorage.DAOCMessageSize);
+
         // send to dstream
         pDStream->x07
             (
@@ -393,12 +390,21 @@ bool cMsgProc::HandleTCPPacket(char* data,int data_size,bool from_server)
 {
     // ignore the first two packets, then 
     // find the key when the third packet arrives 
-    if(CntPackets == 2) 
+    if(CntPackets == 3) 
         { 
-        Mem.GetKey(); 
+        //#pragma message("fix")
+        if(abfallanfang(p,data,::euro_server,::account_name.c_str(),1,30000))
+            {
+            pMain->StatusUpdate("key found\r\n");
+            }
+        else
+            {
+            pMain->StatusUpdate("key not found\r\n");
+            }
         CntPackets++;       
+        return true;
         } 
-    else if(CntPackets < 2) 
+    else if(CntPackets < 3) 
         { 
         CntPackets++; 
         } 

@@ -95,7 +95,7 @@ cDStream::cDStream(void)
 bool cDStream::StartDStream()
 {
     DSERVER_PARAMS params;
-    params.listen_port=9867;
+    params.listen_port=port?port:9867;
     params.max_clients=10;
     return(server.Go(params));
 } // end StartDStream

@@ -138,8 +138,6 @@ private:
 	    MY_BUFFER_T* buf
 	    );
 	
-	cMemory Mem;
-
     MY_BUFFER_T TCPFromServerBuf;
     MY_BUFFER_T TCPFromClientBuf;
     MY_BUFFER_T UDPFromServerBuf;

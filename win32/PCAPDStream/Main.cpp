@@ -41,10 +41,19 @@ LRESULT CALLBACK cMain::MainDlgProc( HWND hDlg,
 {
 	switch(msg) 
 	{		
+		case WM_TIMER:
+		    if(::GameRunning())
+		        {
+		        KillTimer(hDlg,1);
+		        pMain->StatusUpdate("Found game\r\n");
+		        }
+		    break;
+		    
 		case WM_INITDIALOG:
 		{
 			pMain->hMainWnd = hDlg;
 			pMain->InitMain();
+			SetTimer(hDlg,1,10,NULL);
 
 			return true;
 		}
@@ -54,6 +63,7 @@ LRESULT CALLBACK cMain::MainDlgProc( HWND hDlg,
 			{
 				case IDCANCEL:
 				{
+					KillTimer(hDlg,1);
 					EndDialog(hDlg,LOWORD(wParam));
 					PostQuitMessage(0);
 					return true;
