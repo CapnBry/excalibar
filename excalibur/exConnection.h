@@ -124,7 +124,7 @@ public:
   void shutdown(QString why = NULL);
   void processPacket(exPacket *p);
   const exMobList<exMob> &getMobs() const;
-  void selectID(unsigned int id);
+  void selectID(unsigned int infoid);
   void spawnEditor();
   void setFilter( QString Filter);
   void updateProjectedPlayer(void);

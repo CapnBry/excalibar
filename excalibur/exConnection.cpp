@@ -426,8 +426,8 @@ void exConnection::processPacket(exPacket * p)
 	      ex->Map->dirty();
 	      break;
 	  case 0x0a:
-	      id = p->getShort();
-	      mob = mobinfo.take((void *) ((unsigned int) id));
+	      infoid = p->getShort();
+	      mob = mobinfo.take((void *) ((unsigned int) infoid));
 	      if (mob) {
 		  if (mob->isMob())
 		      mobs.remove((void *) ((unsigned int) mob->getID()));
@@ -846,7 +846,7 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
     exMob *mob = players.find((void *)id);
     if (mob) {
 	mob->setHead(head);
-	if (hp < 100)
+	if (hp <= 100)
 	    mob->setHP(hp);
 	ex->Map->dirty();
 	if (prefs.sort_when == exPrefs::sortAlways)
@@ -910,13 +910,13 @@ void exConnection::parseSelfHealthUpdate(exPacket *p)
     player_endurance = p->getByte();
 }
 
-void exConnection::selectID(unsigned int id)
+void exConnection::selectID(unsigned int infoid)
 {
     exMob *m;
 
     selectedid = id;
 
-    m = mobinfo.find((void *) id);
+    m = mobinfo.find((void *) infoid);
     if (m) {
 	m->touch();
 	ex->ListViewMobs->setSelected(m, true);
