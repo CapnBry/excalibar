@@ -159,6 +159,7 @@ type
     function FindByPlayerID(APlayerID: integer) : TDAOCObject;
     function FindNearest3D(X, Y, Z: Cardinal) : TDAOCObject;
     function FindNearest2D(X, Y: Cardinal) : TDAOCObject;
+    function FindByName(const AName: string) : TDAOCObject;
 
     property Head: TDAOCObject read FHead;
     property Count: integer read FCount;
@@ -972,7 +973,7 @@ end;
 function TDAOCLocalPlayer.GetFullName: string;
 begin
   Result := FName;
-  if FLastName <> '' then
+  if (FLastName <> '') and not AnsiSameText(FLastName, 'None') then
     Result := Result + ' ' + FLastName;
 end;
 
@@ -1384,6 +1385,16 @@ begin
   Result := FHead;
   while Assigned(Result) do begin
     if Result.InfoID = AInfoID then
+      exit;
+    Result := Result.FNext;
+  end;
+end;
+
+function TDAOCObjectLinkedList.FindByName(const AName: string): TDAOCObject;
+begin
+  Result := FHead;
+  while Assigned(Result) do begin
+    if AnsiSameText(Result.Name, AName) then
       exit;
     Result := Result.FNext;
   end;
