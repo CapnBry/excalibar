@@ -273,7 +273,7 @@ void exSniffer::run() {
     return;
   }
 
-  f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp)";
+  f="ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) and not host 192.168.100.4";
   qWarning(QString("Filter: %1").arg(f));
   if (pcap_compile(pcap, &bpp, (char *)((const char *)f), 1, 0) == -1) {
      qFatal("Failed to compile pcap filter");
