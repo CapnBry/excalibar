@@ -56,6 +56,8 @@ exMap::exMap(QWidget *parent, const char *name)
   edit_xofs = edit_yofs = 0;
   lastfade = FALSE;
   lastfill = FALSE;
+  lastdepfadrng = 0;
+  lastdepfadpct = 0;
   lastz = 0;
   recache = true;
   objects_made = false;
@@ -324,6 +326,7 @@ void exMap::resizeGL(int w, int h) {
      -- Filter circle
      -- Realm border triangle
      -- Mob triangle
+	 -- Agro line
    -- Line to selected MOB
    -- Ruler lines
    -- Range circles
@@ -401,9 +404,14 @@ void exMap::paintGL() {
       recache = true;
   else if ((prefs.map_fade || prefs.map_fill) && (lastz != c->playerz))
       recache = true;
+  else if ((lastdepfadrng != prefs.map_depthfaderange) ||
+           (lastdepfadpct != prefs.map_depthfademinpct))
+      recache = true;
 
   lastfade = prefs.map_fade;
   lastfill = prefs.map_fill;
+  lastdepfadrng = prefs.map_depthfaderange;
+  lastdepfadpct = prefs.map_depthfademinpct;
   lastz = c->playerz;
 
     /* Background Pass One:  recache() and draw background PNGs */
@@ -438,8 +446,13 @@ void exMap::paintGL() {
 
     if (m->isCurrent() && m->insideRect(bounds) &&
         (prefs.render_objects || !m->isObj()) &&
-        (prefs.render_dead || !m->isDead()))
+        (prefs.render_dead || !m->isDead())) {
       drawEXMob(m);
+	  // Need to give more thought about agro line and selected
+	  // mob line being drawn at the same time
+  	  if (prefs.agro_lines)
+    	drawAgroLine(m);
+	}
   }  // for mobs
 
   if (c->groundtarget_x && c->groundtarget_y)
@@ -502,11 +515,14 @@ void exMap::paintGL() {
   is_dirty = false;
 
   frames += 1;
+  // Also update the experience window every second
   if (update_fps_counter) {
     c->ex->FPS->setText(QString().sprintf("%.1f FPS",
       (1000.0f * (float)frames) / (float)(exTick - _last_fps)));
     frames = 0;
     _last_fps=exTick;
+    if (prefs.exp_window)
+      c->xpStats->Update();
   }
 
   if (prefs.gl_debug) {
@@ -523,7 +539,7 @@ void exMap::paintGL() {
 
 void exMap::drawEXMob(exMob *m)
 {
-    glPushMatrix();
+	glPushMatrix();
     glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0f);  // m->getZ()
     glRotatef(m->getHead(), 0.0f, 0.0f, 1.0f);
 
@@ -537,35 +553,68 @@ void exMap::drawEXMob(exMob *m)
                         (prefs.agro_fading) ? m->playerDist() * (1.0f / 1500.0f) : 0.0f);
 
     /* if this is a player, draw the realm color ring */
-      if (!m->isMobOrObj()) {
-          if (m->isDead()) {
-              setGLColor (m->getRealmColor().dark(160), m->getZ());
-          } else if (! m->isInvader()) {
-              setGLColor (m->getRealmColor(), m->getZ());
+    if (!m->isMobOrObj()) {
+    	if (m->isDead()) {
+        	setGLColor (m->getRealmColor().dark(160), m->getZ());
+        } else if (! m->isInvader()) {
+        	setGLColor (m->getRealmColor(), m->getZ());
         } else {
-              setGLColor ( (mobDarken) ? m->getRealmColor().dark(150) : m->getRealmColor().light(150), m->getZ());
-        }
+        	setGLColor ( (mobDarken) ? m->getRealmColor().dark(150) : m->getRealmColor().light(150), m->getZ());
+		}
 
-          glCallList(listCircle);
-      } // if is player
+    	glCallList(listCircle);
+    } // if is player
 
-      if (m->isObj()) {
-          setGLColor(1.0,1.0,1.0, m->getZ());
-          glCallList(listSquares);
-      } else {
-          QColor clr;
-          clr = m->getConColor(c->playerlevel);
-          if (m->isStealthed())
-              clr = clr.dark(200);
-          setGLColor(clr, m->getZ());
-          glCallList(listTriangle);
-      }  // if !obj
+    if (m->isObj()) {
+    	setGLColor(1.0,1.0,1.0, m->getZ());
+        glCallList(listSquares);
+    } else {
+    	QColor clr;
+        clr = m->getConColor(c->playerlevel);
+        if (m->isStealthed())
+        	clr = clr.dark(200);
+        setGLColor(clr, m->getZ());
+        glCallList(listTriangle);
+	}  // if !obj
 
-      if ((prefs.map_rasterize_merchant_types && m->isMob()) ||
-          (prefs.map_rasterize_player_names && !m->isMobOrObj()))
-          drawMobName(m);
+    if ((prefs.map_rasterize_merchant_types && m->isMob()) ||
+        (prefs.map_rasterize_player_names && !m->isMobOrObj()))
+    	drawMobName(m);
 
-      glPopMatrix();
+	glPopMatrix();
+}
+
+void exMap::drawAgroLine(exMob *m)
+{
+	unsigned int opp_infoid = m->getOpponentInfoID();
+	unsigned int targetX, targetY;
+
+  	if (opp_infoid != 0) {
+		if (opp_infoid == c->selfid) {
+			targetX = c->playerProjectedX;
+			targetY = c->playerProjectedY;
+		}
+		else {
+		  	const QPtrDict<exMob> mobs=c->getMobs();
+			exMob *opp = mobs.find((void *)opp_infoid);
+			if (opp) {
+				targetX = opp->getProjectedX();
+				targetY = opp->getProjectedY();
+			}
+			else {
+				// Finding a target fails when we haven't seen who the mob
+				// is aggroing yet
+				return;
+			};
+		}
+
+		glColor3f(1.0, 0, 0);
+	   	glLineWidth(1.0);
+		glBegin(GL_LINES);
+		glVertex3i(m->getProjectedX(), m->getProjectedY(), 0);  // m->getZ()
+   		glVertex3i(targetX, targetY, 0);
+		glEnd();
+	}
 }
 
 void exMap::drawMobName(exMob *m)
@@ -803,17 +852,18 @@ void exMap::setGLColor(double r, double g, double b, int z) {
 
 void exMap::adjustGLColor(double *col, double z) {
   double darken;
+  double fadepct;
 
   if (!prefs.map_fade) {
     col[3]=1.0;
     return;
   }
-
-  darken=fabs(c->playerz - z) / 500.0;
-  if (darken < 0.60) {
+  darken=fabs(c->playerz - z) / prefs.map_depthfaderange;
+  fadepct = prefs.map_depthfademinpct/100.0;
+  if (darken < (1.0-fadepct)) {
     darken=1.0 - darken;
   } else {
-    darken=0.40;
+    darken=fadepct;
   }
 
   if (prefs.map_simple) {

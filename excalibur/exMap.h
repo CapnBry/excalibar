@@ -169,6 +169,8 @@ protected:
   int edit_yofs;
   bool lastfade;
   bool lastfill;
+  int lastdepfadrng;
+  int lastdepfadpct;
   unsigned int lastz;
   bool recache;
   bool objects_made;
@@ -181,6 +183,7 @@ protected:
   void drawEXMob(exMob *m);
   void drawMobName(exMob *m);
   void drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pct);
+  void drawAgroLine(exMob *m);
   void drawGroundTarget();
 
 public slots:
