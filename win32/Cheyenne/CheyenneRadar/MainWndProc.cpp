@@ -243,6 +243,12 @@ void OnRenderActor(const Actor& a)
         if(::RadarConfig.GetShowRangeRing6())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange6());
         }
     
+    // if hooked actor, draw a hook symbol too
+    if(a.GetInfoId() == HookedActor.GetInfoId() && HookedSet)
+        {
+        ppi.RenderRangeRing(HookedActor,150.0f);
+        }
+    
     // done
     return;
 } // end OnRenderActor
@@ -279,6 +285,11 @@ void OnDeleteActor(const Actor& a)
         {
         LOG_FUNC << "reference unset\n";
         ReferenceSet=false;
+        }
+
+    if(a.GetInfoId()==HookedActor.GetInfoId())
+        {
+        HookedSet=false;
         }
 } // end OnDeleteActor
 void OnReassignActor(const Actor& a){};
@@ -1246,10 +1257,9 @@ void HandleLButtonDoubleClick(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* da
 {
     const float MouseX=LOWORD(lParam);
     const float MouseY=HIWORD(lParam);
-    ClosestActorFinder finder(*data,MouseX,MouseY);
-    
+   
     // look at all actors
-    data->database.IterateActors(finder);
+    ClosestActorFinder finder(data->database.IterateActors(ClosestActorFinder(*data,MouseX,MouseY)));
     
     // see if we were close enough to "hook" one
     // GetDist() returns pixels
@@ -1278,6 +1288,12 @@ void Render(USERDATA* data)
         
         // and center the ppi on it
         data->ppi.CenterOn(data->ReferenceActor);
+        }
+    
+    if(data->HookedSet)
+        {
+        // refresh the position of our hooked actor
+        data->HookedActor=data->database.CopyActorById(data->HookedActor.GetInfoId());
         }
 
     // set rendering flag and begin

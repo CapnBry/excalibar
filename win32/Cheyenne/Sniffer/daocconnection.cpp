@@ -665,8 +665,8 @@ void DAOCConnection::FromTCPServer
             {
             daocmessages::stealth* msg=ParseStealth(ndx,buffer);
 
-            Logger << "old stealth opcode " << unsigned int(opcode) << ":\n";
-            PrintPacket(true,true,buffer,length);
+            //Logger << "old stealth opcode " << unsigned int(opcode) << ":\n";
+            //PrintPacket(true,true,buffer,length);
 
             // save my region
             msg->detected_region=unsigned char(self_region);
