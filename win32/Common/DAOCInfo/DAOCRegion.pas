@@ -13,7 +13,7 @@ uses
   Windows, SysUtils, Contnrs, StringParseHlprs;
 
 type
-  TDAOCRealm = (drFriend, drAlbion, drMidgard, drHibernia);
+  TDAOCRealm = (drNeutral, drAlbion, drMidgard, drHibernia);
 
 	TDAOCZoneInfo = class(TObject)
   private
@@ -63,7 +63,7 @@ implementation
 function RealmToStr(ARealm: TDAOCRealm) : string;
 begin
   case ARealm of
-    drFriend:  Result := 'Friend';
+    drNeutral:  Result := 'Neutral';
     drAlbion:  Result := 'Albion';
     drMidgard:  Result := 'Midgard';
     drHibernia:  Result := 'Hibernia';
