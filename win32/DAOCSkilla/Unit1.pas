@@ -383,7 +383,7 @@ begin
     frmConnectionConfig.CustomServerSubnet := ReadString('Main', 'CustomServerSubnet', '208.254.16.0');
     SetServerNet;
 
-    frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting');
+    frmPowerskill.Profile := ReadString('PowerskillBuy', 'Profile', 'spellcrafting-example');
     frmPowerskill.AutoAdvance := ReadBool('PowerskillBuy', 'AutoAdvance', true);
     frmPowerskill.Left := ReadInteger('PowerskillBuy', 'Left', frmPowerskill.Left);
     frmPowerskill.Top := ReadInteger('PowerskillBuy', 'Top', frmPowerskill.Top);
