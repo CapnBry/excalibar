@@ -284,6 +284,7 @@ void SyncDialogToConfig(HWND hWnd)
     ss << "Simplify Vector Maps (" << ::RadarConfig.GetSimplifyLinesTolerance() << ")";
     SET_EDIT_STRING(hWnd,IDC_SIMPLIFYLINES,ss.str());
     ss.str("");
+    SET_CHECK_BOOL(hWnd,IDC_SAVE_DAOC_MESSAGES,::RadarConfig.GetSaveDAoCMessages());
     
     
     // friendly group

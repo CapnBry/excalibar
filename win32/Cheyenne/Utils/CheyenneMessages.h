@@ -75,7 +75,7 @@ public:
     virtual ~SniffedMessage(){};
     virtual void Print(std::ostream& str)const
     {
-        str << "\topcode=" << GetOpcode() << "\n";
+        str << "\topcode=" << (unsigned int)GetOpcode() << "\n";
     }
     opcodes::opcode_t GetOpcode(void)const{return(opcode);};
 

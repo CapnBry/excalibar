@@ -923,6 +923,9 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
         Database::DatabaseEvents::DatabaseReset,
         std::auto_ptr<DatabaseFunctor>(new DatabaseResetFunctor(*data))
         );
+    
+    // set config
+    data->database.SaveDAoCMessages(::RadarConfig.GetSaveDAoCMessages());
         
     // create child windows
     WNDCLASS wc;
