@@ -52,6 +52,8 @@ public:
   bool map_simple;
   bool map_fade;
   int map_autosimplifyrange;
+  int player_circle_1;
+  int player_circle_2;
   bool gl_smooth_points;
   bool gl_smooth_lines;
   bool gl_smooth_polygons;

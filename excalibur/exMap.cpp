@@ -246,7 +246,7 @@ void exMap::paintGL() {
     glEnable(GL_LINE_SMOOTH);
   else
     glDisable(GL_LINE_SMOOTH);
-  
+
   if (prefs.gl_smooth_points)
     glEnable(GL_POINT_SMOOTH);
   else
@@ -422,8 +422,8 @@ END_NORMAL_CODE
   if (prefs.range_circles) {
     glLineWidth (1.0);
     qglColor(darkGray);
-    drawCircle(c->playerx, c->playery, 1000, 20); 
-    drawCircle(c->playerx, c->playery, 1500, 20);
+    drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
+    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
   }
 	     
   is_dirty = false;

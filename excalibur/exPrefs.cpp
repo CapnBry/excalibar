@@ -28,6 +28,7 @@
 #include <qaction.h>
 #include <qlineedit.h>
 #include <qsettings.h>
+#include <qspinbox.h>
 
 #include "exPrefs.h"
 #include "exItem.h"
@@ -88,8 +89,11 @@ void exPrefs::show() {
   dlg->AgroCircles->setChecked(agro_circles);
   dlg->AgroFading->setChecked(agro_fading);
   dlg->RangeCircles->setChecked(range_circles);
+
   dlg->MapSimplifyRange->setValue(map_autosimplifyrange);
   dlg->ShowUnknown->setChecked(dump_unknown_packets);
+  dlg->PlayerCircle1->setValue(player_circle_1);
+  dlg->PlayerCircle2->setValue(player_circle_2);
 
   dlg->SliderAliveColor->setValue(brightness_alive);
   dlg->SliderDeadColor->setValue(brightness_dead);
@@ -136,9 +140,14 @@ void exPrefs::accept() {
 
   map_fill=dlg->GLMapFill->isOn();
 
+
   agro_circles=dlg->AgroCircles->isOn();
   agro_fading=dlg->AgroFading->isOn();
   range_circles=dlg->RangeCircles->isOn();
+  player_circle_1=dlg->PlayerCircle1->value();
+  player_circle_2=dlg->PlayerCircle2->value();
+
+
 
   brightness_alive=dlg->SliderAliveColor->value();
   brightness_dead=dlg->SliderDeadColor->value();
@@ -191,12 +200,16 @@ void exPrefs::loadSettings() {
   map_fade=s.readBoolEntry("/Excalibur/GLMapFade", TRUE);
   map_fill=s.readBoolEntry("/Excalibur/GLMapFill", TRUE);
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
+
+
+  player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 1000);
+  player_circle_2=s.readNumEntry("/Excalibur/PlayerCircle2", 1500);
   range_circles=s.readBoolEntry("/Excalibur/RangeCircles", TRUE);
   agro_circles=s.readBoolEntry("/Excalibur/AgroCircles", TRUE);
   agro_fading=s.readBoolEntry("Excalibur/AgroFading", TRUE);
 
-  select_target=s.readBoolEntry("/Excalibur/AutoSelectTarget",TRUE);
 
+  select_target=s.readBoolEntry("/Excalibur/AutoSelectTarget",TRUE);
   sort_group_players=s.readBoolEntry("/Excalibur/GroupPlayers",TRUE);
   sort_distance=s.readBoolEntry("/Excalibur/SortDistance",FALSE);
   sort_when=(enum SortOptions) s.readNumEntry("/Excalibur/SortWhen",(int) sortNever);
@@ -237,9 +250,13 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/BrightnessDead", brightness_dead);
   s.writeEntry("/Excalibur/ItemsAutoUpload", items_autoupload);
   s.writeEntry("/Excalibur/ItemsContributor", items_contributor);
+
+  s.writeEntry("/Excalibur/PlayerCircle1", player_circle_1);
+  s.writeEntry("/Excalibur/PlayerCircle2", player_circle_2);
   s.writeEntry("/Excalibur/RangeCircles", range_circles);
   s.writeEntry("/Excalibur/AgroCircles", agro_circles);
   s.writeEntry("/Excalibur/AgroFading", agro_fading);
+
   s.writeEntry("/Excalibur/ShowUnknown", dump_unknown_packets);
   s.writeEntry("/Excalibur/EnableExperimentalCode", enable_experimental_code);
   exItem::save();
