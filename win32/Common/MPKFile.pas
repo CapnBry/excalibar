@@ -3,7 +3,7 @@ unit MPKFile;
 interface
 
 uses
-  SysUtils, Classes, zlib2, DateUtils, Contnrs;
+  Windows, SysUtils, Classes, zlib2, DateUtils, Contnrs, VCLMemStrms;
 
 type
   TMPKDirectoryEntryRec = packed record
@@ -73,10 +73,11 @@ type
     procedure Open;
 
     procedure ExtractToFile(const AName, AFileName: string);
+    procedure ExtractIdxToStream(AIndex: integer; strm: TStream);
     procedure ExtractToStream(const AName: string; strm: TStream);
     procedure ExtractToDirectory(const AName, ADirName: string);
     procedure ExtractAllToDirectory(const ADirName: string);
-    function ExtractStream(const AName: string) : TStream;
+    function ExtractStream(const AName: string) : TMemoryStream;
 
     property FileName: string read FFileName write SetFileName;
     property InternalName: string read FInternalName;
@@ -92,7 +93,7 @@ begin
   FreeAndNil(FS);
   FDirectory.Clear;
   FInternalName := '';
-  
+
   FActive := false;
 end;
 
@@ -119,10 +120,50 @@ begin
     ExtractToDirectory(FDirectory[I].Name, ADirName);
 end;
 
-function TMPKFile.ExtractStream(const AName: string): TStream;
+procedure TMPKFile.ExtractIdxToStream(AIndex: integer; strm: TStream);
+var
+  iRead:  integer;
+  zDS:    TDecompressionStream;
+  aBuffer:  array[0..4095] of byte;
 begin
-  Result := TMemoryStream.Create;
-  ExtractToStream(AName, Result);
+  if AIndex = -1 then
+    raise Exception.Create('Source stream not found in archive');
+
+  FS.Seek(Integer(FDirectory[AIndex].FileOffset), soFromBeginning);
+  zDS := TDecompressionStream.Create(FS);
+//Write(GetTickCount);
+  try
+    repeat
+      iRead := zDS.Read(aBuffer, sizeof(aBuffer));
+      if iRead <> 0 then
+        strm.Write(aBuffer, iRead);
+    until iRead = 0;
+//WriteLn(' ', GetTickCount);
+  finally
+    zDS.Free;
+  end;
+end;
+
+function TMPKFile.ExtractStream(const AName: string): TMemoryStream;
+var
+  iIndex:     integer;
+  iStrmSize:  integer;
+begin
+  iIndex := FDirectory.IndexOf(AName);
+  if iIndex <> -1 then
+    iStrmSize := FDirectory[iIndex].FUncompressedSize
+  else
+    iStrmSize := 0;
+
+    { for streams of less than 512KB (including 0 length ones, use
+      an efficient VCL mem stream }
+  if iStrmSize < (512 * 1024) then
+    Result := TVCLMemoryStream.Create
+  else
+    Result := TMemoryStream.Create;
+
+  Result.Size := iStrmSize;
+  ExtractIdxToStream(iIndex, Result);
   Result.Seek(0, soFromBeginning);
 end;
 
@@ -146,25 +187,12 @@ end;
 procedure TMPKFile.ExtractToStream(const AName: string; strm: TStream);
 var
   iIdx:   integer;
-  iRead:  integer;
-  zDS:    TDecompressionStream;
-  aBuffer:  array[0..4095] of byte;
 begin
   iIdx := FDirectory.IndexOf(AName);
   if iIdx = -1 then
     raise Exception.CreateFmt('Source stream [%s] not found in archive', [AName]);
-
-  FS.Seek(Integer(FDirectory[iIdx].FileOffset), soFromBeginning);
-  zDS := TDecompressionStream.Create(FS);
-  try
-    repeat
-      iRead := zDS.Read(aBuffer, sizeof(aBuffer));
-      if iRead <> 0 then
-        strm.Write(aBuffer, iRead);
-    until iRead = 0;
-  finally
-    zDS.Free;
-  end;
+    
+  ExtractIdxToStream(iIdx, strm);
 end;
 
 procedure TMPKFile.Open;
