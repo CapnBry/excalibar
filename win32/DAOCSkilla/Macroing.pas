@@ -35,6 +35,7 @@ type
     FInAutoBuy:     boolean;
     FPSItemList:    TPowerSkillItemList;
     FSellingBeforeBuying:   boolean;
+    FSelectingNPC:          boolean;
 
     procedure DoAutoSell;
     procedure DoAutoBuy;
@@ -56,6 +57,7 @@ type
     procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
     procedure DAOCArriveAtGotoDest;
     procedure DAOCSelectNPCSuccess;
+    procedure DAOCSelectNPCFailed;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
@@ -382,8 +384,10 @@ begin
     exit;
     
   Log('I am at the merchant');
-  if frmPowerskill.Visible then
+  if frmPowerskill.Visible then begin
+    FSelectingNPC := true;
     frmPowerskill.SelectItemMaterialMerchant;
+  end;
 end;
 
 procedure TfrmMacroing.OpenMacroTradeSkillWindow;
@@ -444,8 +448,16 @@ end;
 
 procedure TfrmMacroing.DAOCSelectNPCSuccess;
 begin
-  FDControl.DoSendKeys('/stick');
-  FDControl.AttemptNPCRightClick;
+  if Visible and FSelectingNPC then begin
+    FSelectingNPC := false;
+    FDControl.Stick;
+    FDControl.AttemptNPCRightClick;
+  end;
+end;
+
+procedure TfrmMacroing.DAOCSelectNPCFailed;
+begin
+  FSelectingNPC := false;
 end;
 
 end.
