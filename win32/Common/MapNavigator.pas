@@ -438,24 +438,24 @@ end;
 
 function TMapNode.Distance2D(AX, AY: integer): integer;
 var
-  dx:   Extended;
-  dy:   Extended;
+  dx:   double;
+  dy:   double;
 begin
   dx := (AX - X);
   dy := (AY - Y);
-  Result := Trunc(sqrt((dx * dx) + (dy * dy)));
+  Result := round(sqrt((dx * dx) + (dy * dy)));
 end;
 
 function TMapNode.Distance3D(AX, AY, AZ: integer): integer;
 var
-  dx:   Extended;
-  dy:   Extended;
-  dz:   Extended;
+  dx:   double;
+  dy:   double;
+  dz:   double;
 begin
   dx := (AX - X);
   dy := (AY - Y);
   dz := (AZ - Z);
-  Result := Trunc(sqrt((dx * dx) + (dy * dy) + (dz * dz)));
+  Result := round(sqrt((dx * dx) + (dy * dy) + (dz * dz)));
 end;
 
 procedure TMapNode.Clear;
