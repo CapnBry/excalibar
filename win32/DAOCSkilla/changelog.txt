@@ -1,4 +1,4 @@
-2003 Sep 
+2003 Sep 20 - v1.38
 -------------------
   + Fix for "heavy" thread in powerskill recipes.
   + Parse of group membership updates.
