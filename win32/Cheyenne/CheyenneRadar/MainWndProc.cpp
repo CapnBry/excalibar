@@ -1297,7 +1297,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << data->ReferenceActor.GetName() << " (" << zone.ZoneFile << ")\n"
             << "Hdg: " << ToDegrees(data->ReferenceActor.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->ReferenceActor.GetMotion().GetSpeed() << "\n"
-            << "l: " << data->ReferenceActor.GetLevel() << " h: " << data->ReferenceActor.GetHealth() << "\n"
+            << "l: " << (unsigned int)data->ReferenceActor.GetLevel() << " h: " << (unsigned int)data->ReferenceActor.GetHealth() << "\n"
             << "<" << x << ","
             << y << ">\n\n";
         }
@@ -1321,7 +1321,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << data->ReferenceTarget.GetName() << "\n"
             << "Hdg: " << ToDegrees(data->ReferenceTarget.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->ReferenceTarget.GetMotion().GetSpeed() << "\n"
-            << "l: " << data->ReferenceTarget.GetLevel() << " h: " << data->ReferenceTarget.GetHealth() << "\n"
+            << "l: " << (unsigned int)data->ReferenceTarget.GetLevel() << " h: " << (unsigned int)data->ReferenceTarget.GetHealth() << "\n"
             << "<" << x << ","
             << y << ">\n\n";
         }
@@ -1345,7 +1345,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << data->HookedActor.GetName() << "\n"
             << "Hdg: " << ToDegrees(data->HookedActor.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->HookedActor.GetMotion().GetSpeed() << "\n"
-            << "l: " << data->HookedActor.GetLevel() << " h: " << data->HookedActor.GetHealth() << "\n"
+            << "l: " << (unsigned int)data->HookedActor.GetLevel() << " h: " << (unsigned int)data->HookedActor.GetHealth() << "\n"
             << "<" << x << ","
             << y << ">\n"
             << "Type=" << data->HookedActor.GetActorType() << "\n";
