@@ -44,7 +44,6 @@ type
     FSkillName: string;
     FLocaleNodeListName: string;
     FForgeNodeName: string;
-    FMerchantNodeName: string;
     FRecipeSkillName: string;
     FRecipeRealm: TCraftRealm;
     FHowOrange: integer;
@@ -54,17 +53,26 @@ type
     FAutoStartProgression: boolean;
     FAutoDeselectMerchant: boolean;
     FAutoQuickbarSlot: integer;
-    FMerchantName: string;
+    FMasterNodeName:    string;
+    FMasterName:        string;
+    FMerchantNodeNames: TStrings;
+    FMerchantNames:     TStrings;
+    FMerchantNodeIndex: integer;
 
     function GetItems(Index: integer): TPowerSkillItemDef;
     procedure SetIncludeRecipes(const ARecipeWildcard: string);
     procedure SetExcludeRecipes(const ARecipeWildcard: string);
     function IsIncludeMatch(ARecipe: TTradeSkillRecipe) : boolean;
     function IsExcludeMatch(ARecipe: TTradeSkillRecipe) : boolean;
+    function GetMerchantName: string;
+    function GetMerchantNodeName: string;
+    function GetMerchantNodeCount: integer;
+    procedure SetMerchantNodeIndex(const Value: integer);
   public
-    constructor Create; 
+    constructor Create;
     destructor Destroy; override;
 
+    procedure Clear; override;
     procedure LoadFromFile(const AFileName: string; ARecipes: TUniversalRecipeCollection);
 
     function ItemBefore(AItem: TPowerSkillItemDef) : TPowerSkillItemDef;
@@ -76,15 +84,21 @@ type
     property LocaleNodeListName: string read FLocaleNodeListName;
     property SkillName: string read FSkillName;
     property ForgeNodeName: string read FForgeNodeName;
-    property MerchantNodeName: string read FMerchantNodeName;
-    property MerchantName: string read FMerchantName;
+    property MasterNodeName: string read FMasterNodeName;
+    property MasterName: string read FMasterName;
+    property MerchantNodeName: string read GetMerchantNodeName;
+    property MerchantName: string read GetMerchantName;
+    property MerchantNodeCount: integer read GetMerchantNodeCount;
+    property MerchantNodeIndex: integer read FMerchantNodeIndex write SetMerchantNodeIndex;
+    property MerchantNodeNames: TStrings read FMerchantNodeNames;
+    property MerchantNames: TStrings read FMerchantNames;
     property RecipeSkillName: string read FRecipeSkillName;
     property RecipeRealm: TCraftRealm read FRecipeRealm;
     property HowOrange: integer read FHowOrange;
     property UseMBuy: boolean read FUseMBuy;
     property AutoStartProgression: boolean read FAutoStartProgression;
     property AutoDeselectMerchant: boolean read FAutoDeselectMerchant;
-    property AutoQuickbarSlot: integer read FAutoQuickbarSlot;  
+    property AutoQuickbarSlot: integer read FAutoQuickbarSlot;
   end;
 
 implementation
@@ -125,12 +139,17 @@ begin
   inherited Create(true);
   FIncludeRecipes := TStringList.Create;
   FExcludeRecipes := TStringList.Create;
+  FMerchantNodeNames := TStringList.Create;
+  FMerchantNames := TStringList.Create;
 end;
 
 destructor TPowerSkillItemList.Destroy;
 begin
-  FIncludeRecipes.Free;
-  FExcludeRecipes.Free;
+  FreeAndNil(FMerchantNodeNames);
+  FreeAndNil(FMerchantNames);
+  
+  FreeAndNil(FIncludeRecipes);
+  FreeAndNil(FExcludeRecipes);
   inherited;
 end;
 
@@ -150,6 +169,27 @@ end;
 function TPowerSkillItemList.GetItems(Index: integer): TPowerSkillItemDef;
 begin
   Result := TPowerSkillItemDef(inherited Items[Index]);
+end;
+
+function TPowerSkillItemList.GetMerchantNodeCount: integer;
+begin
+  Result := FMerchantNodeNames.Count;
+end;
+
+function TPowerSkillItemList.GetMerchantName: string;
+begin
+  if (FMerchantNodeIndex <> -1) and (FMerchantNodeIndex < FMerchantNames.Count) then
+    Result := FMerchantNames[FMerchantNodeIndex]
+  else
+    Result := '';
+end;
+
+function TPowerSkillItemList.GetMerchantNodeName: string;
+begin
+  if (FMerchantNodeIndex <> -1) and (FMerchantNodeIndex < FMerchantNodeNames.Count) then
+    Result := FMerchantNodeNames[FMerchantNodeIndex]
+  else
+    Result := '';
 end;
 
 function TPowerSkillItemList.IsExcludeMatch(ARecipe: TTradeSkillRecipe): boolean;
@@ -220,6 +260,8 @@ procedure TPowerSkillItemList.LoadFromFile(const AFileName: string; ARecipes: TU
 var
   INI:    TINIFile;
   I:      integer;
+  sNode:  string;
+  sName:  string;
   pTmpItem: TPowerSkillItemDef;
   pRecipes: TCraftRecipeCollection;
   U:  TUniversalRecipeCollection;
@@ -236,7 +278,6 @@ begin
     FDefaultMinPurchase := ReadInteger('Main', 'DefaultMinPurchase', 1);
     FSkillName := ReadString('Main', 'SkillName', ChangeFileExt(ExtractFileName(AFileName), ''));
     FLocaleNodeListName := ReadString('Main', 'LocaleNodeListName', '');
-    FMerchantNodeName := ReadString('Main', 'MerchantNodeName', '');
     FForgeNodeName := ReadString('Main', 'ForgeNodeName', '');
     FRecipeSkillName := ReadString('Main', 'RecipeSkillName', FSkillName);
     FRecipeRealm := TCraftRealm(ReadInteger('Main', 'RecipeRealm', 1));
@@ -247,7 +288,33 @@ begin
     FAutoStartProgression := ReadBool('Main', 'AutoStartProgression', true);
     FAutoDeselectMerchant := ReadBool('Main', 'AutoDeselectMerchant', true);
     FAutoQuickbarSlot := ReadInteger('Main', 'AutoQuickbarSlot', 0);
-    FMerchantName := ReadString('Main', 'MerchantName', '');
+    FMasterNodeName := ReadString('Main', 'MasterNodeName', '');
+    FMasterName := ReadString('Main', 'MasteName', '');
+
+    I := 0;
+    repeat
+        { on the first item, use the bacward compatible name (no 0) }
+      if I = 0 then begin
+        sNode := ReadString('Main', 'MerchantNodeName0', ReadString('Main', 'MerchantNodeName', ''));
+        sName := ReadString('Main', 'MerchantName0', ReadString('Main', 'MerchantName', ''));
+      end
+      else begin
+        sNode := ReadString('Main', 'MerchantNodeName' + IntToStr(I), '');
+        sName := ReadString('Main', 'MerchantName' + IntToStr(I), '');
+      end;
+
+        { always add both, so the list indexes are the same on both lists }
+      if sNode <> '' then begin
+        FMerchantNodeNames.Add(sNode);
+        FMerchantNames.Add(sName);
+      end;
+
+      inc(I)
+    until sNode = '';
+
+    if I > 1 then
+      FMerchantNodeIndex := 0;
+
     Free;
   end;  { with INI }
 
@@ -334,6 +401,42 @@ end;
 procedure TPowerSkillItemList.SetIncludeRecipes(const ARecipeWildcard: string);
 begin
   FIncludeRecipes.CommaText := LowerCase(ARecipeWildcard);
+end;
+
+procedure TPowerSkillItemList.Clear;
+begin
+  inherited;
+  FDefaultMinPurchase := 1;
+  FSkillName := '';
+  FLocaleNodeListName := '';
+  FForgeNodeName := '';
+  FRecipeSkillName := '';
+  FRecipeRealm := crAlbion;
+  FHowOrange := 0;
+  FUseMBuy := true;
+  FAutoStartProgression := true;
+  FAutoDeselectMerchant := true;
+  FAutoQuickbarSlot := 0;
+  FMasterNodeName := '';
+  FMasterName := '';
+  FMerchantNodeIndex := -1;
+    { these will not be assigned if this is the clear from the destructor }
+  if Assigned(FIncludeRecipes) then
+    FIncludeRecipes.Clear;
+  if Assigned(FExcludeRecipes) then
+    FExcludeRecipes.Clear;
+  if Assigned(FMerchantNodeNames) then
+    FMerchantNodeNames.Clear;
+  if Assigned(FMerchantNames) then
+    FMerchantNames.Clear;
+end;
+
+procedure TPowerSkillItemList.SetMerchantNodeIndex(const Value: integer);
+begin
+  if (Value < -1) or (Value >= MerchantNodeCount) then
+    raise Exception.CreateFmt('MerchantNodeIndex out of bounds: %d', [Value]);
+     
+  FMerchantNodeIndex := Value;
 end;
 
 end.
