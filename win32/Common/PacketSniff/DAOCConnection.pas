@@ -791,6 +791,9 @@ procedure TDAOCConnection.DoSetRegionID(ARegion: integer);
 var
   pAcctChar:  TAccountCharInfo;
 begin
+  if FRegionID = ARegion then
+    exit;
+    
   FGroundTarget.Clear;
 
   FRegionID := ARegion;
