@@ -518,6 +518,7 @@ procedure TfrmMain.lstAdaptersClick(Sender: TObject);
 begin
   if FPReader.Active then begin
     FPReader.Close;
+    FPReader.WaitForClose;
     Log('Adapter closed: ' + FPReader.DeviceName);
   end;
 
