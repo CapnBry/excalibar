@@ -1,0 +1,8 @@
+*.dcu
+*.~pas
+*~
+*.~dpr
+*.dsk
+*.~dsk
+*.~dfm
+*.map

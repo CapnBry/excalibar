@@ -1,0 +1,21 @@
+TROUBLESHOOTING:  What to do when no adapters are listed.
+
+-- Make sure your machine does not have multiple processors.  SMP
+   machines are not supported by the WinPcap library, to the best of my
+   knowledge.
+
+-- You're going to need some debugging logs from the WinPcap driver:
+
+    Windows NT / 2000 / XP
+    ----------------------
+    1.  Backup the packet.dll in your \winnt\system32 directory
+    2.  Copy packet_debug_nt.dll over the packet.dll in \winnt\system32
+    3.  Launch CamelotChartRT.  You should see several command prompt
+        windows open and close quickly.
+    4.  In whichever directory you run CamelotChatRT from, there should
+        be a bunch of files now.  Look in winpcap_debug.txt for more
+        information about why no adapters were found.
+
+    Windows 95 / 98 / 98SE / Me
+    ---------------------------
+    1.  -- I have no clue, I don't have a win9x system --

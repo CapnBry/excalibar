@@ -1,0 +1,32 @@
+Teerex (03/Feb/2003)
+--------------------
+ + Version 0.4
+ + Changed packet assembler to work off ACKs rather than taking data
+ 	 as available.  Might fix problems with stream losing sync.
+ + Packet assembler will now force a resync if an expected packet
+   is >4k (largest real packet I've ever seen is 1600 bytes).
+ + Added Log to Screen option for those people who are cut-n-pasting
+   it to another processor program.
+ + Many enhancements to TDAOCConnection component.
+
+Teerex (04/Dec/2002)
+--------------------
+ + Version 0.3
+ + Added missing source files: ChatParser.pas.
+ + Added packet.dll with _DEBUG_TO_FILE set to dist.
+ + Updated FAQ
+ + Added NO_ADAPTERS.txt to dist.
+
+Teerex (02/Dec/2002)
+--------------------
+ + Fixed problem where people with more that 1024 bytes of adapter
+   information were getting no adapters in their list.
+ + Added caveat about SMP machines to README.
+ + Reorganized source for input into SourceForge CVS.
+ + Added found adapter count to window title.
+ + Changed so that if the human readable adapter names could not be
+   found, the device names will be displayed instead.
+
+Teerex (02/Dec/2002)
+--------------------
+ + Initial release (ver 0.0)

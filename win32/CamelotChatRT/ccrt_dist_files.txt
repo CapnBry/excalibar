@@ -1,0 +1,6 @@
+CamelotChatRT\CamelotChatRT.exe
+CamelotChatRT\CHANGES.txt
+CamelotChatRT\LICENSE.txt
+CamelotChatRT\README.txt
+CamelotChatRT\NO_ADAPTERS.txt
+Common\PacketSniff\packet_debug_nt.dll
