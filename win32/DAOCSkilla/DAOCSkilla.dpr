@@ -41,7 +41,8 @@ uses
   MapElementList in 'MapElementList.pas',
   DDSImage in 'DDSImage.pas',
   VCLMemStrms in '..\Common\VCLMemStrms.pas',
-  DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas';
+  DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas',
+  RenderPrefs in 'RenderPrefs.pas' {frmRenderPrefs};
 
 {$R *.TLB}
 

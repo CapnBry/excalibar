@@ -722,6 +722,7 @@ procedure TfrmMain.btnGLRenderClick(Sender: TObject);
 begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCControl := FConnection;
+  frmGLRender.PrefsFile := GetConfigFileName;
   if frmGLRender.Visible then
     frmGLRender.Close
   else

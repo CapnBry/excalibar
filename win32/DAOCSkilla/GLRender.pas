@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCControl, ComCtrls, DAOCObjs,
-  StdCtrls, GLRenderObjects, MapElementList, Grids, DAOCRegion, GLUT;
+  StdCtrls, GLRenderObjects, MapElementList, Grids, DAOCRegion, GLUT,
+  RenderPrefs;
 
 type
   TfrmGLRender = class(TForm)
@@ -26,6 +27,16 @@ type
       Rect: TRect; State: TGridDrawState);
     procedure grdObjectsClick(Sender: TObject);
     procedure tmrMinFPSTimer(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure glMapMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     FDControl: TDAOCControl;
     FRange:     DWORD;
@@ -36,13 +47,18 @@ type
     FMapElements:   TVectorMapElementList;
     FMapTextures:   TTextureMapElementList;
     FRangeCircles:  TRangeCircleList;
-    FMobTriangle:     T3DArrowHead;
-    FObjectTriangle:  T3DPyramid;
+    FMobTriangle:   T3DArrowHead;
+    FObjectTriangle:    T3DPyramid;
+    FMapToPlayerOffset: TPoint;
+    FFilteredObjects:   TDAOCObjectList;
+    FRenderPrefs:   TRenderPreferences;
+    FPrefsFile:     string;
 
     procedure GLInits;
     procedure GLCleanups;
     procedure SetupRadarProjectionMatrix;
     procedure SetupScreenProjectionMatrix;
+    procedure CheckGLError;
 
     procedure DrawMapRulers;
     procedure DrawRangeCircles;
@@ -52,13 +68,13 @@ type
     procedure DrawMapElements;
     procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCMovingObject);
     procedure DrawHUD;
-    function WriteGLUTText(X, Y: integer; const s: string) : integer; 
+    function WriteGLUTText(X, Y: integer; const s: string) : integer;
 
     procedure SetDControl(const Value: TDAOCControl);
     procedure Log(const s: string);
-    procedure CheckGLError;
-
+    procedure RefreshFilteredList;
     procedure GridSelectObject(ADAOCObject: TDAOCObject);
+    procedure FilteredObjectInsert(ADAOCObject: TDAOCObject);
   protected
   public
     procedure DAOCAddObject(AObj: TDAOCObject);
@@ -70,6 +86,7 @@ type
 
     procedure Dirty;
     property DAOCControl: TDAOCControl read FDControl write SetDControl;
+    property PrefsFile: string read FPrefsFile write FPrefsFile;
     property RangeCircles: TRangeCircleList read FRangeCircles;
   end;
 
@@ -108,7 +125,7 @@ end;
 
 procedure TfrmGLRender.glMapDraw(Sender: TObject);
 var
-  dwTickCount:  DWORD;
+  dwStartTickCount:  DWORD;
 begin
   if not Assigned(FDControl) then
     exit;
@@ -116,9 +133,9 @@ begin
   if not FGLInitsCalled then
     GLInits;
 
-  dwTickCount := GetTickCount;
-  if FInvaderHighlightLastSwap + 1000 < dwTickCount then begin
-    FInvaderHighlightLastSwap := dwTickCount;
+  dwStartTickCount := GetTickCount;
+  if FInvaderHighlightLastSwap + 1000 < dwStartTickCount then begin
+    FInvaderHighlightLastSwap := dwStartTickCount;
     FInvaderHighlight := not FInvaderHighlight;
   end;
 
@@ -221,7 +238,17 @@ end;
 
 procedure TfrmGLRender.FormShow(Sender: TObject);
 begin
-  slideZoomChange(Self);
+  if FPrefsFile <> '' then begin
+    FRenderPrefs.LoadSettings(FPrefsFile);
+    Left := FRenderPrefs.Left;
+    Top := FRenderPrefs.Top;
+    Width := FRenderPrefs.Width;
+    Height := FRenderPrefs.Height;
+    FRange := FRenderPrefs.Range;
+    slideZoom.Position := FRange;
+  end
+  else
+    slideZoomChange(Self);
 end;
 
 procedure TfrmGLRender.Log(const s: string);
@@ -242,6 +269,9 @@ procedure TfrmGLRender.DrawMapRulers;
 var
   headrad:  GLfloat;
 begin
+  if not FRenderPrefs.DrawRulers then
+    exit;
+    
   glDisable(GL_LIGHTING);
 
     { Draw map rulers }
@@ -270,6 +300,9 @@ end;
 
 procedure TfrmGLRender.DrawRangeCircles;
 begin
+  if not FRenderPrefs.DrawRangeCircles then
+    exit;
+
   glDisable(GL_LIGHTING);
   FRangeCircles.GLRender;
 end;
@@ -284,14 +317,20 @@ end;
 
 procedure TfrmGLRender.DAOCAddObject(AObj: TDAOCObject);
 begin
-  grdObjects.RowCount := FDControl.DAOCObjects.Count + 1;
-  Dirty;
+  if FRenderPrefs.IsObjectInFilter(AObj) then begin
+    FilteredObjectInsert(AObj);
+    grdObjects.RowCount := FFilteredObjects.Count + 1;
+    Dirty;
+  end;
 end;
 
 procedure TfrmGLRender.DAOCDeleteObject(AObj: TDAOCObject);
 begin
-  grdObjects.RowCount := FDControl.DAOCObjects.Count + 1;
-  Dirty;
+  if FRenderPrefs.IsObjectInFilter(AObj) then begin
+    FFilteredObjects.Remove(AObj);
+    grdObjects.RowCount := FFilteredObjects.Count + 1;
+    Dirty;
+  end;
 end;
 
 procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
@@ -309,6 +348,9 @@ var
   pt:         TPoint;
   pNearest:   TDAOCObject;
 begin
+  if not FRenderPrefs.TrackMapClick then
+    exit;
+
   SetupRadarProjectionMatrix;
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -323,9 +365,9 @@ begin
 
     { if this is a dungeon, use 3d distance else use 2d }
   if Assigned(FDControl.Zone) and (FDControl.Zone.ZoneType = 2) then
-    pNearest := FDControl.DAOCObjects.FindNearest3D(trunc(x), trunc(y), FDControl.LocalPlayer.Z)
+    pNearest := FFilteredObjects.FindNearest3D(trunc(x), trunc(y), FDControl.LocalPlayer.Z)
   else
-    pNearest := FDControl.DAOCObjects.FindNearest2D(trunc(x), trunc(y));
+    pNearest := FFilteredObjects.FindNearest2D(trunc(x), trunc(y));
   if Assigned(pNearest) then
       { callback will update screen }
     FDControl.SelectedObject := pNearest;
@@ -360,8 +402,8 @@ var
 begin
   glEnable(GL_BLEND);
 
-  for I := 0 to FDControl.DAOCObjects.Count - 1 do begin
-    pObj := FDControl.DAOCObjects[I];
+  for I := 0 to FFilteredObjects.Count - 1 do begin
+    pObj := FFilteredObjects[I];
 
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
@@ -370,7 +412,8 @@ begin
         clMob := clGreen;
 
         { if the mob is on the move, draw a line to its destination }
-      if (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
+      if FRenderPrefs.DrawAIDestination and
+        (pObj.DestinationX <> 0) and (pObj.DestinationY <> 0) then begin
         glLineWidth(3.0);
         SetGLColorFromTColor(clMob, 0.33);
         glBegin(GL_LINES);
@@ -406,13 +449,13 @@ var
   rngCircle:  TRangeCircle;
 begin
   FRangeCircles := TRangeCircleList.Create;
-  rngCircle := TRangeCircle.CreateRange(500);
+  rngCircle := TRangeCircle.CreateRange(500, 24);
   rngCircle.Color := clRed;
   FRangeCircles.Add(rngCircle);
-  rngCircle := TRangeCircle.CreateRange(1500);
+  rngCircle := TRangeCircle.CreateRange(1500, 24);
   rngCircle.Color := clLime;
   FRangeCircles.Add(rngCircle);
-  rngCircle := TRangeCircle.CreateRange(6000);
+  rngCircle := TRangeCircle.CreateRange(6000, 40);
   rngCircle.Color := clSilver;
   FRangeCircles.Add(rngCircle);
 
@@ -420,6 +463,8 @@ begin
   FMapTextures := TTextureMapElementList.Create;
   FMobTriangle := T3DArrowHead.Create;
   FObjectTriangle := T3DPyramid.Create;
+  FFilteredObjects := TDAOCObjectList.Create(false);
+  FRenderPrefs := TRenderPreferences.Create;
 
   grdObjects.DoubleBuffered := true;
 end;
@@ -427,11 +472,13 @@ end;
 procedure TfrmGLRender.FormDestroy(Sender: TObject);
 begin
   GLCleanups;
+  FFilteredObjects.Free;
   FMobTriangle.Free;
   FObjectTriangle.Free;
   FMapElements.Free;
   FMapTextures.Free;
   FRangeCircles.Free;
+  FRenderPrefs.Free;
 end;
 
 procedure TfrmGLRender.GLCleanups;
@@ -462,12 +509,12 @@ begin
   glDisable(GL_LIGHTING);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
+  glLineWidth(1.0);
 
-  glEnable(GL_TEXTURE_2D);
-  FMapTextures.GLRender;
-  glDisable(GL_TEXTURE_2D);
-  
-  FMapElements.GLRender;
+  if FRenderPrefs.DrawMapTexture then
+    FMapTextures.GLRender;
+  if FRenderPrefs.DrawMapVector then
+    FMapElements.GLRender;
 
   glPopAttrib();
 end;
@@ -522,9 +569,9 @@ begin
       end;
     end  { Row 0 / with }
 
-  else if ARow <= FDControl.DAOCObjects.Count then
+  else if ARow <= FFilteredObjects.Count then
     with grdObjects.Canvas do begin
-      pMob := FDControl.DAOCObjects[ARow - 1];
+      pMob := FFilteredObjects[ARow - 1];
 
         { objects are gray on white }
       if pMob.ObjectClass = ocObject then begin
@@ -605,8 +652,8 @@ begin
   if grdObjects.Row < 1 then
     exit;
 
-  if grdObjects.Row <= FDControl.DAOCObjects.Count then
-    FDControl.SelectedObject := FDControl.DAOCObjects[grdObjects.Row - 1];
+  if grdObjects.Row <= FFilteredObjects.Count then
+    FDControl.SelectedObject := FFilteredObjects[grdObjects.Row - 1];
 
   Dirty;
 end;
@@ -615,8 +662,8 @@ procedure TfrmGLRender.GridSelectObject(ADAOCObject: TDAOCObject);
 var
   I:    integer;
 begin
-  for I := 0 to FDControl.DAOCObjects.Count - 1 do
-    if FDControl.DAOCObjects[I] = ADAOCObject then
+  for I := 0 to FFilteredObjects.Count - 1 do
+    if FFilteredObjects[I] = ADAOCObject then
       if (I + 1) < grdObjects.RowCount then begin
         grdObjects.Row := I + 1;
         exit;
@@ -695,6 +742,9 @@ var
   end;
 
 begin
+  if not FRenderPrefs.DrawHUD then
+    exit;
+    
   pMob := FDControl.SelectedObject;
   if not (Assigned(pMob) and Assigned(glutBitmapCharacter)) then
     exit;
@@ -775,8 +825,10 @@ begin
   glRotatef(180, 1, 0, 0);
 
   minx := FDControl.LocalPlayer.XProjected - FRange;
+  inc(minx, FMapToPlayerOffset.X);
   maxx := minx + (integer(FRange) * 2);
   miny := FDControl.LocalPlayer.YProjected - FRange;
+  inc(miny, FMapToPlayerOffset.Y);
   maxy := miny + (integer(FRange) * 2);
   glOrtho(minx, maxx, miny, maxy, 1, -300);
 end;
@@ -786,6 +838,191 @@ begin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity;
   glOrtho(0, glMap.ClientWidth, 0, glMap.ClientHeight, 1, -1);
+end;
+
+procedure TfrmGLRender.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  tmpPrefs:   TRenderPreferences;
+begin
+  case Key of
+    VK_HOME:
+      begin
+        FMapToPlayerOffset.X := 0;
+        FMapToPlayerOffset.Y := 0;
+        Key := 0;
+      end;
+    VK_LEFT:
+      begin
+        dec(FMapToPlayerOffset.X, FRange div 10);
+        Key := 0;
+      end;
+    VK_UP:
+      begin
+        dec(FMapToPlayerOffset.Y, FRange div 10);
+        Key := 0;
+      end;
+    VK_RIGHT:
+      begin
+        inc(FMapToPlayerOffset.X, FRange div 10);
+        Key := 0;
+      end;
+    VK_DOWN:
+      begin
+        inc(FMapToPlayerOffset.Y, FRange div 10);
+        Key := 0;
+      end;
+    VK_F1:
+      begin
+        tmpPrefs := FRenderPrefs.Clone;
+        if not TfrmRenderPrefs.Execute(FRenderPrefs) then begin
+          FRenderPrefs.Free;
+          FRenderPrefs := tmpPrefs;
+        end;
+        Key := 0;
+      end;
+  end;
+end;
+
+procedure TfrmGLRender.glMapMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  glMap.SetFocus;
+end;
+
+procedure TfrmGLRender.FormMouseWheelUp(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+  slideZoom.Position := slideZoom.Position + slideZoom.Frequency;
+  Handled := true; 
+end;
+
+procedure TfrmGLRender.FormMouseWheelDown(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+  slideZoom.Position := slideZoom.Position - slideZoom.Frequency;
+  Handled := true;
+end;
+
+procedure TfrmGLRender.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  case Key of
+    'b', 'B':
+      begin
+        FRenderPrefs.DrawMapTexture := not FRenderPrefs.DrawMapTexture;
+        Dirty;
+        Key := #0;
+      end;
+    'c', 'C':
+      begin
+        FRenderPrefs.DrawRangeCircles := not FRenderPrefs.DrawRangeCircles;
+        Dirty;
+        Key := #0;
+      end;
+    'd', 'D':
+      begin
+        FRenderPrefs.DrawAIDestination := not FRenderPrefs.DrawAIDestination;
+        Dirty;
+        Key := #0;
+      end;
+    'h', 'H':
+      begin
+        FRenderPrefs.DrawHUD := not FRenderPrefs.DrawHUD;
+        Dirty;
+        Key := #0;
+      end;
+    'm', 'M':
+      begin
+        FRenderPrefs.XORObjectFilter(ocMob);
+        RefreshFilteredList;
+        Key := #0;
+      end;
+    'o', 'O':
+      begin
+        FRenderPrefs.XORObjectFilter(ocObject);
+        RefreshFilteredList;
+        Key := #0;
+      end;
+    'p', 'P':
+      begin
+        FRenderPrefs.XORObjectFilter(ocPlayer);
+        RefreshFilteredList;
+        Key := #0;
+      end;
+    'r', 'R':
+      begin
+        FRenderPrefs.DrawRulers := not FRenderPrefs.DrawRulers;
+        Dirty;
+        Key := #0;
+      end;
+    'u', 'U':
+      begin
+        FRenderPrefs.XORObjectFilter(ocUnknown);
+        RefreshFilteredList;
+        Key := #0;
+      end;
+    'v', 'V':
+      begin
+        FRenderPrefs.DrawMapVector := not FRenderPrefs.DrawMapVector;
+        Dirty;
+        Key := #0;
+      end;
+  end;
+end;
+
+procedure TfrmGLRender.RefreshFilteredList;
+var
+  I:    integer;
+begin
+  FFilteredObjects.Clear;
+  for I := 0 to FDControl.DAOCObjects.Count - 1 do
+    if FRenderPrefs.IsObjectInFilter(FDControl.DAOCObjects[I]) then
+      FilteredObjectInsert(FDControl.DAOCObjects[I]);
+
+  grdObjects.RowCount := FFilteredObjects.Count + 1;
+  Dirty;
+end;
+
+procedure TfrmGLRender.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if FPrefsFile <> '' then begin
+    FRenderPrefs.Left := Left;
+    FRenderPrefs.Top := Top;
+    FRenderPrefs.Width := Width;
+    FRenderPrefs.Height := Height;
+    FRenderPrefs.Range := FRange;
+    FRenderPrefs.SaveSettings(FPrefsFile);
+  end;
+end;
+
+procedure TfrmGLRender.FilteredObjectInsert(ADAOCObject: TDAOCObject);
+const
+  OBJECT_ORDER: array[TDAOCObjectClass] of integer = (4, 3, 2, 1, 0);
+var
+  I:   integer;
+  function CompareObjectClasses(A, B: TDAOCObjectClass) : integer;
+  begin
+    if OBJECT_ORDER[A] < OBJECT_ORDER[B] then
+      Result := -1
+    else if OBJECT_ORDER[A] > OBJECT_ORDER[B] then
+      Result := 1
+    else
+      Result := 0;
+  end;
+begin
+  for I := 0 to FFilteredObjects.Count - 1 do
+    if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) < 0 then begin
+      FFilteredObjects.Insert(I, ADAOCObject);
+      exit;
+    end
+    else if CompareObjectClasses(ADAOCObject.ObjectClass, FFilteredObjects[I].ObjectClass) = 0 then begin
+      if AnsiCompareText(ADAOCObject.Name, FFilteredObjects[I].Name) < 0 then begin
+        FFilteredObjects.Insert(I, ADAOCObject);
+        exit;
+      end
+    end;
+
+  FFilteredObjects.Add(ADAOCObject);
 end;
 
 end.

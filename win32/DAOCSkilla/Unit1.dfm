@@ -22,7 +22,7 @@ object frmMain: TfrmMain
   PixelsPerInch = 96
   TextHeight = 13
   object lblPlayerPos: TLabel
-    Left = 380
+    Left = 378
     Top = 60
     Width = 121
     Height = 13
@@ -31,7 +31,7 @@ object frmMain: TfrmMain
     Caption = 'lblPlayerPos'
   end
   object lblPlayerHead: TLabel
-    Left = 408
+    Left = 406
     Top = 76
     Width = 93
     Height = 13
@@ -40,7 +40,7 @@ object frmMain: TfrmMain
     Caption = 'lblPlayerHead'
   end
   object lblPlayerSpeed: TLabel
-    Left = 407
+    Left = 406
     Top = 92
     Width = 94
     Height = 13
@@ -64,8 +64,8 @@ object frmMain: TfrmMain
     OnClick = btnPowerskillBuyClick
   end
   object imgAdapter: TImage
-    Left = 268
-    Top = 108
+    Left = 264
+    Top = 64
     Width = 16
     Height = 12
     AutoSize = True
@@ -95,7 +95,7 @@ object frmMain: TfrmMain
     Shape = bsTopLine
   end
   object lblZone: TLabel
-    Left = 380
+    Left = 378
     Top = 108
     Width = 121
     Height = 13
@@ -153,7 +153,7 @@ object frmMain: TfrmMain
     Top = 200
     Width = 97
     Height = 25
-    Caption = 'Open playback file'
+    Caption = 'Reset file'
     TabOrder = 3
     OnClick = btnOpenPlaybackClick
   end
@@ -204,7 +204,7 @@ object frmMain: TfrmMain
   object chkAutosell: TCheckBox
     Left = 132
     Top = 140
-    Width = 209
+    Width = 205
     Height = 17
     Caption = 'Autosell hinges and all powerskill items'
     TabOrder = 9
@@ -273,17 +273,17 @@ object frmMain: TfrmMain
     OnClick = btnSpellcraftHlpClick
   end
   object Button1: TButton
-    Left = 300
-    Top = 104
+    Left = 336
+    Top = 132
     Width = 75
     Height = 25
-    Caption = 'dmpmobs'
+    Caption = 'Dump mobs'
     TabOrder = 17
     OnClick = Button1Click
   end
   object chkRecordMobseen: TCheckBox
     Left = 244
-    Top = 84
+    Top = 104
     Width = 113
     Height = 17
     Caption = 'Record mobseen'
@@ -292,7 +292,7 @@ object frmMain: TfrmMain
   end
   object tmrPlayback: TTimer
     Enabled = False
-    Interval = 100
+    Interval = 75
     OnTimer = tmrPlaybackTimer
     Left = 188
     Top = 212
