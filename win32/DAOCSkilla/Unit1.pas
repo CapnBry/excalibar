@@ -103,6 +103,7 @@ type
     FDStreamClients:    TDStreamClientList;
     FDControlList:      TDAOCControlList;
     FDebugLogState:     TDebugLoggingState;
+    FRunCount:          integer;
 
     procedure LoadSettings;
     procedure LoadSettingsForConnection(AConn: TDAOCConnection);
@@ -176,7 +177,7 @@ implementation
 uses
   DAOCRegion, PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
   SpellcraftHelp, Macroing, LowOnStat, VCLMemStrms, RemoteAdmin,
-  StringParseHlprs, SkillaLog
+  StringParseHlprs, SkillaLog, DisplayLicense
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
@@ -382,6 +383,10 @@ end;
 procedure TfrmMain.LoadSettings;
 begin
   with TINIFile.Create(GetConfigFileName) do begin
+    FRunCount := ReadInteger('Main', 'RunCount', 0);
+    if FRunCount = 0 then
+      TfrmDisplayLicense.Execute;
+
     FDAOCPath := ReadString('Main', 'DAOCPath', 'C:\Mythic\Isles\');;
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
@@ -469,6 +474,7 @@ end;
 procedure TfrmMain.SaveSettings;
 begin
   with TINIFile.Create(GetConfigFileName) do begin
+    WriteInteger('Main', 'RunCount', FRunCount + 1);
     WriteString('Main', 'DAOCPath', FDAOCPath);
     WriteInteger('Main', 'Left', Left);
     WriteInteger('Main', 'Top', Top);
