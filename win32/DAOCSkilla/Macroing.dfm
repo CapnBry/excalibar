@@ -42,9 +42,9 @@ object frmMacroing: TfrmMacroing
   object chkAutosell: TCheckBox
     Left = 128
     Top = 28
-    Width = 205
+    Width = 213
     Height = 17
-    Caption = 'Autosell hinges and all powerskill items'
+    Caption = 'Autosell all powerskill items and trinkets'
     TabOrder = 0
     OnClick = chkAutosellClick
   end

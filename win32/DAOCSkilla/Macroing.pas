@@ -48,6 +48,7 @@ type
     FPSItemList:    TPowerSkillItemList;
     FSellingBeforeBuying:   boolean;
     FSelectingNPC:          boolean;
+    FTrinketList:   TStringList;
 
     procedure DoAutoSell;
     procedure DoAutoBuy;
@@ -61,6 +62,10 @@ type
     procedure VendorChangeComplete;
     function IsAtForgeNode : boolean;
     function IsAtMerchantNode : boolean;
+    function NoMerchantNode : boolean;
+    function NoForgeNode : boolean;
+    function GetTrinketList: string;
+    procedure SetTrinketList(const Value: string);
   public
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
@@ -74,6 +79,7 @@ type
     procedure DAOCLocalHealthUpdate;
 
     property DAOCControl: TDAOCControl read FDControl write FDControl;
+    property TrinketList: string read GetTrinketList write SetTrinketList;
   end;
 
 var
@@ -83,7 +89,7 @@ implementation
 
 uses
   ShowMapNodes, PowerSkillSetup, SpellcraftHelp, MacroTradeSkill,
-  AFKMessage, DAOCWindows, DAOCInventory, Unit1
+  AFKMessage, DAOCWindows, DAOCInventory, Unit1, StringParseHlprs
 {$IFDEF DAOC_AUTO_SERVER}
   ,TellMacro, LowOnStat
 {$ENDIF DAOC_AUTO_SERVER}
@@ -172,6 +178,10 @@ end;
 procedure TfrmMacroing.FormCreate(Sender: TObject);
 begin
   FPSItemList := TPowerSkillItemList.Create;
+
+  FTrinketList := TStringList.Create;
+  FTrinketList.Add('*hinge');
+
 {$IFNDEF DAOC_AUTO_SERVER}
   btnTellMacro.Visible := false;
 {$ENDIF DAOC_AUTO_SERVER}
@@ -179,6 +189,7 @@ end;
 
 procedure TfrmMacroing.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FTrinketList);
   FreeAndNil(FPSItemList);
 end;
 
@@ -187,7 +198,16 @@ var
   I:    integer;
   pWnd: TStatsWindow;
   iCnt: integer;
+  iTrinket:     integer;
   pFirstItem:   TDAOCInventoryItem;
+
+  procedure ItemMatch;
+  begin
+    inc(iCnt);
+    if not Assigned(pFirstItem) then
+      pFirstItem := FDControl.LocalPlayer.Inventory.Items[I];
+  end;
+
 begin
   if not FAutoSell or (FDControl.SelectedID = 0) then begin
     FInSellOff := false;
@@ -198,14 +218,18 @@ begin
   pFirstItem := nil;
   with FDControl.LocalPlayer.Inventory do
     for I := 0 to Count - 1 do
-      if Items[I].IsInBag and (Items[I].Quality <> 100) and
-        (Assigned(FPSItemList.Find(Items[I].CountlessDescription)) or
-        (Pos('cloak', Items[I].Description) > 0) or
-        (Pos('hinge', Items[I].Description) > 0)) then begin
-        inc(iCnt);
-        if not Assigned(pFirstItem) then
-          pFirstItem := Items[I];
-      end;  { If match }
+      if Items[I].IsInBag and (Items[I].Quality <> 100) then begin
+        if Assigned(FPSItemList.Find(Items[I].CountlessDescription)) then begin
+          ItemMatch;
+          continue;
+        end;
+
+        for iTrinket := 0 to FTrinketList.Count - 1 do
+          if WildMatch(FTrinketList[iTrinket], LowerCase(Items[I].Description)) then begin
+            ItemMatch;
+            break;
+          end;
+      end;  { If in bag and not 100%q }
 
   if (FInSellOff or (iCnt >= Random(7) + 1)) and Assigned(pFirstItem) then begin
     // Log('InvChg: Found item - ' + Items[I].Description);
@@ -244,15 +268,19 @@ begin
   if frmPowerskill.Visible then begin
     frmPowerskill.ExecutePurchases;
 
-    if FPSItemList.AutoDeselectMerchant then
+    if (NoMerchantNode or IsAtMerchantNode) and
+      FPSItemList.AutoDeselectMerchant then
       FDControl.DoSendKeys('[esc]');
-      
-    if frmPowerskill.KeepBuying and IsAtMerchantNode then
-      if frmPowerskill.HasMaterialsForItem then
+
+    if frmPowerskill.KeepBuying then begin
+//      if frmPowerskill.HasMaterialsForItem then
         FDControl.PathToNodeName(FPSItemList.ForgeNodeName)
-      else
-        Log('Do not have all materials to create the item.');
-  end
+//      else
+//        Log('Do not have all materials to create the item.');
+    end
+    else
+      Log('User aborted buying via STOP command.');
+  end  // if frmPowerskill
 
   else if frmSpellcraftHelp.Visible then
     frmSpellcraftHelp.ExecutePurchases;
@@ -305,7 +333,6 @@ begin
     end;
   end;  { if frmPowerskill }
 end;
-
 
 procedure TfrmMacroing.Log(const s: string);
 begin
@@ -501,6 +528,26 @@ procedure TfrmMacroing.DAOCLocalHealthUpdate;
 begin
   if frmLowOnStat.Visible then
     frmLowOnStat.DAOCLocalHealthUpdate;
+end;
+
+function TfrmMacroing.NoForgeNode: boolean;
+begin
+  Result := FPSItemList.ForgeNodeName = '';
+end;
+
+function TfrmMacroing.NoMerchantNode: boolean;
+begin
+  Result := FPSItemList.MerchantNodeName = '';
+end;
+
+function TfrmMacroing.GetTrinketList: string;
+begin
+  Result := FTrinketList.CommaText;
+end;
+
+procedure TfrmMacroing.SetTrinketList(const Value: string);
+begin
+  FTrinketList.CommaText := Value;
 end;
 
 end.
