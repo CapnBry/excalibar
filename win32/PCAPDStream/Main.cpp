@@ -8,17 +8,16 @@ cMain::cMain(HINSTANCE hInstance)
 
 void cMain::StatusUpdate(const char* fmt, ...)
 {
-	char sBuf[2048];
-
 	va_list marker;
 	va_start(marker, fmt);
 	char sNewText[1024*4];
 	vsprintf(sNewText, fmt, marker);
 	va_end(marker);
 
-	GetDlgItemText(hMainWnd,IDC_STATUSEDIT,(LPSTR)&sBuf,sizeof(sBuf));
-	strcat(sBuf,sNewText);
-	SetDlgItemText(hMainWnd,IDC_STATUSEDIT,sBuf);
+	// put caret at end of edit box
+	SendDlgItemMessage(hMainWnd,IDC_STATUSEDIT,EM_SETSEL,(WPARAM)-1,(LPARAM)-1);
+	// append
+	SendDlgItemMessage(hMainWnd,IDC_STATUSEDIT,EM_REPLACESEL,(WPARAM)FALSE,(LPARAM)sNewText);
 }
 
 bool cMain::InitMain()

@@ -57,8 +57,12 @@ void cSniffer::tcp_callback(tcp_stream *a_tcp, void ** this_time_not_needed)
 			if(pSniffer->connected)
 				return;
 
+			//pMain->StatusUpdate("New TCP connection\r\n");
 			if(!pSniffer->IsDaocStream(a_tcp->addr,false))
+			    {
+    			//pMain->StatusUpdate("New TCP connection was not a DAoC connection\r\n");
 				return;
+				}
 
 			pSniffer->connected = true;
 
