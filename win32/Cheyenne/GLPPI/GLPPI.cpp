@@ -60,7 +60,7 @@ public:
 }; // end class VmTextProxy
 
 GLPPI::GLPPI() :
-    ActorXScale(0.01f),ActorYScale(0.0175f),//ActorYScale(0.0149f),
+    ActorXScale(0.01f),ActorYScale(0.015f),//ActorYScale(0.0149f),
     XLimit(2000000.0f),YLimit(2000000.0f)
 {
     Wrapped=false;
@@ -198,36 +198,39 @@ void GLPPI::InitRenderContext(void)
     return;
 } // end InitRenderContext
 
-void GLPPI::InitTextures(void)
+void GLPPI::InitTextures(const bool LoadZoneTextures)
 {
     LOG_FUNC << "Initializing textures\n";
 
-    std::ostringstream oss;
-
-    // go through each zone and load a texture for it
-    for(unsigned int zone=0;zone<256;++zone)
+    if(LoadZoneTextures)
         {
-        // empty it
-        oss.str("");
-        oss.seekp(0);
-        oss.clear();
+        std::ostringstream oss;
 
-        // put filename in
-        oss << "maps\\zone";
-        oss.width(3);
-        oss.fill('0');
-        oss << zone << ".png";
-        
-        // make a full path out of it
-        // and bind the texture
-        unsigned int id=PngBindContainer(ZoneTextureMap,zone,AppendFileToPath(InitialDir,oss.str()));
-
-        if(id != 0)
+        // go through each zone and load a texture for it
+        for(unsigned int zone=0;zone<256;++zone)
             {
-            Logger << "[GLPPI::InitTextures] loaded texture \"" << oss.str().c_str() << "\""
-                   << " with id " << id << "\n";
-            }
-        } // end for each zone
+            // empty it
+            oss.str("");
+            oss.seekp(0);
+            oss.clear();
+
+            // put filename in
+            oss << "maps\\zone";
+            oss.width(3);
+            oss.fill('0');
+            oss << zone << ".png";
+            
+            // make a full path out of it
+            // and bind the texture
+            unsigned int id=PngBindContainer(ZoneTextureMap,zone,AppendFileToPath(InitialDir,oss.str()));
+
+            if(id != 0)
+                {
+                Logger << "[GLPPI::InitTextures] loaded texture \"" << oss.str().c_str() << "\""
+                    << " with id " << id << "\n";
+                }
+            } // end for each zone
+        } // end if LoadZoneTextures
 
     // load the actor con textures
     PngBindContainer(TextureMap,GLPPI::alb_gray,AppendFileToPath(InitialDir,"skins\\alb_gray.png"));
@@ -445,7 +448,7 @@ void GLPPI::InitDisplayMatrices(void)const
     return;
 } // end InitDisplayMatrices
 
-void GLPPI::Wrap(HWND Window)
+void GLPPI::Wrap(HWND Window,const bool LoadZoneTextures,const bool LoadVectorMaps)
 {
     if(Wrapped)
         {
@@ -474,13 +477,16 @@ void GLPPI::Wrap(HWND Window)
     InitDisplayLists();
     
     // init textures
-    InitTextures();
+    InitTextures(LoadZoneTextures);
     
     // init fonts
     InitFonts();
     
-    // init vector maps
-    VmLoader.Go();
+    if(LoadVectorMaps)
+        {
+        // init vector maps
+        VmLoader.Go();
+        }
     
     // call resize to initialize the viewport
     Resize();
@@ -588,8 +594,8 @@ void GLPPI::CenterOn(const Actor& actor)
     // init display matrices
     InitDisplayMatrices();
 
-    // don't need to recalculate the increments
-    // since we didn't change them to begin with
+    // recalculate increments
+    RecalcIncrements();
     
     // done
     return;

@@ -126,7 +126,6 @@ private:
     StateFlagType StateFlags; // the render state flags
 }; // end class GLRenderState
 
-
 class ActorRenderPrefs
 {
 public:
@@ -187,6 +186,35 @@ private:
     DECL_MEMBER_ACCESSOR_NOSET(bool,RenderLevel);
     DECL_MEMBER_ACCESSOR_NOSET(int,NumSet);
 }; // end ActorRenderPrefs
+
+// define some useful overloads
+inline std::ostream& operator<< (std::ostream& str,const ActorRenderPrefs& prefs)
+{
+    str << prefs.GetRenderName() << std::endl
+        << prefs.GetRenderSurname() << std::endl
+        << prefs.GetRenderGuild() << std::endl
+        << prefs.GetRenderHealth() << std::endl
+        << prefs.GetRenderLevel() << std::endl;
+    
+    return(str);
+} // end operator<<
+inline std::istream& operator>> (std::istream& str,ActorRenderPrefs& prefs)
+{
+    bool b;
+    str >> b >> std::ws;
+    prefs.SetRenderName(b);
+    str >> b >> std::ws;
+    prefs.SetRenderSurname(b);
+    str >> b >> std::ws;
+    prefs.SetRenderGuild(b);
+    str >> b >> std::ws;
+    prefs.SetRenderHealth(b);
+    str >> b >> std::ws;
+    prefs.SetRenderLevel(b);
+    
+    return(str);
+} // end operator>>
+
 class GLPPI
 {
 friend class VmTextProxy;
@@ -245,7 +273,7 @@ public:
     typedef TextureMapType::value_type TextureMapValueType;
     typedef TextureMapType::value_type::second_type GLTextureIdType;
     
-    void Wrap(HWND Window); // call one time -- must be first call to this class
+    void Wrap(HWND Window,const bool LoadZoneTextures=true,const bool LoadVectorMaps=true); // call one time -- must be first call to this class
     void Unwrap(void); // call one time -- must be last call to this class
     void Resize(void); // call when the wrapped window size changes
 
@@ -287,7 +315,7 @@ private:
     // init/cleanup functions
     void InitPixelFormat(void);
     void InitRenderContext(void);
-    void InitTextures(void);
+    void InitTextures(const bool LoadZoneTextures=true);
     void DestroyTextures(void);
     void InitDisplayLists(void);
     void DestroyDisplayLists(void);
