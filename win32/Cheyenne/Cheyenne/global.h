@@ -66,6 +66,16 @@ inline void DrawGLFontString(const std::string& text,void* font=GLUT_BITMAP_HELV
     DrawWGLFontString(text);
 }
 
+inline float RadToDeg(float rad)
+{
+    return(rad*57.295779513082320876798154814105f);
+}
+
+inline float DegToRad(float deg)
+{
+    return(deg*0.017453292519943295769236907684886f);
+}
+
 template<class container> typename container::value_type::second_type PngBindContainer
     (
     container& Container,

@@ -229,6 +229,7 @@ private:
     void DrawPPI(void);
     void RenderActor(const Actor& ThisActor)const;
     void RenderWorld(void)const;
+    void RenderCloseControl(void)const;
     void HandleKeyDown(HWND hWnd,WPARAM wParam,LPARAM lParam);
     
     void RecenterDisplay(void);
@@ -297,6 +298,8 @@ private:
     HFONT hTahomaBig;
     HGLRC hRenderContext;
     HDC hPPIDC;
+    RECT rPPIClient;
+    TEXTMETRIC TahomaTextMetric;
     const UINT DataWindowTimerId;
     bool bDisplayListsCreated;
     bool bTexturesCreated;
@@ -338,8 +341,6 @@ private:
     ZoneTextureMapType ZoneTextureMap;
     ConTextureMapType ConTextureMap;
     GeneralTextureMapType GeneralTextureMap;
-
-    TEXTMETRIC TahomaTextMetric;
 
     // database statistics
     DatabaseStatistics stats;

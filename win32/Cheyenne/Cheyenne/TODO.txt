@@ -23,8 +23,6 @@ render context, so that will still have to be done in the GUI thread.
 
 - Add stealther detected "bubble" since we can potentially know when a stealther is around even though we can't see them
 
-- Add ground target display
-
 - Figure out why Cheyenne is so damn slow on my laptop after the screensaver exits
 
 - Attempt to get rid of the GLUT requirement

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by Cheyenne.rc
 //
 #define IDR_MAIN_MENU                   101
@@ -32,6 +32,8 @@
 #define IDC_AUTOHOOKTARGET              1013
 #define IDC_PLAYHIBCREATESOUND          1014
 #define IDC_PRINTUNKNOWNPACKETS         1014
+#define IDC_RENDERPLAYERS2              1014
+#define IDC_RENDERPGRAYMOBS             1014
 #define IDC_HIBCREATESOUND              1015
 #define IDC_TEXTURESINPPI               1015
 #define IDC_PLAYMIDCREATESOUND          1016
@@ -39,8 +41,11 @@
 #define IDC_MIDCREATESOUND              1017
 #define IDC_VECTORONLYINFOLLOWED        1018
 #define IDC_SHOWMOBCONCOLOR             1019
+#define IDC_BROWSE_ALB_SOUND            1021
 #define IDC_RADIUS2                     1022
+#define IDC_BROWSE_HIB_SOUND            1022
 #define IDC_ENABLED2                    1023
+#define IDC_BROWSE_MID_SOUND            1023
 #define IDC_RADIUS3                     1024
 #define IDC_ENABLED3                    1025
 #define IDC_RADIUS4                     1026
@@ -63,7 +68,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

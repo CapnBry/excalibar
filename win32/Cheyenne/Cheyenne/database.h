@@ -226,7 +226,7 @@ private:
 
     void ResetDatabase(void);
 
-    Actor* GetActorById(const unsigned int& id);
+    Actor* GetActorById(const unsigned int& info_id);
     unsigned int GetActorInfoIdFromId(const unsigned int& id);
     actor_iterator GetActorIteratorById(const unsigned int& id);
     Actor& InsertActorById(const unsigned int& id,bool& bInserted);

@@ -16,9 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
 
 #include "global.h"
 #include "config.h"
@@ -68,6 +65,7 @@ CheyenneConfig::CheyenneConfig() : m_ConfigFileName("cheyenne.cfg")
     SetVectorMapInPPI(true);
     SetVectorMapOnlyInFollowedZone(false);
     SetAutoHookTarget(true);
+    SetRenderGrayMobs(true);
 
 } // end CheyenneConfig
 
@@ -120,6 +118,8 @@ bool CheyenneConfig::Load(void)
     file >> ModifyVectorMapOnlyInFollowedZone();
 
     file >> ModifyAutoHookTarget();
+    
+    file >> ModifyRenderGrayMobs();
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 
@@ -197,6 +197,8 @@ bool CheyenneConfig::Save(void)const
     file << GetVectorMapOnlyInFollowedZone() << std::endl;
 
     file << GetAutoHookTarget() << std::endl;
+    
+    file << GetRenderGrayMobs() << std::endl;
 
     // UNKNOWN PACKET LOG FLAG IS NOT STORED IN THE CONFIG FILE
 

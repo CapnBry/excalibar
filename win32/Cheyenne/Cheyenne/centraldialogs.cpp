@@ -16,9 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
 
 #include "global.h"
 #include "database.h"
@@ -52,17 +49,57 @@ void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str)
     delete[] edit_str;
 }
 
+bool GetOpenFileName
+    (
+    HWND hWndOwner,
+    std::string& file_name,
+    const char* filters
+    )
+{
+    OPENFILENAME ofn;
+    char name[MAX_PATH+1];
+    ZeroMemory(&ofn,sizeof(ofn));
+    
+    strncpy(name,file_name.c_str(),MAX_PATH);
+    
+    ofn.lStructSize=sizeof(ofn);
+    ofn.hwndOwner=hWndOwner;
+    ofn.lpstrFilter=filters;
+    ofn.lpstrFile=name;
+    ofn.nMaxFile=MAX_PATH;
+    ofn.lpstrTitle="Select File";
+    ofn.Flags=OFN_EXPLORER|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
+    ofn.lpstrDefExt="wav";
+    
+    if(GetOpenFileName(&ofn))
+        {
+        file_name=ofn.lpstrFile;
+        return(true);
+        }
+    else
+        {
+        return(false);
+        }
+} // end GetOpenFileName
+
 class ComboActorPopulator
 {
 public:
-    ComboActorPopulator(const ComboActorPopulator& s) : hComboBox(s.hComboBox){};
-    explicit ComboActorPopulator(HWND h):hComboBox(h){};
+    ComboActorPopulator(const ComboActorPopulator& s) : hComboBox(s.hComboBox),CurrentSel(s.CurrentSel){};
+    explicit ComboActorPopulator(HWND h,unsigned int curr_sel):hComboBox(h),CurrentSel(curr_sel){};
     ~ComboActorPopulator(){}
 
     void operator()(const Database::actor_map_value& s)
     {
         int ndx=SendMessage(hComboBox,CB_ADDSTRING,0,(LPARAM)s.second.GetName().c_str());
         SendMessage(hComboBox,CB_SETITEMDATA,(WPARAM)ndx,(LPARAM)s.second.GetInfoId());
+        
+        if(s.second.GetInfoId()==CurrentSel)
+            {
+            // select this one
+            SendMessage(hComboBox,CB_SETCURSEL,WPARAM(ndx),0);
+            }
+            
         // done
         return;
     }
@@ -71,6 +108,7 @@ protected:
 private:
     ComboActorPopulator& operator=(const ComboActorPopulator& s); // disallow
     HWND hComboBox;
+    unsigned int CurrentSel;
 }; // end class ComboActorPopulator
 
 BOOL WINAPI CameraFollowDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
@@ -85,7 +123,7 @@ BOOL WINAPI CameraFollowDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             
             param=(std::pair<Database*,unsigned int>*)lParam;
 
-            param->first->IterateActors(ComboActorPopulator(GetDlgItem(hWnd,IDC_ACTOR_CB)));
+            param->first->IterateActors(ComboActorPopulator(GetDlgItem(hWnd,IDC_ACTOR_CB),param->second));
             }
             break;
 
@@ -221,6 +259,7 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
             SET_CHECK_BOOL(hWnd,IDC_VECTORMAPINPPI,param->GetVectorMapInPPI());
             SET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED,param->GetVectorMapOnlyInFollowedZone());
             SET_CHECK_BOOL(hWnd,IDC_AUTOHOOKTARGET,param->GetAutoHookTarget());
+            SET_CHECK_BOOL(hWnd,IDC_RENDERPGRAYMOBS,param->GetRenderGrayMobs());
             
             }
             break;
@@ -249,6 +288,7 @@ BOOL WINAPI ConfigDisplayDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam
                     param->ModifyVectorMapOnlyInFollowedZone() = GET_CHECK_BOOL(hWnd,IDC_VECTORONLYINFOLLOWED);
 
                     param->ModifyAutoHookTarget() = GET_CHECK_BOOL(hWnd,IDC_AUTOHOOKTARGET);
+                    param->ModifyRenderGrayMobs() = GET_CHECK_BOOL(hWnd,IDC_RENDERPGRAYMOBS);
 
                     EndDialog(hWnd,IDOK);
                     break;
@@ -438,6 +478,38 @@ BOOL WINAPI SetSoundsDlgProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
                     EndDialog(hWnd,IDCANCEL);
                     break;
 
+                case MAKEWPARAM(IDC_BROWSE_ALB_SOUND,BN_CLICKED):
+                    {
+                    std::string file_name;
+                    GET_EDIT_STRING(hWnd,IDC_ALBCREATESOUND,file_name);
+                    if(GetOpenFileName(hWnd,file_name,"Wave Files (*.wav)\0*.wav\0\0"))
+                        {
+                        SET_EDIT_STRING(hWnd,IDC_ALBCREATESOUND,file_name);
+                        }
+                    }
+                    break;
+                    
+                case MAKEWPARAM(IDC_BROWSE_HIB_SOUND,BN_CLICKED):
+                    {
+                    std::string file_name;
+                    GET_EDIT_STRING(hWnd,IDC_HIBCREATESOUND,file_name);
+                    if(GetOpenFileName(hWnd,file_name,"Wave Files (*.wav)\0*.wav\0\0"))
+                        {
+                        SET_EDIT_STRING(hWnd,IDC_HIBCREATESOUND,file_name);
+                        }
+                    }
+                    break;
+
+                case MAKEWPARAM(IDC_BROWSE_MID_SOUND,BN_CLICKED):
+                    {
+                    std::string file_name;
+                    GET_EDIT_STRING(hWnd,IDC_MIDCREATESOUND,file_name);
+                    if(GetOpenFileName(hWnd,file_name,"Wave Files (*.wav)\0*.wav\0\0"))
+                        {
+                        SET_EDIT_STRING(hWnd,IDC_MIDCREATESOUND,file_name);
+                        }
+                    }
+                    break;
                 default:
                     return(FALSE);
                     break;

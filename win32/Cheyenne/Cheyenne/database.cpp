@@ -16,9 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-// get rid of the stupid
-// "identifier truncated" warnings
-#pragma warning(disable : 4786)
 
 #include "global.h"
 #include <assert.h>
@@ -68,43 +65,48 @@ DWORD Database::Run(const bool& bContinue)
     daocmessages::player_identity* msg=new daocmessages::player_identity;
 
     msg->player_id=1;
-
     msg->info_id=2;
-
-    // get x
     msg->x=737280;
-    //msg->x=500;
-
-    // get y
     msg->y=606208;
-    //msg->y=500;
-
-    // get z
     msg->z=0;
-
-    // get heading
     //msg->heading=1024; // 90°
     msg->heading=0; // 0°
-
     // get realm
     msg->realm=2;
-
     // get level
     msg->level=20;
-
     // get name
     msg->name=new char[20];
     strcpy(msg->name,"NONAME");
-
     // get guild
     msg->guild=new char[20];
     strcpy(msg->guild,"NOGUILD");
-
     msg->surname=new char[20];
     strcpy(msg->surname,"NOSURNAME");
-
     msg->detected_region=100;
+    MessageInputFifo->Push(msg);
 
+    msg=new daocmessages::player_identity;
+    msg->player_id=2;
+    msg->info_id=3;
+    msg->x=737280;
+    msg->y=607208;
+    msg->z=0;
+    //msg->heading=1024; // 90°
+    msg->heading=0; // 0°
+    // get realm
+    msg->realm=2;
+    // get level
+    msg->level=20;
+    // get name
+    msg->name=new char[20];
+    strcpy(msg->name,"ENNUS");
+    // get guild
+    msg->guild=new char[20];
+    strcpy(msg->guild,"NOGUILD");
+    msg->surname=new char[20];
+    strcpy(msg->surname,"NOSURNAME");
+    msg->detected_region=100;
     MessageInputFifo->Push(msg);
     }
     {
@@ -121,20 +123,10 @@ DWORD Database::Run(const bool& bContinue)
     MessageInputFifo->Push(msg);
     }
     {
-    daocmessages::stealth* msg=new daocmessages::stealth;
+    daocmessages::player_target* msg=new daocmessages::player_target;
     
-    msg->info_id=2;
-    
-    MessageInputFifo->Push(msg);
-    }
-    {
-    daocmessages::player_ground_target* msg=new daocmessages::player_ground_target;
-    msg->player_id=1;
-    msg->detected_region=100;
-    msg->x=737280;
-    msg->y=606208;
-    msg->z=0;
-
+    msg->player_id=2;
+    msg->target_id=3;
     MessageInputFifo->Push(msg);
     }
     */
@@ -183,6 +175,24 @@ void Database::WaitForData(unsigned int timeout)
 
         // done with this
         delete msg;
+        
+        // loop (without waiting) until there are 
+        // no more messages to be processed
+        while(msg=MessageInputFifo->Pop())
+            {
+            if(msg->IsSniffed())
+                {
+                // handle sniffed message
+                HandleSniffedMessage(static_cast<const daocmessages::SniffedMessage*>(msg));
+                }
+            else
+                {
+                // handle non-sniffed message
+                }
+
+            // done with this
+            delete msg;
+            } // end while there are still messages on the fifo
         } // end if messages are on fifo
     
     // done
@@ -195,6 +205,7 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
     float x=float(ThisActor.GetMotion().GetXPos());
     float y=float(ThisActor.GetMotion().GetYPos());
 
+    // adjust for the strangeness due to +y being the "south" direction
     float xvel=(ThisActor.GetMotion().GetSpeed() * sin(ThisActor.GetMotion().GetHeading()));
     float yvel=(ThisActor.GetMotion().GetSpeed() * -cos(ThisActor.GetMotion().GetHeading()));
 
@@ -323,10 +334,10 @@ void Database::IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor
     return;
 } // end IntegrateActorToCurrentTime
 
-Actor* Database::GetActorById(const unsigned int& id)
+Actor* Database::GetActorById(const unsigned int& info_id)
 {
     // find it (this works by INFO ID)
-    actor_iterator it=Actors.find(id);
+    actor_iterator it=Actors.find(info_id);
 
     // return NULL if not found
 

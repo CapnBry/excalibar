@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************/
-#pragma warning(disable : 4786)
-
 #include "central.h"
 #include "gl\glpng.h"
 #include <sstream>
@@ -388,6 +386,7 @@ bool Central::Init(void)
 
     ShowWindow(hPPIWnd,SW_SHOW);
     UpdateWindow(hPPIWnd);
+    GetClientRect(hPPIWnd,&rPPIClient);
 
     MoveWindow(hMainWnd,0,0,800,600,TRUE);
 
@@ -512,7 +511,7 @@ void Central::DrawDataWindow(HDC hFront)const
             << "Mana=" << "%\n"
             << "Zone=" << HookedZone.ZoneFile.c_str() << "\n"
             << "Loc=<" << x << "," << y << "," << z << ">\n"
-            << "Heading=" << Hooked.GetMotion().GetHeading()*57.295779513082320876798154814105f << "°\n"
+            << "Heading=" << RadToDeg(Hooked.GetMotion().GetHeading()) << "°\n"
             << "Speed=" << Hooked.GetMotion().GetSpeed() << "\n"
             << "Valid Time=" << Hooked.GetMotion().GetValidTime().Seconds() << "\n"
             << "Last Update=" << Hooked.GetLastUpdateTime().Seconds() << "\n\n";
@@ -839,15 +838,13 @@ LRESULT CALLBACK Central::PPIWindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM
             if(pMe->hRenderContext)
                 {
                 // reinitialize the viewport
-
-                RECT r;
-                GetClientRect(hWnd,&r);
+                GetClientRect(hWnd,&pMe->rPPIClient);
                 glViewport
                     (
                     0,
                     0,
-                    r.right-r.left,
-                    r.bottom-r.top
+                    pMe->rPPIClient.right-pMe->rPPIClient.left,
+                    pMe->rPPIClient.bottom-pMe->rPPIClient.top
                     );
 
                 pMe->InitDisplayMatrices();
@@ -958,7 +955,7 @@ void Central::HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
         case ID_DISPLAY_CAMERA_FOLLOW:
             // set camera follow
             {
-            std::pair<Database*,unsigned int> param=std::make_pair(&db,0);
+            std::pair<Database*,unsigned int> param=std::make_pair(&db,IDToFollow);
 
             DialogBoxParam
                 (
@@ -1584,6 +1581,8 @@ void Central::InitTextures(void)
         {
         // empty it
         oss.str("");
+        oss.seekp(0);
+        oss.clear();
 
         // put filename in
         oss << "maps\\zone";
@@ -1665,6 +1664,28 @@ void Central::DestroyTextures(void)
         ZoneTextureMap.erase(it);
         }
 
+    while(ConTextureMap.begin() != ConTextureMap.end())
+        {
+        ConTextureMapIteratorType it=ConTextureMap.begin();
+        
+        // cleanup texture
+        glDeleteTextures(1,&(it->second));
+
+        // erase it
+        ConTextureMap.erase(it);
+        }
+
+    while(GeneralTextureMap.begin() != GeneralTextureMap.end())
+        {
+        GeneralTextureMapIteratorType it=GeneralTextureMap.begin();
+        
+        // cleanup texture
+        glDeleteTextures(1,&(it->second));
+
+        // erase it
+        GeneralTextureMap.erase(it);
+        }
+    
     // flag
     bTexturesCreated=false;
 
@@ -2033,6 +2054,15 @@ void Central::RenderActor(const Actor& ThisActor)const
         return;
         }
 
+    // if mob and rendering of gray mobs is disabled, then we are done
+    if(!Config.GetRenderGrayMobs() &&
+      (Actor::GetRelativeCon(IDToFollowLevel,ThisActor.GetLevel())==Actor::Gray) &&
+       ThisActor.GetRealm()==Actor::MOB)
+        {
+        // gray mob and rendering gray mobs is disabled
+        return;
+        }
+    
     // push matrix stack
     glPushMatrix();
 
@@ -2306,6 +2336,109 @@ void Central::RenderWorld(void)const
     return;
 } // end RenderWorld
 
+void Central::RenderCloseControl(void)const
+{
+    if(!FollowedTargetPair.GetValid() || (rPPIClient.bottom-rPPIClient.top)==0)
+        {
+        // nothing to do
+        return;
+        }
+
+    // get positions of followed actor and target actor
+    Motion FollowedPosition;
+    Motion TargetPosition;
+    GetRenderPosition(FollowedTargetPair.GetThisActor(),FollowedPosition);
+    GetRenderPosition(FollowedTargetPair.GetTarget(),TargetPosition);
+    
+    // get text metric data so the text and bounding box are always the same size in pixels
+    
+    // get line height (with padding) in pixels
+    float fractional_line_height=float(TahomaTextMetric.tmHeight + 1L);
+    // convert it to fraction of display height
+    fractional_line_height = fractional_line_height / (float(rPPIClient.bottom-rPPIClient.top));
+    // get char width in pixels
+    float fractional_line_width=float(TahomaTextMetric.tmAveCharWidth);
+    // convert it to fraction of display width
+    fractional_line_width = fractional_line_width / (float(rPPIClient.right-rPPIClient.left));
+    
+    // get position of targetted actor with respect to hooked actor
+    std::pair<float,float> rng_bng=FollowedPosition.RangeBearingTo(TargetPosition);
+    
+    // draw rectangle
+
+    // render with no depth test so they all display
+    glDisable(GL_DEPTH_TEST);
+
+    glPushMatrix();
+    // enable alpha blending
+    glEnable(GL_BLEND);
+    // set to 1/2 transparent black
+    glColor4f(0.0f,0.0f,0.0f,0.5f);
+    // translate over
+    glTranslatef(ProjectionX,ProjectionY,0.0f);
+    // draw -- the 2.5 and 32.0 are the number of lines we want to be able to 
+    // draw and the number of characters on each line respectively
+    glBegin(GL_QUADS);
+    glVertex3f(0.0f,ProjectionWidthY,0.0f);
+    glVertex3f(0.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*2.5f),0.0f);
+    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),ProjectionWidthY - (ProjectionWidthY*fractional_line_height*2.5f),0.0f);
+    glVertex3f(ProjectionWidthX * (fractional_line_width*32.0f),ProjectionWidthY,0.0f);
+    glEnd();
+    
+    // set to 1/4 transparent con color
+    switch(Actor::GetRelativeCon(FollowedTargetPair.GetThisActor().GetLevel(),FollowedTargetPair.GetTarget().GetLevel()))
+        {
+        case Actor::Green:
+            glColor4f(0.0f,1.0f,0.0f,0.75f);
+            break;
+        case Actor::Blue:
+            glColor4f(0.0f,0.0f,1.0f,0.75f);
+            break;
+        case Actor::Yellow:
+            glColor4f(1.0f,1.0f,0.0f,0.75f);
+            break;
+        case Actor::Orange:
+            glColor4f(1.0f,0.5f,0.25f,0.75f);
+            break;
+        case Actor::Red:
+            glColor4f(1.0f,0.0f,0.0f,0.75f);
+            break;
+        case Actor::Purple:
+            glColor4f(0.5f,0.0f,1.0f,0.75f);
+            break;
+        case Actor::Gray:
+        default:
+            glColor4f(0.75f,0.75f,0.75f,0.75f);
+            break;
+        } // end switch relative con
+
+    // draw text
+    std::ostringstream oss;
+    
+    // name
+    oss << FollowedTargetPair.GetTarget().GetName() << " " << FollowedTargetPair.GetTarget().GetSurname();
+    glRasterPos3f(10.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*1.75f),0.0f);
+    DrawGLFontString(oss.str());
+    oss.str("");
+    oss.seekp(0);
+    oss.clear();
+    
+    // range/bearing
+    oss << "<" << unsigned int(rng_bng.first) << ",";
+    oss.precision(3);
+    oss << RadToDeg(rng_bng.second) << "°>";
+    glRasterPos3f(10.0f,ProjectionWidthY - (ProjectionWidthY*fractional_line_height*0.875f),0.0f);
+    DrawGLFontString(oss.str());
+
+    // disable alpha blending
+    glDisable(GL_BLEND);
+
+    glPopMatrix();
+    
+    // done
+    return;
+} // end RenderCloseControl
+
 void Central::DrawPPI(void)
 {
     if(!hRenderContext)
@@ -2427,6 +2560,9 @@ void Central::DrawPPI(void)
         glEnd();
         }
 
+    // render the close control
+    RenderCloseControl();
+    
     glPopMatrix();
 
     // finish and swap
