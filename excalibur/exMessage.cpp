@@ -65,8 +65,12 @@ void exMessage::parseMsg()
 		this->MsgType = "Tell";
         p = this->Msg.find( " ");
         this->Sender  = this->Msg.mid( 2, (p-2));
-		this->Recvr   = this->Msg.mid( this->Msg.findRev( " ")+1, this->Msg.length());
-        this->MsgText = this->Msg.mid( this->Msg.find( "\""), this->Msg.findRev( "\"") - this->Msg.find( "\"") + 1);
+		this->Recvr   = this->Msg.mid( 
+					this->Msg.findRev( " ")+1, this->Msg.length());
+        this->MsgText = this->Msg.mid( 
+					this->Msg.find( "\""), 
+					this->Msg.findRev( "\"") - 
+					      this->Msg.find( "\"") + 1);
 		
 		this->FormattedText = this->Sender;
 		this->FormattedText += 
@@ -79,7 +83,8 @@ void exMessage::parseMsg()
         this->Recvr   = "Zone";
         p = this->Msg.find( ":");
         this->Sender  = this->Msg.mid( 2, (p-2));
-        this->MsgText = this->Msg.mid( this->Msg.find( "**"), this->Msg.length());
+        this->MsgText = this->Msg.mid( 
+					this->Msg.find( "**"), this->Msg.length());
         
         this->FormattedText = this->Sender + " broadcasts: ";
         this->FormattedText += this->MsgText;
@@ -90,7 +95,10 @@ void exMessage::parseMsg()
         this->Recvr   = "Say";
         p = this->Msg.find( " ");
         this->Sender  = this->Msg.mid( 2, (p-2));
-        this->MsgText = this->Msg.mid( this->Msg.find( "\""), this->Msg.findRev( "\"") - this->Msg.find( "\"") + 1);
+        this->MsgText = this->Msg.mid( 
+					this->Msg.find( "\""), 
+					this->Msg.findRev( "\"") - 
+					      this->Msg.find( "\"") + 1);
 
         this->FormattedText = this->Sender;
         this->FormattedText += 
@@ -99,7 +107,9 @@ void exMessage::parseMsg()
         }
 
 	if( this->MsgText)
-		printf("[%s] %s\n", this->MsgType.ascii(), this->FormattedText.ascii());
+		printf("[%s] %s\n", 
+				this->MsgType.ascii(), 
+				this->FormattedText.ascii());
 	else
 		printf("[%s] %s\n", "Unknown", this->Msg.ascii());
 
