@@ -291,7 +291,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS MoveToPoint::Execute(csl::EXECUTE_PARAMS& par
     
     // see how far away we are
     const float distance=GetDistanceFromGoal(params.followed_actor);
-    if(distance < 750.0f)
+    if(distance < 1000.0f)
         {
         // see if we were close before
         if(close)
@@ -2096,17 +2096,17 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
     
     // create intercept data
     INTERCEPT_DATA<float> id;
-    id.params.t0x=x_offset+Target.GetMotion().GetXPos();
-    id.params.t0y=y_offset+Target.GetMotion().GetYPos();
+    id.params.t0x=x_offset;
+    id.params.t0y=-y_offset;
     id.params.a0x=params.followed_actor->GetMotion().GetXPos();
-    id.params.a0y=params.followed_actor->GetMotion().GetYPos();
+    id.params.a0y=-(params.followed_actor->GetMotion().GetYPos());
     id.params.s=float(reference_velocity);
     
     // this is wierd: the heading stored in Actor is opposite
     // of what we would expect. A heading of 0 causes Y to 
     // decrease. For this reason, we negate Y here.
     id.params.tvx=Target.GetMotion().GetSpeed() * sin(Target.GetMotion().GetHeading());
-    id.params.tvy=Target.GetMotion().GetSpeed() * -cos(Target.GetMotion().GetHeading());
+    id.params.tvy=-(Target.GetMotion().GetSpeed() * cos(Target.GetMotion().GetHeading()));
     
     if(!FindIntercept(id))
         {
@@ -2118,6 +2118,20 @@ bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& 
         } // end if no intercept
     else
         {
+        // debug 
+        ::Logger
+            << "t0x=" << id.params.t0x << "\n"
+            << "t0y=" << id.params.t0y << "\n"
+            << "a0x=" << id.params.a0x << "\n"
+            << "a0y=" << id.params.a0y << "\n"
+            << "tvx=" << id.params.tvx << "\n"
+            << "tvy=" << id.params.tvy << "\n"
+            << "s=" << id.params.s << "\n"
+            << "intercept heading=" << id.HeadingRadiansToIntercept*180.0f/3.1415926535897932384626433832795f << "\n"
+            << "time to intercept=" << id.TimeToIntercept << "\n"
+            << "V<" << id.XDotToIntercept << "," << id.YDotToIntercept << ">\n"
+            << "P<" << id.XIntercept << "," << id.YIntercept << ">\n";
+        // end debug
         // check to see if we need to recreate the move_point command proxy
         if(not_near(id.XIntercept,intercept_x,50.0f) || not_near(id.YIntercept,intercept_y,50.0f) || !move_point)
             {
@@ -2184,6 +2198,13 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActorOffset::Execute(csl::EXECUTE_PA
         {
         // save start time
         start_time=params.current_time->Seconds();
+        
+        // debug
+        ::Logger << "iao: reference_velocity=" << reference_velocity
+                 << " heading_offset=" << heading_offset
+                 << " distance=" << distance
+                 << " time_limit=" << time_limit << std::endl;
+        // end debug
         }
     
     // see if we are over our time limit
