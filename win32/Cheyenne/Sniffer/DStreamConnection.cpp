@@ -198,16 +198,33 @@ void DStreamConnection::Close(void)
 
     // close down send side
     shutdown(GetSocket(),SD_SEND);
-    
-    char temp[1024];
-    int cnt=0;
-    int status=recv(GetSocket(),temp,sizeof(temp),0);
 
-    while(status!=0 && status != SOCKET_ERROR && cnt<10)
+    // wait for input clear
+    fd_set read_fds;
+    ZeroMemory(&read_fds,sizeof(read_fds));
+    TIMEVAL tv;
+    tv.tv_sec=1; // wait 1 second
+    tv.tv_usec=0;
+    FD_SET(GetSocket(),&read_fds);
+    select(0,&read_fds,NULL,NULL,&tv);
+    if(FD_ISSET(GetSocket(),&read_fds))
         {
-        status=recv(GetSocket(),temp,sizeof(temp),0);
-        ++cnt;
-        }
+        // attempt to read as much as we can
+        
+        // make non-blocking
+        ioctlsocket(GetSocket(),FIONBIO,(u_long*)1);
+        char temp[1024];
+        int cnt=0;
+        int status=1;
+
+        while(status!=0 && status != SOCKET_ERROR && cnt<10)
+            {
+            status=recv(GetSocket(),temp,sizeof(temp),0);
+            ++cnt;
+            }
+        // make blocking again
+        ioctlsocket(GetSocket(),FIONBIO,(u_long*)0);
+        } // end if socket readable
 
     // close down receive side
     shutdown(GetSocket(),SD_RECEIVE);
