@@ -103,6 +103,7 @@ type
     function GetIsSwimming: boolean;
     function GetXProjected: DWORD;
     function GetYProjected: DWORD;
+    function GetIsDead: boolean;
   protected
     FHitPoints:  BYTE;
     FSpeedWord:  WORD;
@@ -114,6 +115,7 @@ type
     property YProjected: DWORD read GetYProjected;
     property Speed: integer read GetSpeed;
     property SpeedWord: WORD read FSpeedWord write SetSpeedWord;
+    property IsDead: boolean read GetIsDead;
     property IsSwimming: boolean read GetIsSwimming;
     property HitPoints: BYTE read FHitPoints write FHitPoints;
   end;
@@ -121,6 +123,7 @@ type
   TDAOCUnknownMovingObject = class(TDAOCMovingObject)
   protected
     function GetName : string; override;
+    function GetObjectClass : TDAOCObjectClass; override;
   end;
 
   TDAOCPlayer = class(TDAOCMovingObject)
@@ -290,6 +293,11 @@ begin
   FSpeedWord := 0;
 end;
 
+function TDAOCMovingObject.GetIsDead: boolean;
+begin
+  Result := FHitPoints = 0;
+end;
+
 function TDAOCMovingObject.GetIsSwimming: boolean;
 begin
     { Bit 10 = swimming }
@@ -311,8 +319,8 @@ begin
   if Speed = 0 then
     Result := FX
   else
-    Result := Trunc(FX - (sin(HeadRad) *
-      (Speed * (integer(GetTickCount - LastUpdate) / 1000))));
+    Result := round(FX + (sin(HeadRad) *
+      (Speed * ((GetTickCount - LastUpdate) / 1000))));
 end;
 
 function TDAOCMovingObject.GetYProjected: DWORD;
@@ -321,8 +329,8 @@ begin
   if Speed = 0 then
     Result := FY
   else
-    Result := Trunc(FY - (cos(HeadRad) *
-      (Speed * (integer(GetTickCount - LastUpdate) / 1000))));
+    Result := round(FY - (cos(HeadRad) *
+      (Speed * ((GetTickCount - LastUpdate) / 1000))));
 end;
 
 procedure TDAOCMovingObject.SetSpeedWord(const Value: WORD);
@@ -448,8 +456,7 @@ end;
 
 function TDAOCObject.HeadRad: double;
 begin
-    { (head * 360.0) / 4096.0 * M_PI / 180.0 }
-  Result := GetHead / 2048 * PI;
+  Result := GetHead * (PI / 180);
 end;
 
 procedure TDAOCObject.LoadFromReader(AReader: TReader);
@@ -793,6 +800,11 @@ end;
 function TDAOCUnknownMovingObject.GetName: string;
 begin
   Result := Format('UnknownObject NFO%4.4x 0x%4.4x', [FInfoID, FPlayerID]);
+end;
+
+function TDAOCUnknownMovingObject.GetObjectClass: TDAOCObjectClass;
+begin
+  Result := ocUnknown;
 end;
 
 end.
