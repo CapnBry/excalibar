@@ -77,6 +77,7 @@ type
   published
     property Align;
     property Visible;
+    property PopupMenu;
     property OnClick;
     property OnMouseDown;
     property OnMouseMove;
