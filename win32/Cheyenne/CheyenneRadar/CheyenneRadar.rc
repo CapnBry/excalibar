@@ -63,6 +63,13 @@ BEGIN
         MENUITEM "&Open Config Dialog",         ID_CONTROLDISPLAY_OPENCONFIGDIALOG
 
     END
+    POPUP "&Data Recording"
+    BEGIN
+        MENUITEM "Record &all messages",        ID_DATARECORDING_RECORDALLMESSAGES
+
+        MENUITEM "Record &chat messages",       ID_DATARECORDING_RECORDCHATMESSAGES
+
+    END
     POPUP "&Network Connections"
     BEGIN
         MENUITEM "&DStream Server",             ID_NETWORKCONNECTIONS_DSTREAMSERVER
@@ -206,8 +213,6 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,142,255,107,10
     CONTROL         "Simplify Vector Maps",IDC_SIMPLIFYLINES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,121,19,102,10
-    CONTROL         "Save DAoC Messages",IDC_SAVE_DAOC_MESSAGES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,121,33,82,10
 END
 
 IDD_CONNECTSERVER DIALOGEX 0, 0, 128, 60

@@ -85,6 +85,16 @@ bool GET_CHECK_BOOL(HWND hwnd,UINT control)
     return(SendDlgItemMessage(hwnd,control,BM_GETCHECK,0,0)==BST_CHECKED?true:false);
 }
 
+void SET_MENU_CHECK_BOOL(HMENU hmenu,UINT item,bool bool_value)
+{
+    CheckMenuItem(hmenu,item,MF_BYCOMMAND | (bool_value?MF_CHECKED:MF_UNCHECKED));
+} // end SET_MENU_CHECK_BOOL
+
+bool GET_MENU_CHECK_BOOL(HMENU hmenu,UINT item)
+{
+    return((GetMenuState(hmenu,item,MF_BYCOMMAND) & MF_CHECKED)!=0?true:false);
+} // end GET_MENU_CHECK_BOOL
+
 void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str)
 {
     SendDlgItemMessage(hwnd,control,WM_SETTEXT,0,(LPARAM)(std_str.c_str()));

@@ -270,6 +270,8 @@ public:
         );
     void SaveDAoCMessages(const bool bSave){bSaveDAoCMessages=bSave;};
     bool IsSaveDAoCMessages(void)const{return(bSaveDAoCMessages);};
+    void SaveChatMessages(const bool bSave){bSaveChatMessages=bSave;};
+    bool IsSaveChatMessages(void)const{return(bSaveChatMessages);};
 
     void RequestFullUpdate(void);
     const CheyenneTime GetMaxAge(Actor::ActorTypes type)const;
@@ -303,6 +305,7 @@ private:
     void ResetDatabase(void);
     
     void SaveMessage(const daocmessages::SniffedMessage& msg);
+    void SaveChat(const daocmessages::system_message& msg);
 
     Actor* GetActorById(const Database::id_type& info_id);
     UncorrelatedStealthInfo* GetUncorrelatedStealthById(const Database::id_type& info_id);
@@ -327,8 +330,9 @@ private:
     const CheyenneTime NetworkHeartbeat;
     bool bFullUpdateRequest; // true when a sharenet full update request is active
     bool bSaveDAoCMessages; // true when we are supposed to save DAoC messages
+    bool bSaveChatMessages; // true when we are supposed to save chat messages
     std::ostream* MessageSaveStream;
-    
+    std::ostream* ChatSaveStream;
 
     // synchronization
     mutable MutexLock DBMutex;

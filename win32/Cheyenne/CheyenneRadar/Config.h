@@ -77,4 +77,5 @@ private:
     DECL_MEMBER(float,RangeRingRange6);
     DECL_MEMBER(bool,SimplifyLines);
     DECL_MEMBER(double,SimplifyLinesTolerance);
+    DECL_MEMBER(bool,SaveChatMessages);
 }; // end Config

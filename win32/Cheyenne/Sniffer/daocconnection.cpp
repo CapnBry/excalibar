@@ -387,7 +387,16 @@ void DAOCConnection::FromTCPServer
             break;
 
         case system_message:
+            {
+            daocmessages::system_message* msg=ParseSystemMessage(ndx,buffer,true);
+            
+            // save region
+            msg->detected_region=unsigned char(self_region);
+            
+            // put on fifo for the database
+            fifo->Push(msg);
             //PrintPacket(true,true,buffer,length);
+            }
             break;
 
         case mob_pos_update:
@@ -912,7 +921,16 @@ void DAOCConnection::FromUDPServer
             break;
 
         case system_message:
+            {
+            daocmessages::system_message* msg=ParseSystemMessage(ndx,buffer,false);
+            
+            // save region
+            msg->detected_region=unsigned char(self_region);
+            
+            // put on fifo for the database
+            fifo->Push(msg);
             //PrintPacket(false,true,buffer,length);
+            }
             break;
 
         case mob_pos_update:
@@ -1795,3 +1813,39 @@ void DAOCConnection::ParseNameRealmZone
     return;
 } // end ParseNameRealmZone
 
+daocmessages::system_message* DAOCConnection::ParseSystemMessage
+    (
+    int& ndx,
+    const unsigned char* buffer,
+    bool from_server
+    )const
+{
+    daocmessages::system_message* msg=new daocmessages::system_message;
+    
+    // skip unused
+    SkipData(ndx,4);
+    
+    // get typecode
+    GetData(msg->typecode,ndx,buffer);
+    
+    // set subcode to zero
+    msg->subcode=0;
+    
+    // skip unused
+    SkipData(ndx,3);
+    
+    if(from_server)
+        {
+        msg->from_server=true;
+        GetZeroString(&msg->string,ndx,buffer,1);
+        }
+    else
+        {
+        msg->from_server=false;
+        // going to do same as from server
+        GetZeroString(&msg->string,ndx,buffer,1);
+        }
+        
+    // done
+    return(msg);
+} // end ParseSystemMessage

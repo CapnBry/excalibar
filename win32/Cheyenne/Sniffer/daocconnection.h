@@ -96,6 +96,7 @@ private:
     daocmessages::player_target* ParsePlayerTarget(int& ndx,const unsigned char* buffer)const;
     daocmessages::player_ground_target* ParsePlayerGroundTarget(int& ndx,const unsigned char* buffer)const;
     daocmessages::object_equipment* ParseObjectEquipment(int& ndx,const unsigned char* buffer)const;
+    daocmessages::system_message* ParseSystemMessage(int& ndx,const unsigned char* buffer,bool from_server)const;
     void ParseNameRealmZone(int& ndx,const unsigned char* buffer);
 
     // debug

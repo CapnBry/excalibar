@@ -153,7 +153,8 @@ struct system_message : public daocmessages::SniffedMessage
 
     unsigned char subcode;
     unsigned char typecode;
-
+    unsigned char detected_region;
+    bool from_server;
     char* string;
     }; // end system_message
 

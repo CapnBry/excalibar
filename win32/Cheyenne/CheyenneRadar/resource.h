@@ -47,25 +47,24 @@
 #define IDC_SHOWRANGERING5              1028
 #define IDC_COPYRIGHT                   1028
 #define IDC_SHOWRANGERING6              1029
-#define IDC_COPYRIGHT2                  1029
 #define IDC_LICENSE                     1029
-#define IDC_SHOWMOBS2                   1030
-#define IDC_SAVE_DAOC_MESSAGES          1030
-#define IDC_SIMPLIFYLINES               1031
-#define IDC_TOLERANCE                   1032
+#define IDC_SIMPLIFYLINES               1030
+#define IDC_TOLERANCE                   1031
 #define ID_FILE_EXIT                    40001
 #define ID_CONTROLDISPLAY_OPENCONFIGDIALOG 40002
 #define ID_HELP_ABOUT                   40003
 #define ID_NETWORKCONNECTIONS_DSTREAMSERVER 40004
 #define ID_NETWORKCONNECTIONS_SHARENETSERVER 40005
+#define ID_DATARECORDING_RECORDALLMESSAGES 40006
+#define ID_DATARECORDING_RECORDCHATMESSAGES 40007
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        110
-#define _APS_NEXT_COMMAND_VALUE         40006
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_COMMAND_VALUE         40008
+#define _APS_NEXT_CONTROL_VALUE         1032
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -73,6 +73,7 @@ Config::Config()
     SetRangeRingRange6(0);
     SetSimplifyLines(false);
     SetSimplifyLinesTolerance(0);
+    SetSaveChatMessages(false);
     
 } // end Config
 
@@ -159,6 +160,7 @@ bool Config::Load(const std::string& filename)
     file >> ModifySimplifyLinesTolerance() >> std::ws;
     
     file >> ModifySaveDAoCMessages() >> std::ws;
+    file >> ModifySaveChatMessages() >> std::ws;
     
     // done
     return(true);
@@ -213,7 +215,8 @@ bool Config::Save(const std::string& filename)const
          << GetRangeRingRange6() << std::endl
          << GetSimplifyLines() << std::endl
          << GetSimplifyLinesTolerance() << std::endl
-         << GetSaveDAoCMessages() << std::endl;
+         << GetSaveDAoCMessages() << std::endl
+         << GetSaveChatMessages() << std::endl;
 
     // done
     return(true);
@@ -261,5 +264,6 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(SimplifyLines);
     MEMBER_ASSIGN(SimplifyLinesTolerance);
     MEMBER_ASSIGN(SaveDAoCMessages);
+    MEMBER_ASSIGN(SaveChatMessages);
 
 } // end set

@@ -151,7 +151,9 @@ Database::Database() :
     NetworkHeartbeat(10.0f),
     UncorrelatedStealthTime(-15.0),
     bSaveDAoCMessages(false),
-    MessageSaveStream(0)
+    bSaveChatMessages(false),
+    MessageSaveStream(0),
+    ChatSaveStream(0)
 {
 
     // done
@@ -165,6 +167,7 @@ Database::~Database()
 
     // delete this
     delete MessageSaveStream;
+    delete ChatSaveStream;
     
     // done
     return;
@@ -1032,6 +1035,26 @@ void Database::SaveMessage(const daocmessages::SniffedMessage& msg)
         } // end if we are supposed to save
 } // end SaveMessage
 
+void Database::SaveChat(const daocmessages::system_message& msg)
+{
+    // see if we are supposed to save
+    if(bSaveChatMessages)
+        {
+        // make sure exists
+        if(ChatSaveStream==0)
+            {
+            ChatSaveStream=new std::ofstream("chat.log");
+            }
+
+        // save it
+        if(msg.string!=NULL)
+            {
+            LOG_FUNC << msg.string << std::endl;
+            (*ChatSaveStream) << msg.string << std::endl;
+            }
+        } // end if we are supposed to save
+} // end SaveChat
+
 const CheyenneTime Database::GetMaxAge
     (
     Actor::ActorTypes type
@@ -1733,6 +1756,8 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
         case opcodes::system_message:
             {
+            const daocmessages::system_message* p=static_cast<const daocmessages::system_message*>(msg);
+            SaveChat(*p);
             }
             break;
 

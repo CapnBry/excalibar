@@ -1092,6 +1092,24 @@ void HandleCommand(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam,USERDATA* dat
             DestroyWindow(hWnd);
             break;
             
+        case ID_DATARECORDING_RECORDALLMESSAGES:
+            {
+            HMENU h=GetMenu(hWnd);
+            ::RadarConfig.SetSaveDAoCMessages(!GET_MENU_CHECK_BOOL(h,ID_DATARECORDING_RECORDALLMESSAGES));
+            SET_MENU_CHECK_BOOL(h,ID_DATARECORDING_RECORDALLMESSAGES,::RadarConfig.GetSaveDAoCMessages());
+            data->database.SaveDAoCMessages(::RadarConfig.GetSaveDAoCMessages());
+            }
+            break;
+            
+        case ID_DATARECORDING_RECORDCHATMESSAGES:
+            {
+            HMENU h=GetMenu(hWnd);
+            ::RadarConfig.SetSaveChatMessages(!GET_MENU_CHECK_BOOL(h,ID_DATARECORDING_RECORDCHATMESSAGES));
+            SET_MENU_CHECK_BOOL(h,ID_DATARECORDING_RECORDCHATMESSAGES,::RadarConfig.GetSaveChatMessages());
+            data->database.SaveChatMessages(::RadarConfig.GetSaveChatMessages());
+            }
+            break;
+            
         case ID_CONTROLDISPLAY_OPENCONFIGDIALOG:
             {
             HWND h=CreateDialogParam

@@ -187,6 +187,8 @@ std::ostream& operator<< (std::ostream& str,const SOCKADDR_IN& a);
 // common control helpers
 void SET_CHECK_BOOL(HWND hwnd,UINT control,bool bool_value);
 bool GET_CHECK_BOOL(HWND hwnd,UINT control);
+void SET_MENU_CHECK_BOOL(HMENU hmenu,UINT item,bool bool_value);
+bool GET_MENU_CHECK_BOOL(HMENU hmenu,UINT item);
 void SET_EDIT_STRING(HWND hwnd,UINT control,const std::string& std_str);
 void GET_EDIT_STRING(HWND hwnd,UINT control,std::string& std_str) ;
 void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& std_list);
