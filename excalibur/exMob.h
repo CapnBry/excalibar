@@ -76,6 +76,7 @@ class exMob : public QListViewItem {
     bool isMob() const;
     bool isObj() const;
     bool isMobOrObj() const;
+    bool isPlayer() const;
     bool isInvader() const;
     bool isDead() const;
     bool isCurrent() const;

@@ -485,3 +485,8 @@ bool exMob::insideRect(QRect &r)
 {
     return r.contains(x, y);
 }
+
+bool exMob::isPlayer(void) const
+{
+    return !(mob || obj);
+}
