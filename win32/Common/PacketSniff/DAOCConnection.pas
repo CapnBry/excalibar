@@ -78,6 +78,8 @@ type
     FScheduledCallbacks:  TList;
     FMaxObjectDistSqr:    double;
     FMaxObjectUpdtDistSqr: double;
+    FPingRequestSentTime: DWORD;
+    FLastPingTime:      integer;
 
     FOnPlayerPosUpdate: TNotifyEvent;
     FOnDisconnect: TNotifyEvent;
@@ -109,6 +111,7 @@ type
     FOnCombatStyleSuccess: TStringEvent;
     FOnVersionNumsSet: TVersionEvent;
     FOnRegionChanged: TNotifyEvent;
+    FOnPingReply: TIntegerEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -178,6 +181,9 @@ type
     procedure ParseServerProcotolInit(pPacket: TDAOCPacket);
     procedure ParseRequestPlayerByPlayerID(pPacket: TDAOCPacket);
     procedure ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
+    procedure ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
+    procedure ParseServerPingResponse(pPacket: TDAOCPacket);
+    procedure ParseServerPingRequest(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -218,6 +224,7 @@ type
     procedure DoOnCombatStyleSuccess(AStyle: string); virtual;
     procedure DoOnCombatStyleFailure; virtual;
     procedure DoVersionNumsSet; virtual;
+    procedure DoOnPingReply; virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -254,6 +261,7 @@ type
     property MaxObjectDistance: double write SetMaxObjectDistance;
     property MaxObjectUpdtDistance: double write SetMaxObjectUpdtDistance; 
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
+    property LastPingTime: integer read FLastPingTime;
     property LocalPlayer: TDAOCLocalPlayer read FLocalPlayer;
     property RegionID: integer read FRegionID;
     property SelectedID: WORD read FSelectedID;
@@ -294,6 +302,7 @@ type
     property OnCombatStyleSuccess: TStringEvent read FOnCombatStyleSuccess write FOnCombatStyleSuccess;
     property OnCombatStyleFailure: TNotifyEvent read FOnCombatStyleFailure write FOnCombatStyleFailure;
     property OnVersionNumsSet: TVersionEvent read FOnVersionNumsSet write FOnVersionNumsSet;
+    property OnPingReply: TIntegerEvent read FOnPingReply write FOnPingReply; 
   end;
 
 
@@ -675,6 +684,7 @@ begin
   case command of
     $01:  ParseLocalPosUpdateFromClient(pPacket);
     $07:  ParseCommandFromClient(pPacket);
+    $0b:  ParseServerPingRequest(pPacket);
     $12:  ParseLocalHeadUpdateFromClient(pPacket);
     $16:  ParseRequestObjectByInfoID(pPacket);
     $18:  ParseSelectedIDUpdate(pPacket);
@@ -711,10 +721,12 @@ begin
     $71:  ParseNewObject(pPacket, ocObject);
     $72:  ParseNewObject(pPacket, ocMob);
     $7c:  ParseNewObject(pPacket, ocPlayer);
+    $81:  ParseServerPingResponse(pPacket);
     $82:  ParseServerProcotolInit(pPacket);
     $8a:  ParseSetEncryptionKey(pPacket);
     $88:  ParseCharacterLoginInit(pPacket);
     $aa:  ParseInventoryList(pPacket);
+    $b3:  ParsePlayerCenteredSpellEffect(pPacket);
     $bd:  ParseObjectEquipment(pPacket);
     $be:  ParsePlayerStatsUpdate(pPacket);
     $bf:  ParseVendorWindow(pPacket);
@@ -1952,6 +1964,42 @@ end;
 procedure TDAOCConnection.SetMaxObjectUpdtDistance(const Value: double);
 begin
   FMaxObjectUpdtDistSqr := Value * Value;
+end;
+
+procedure TDAOCConnection.ParsePlayerCenteredSpellEffect(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'PlayerCenteredSpellEffect NOTIMPL';
+  { I think this is a "Player-Centered" spell effect.  Like a spell effect
+    that will follow a player as they move, like a buff or run chant effect
+    B3 18 32 0E 1C 18 32 00 - 00 01 01 00 00           ..2...2......
+  }
+  // ID := pPacket.getShort;
+end;
+
+procedure TDAOCConnection.ParseServerPingResponse(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'ServerPingResponse';
+  { the server sends us back a copy of the timer we sent }
+  // FPingRequestNumber = pPacket.getLong;
+
+  FLastPingTime := GlobalTickCount - FPingRequestSentTime;
+  DoOnPingReply;
+end;
+
+procedure TDAOCConnection.ParseServerPingRequest(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'ServerPingRequest';
+    { We can't use the client's tick count for the ping request time, since
+      that wouldn't work when we play back.  Just approximate it }
+  //pPacket.seek(4);
+  //FPingRequestSentTime := pPacket.getLong;
+  FPingRequestSentTime := GlobalTickCount;
+end;
+
+procedure TDAOCConnection.DoOnPingReply;
+begin
+  if Assigned(FOnPingReply) then
+    FOnPingReply(Self, FLastPingTime);
 end;
 
 end.
