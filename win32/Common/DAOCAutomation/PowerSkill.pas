@@ -23,6 +23,7 @@ type
     FName: string;
     FMaterials: TMaterialReqList;
     FRecipeSkill: integer;
+    FRecipeTier: integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -30,6 +31,7 @@ type
     function CraftCon(AAtSkill: integer) : TRecipeCraftCon;
 
     property Name: string read FName write FName;
+    property RecipeTier: integer read FRecipeTier write FRecipeTier;
     property RecipeSkill: integer read FRecipeSkill write FRecipeSkill;
     property StartSkillAt: integer read FStartSkillAt write FStartSkillAt;
     property MinPurchase: integer read FMinPurchase write FMinPurchase;
@@ -93,8 +95,14 @@ uses
 { TPowerSkillItemDef }
 
 function TPowerSkillItemDef.CraftCon(AAtSkill: integer): TRecipeCraftCon;
+var
+  iAtTier:  integer;
 begin
-  Result := RecipeCraftCon(FRecipeSkill, AAtSkill);
+  iAtTier := AAtSkill div 100;
+  if iAtTier < FRecipeTier then
+    Result := rccPurple
+  else
+    Result := RecipeCraftCon(FRecipeSkill, AAtSkill);
 end;
 
 constructor TPowerSkillItemDef.Create;
@@ -215,6 +223,7 @@ var
   pTmpItem: TPowerSkillItemDef;
   pRecipes: TCraftRecipeCollection;
   U:  TUniversalRecipeCollection;
+  iStartSkillAt:    integer;
 //  iItemCount: integer;
 //  iPos:       integer;
 //  iMaterial:  integer;
@@ -237,7 +246,7 @@ begin
     SetExcludeRecipes(ReadString('Main', 'ExcludeRecipes', ''));
     FAutoStartProgression := ReadBool('Main', 'AutoStartProgression', true);
     FAutoDeselectMerchant := ReadBool('Main', 'AutoDeselectMerchant', true);
-    FAutoQuickbarSlot := ReadInteger('Main', 'AutoQuickbarSlot', 2);
+    FAutoQuickbarSlot := ReadInteger('Main', 'AutoQuickbarSlot', 0);
     FMerchantName := ReadString('Main', 'MerchantName', '');
     Free;
   end;  { with INI }
@@ -262,12 +271,14 @@ begin
       Add(pTmpItem);
       pTmpItem.FName := pRecipes[I].DisplayName;
       pTmpItem.RecipeSkill := pRecipes[I].SkillLevel;
-        { if the startskillat goes below a 100 boundary, cut off at the boundary,
+      pTmpItem.RecipeTier := pRecipes[I].Tier;
+      iStartSkillAt := pRecipes[I].SkillLevel - FHowOrange;
+        { if the startskillat goes below a tier boundary, cut off at the boundary,
           since at 498 skill, the 500+ items aren't available yet }
-      if (pRecipes[I].SkillLevel mod 100) < FHowOrange then
+      if (iStartSkillAt < 0) or ((iStartSkillAt div 100) < pRecipes[I].Tier) then // ((pRecipes[I].SkillLevel mod 100) < FHowOrange) then
         pTmpItem.FStartSkillAt := (pRecipes[I].SkillLevel div 100) * 100
       else
-        pTmpItem.FStartSkillAt := pRecipes[I].SkillLevel - FHowOrange;
+        pTmpItem.FStartSkillAt := iStartSkillAt;
       pTmpItem.FMinPurchase := FDefaultMinPurchase;
       pTmpItem.Materials.Assign(pRecipes[I].Materials);
         { if we created a recipe collection locally, after the assign the
