@@ -154,7 +154,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderPlayers: TCheckBox
       Tag = 3
       Left = 8
-      Top = 20
+      Top = 16
       Width = 141
       Height = 17
       Caption = 'Players (P)'
@@ -164,7 +164,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderMobs: TCheckBox
       Tag = 2
       Left = 8
-      Top = 48
+      Top = 40
       Width = 141
       Height = 17
       Caption = 'Monsters and NPCs (M)'
@@ -174,7 +174,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     object chkRenderObjects: TCheckBox
       Tag = 1
       Left = 8
-      Top = 76
+      Top = 64
       Width = 141
       Height = 17
       Caption = 'Graves and objects (O)'
@@ -183,11 +183,21 @@ object frmRenderPrefs: TfrmRenderPrefs
     end
     object chkRenderUnknown: TCheckBox
       Left = 8
-      Top = 104
+      Top = 88
       Width = 141
       Height = 17
       Caption = 'Unknown (U)'
       TabOrder = 3
+      OnClick = ObjectFilterClick
+    end
+    object chkRenderVehicles: TCheckBox
+      Tag = 4
+      Left = 8
+      Top = 112
+      Width = 141
+      Height = 17
+      Caption = 'Vehicles'
+      TabOrder = 4
       OnClick = ObjectFilterClick
     end
   end

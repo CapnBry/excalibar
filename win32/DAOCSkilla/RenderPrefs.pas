@@ -83,6 +83,7 @@ type
     chkAdjacentZones: TCheckBox;
     chkViewFrustum: TCheckBox;
     Label7: TLabel;
+    chkRenderVehicles: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -146,7 +147,7 @@ end;
 
 constructor TRenderPreferences.Create;
 begin
-  ObjectFilter := [ocUnknown, ocObject, ocMob, ocPlayer];
+  ObjectFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
 end;
 
 procedure TRenderPreferences.DoOnObjectFilterChanged;
@@ -315,6 +316,7 @@ begin
   chkRenderMobs.Checked := ocMob in FRenderPrefs.ObjectFilter;
   chkRenderObjects.Checked := ocObject in FRenderPrefs.ObjectFilter;
   chkRenderUnknown.Checked := ocUnknown in FRenderPrefs.ObjectFilter;
+  chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectFilter;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
   chkTextureMaps.Checked := FRenderPrefs.DrawMapTexture;
