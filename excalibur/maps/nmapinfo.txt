@@ -192,4 +192,12 @@
 241 241   - 0   0   524288   524288 -   589824   589824 35to39BG.map
 242 242   - 0   0   524288   524288 -   589824   589824 40to44BG.map
 244 244   - 2   0     8192     8192 -    73728    73728 Passage_of_Conflict.map
+245 245   - 2   0     8192     8192 -    73728    73728 oHall_of_the_Corrupt.map
+246 246   - 2   0     8192     8192 -    73728    73728 oDodens_Gruva.map
+247 247   - 2   0     8192     8192 -    73728    73728 oMarfach_Caverns.map
+248 248   - 2   0     8192     8192 -    73728    73728 oSummoners_Hall.map
 249 249   - 2   0     8192     8192 -    73728    73728 Darkness_Falls.map
+250 250   - 0   0     8192     8192 -    73728    73728 oCaledonia.map
+251 251   - 0   0     8192     8192 -    73728    73728 oMurdaigean.map
+252 252   - 0   0     8192     8192 -    73728    73728 oThidranki.map
+253 253   - 0   0     8192     8192 -    73728    73728 oAbermenai.map
