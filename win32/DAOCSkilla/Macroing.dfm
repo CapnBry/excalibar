@@ -1,9 +1,10 @@
 object frmMacroing: TfrmMacroing
   Left = 253
   Top = 238
-  Width = 498
-  Height = 104
+  BorderStyle = bsDialog
   Caption = 'Macroing'
+  ClientHeight = 77
+  ClientWidth = 492
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

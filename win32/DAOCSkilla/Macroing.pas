@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, DAOCControl, PowerSkill, ExtCtrls;
+  Dialogs, StdCtrls, Buttons, DAOCControl, PowerSkill, ExtCtrls, DAOCPlayerAttributes;
 
 type
   TfrmMacroing = class(TForm)
@@ -42,7 +42,9 @@ type
     procedure DAOCInventoryChanged;
     procedure DAOCVendorWindow;
     procedure DAOCPathChanged;
-    
+    procedure DAOCStopAllActions;
+    procedure DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
+
     property DAOCControl: TDAOCControl read FDControl write FDControl;
   end;
 
@@ -292,6 +294,20 @@ procedure TfrmMacroing.DAOCPathChanged;
 begin
   if frmShowMapNodes.Visible then
     frmShowMapNodes.PathChanged(FDControl.CurrentPath);
+end;
+
+procedure TfrmMacroing.DAOCStopAllActions;
+begin
+  if frmPowerskill.Visible then
+    frmPowerskill.KeepBuying := false;
+  if frmSpellcraftHelp.Visible then
+    frmSpellcraftHelp.KeepBuying := false;
+end;
+
+procedure TfrmMacroing.DAOCSkillLevelChanged(AItem: TDAOCNameValuePair);
+begin
+  if frmPowerskill.Visible then
+    frmPowerskill.SkillLevelChanged(AItem);
 end;
 
 end.
