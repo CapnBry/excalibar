@@ -1780,6 +1780,73 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             }
             break;
 
+        case opcodes::new_vehicle:
+            {
+            const daocmessages::vehicle_identity* p=static_cast<const daocmessages::vehicle_identity*>(msg);
+
+            // check for duplication of ID
+            Actor* bye=GetActorById(GetUniqueId(p->detected_region,p->object_id));
+
+            if(bye)
+                {
+                if(bye->GetName() != p->name)
+                    {
+                    Logger << "[Database::HandleSniffedMessage] removing " << bye->GetName().c_str()
+                           << " because it's id conflicts with " << p->name << "\n";
+                    }
+                DeleteActor(bye->GetId());
+                }
+
+            // get actor
+            bool bInserted;
+            Actor& ThisActor=InsertActorById(GetUniqueId(p->detected_region,p->object_id),bInserted);
+
+            // save motion info
+            ThisActor.ModifyMotion().SetValidTime(::Clock.Current());
+            ThisActor.ModifyMotion().SetXPos(float(p->x));
+            ThisActor.ModifyMotion().SetYPos(float(p->y));
+            ThisActor.ModifyMotion().SetZPos(float(p->z));
+            ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
+            
+            float speed=float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff));
+            ThisActor.ModifyMotion().SetSpeed(speed);
+
+            // save other actor info
+            ThisActor.SetName(std::string(p->name));
+
+            // mark as object
+            ThisActor.SetActorType(Actor::Object);
+
+            // save id
+            ThisActor.SetId(GetUniqueId(p->detected_region,p->object_id));
+
+            // for objects, id=info_id
+            ThisActor.SetInfoId(GetUniqueId(p->detected_region,p->object_id));
+
+            // save region
+            ThisActor.SetRegion(p->detected_region);
+
+            // make sure the flag is cleared
+            ThisActor.SetOld(false);
+
+            ThisActor.SetLastUpdateTime(::Clock.Current());
+            ThisActor.SetLastLocalTime(ThisActor.GetLastUpdateTime());
+
+            if(bye==NULL)
+                {
+                // fire event
+                ActorEvents[DatabaseEvents::ActorCreated](ThisActor);
+                }
+            else
+                {
+                // already existed! fire event
+                ActorEvents[DatabaseEvents::ActorReassigned](ThisActor);
+                }
+
+            // send full update to the network
+            SendNetworkUpdate(ThisActor,share_opcodes::full_update);
+            }
+            break;
         case opcodes::object_id:
             {
             const daocmessages::object_identity* p=static_cast<const daocmessages::object_identity*>(msg);
