@@ -10,9 +10,7 @@ TO RUN IT:
 
 TO BUILD IT:
 - All of the above plus:
-- Microsoft Visual Studio 6
-- Microfoft Visual Studio Service Pack 5
-- June 2000 or later Microsoft Platform SDK (this may not be required, but I have it)
+- Microsoft Visual Studio .net 2003
 - WinPCAP 3.0 (or later) developer's pack. The header files and lib files for this are included with Cheyenne
 - glpng v1.45 (or possibly later). 
 
@@ -83,6 +81,6 @@ This overwrites what came in the shared.zip file. Oh, and the WinPCAP headers sh
 
 - Build Cheyenne.
 
-- Copy the resultant exe from the debug (or release, if you built that version) directory to your Cheyenne_exe directory My dsp file will do this for me, but YMMV.
+- Copy the resultant exe from the debug (or release, if you built that version) directory to your Cheyenne_exe directory My vcproj file will do this for me, but YMMV.
 
 - You're done.
