@@ -1,4 +1,27 @@
-2003 Set 26 - v1.45
+2003 Oct 01 - v1.47
+-------------------
+  + Added support for vehicle object class.
+  + When a moving object reaches its destinatation, it is still assumed
+    100% live.
+  + Players now go stale 5s-10s, mobs and vehicles go stale 30s-60s.
+  + Moving objects drop off the stale list in 4 minutes now.
+  + Removed distance check for everything except base Objects.
+  + Replaced object list and stale list with faster linked lists.
+  + Increased max distance to 8500.
+  + Mobseen now writes out vehicle locations.
+  + Health only shown in list if > 0%
+  + Default radar range now 8000, max 65000.
+  + Added player loc, zone, heading and speed to the radar HUD.
+  + Removed player information from DaocSkilla main screen.
+  + Server ping label now shows connection status too.
+  + DAOCZone.Name now replaces all non alpha-numerics with spaces.
+  + Added an option for an invader warning sound every time a new
+    player from another realm is seen.
+  + Fixes for some zone offsets in Atlantis.
+  + Added US / EU server net checking, selectable in the connection
+    options dialog.  INI's ServerNet setting now depricated.
+
+2003 Sep 26 - v1.45
 -------------------
   + Fix for malformed URLs requesting DDSes for zones < 100.
 
