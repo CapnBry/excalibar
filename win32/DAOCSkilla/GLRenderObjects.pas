@@ -586,6 +586,8 @@ begin
     FColor := clBlack
   else if AnsiSameText(AColor, 'darkgray') then
     FColor := clGray
+  else if AnsiSameText(AColor, 'darkgrey') then
+    FColor := clGray
   else if AnsiSameText(AColor, 'grey') then
     FColor := clSilver
   else
