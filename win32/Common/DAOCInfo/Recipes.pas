@@ -502,6 +502,26 @@ begin
     Result := 'netherite '
   else if AnsiSameText(AMClass, 'OR10') then
     Result := 'arcanite '
+  else if AnsiSameText(AMClass, 'NAT1') then
+    Result := 'leaf '
+  else if AnsiSameText(AMClass, 'NAT2') then
+    Result := 'bone '
+  else if AnsiSameText(AMClass, 'NAT3') then
+    Result := 'vine '
+  else if AnsiSameText(AMClass, 'NAT4') then
+    Result := 'shell '
+  else if AnsiSameText(AMClass, 'NAT5') then
+    Result := 'fossil '
+  else if AnsiSameText(AMClass, 'NAT6') then
+    Result := 'amber '
+  else if AnsiSameText(AMClass, 'NAT7') then
+    Result := 'coral '
+  else if AnsiSameText(AMClass, 'NAT8') then
+    Result := 'chitin '
+  else if AnsiSameText(AMClass, 'NAT9') then
+    Result := 'petrified '
+  else if AnsiSameText(AMClass, 'NA10') then
+    Result := 'crystalized '
   else if AnsiSameText(AMClass, 'GENE') then
     Result := ''
   else
