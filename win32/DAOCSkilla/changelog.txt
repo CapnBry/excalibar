@@ -1,5 +1,19 @@
-IN TESTING
-----------
+IN DEVELOPMENT
+--------------
+  + Fix for changes to v1.68 packets.
+  + Added support for proper slot naming of things on consignement
+    merchant.
+  + No longer adds connections to 0.0.0.0 to the quicklaunch list.
+  + Copied some of DAOCPacket to new GenericNetPacket.
+  + Converted NamedPacketHandler to GenericNetPacket.
+  + Gutted connection config dialog.
+  + Changed TSendkey array to use real strings in const for lower cseg
+    hit.
+  + No longer needs a region change to load zone if connected
+    mid-stream.
+
+2004 Feb 18 - v1.86
+-------------------
   + Fix for versioned maps not downloading for one week after install.
   + Z +/- now prints +0 or "Even Z" if you're at the same Z height as
     your target.
