@@ -1,3 +1,11 @@
+Teerex (05/Jun/02)
+------------------
+Changes:
+ + Removed a nop call to glBlend after it had already been set.
+ + Performance improvment for depthfade:  Fixed depthfaded maps 
+   getting recached every frame because the cached lastz was never 
+   stored.
+
 Teerex (03/Jun/02)
 ------------------
 Changes:
