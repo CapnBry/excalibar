@@ -383,7 +383,6 @@ begin
   for I := low(TDAOCObjectClass) to high(TDAOCObjectClass) do
     if (AVal and (1 shl ord(I))) <> 0 then
       Include(Result, I);
-  Include(Result, ocDoor);
 end;
 
 function ObjectClassesToInt(AVal: TDAOCObjectClasses) : integer;
