@@ -53,6 +53,9 @@ exMap::exMap(QWidget *parent, const char *name)
   frames = 0;
   mi = NULL;
   edit_xofs = edit_yofs = 0;
+  lastfade = FALSE;
+  lastfill = FALSE;
+  lastz = 0;
   recache = true;
   map.setAutoDelete(true);
   MapLoader.initialize();
@@ -185,25 +188,17 @@ bool exMap::isNVidiaModuleLoaded() {
   chModuleList = (char*) malloc (16384);  
 
   if ((fModules = fopen ("/proc/modules","ro")) != NULL) {
-
     while (fgets (chModuleList, 16384, fModules) != NULL) {
-
       if (strstr(chModuleList, "NVdriver") != NULL) {
-
         fclose(fModules);
-        delete [] chModuleList;
-
+        free(chModuleList);
         return true;
-
       }
-       
     }
-
-  fclose (fModules);
+    fclose (fModules);
   }
 
-  delete [] chModuleList;
-
+  free(chModuleList);
   return false;
 }
 
@@ -758,7 +753,8 @@ void exMap::setGLColor(QColor col, int z) {
 }
 
 void exMap::objRotate(unsigned int daocheading) {
-  GLfloat r = daocheading;
+  GLfloat r;
+  r = (GLfloat)daocheading;
   r *= 360;
   r /= 0x1000;
   glRotatef(r,0.0,0.0,1.0);
