@@ -392,7 +392,7 @@ begin
   if FAttemptMapDownload and (pTmpZone.Count = 0) and
     (AZone.ZoneType in [dztOverworld, dztHousing])  then begin
     pHTTPRequest := TBackgroundHTTPRequest.CreateGET;
-    pHTTPRequest.URL := Format(FMapBaseURL, [AZone.ZoneNum]);
+    pHTTPRequest.URL := FMapBaseURL + 'z=' + IntToStr(AZone.ZoneNum);
     pHTTPRequest.Tag := AZone.ZoneNum;
     pHTTPRequest.ResponseStream := TFileStream.Create(sDestFileName, fmCreate);
     FHTTPTextureFetch.Request(pHTTPRequest);
