@@ -65,8 +65,8 @@ type
     FInvalidateCount: integer;
     FZoneName:      string;
     FLastInvaderWarningTicks:   DWORD;
-    FInvaderWarningMinTicks:    DWORD;
     FBoat:    TGLBoat;
+    FTargetHUDWidth:  integer;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -422,10 +422,14 @@ begin
 
     if FRenderPrefs.InvaderWarning and
       (AObj.ObjectClass = ocPlayer) and
-      (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive and
-      (GlobalTickCount - FLastInvaderWarningTicks >= FInvaderWarningMinTicks) then
-      PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
-      FLastInvaderWarningTicks := GlobalTickCount;
+      (AObj.Realm <> FDControl.LocalPlayer.Realm) and AObj.IsAlive then
+      if GlobalTickCount - FLastInvaderWarningTicks >= FRenderPrefs.InvaderWarnMinTicks then begin
+//        Log('Invader: ' + AObj.Name);
+        PlaySound('invader.wav', 0, SND_FILENAME or SND_ASYNC or SND_NOWAIT);
+        FLastInvaderWarningTicks := GlobalTickCount;
+      end
+//      else
+//        Log('Not playing invader sound.  ' + IntToStr(GlobalTickCount - FLastInvaderWarningTicks));
   end;  { if onject in filter }
 end;
 
@@ -613,7 +617,6 @@ begin
   FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
 
   UpdateObjectCounts;
-  FInvaderWarningMinTicks := 5000;
 end;
 
 procedure TfrmGLRender.FormDestroy(Sender: TObject);
@@ -709,6 +712,8 @@ end;
 
 procedure TfrmGLRender.DAOCSelectedObjectChanged(AObj: TDAOCObject);
 begin
+  FTargetHUDWidth := 0;
+  
   if FRenderPrefs.TrackInGameSelect then begin
     GridSelectObject(AObj);
     Dirty;
@@ -805,15 +810,9 @@ begin
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
 
-  rastery := glMap.ClientHeight;
+  rastery := glMap.ClientHeight - 1;
 
-  glColor4f(0, 0, 0, 0.5);
-  glBegin(GL_QUADS);
-    glVertex2i(0, rastery);
-    glVertex2i(0, rastery - 57);
-    glVertex2i(145, rastery - 57);
-    glVertex2i(145, rastery);
-  glEnd;
+  ShadedRect(1, rastery, 146, rastery - 57);
 
   case pMob.ObjectClass of
     ocObject:
@@ -891,6 +890,18 @@ procedure TfrmGLRender.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   case Key of
+    VK_PRIOR:
+      begin
+        if lstObjects.Focused then
+          exit;
+        slideZoom.Position := slideZoom.Position - slideZoom.PageSize;
+      end;
+    VK_NEXT:
+      begin
+        if lstObjects.Focused then
+          exit;
+        slideZoom.Position := slideZoom.Position + slideZoom.PageSize;
+      end;
     VK_HOME:
       begin
         FMapToPlayerOffset.X := 0;
@@ -1185,8 +1196,8 @@ begin
       TextOut(Rect.Left + 150, Rect.Top + 2, sText);
 
         { HEALTH }
-      if (pMob is TDAOCMovingObject) and (TDAOCMovingObject(pMob).HitPoints > 0) then
-        sText := IntToStr(TDAOCMovingObject(pMob).HitPoints)
+      if pMob.HitPoints > 0 then
+        sText := IntToStr(pMob.HitPoints)
       else
         sText := '';
       TextOut(Rect.Left + 175, Rect.Top + 2, sText);
@@ -1321,17 +1332,10 @@ begin
   glEnable(GL_BLEND);
   glDisable(GL_LIGHTING);
 
-  rastery := glMap.ClientHeight;
+  rastery := glMap.ClientHeight - 1;
   rasterx := glMap.ClientWidth - 125;
 
-  glColor4f(0, 0, 0, 0.5);
-  glBegin(GL_QUADS);
-    glVertex2i(rasterx, rastery);
-    glVertex2i(rasterx, rastery - 42);
-    glVertex2i(rasterx + 125, rastery - 42);
-    glVertex2i(rasterx + 125, rastery);
-  glEnd;
-
+  ShadedRect(rasterx, rastery, rasterx + 124, rastery - 43);
   inc(rasterx, 2);
 
   glColor4f(1, 1, 1, 1);

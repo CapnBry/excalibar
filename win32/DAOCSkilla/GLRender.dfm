@@ -62,7 +62,8 @@ object frmGLRender: TfrmGLRender
       Min = 200
       Orientation = trHorizontal
       ParentCtl3D = False
-      Frequency = 500
+      PageSize = 500
+      Frequency = 750
       Position = 8000
       SelEnd = 0
       SelStart = 0

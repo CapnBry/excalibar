@@ -197,6 +197,7 @@ procedure SetGLColorFromTColor(AColor: TColor; AAlpha: GLfloat);
 procedure SetGLColorFromTColorDarkened(AColor: TColor; AAlpha: GLfloat; ADark: GLfloat);
 function WriteGLUTTextH10(X, Y: integer; const s: string): integer;
 function WriteGLUTTextH12(X, Y: integer; const s: string): integer;
+procedure ShadedRect(Left, Top, Right, Bottom: integer);
 
 implementation
 
@@ -229,7 +230,7 @@ var
 begin
   Result := Y - 13;
 
-  if not Assigned(glutBitmapCharacter) or (s = '') then 
+  if not Assigned(glutBitmapCharacter) or (s = '') then
     exit;
 
   glRasterPos2i(X, Result);
@@ -249,6 +250,27 @@ begin
   glRasterPos2i(X, Result);
   for I := 1 to Length(s) do
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(s[I]));
+end;
+
+procedure ShadedRect(Left, Top, Right, Bottom: integer);
+begin
+  glColor4f(0, 0, 0, 0.5);
+  glBegin(GL_QUADS);
+    glVertex2i(Left, Top);
+    glVertex2i(Left, Bottom);
+    glVertex2i(Right, Bottom);
+    glVertex2i(Right, Top);
+  glEnd;
+
+  glLineWidth(1.0);
+  
+  glColor3f(0, 0, 0); // 1, 0.8, 0.4); // orange
+  glBegin(GL_LINE_LOOP);
+    glVertex2i(Left, Top);
+    glVertex2i(Left, Bottom);
+    glVertex2i(Right, Bottom);
+    glVertex2i(Right, Top);
+  glEnd;
 end;
 
 { TRangeCircle }
