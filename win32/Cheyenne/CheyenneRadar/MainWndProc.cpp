@@ -1299,7 +1299,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << "Spd: " << data->ReferenceActor.GetMotion().GetSpeed() << "\n"
             << "l: " << (unsigned int)data->ReferenceActor.GetLevel() << " h: " << (unsigned int)data->ReferenceActor.GetHealth() << "\n"
             << "<" << x << ","
-            << "<" << y << ","
+            << "" << y << ","
             << z << ">\n\n";
         }
         
@@ -1324,7 +1324,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << "Spd: " << data->ReferenceTarget.GetMotion().GetSpeed() << "\n"
             << "l: " << (unsigned int)data->ReferenceTarget.GetLevel() << " h: " << (unsigned int)data->ReferenceTarget.GetHealth() << "\n"
             << "<" << x << ","
-            << "<" << y << ","
+            << "" << y << ","
             << z << ">\n\n";
         }
         
@@ -1349,7 +1349,7 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << "Spd: " << data->HookedActor.GetMotion().GetSpeed() << "\n"
             << "l: " << (unsigned int)data->HookedActor.GetLevel() << " h: " << (unsigned int)data->HookedActor.GetHealth() << "\n"
             << "<" << x << ","
-            << "<" << y << ","
+            << "" << y << ","
             << z << ">\n"
             << "Type=" << data->HookedActor.GetActorType() << "\n";
         }
