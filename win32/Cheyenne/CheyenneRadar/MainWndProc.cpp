@@ -43,7 +43,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 struct USERDATA
 {
-USERDATA() : scriptserver(23),ppi_id(1),data_id(2),Rendering(false),ReferenceSet(false){};
+USERDATA() : scriptserver(23),ppi_id(1),data_id(2),Rendering(false),ReferenceSet(false),
+             HookedSet(false){};
 ~USERDATA(){};
 
 // Win API members
@@ -70,6 +71,8 @@ tsfifo<std::string*> TelnetFifoReceive;
 // utility members
 Actor ReferenceActor;
 bool ReferenceSet;
+Actor HookedActor;
+bool HookedSet;
 bool Rendering;
 
 // functions
@@ -280,7 +283,51 @@ void OnDeleteActor(const Actor& a)
 void OnReassignActor(const Actor& a){};
 void OnMaintenanceIntervalDone(void){};
 void OnSharenetMessage(const void* p,const unsigned int len){sharenet.QueueOutputMessage(p,len);};
-void OnDatabaseReset(void){ReferenceSet=false;};
+void OnDatabaseReset(void){ReferenceSet=false;HookedSet=false;};
+bool ConfigPreventsRendering(const Actor& a)const
+{
+    // things that can prevent rendering:
+    // realm
+    // level (grays for instance)
+    // type (don't render objects for instance)
+    
+    // do realm first
+    switch(a.GetRealm())
+        {
+        case Actor::Realms::Albion:
+            if(!::RadarConfig.GetShowAlbs())return(false);
+            break;
+            
+        case Actor::Realms::Hibernia:
+            if(!::RadarConfig.GetShowHibs())return(false);
+            break;
+            
+        case Actor::Realms::Midgard:
+            if(!::RadarConfig.GetShowMids())return(false);
+            break;
+            
+        default:
+            break;
+        } // end switch realm
+    
+    // do type
+    switch(a.GetActorType())
+        {
+        case Actor::ActorTypes::Mob:
+            if(!::RadarConfig.GetShowMobs())return(false);
+            break;
+            
+        case Actor::ActorTypes::Object:
+            if(!::RadarConfig.GetShowObjects())return(false);
+            break;
+            
+        default:
+            break;
+        } // end switch type
+    
+    // done
+    return(true);
+} // end ConfigPreventsRendering
 }; // end USERDATA
 
 // functors
@@ -293,6 +340,9 @@ public:
 
     void operator()(const Database::actor_map_value& s)
     {
+        // make sure its renderable, if not then bail
+        if(data.ConfigPreventsRendering(s.second))return;
+        
         data.OnRenderActor(s.second);
     }
 
@@ -305,10 +355,10 @@ class ClosestActorFinder
 {
 public:
     ClosestActorFinder(const ClosestActorFinder& s) :
-        data(s.data),PointX(s.PointX),PointY(s.PointY),Dist(s.Dist),id(s.id){};
+        data(s.data),PointX(s.PointX),PointY(s.PointY),Dist(s.Dist),ClosestActor(s.ClosestActor){};
     
     explicit ClosestActorFinder(const USERDATA& s,const float x,const float y) :
-        data(s),PointX(x),PointY(y),id(0)
+        data(s),PointX(x),PointY(y)
     {
         Dist=std::numeric_limits<float>::max();
     };
@@ -318,23 +368,35 @@ public:
     void operator()(const Database::actor_map_value& s)
     {
         const Actor& ThisActor=s.second;
+        
+        // make sure its renderable, if not then bail
+        if(data.ConfigPreventsRendering(ThisActor))return;
+        
         Motion Position;
+        data.ppi.GetRenderPosition(ThisActor,Position);
+        GLdouble x,y,z;
+        data.ppi.GetScreenPosition
+            (
+            Position.GetXPos(),
+            Position.GetYPos(),
+            Position.GetZPos(),
+            &x,
+            &y,
+            &z
+            );
 
-        //data.GetRenderPosition(ThisActor,Position);
+        //LOG_FUNC << "comparing <" << x << "," << y << "> with <" << PointX << "," << PointY << ">\n";
 
-        //Logger << "[ClosestActorFinder] comparing <" << Position.GetXPos() << "," << Position.GetYPos() << "> with <"
-               //<< PointX << "," << PointY << ">\n";
+        float DelX=(float)x - PointX;
+        float DelY=(float)y - PointY;
 
-        float DelX=Position.GetXPos() - PointX;
-        float DelY=Position.GetYPos() - PointY;
-
-        float ThisDist=float(sqrt(DelX*DelX + DelY*DelY));
+        const float ThisDist=float(sqrt(DelX*DelX + DelY*DelY));
 
         // save
         if(ThisDist < Dist)
             {
             Dist=ThisDist;
-            id=ThisActor.GetInfoId();
+            ClosestActor=ThisActor;
             }
 
         // done
@@ -342,14 +404,14 @@ public:
     }
 
     float GetDist(void)const{return(Dist);};
-    unsigned int GetId(void)const{return(id);};
+    Actor GetClosestActor(void)const{return(ClosestActor);};
 private:
     ClosestActorFinder& operator=(const ClosestActorFinder& s); // disallow
     const USERDATA& data;
     const float PointX;
     const float PointY;
     float Dist;
-    unsigned int id;
+    Actor ClosestActor;
 };
 
 class MaintenanceUpdateFunctor : public DatabaseFunctor
@@ -465,6 +527,7 @@ void Render(USERDATA* data);
 void HandleMouseWheel(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* data);
 void HandleKeyDown(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* data);
 void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data);
+void HandleLButtonDoubleClick(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* data);
 
 LRESULT CALLBACK PPIWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
@@ -488,6 +551,10 @@ LRESULT CALLBACK PPIWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
             HandleMouseWheel(hWnd,wParam,lParam,data);
             break;
             
+        case WM_LBUTTONDBLCLK:
+            HandleLButtonDoubleClick(hWnd,wParam,lParam,data);
+            break;
+        
         default:
             break;
         }
@@ -1079,6 +1146,15 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
             << data->ReferenceActor.GetMotion().GetYPos() << ">\n\n";
         }
         
+    if(data->HookedSet)
+        {
+        // put hooked actor in
+        oss << "Hooked Actor:\n"
+            << data->HookedActor.GetName() << "\n"
+            << "<" << data->HookedActor.GetMotion().GetXPos() << ","
+            << data->HookedActor.GetMotion().GetYPos() << ">\n\n";
+        }
+        
     DatabaseStatistics stats;
     data->database.GetDatabaseStatistics(stats);
     
@@ -1162,6 +1238,33 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
     // done
     return;
 } // end DrawDataWindow
+
+void HandleLButtonDoubleClick(HWND hWnd,WPARAM wParam,LPARAM lParam,USERDATA* data)
+{
+    const float MouseX=LOWORD(lParam);
+    const float MouseY=HIWORD(lParam);
+    ClosestActorFinder finder(*data,MouseX,MouseY);
+    
+    // look at all actors
+    data->database.IterateActors(finder);
+    
+    // see if we were close enough to "hook" one
+    // GetDist() returns pixels
+    if(finder.GetDist() < 15.0f)
+        {
+        // found it, make it the selected actor
+        data->HookedActor=finder.GetClosestActor();
+        data->HookedSet=true;
+        }
+    else
+        {
+        // no hook
+        data->HookedSet=false;
+        }
+    
+    // done
+    return;
+} // end HandleLButtonDoubleClick
 
 void Render(USERDATA* data)
 {

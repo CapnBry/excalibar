@@ -44,6 +44,7 @@ Config::Config()
     SetShowHibs(true);
     SetShowMids(true);
     SetShowMobs(true);
+    SetShowObjects(true);
     SetDStreamServer("<no server>");
     SetDStreamServerPort(9867);
     SetSharenetServer("<no server>");
@@ -111,7 +112,8 @@ bool Config::Load(const std::string& filename)
          >> ModifyShowAlbs() >> std::ws
          >> ModifyShowHibs() >> std::ws
          >> ModifyShowMids() >> std::ws
-         >> ModifyShowMobs() >> std::ws;
+         >> ModifyShowMobs() >> std::ws
+         >> ModifyShowObjects() >> std::ws;
 
     std::getline(file,ModifyDStreamServer());
     file >> ModifyDStreamServerPort() >> std::ws;
@@ -175,6 +177,7 @@ bool Config::Save(const std::string& filename)const
          << GetShowHibs() << std::endl
          << GetShowMids() << std::endl
          << GetShowMobs() << std::endl
+         << GetShowObjects() << std::endl
          << (GetDStreamServer().length()? GetDStreamServer():"<no server>") << std::endl
          << GetDStreamServerPort() << std::endl
          << (GetSharenetServer().length()? GetSharenetServer():"<no server>") << std::endl
@@ -218,6 +221,7 @@ void Config::set(const Config& s)
     MEMBER_ASSIGN(ShowHibs);
     MEMBER_ASSIGN(ShowMids);
     MEMBER_ASSIGN(ShowMobs);
+    MEMBER_ASSIGN(ShowObjects);
     MEMBER_ASSIGN(DStreamServer);
     MEMBER_ASSIGN(DStreamServerPort);
     MEMBER_ASSIGN(SharenetServer);
