@@ -282,7 +282,6 @@ type
     procedure ChatSend(const ALine: string);
     procedure HookChatParseCallbacks;
     procedure MergeVendorItemsToMaster;
-    procedure ScheduleCallback(ATimeout: Cardinal; ACallback: TSheduledCallback; AParm: Cardinal);
     procedure UpdatePlayersInGuild;
     procedure ResetPlayersInGroup;
   public
@@ -295,6 +294,7 @@ type
     procedure SaveConnectionState(const AFileName: string);
     procedure ResumeConnection(const AFileName: string);
     procedure LoadRealmRanks(const AFileName: string);
+    procedure ScheduleCallback(ATimeout: Cardinal; ACallback: TSheduledCallback; AParm: Cardinal);
 
       { Functions to use zone information to find relative player coords }
     function PlayerZoneHead : integer;
