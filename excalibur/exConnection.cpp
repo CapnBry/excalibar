@@ -34,6 +34,7 @@
 #include <qaction.h>
 #include <qlabel.h>
 #include <qprocess.h>
+#include <qregexp.h>
 #include <math.h>
 #include <qmessagebox.h>
 #include <qstatusbar.h>
@@ -108,8 +109,9 @@ void exConnection::setup()
 
     ex = new FormExcalibur;
     ex->Map->setConnection(this);
+    xpStats = new XPStats();
+    xpStats->setForm(ex);
     connect(ex->ListViewMobs, SIGNAL(selectionChanged(QListViewItem *)), this, SLOT(listSelectionChanged(QListViewItem *)));
-
 
     // msgui = new exMessagesUi;
 
@@ -136,20 +138,22 @@ exConnection::~exConnection()
     mobinfo.clear();
 
     if (ex)
-      delete ex;
+        delete ex;
 
     if ( NULL != ds && writecapture)
-	delete ds;
+	    delete ds;
 
     if (file)
-	delete file;
+	    delete file;
 
     if (link)
-	delete link;
+	    delete link;
 
-//    if (msgui)
-//      delete msgui;
+    if (xpStats)
+        delete xpStats;
 
+    //if (msgui)
+    //    delete msgui;
 }
 
 void exConnection::customEvent(QCustomEvent * e)
@@ -247,415 +251,479 @@ void exConnection::listSelectionChanged(QListViewItem * i)
 
 void exConnection::processPacket(exPacket * p)
 {
-    unsigned int id;
-    unsigned int infoid;
-    unsigned int srcid, destid;
-    unsigned int head;
-    unsigned int linenum;
-    QString name;
-    QString surname;
-    QString guild;
-    QString info;
-    QString title;
-    QByteArray data;
-    unsigned int level;
-    exMob *mob;
-    Realm mobrealm;
-    unsigned int x, y, z;
-    unsigned int hp;
-    bool ismob;
-    bool isobj;
+    unsigned int srcid;
     unsigned int command;
     unsigned int seq;
-    exMapInfo *mi;
-    int what;
-    int tp;
-    int *intptr;
-    Realm *rptr;
 
-    if (!(p->is_udp && !p->from_server)) {
-	p->decrypt(cryptkey);
+    if (p->is_udp && p->from_server)
+        seq = p->getShort();
+	
+    if (!(p->from_server && !p->from_server))
+	    p->decrypt(cryptkey);
+
+    if (!p->from_server && !p->from_server) {
+	    seq = p->getShort();
+	    srcid = p->getShort();
+	    p->seek(2);
     }
+			
+    if (p->from_server) {
+	    command = p->getByte();
+	    //dumpPacket(command, p);
+	    switch (command) {
+            case 0x01:  parsePlayerPosUpdate(p); break;
+	        case 0x05:  parseSelfHealthUpdate(p); break;
+            case 0x07:  parseSystemMessage(p); break;
+	        case 0x09:  parseMobPosUpdate(p); break;
+	        case 0x0a:  parseDeleteObject(p); break;
+	        case 0x12:  parsePlayerHeadUpdate(p); break;
+	        case 0x14:  parseCombatSwing(p); break;
+	        case 0x1f:  parseRegionChange(p); break;
+            case 0x39:  parseXPUpdate(p); break;
+            case 0x49:  parseCharStealthed(p); break;
+	        case 0x55:  parseCharacterInfoList(p); break;
+            case 0x5b:  parseCraftingTimer(p); break;
+	        case 0x6c:  parseDetailWindowDisplay(p); break;
+            case 0x71:  parseNewObject(p, command); break;
+	        case 0x72:  parseNewObject(p, command); break;
+            case 0x7c:  parseNewObject(p, command); break;
+            case 0x82:  parseLoginGranted(p); break;
+	        case 0x88:  parseCharLoginInit(p); break;
+            case 0x8a:  parseVersionAndCryptKey(p); break;
+          	case 0xaa:  parsePlayerInventoryChange(p); break;         
+            case 0xbd:  parseObjectEquipment(p); break;
+	        case 0xbe:  parsePlayerStatsUpdate(p); break;
+		
+    	    /****************************************************************/
+	        /* OpCodes that haven't been implemented or with no use.        */
+            /* See DOL EMU refers to packet documentation that can be found */
+	        /* at the Dawn of Light emulator forums.                        */
+            /* http://dolserver.sourceforge.net                             */
+	        /****************************************************************/
 
-    if (p->is_udp && p->from_server) {
-	seq = p->getShort();
-	command = p->getByte();
-	// dumpPacket(command, p);
-	switch (command) {
-	  case 0x01:
-	    parsePlayerPosUpdate(p);
-	    break;
-	  case 0x05:
-	    parseSelfHealthUpdate(p);
-	    break;
-          case 0x07:
-//            if (prefs.druppy_leak)
-//              parseSystemMessage(p);
-            break;
-	  case 0x09:
-	    parseMobPosUpdate(p);
-	    break;
-	  case 0x12:
-	    parsePlayerHeadUpdate(p);
-	    break;
-          case 0xbd:
-            parseObjectEquipment(p);
-	    break;
-          default:
-	    if (prefs.dump_unknown_packets)
-		dumpPacket(command, p);
-	    break;
+	        // Dead
+	        // 2 bytes - player id
+	        // 2 bytes - killer id
+	        // 4 bytes - unknown
+	        case 0x06: break;
+   	        // Player quit
+	        // 1 byte - kill client yes/no
+	        case 0x0C: break;
+	        // Encumberance update
+	        // 2 bytes - total
+	        // 2 bytes - used
+	        case 0x15: break;
+	        // Pet window
+	        // 2 bytes - mob id of pet
+	        // 2 bytes - unused
+	        // 1 byte - 0 released, 1 normal, 2 just charmed?
+	        // 1 byte - 1 aggressive, 2 defensive, 3 passive
+	        // 1 byte - 1 follow, 2 stay, 3 goto, 4 here
+	        // 1 byte - unused
+	        // list of shorts, null-terminated (byte) - spell icons on pet
+	        case 0x20: break;
+	        // Character rezzed
+	        // 2 bytes - character id
+	        // 2 bytes - unused
+	        case 0x21: break;
+            case 0x29: break; // Show dialog box - See DOL EMU
+	        case 0x2b: break; // Quest journal updates - See DOL EMU
+	        case 0x2e: break; // Find groups members dialog update - See DOL EMU
+            case 0x36: break; // Region server address info - See DOL EMU
+	        case 0x51: break; // Player animation - See DOL EMU
+	        // Money update
+	        // 1 byte - copper
+	        // 1 byte - silver
+	        // 2 bytes - gold
+	        // 2 bytes - platinum
+	        // 2 bytes - mithril
+	        case 0x52: break;
+	        // Character stats
+	        // 2 bytes each - str, con, dex, qui, pie, emp, cha
+	        // 2 bytes each - strAdd, etc.
+	        // 2 bytes - health
+	        // 2 bytes - unknown
+	        case 0x53: break;
+		    // Realm update
+            // 1 byte - 0 None, 1 Albion, 2 Midgard, 3 Hibernia
+            case 0x56: break;
+			// Character create response
+			// 24 bytes - character name
+			case 0x58: break;
+			case 0x64: break; // Name check response - See DOL EMU
+			case 0x6b: break; // Name check response - See DOL EMU
+			case 0x6d: break; // Online friends list - See DOL EMU
+			case 0x6e: break; // Online friends list - See DOL EMU
+			// Player model change
+			// 2 bytes - player id
+			// 2 bytes - model id
+			// 4 bytes - unused
+			case 0x73: break;
+			// Disable player ability (grey-out timed abilities)
+			// 2 bytes - duration
+			// 1 byte - ability id
+			case 0x7e: break;
+			// Session id
+			// 2 bytes - session id in low endian
+			case 0x80: break;
+			case 0x81: break; // Reply to server ping request
+			case 0x84: break; // Login denied - See DOL EMU
+			case 0x85: break; // Game open reply
+			case 0xac: break; // Player jump - See DOL EMU
+			case 0xbf: break; // Merchant window - See DOL EMU
+			case 0xd3: break; // Trainer window - See DOL EMU
+			case 0xd6: break; // Set time - See DOL EMU
+      	    case 0xd7: break; // Self buffs display - See DOL EMU
+			case 0xd8: break; // Player group update (can also update player buffs) - See DOL EMU
+			case 0xdb: break; // Stop animation(interruption) - See DOL EMU
+			case 0xdc: break; // Atack mode - See DOL EMU
+			case 0xdd: break; // Display shared buffs - See DOL EMU
+	  		default:
+				if (prefs.dump_unknown_packets)
+					dumpPacket(command, p);	
+	      		break;
+		}
 	}
-    } else if (!p->is_udp && !p->from_server) {
-	seq = p->getShort();
-	srcid = p->getShort();
-	p->seek(2);
-	command = p->getShort();
-	// dumpPacket(command, p);
-	switch (command) {
-	  case 0x01:
-              p->seek(2);
-              playerspeed = p->getShort() & 0x3ff;
-                /* the bit 9 is the sign, 10 = swimming? */
-              if (playerspeed & 0x200)
-                  playerspeed = -(playerspeed & 0x1ff);
-	      playerz = p->getShort();
-              p->seek(2);
-	      playerx = p->getLong();
-	      playery = p->getLong();
-              playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
-              player_last_update = exTick;
+	else {
+		command = p->getShort();
+		//dumpPacket(command, p);
+		switch (command) {
+	  		case 0x01:  parsePlayerPosUpdateFromClient(p); break;
+            case 0x12:  parsePlayerHeadUpdateFromClient(p); break;
+	        case 0x18:  parseChangeTarget(p); break;
+            case 0x44:  parseSetGroundTarget(p); break;
 
-              mi = ex->Map->getMap();
-                /* If we have a map, see if it is the right map.  If it is
-                   not, get rid of it */
-	      if (mi && !mi->right(playerregion, playerx, playery)) {
-		  ex->Map->setMap(NULL);
-		  mi = NULL;
-              }
-                /* if we don't have a map, load the map */
-	      if (!mi) {
-		  mi = exMapInfo::get(playerregion, playerx, playery);
-		  if (mi) {
-		      ex->Map->setMap(mi);
-		      ex->ListViewMobs->triggerUpdate();
-		  }
-              }
+            // See DOL EMU for more information on the following unused packets
+            case 0x07:  // Chat messages in console
+            case 0x0b:  // Ping
+            case 0x0f:  // Login request
+            case 0x13:  // Use skill
+            case 0x16:  // Mob creation request
+            case 0x1d:  // Get active item request (from ground)
+            case 0x22:  // Pet command
+            case 0x28:  // Destroy inventory item
+            case 0x2a:  // Dialog response
+            case 0x2c:  // Looking for group
+            case 0x2d:  // Find group/player request
+            case 0x2f:  // Group invite
+            case 0x30:  // Accept group invite
+            case 0x31:  // Click a door
+            case 0x35:  // Region id requests
+            case 0x37:  // Disband group
+			case 0x38:  // Zone jump request
+            case 0x40:  // World init for a player
+            case 0x45:  // Make crafting product
+            case 0x48:  // Appraise item
+            case 0x4a:  // Choose emblem
+            case 0x50:  // Send remove affect
+            case 0x54:  // Realm check type stuff
+            case 0x58:  // Character update
+            case 0x5c:  // Crypt key request
+            case 0x63:  // Name check
+            case 0x65:  // Character creation confirmation
+            case 0x68:  // Character deletion
+            case 0x6a:  // Name check 2
+            case 0x6f:  // Sit/stand
+            case 0x70:  // Spell detail display request
+            case 0x74:  // Update combat message filter
+            case 0x75:  // Drop/exchange item
+            case 0x7c:  // World init request for a player
+            case 0x7d:  // Player creation request
+            case 0xb8:  // Character select
+            case 0xd0:  // Buy from merchant
+            case 0xd1:  // Sell item
+            case 0xd2:  // Mob interact
+            case 0xd4:  // Train skill, RA
+            case 0xd5:  // Send cast spell
+            case 0xd9:  // Use item
+            case 0xdc:  // Attack mode
+                break;           
 
-              x = (mi) ? playerx - mi->getBaseX() : playerx;
-              y = (mi) ? playery - mi->getBaseY() : playery;
-              z = playerz;
+            default:
+	            if (prefs.dump_unknown_packets)
+		            dumpPacket(command, p);
+	            break;
+	    }
+    }
+}
 
-              ex->xyzstatus->setText(QString("%1, %2, %3").arg(x).arg(y).arg(z));
-              ex->Zone->setText((mi) ? mi->getZoneName() : QString("Region %1").arg(playerregion));
-	      ex->Map->dirty();
-	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
-		  ex->ListViewMobs->sort();
-              if (link && mi)
-                link->send(QString("%1 %2 %3").arg(x).arg(y).arg(z));
-	      break;
+void exConnection::parseXPUpdate(exPacket *p)
+{
+    // 4 bytes - realm points
+    p->seek(4);
+    // True exp is never sent, only a number from 0 to 999
+    // to indicate where to move the exp bar
+    int exp_ticks = p->getShort();
+    xpStats->MoveXPBar(exp_ticks);
+	// 2 bytes - spec_points
+    // 4 bytes - bounty_points
+}
 
-          case 0x12:
-              p->seek(2);
-	      playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
-	      ex->Map->dirty();
-	      break;
-	  case 0x18:
-              destid = p->getShort();
-              if (ex->AutoSelectTarget->isOn()) {
-		  selectID(destid);
-		  ex->Map->dirty();
-	      }
-              break;
-          case 0x44:
-              parseSetGroundTarget(p);
-              break;
-          case 0x45: /* request crafting begin */
-              break;
-        default:
-	      if (prefs.dump_unknown_packets)
-		dumpPacket(command, p);
-	      break;
+void exConnection::parseCharStealthed(exPacket *p)
+{
+    unsigned int id;
+	unsigned int infoid = id = p->getShort();
+    exMob *mob = mobinfo.find((void *) ((unsigned int) infoid));
+    if (mob) {
+    	mob->setStealth(TRUE);
+        ex->Map->dirty();
+    }
+}
+
+void exConnection::parsePlayerStatsUpdate(exPacket *p)
+{
+	// Documentation for this packet can be found at DOL EMU.
+	// This packet has a lot of formats, each which are quite
+	// extensive.
+	// For example, this is the type of data that can be extracted.
+	// 0x01 (spec, abil, styles, spells, songs, RA)
+	// 0x02 (spell trees)
+	// 0x03 (name classes)
+	// 0x05 (combat stats)
+	// 0x06 (group window update)
+	// 0x08 (crafting skills)
+	int what = p->getByte();
+	p->seek(1);
+	int tp = p->getByte();
+	if ((what == 3) && (tp == 0)) {
+		p->seek(1);
+		playerlevel = p->getByte();
+		playername = p->getPascalString();
+        QString title = QString("Excalibur -- ").append(playername);
+        if (link)
+        	title = title.append("  ").append(link->descr());
+        ex->setCaption(title);
+		// if (playerregion == 0) {
+		int *intptr = playerregions.find(playername);
+		if (intptr) {
+			playerregion = *intptr;
+		}
+		Realm *rptr = playerrealms.find(playername);
+		if (rptr) {
+			playerrealm = *rptr;
+		}
+		// }
 	}
-    } else if (!p->is_udp && p->from_server) {
-	command = p->getByte();
-	// dumpPacket(command, p);
-	switch (command) {
-	  case 0x01:
-	    parsePlayerPosUpdate(p);
-	    break;
-	  case 0x05:
-	    parseSelfHealthUpdate(p);
-	    break;
-          case 0x07:
-//            if (prefs.druppy_leak)
-//              parseSystemMessage(p);
-            break;
-	  case 0x09:
-	    parseMobPosUpdate(p);
-	    break;
-	  case 0x12:
-	    parsePlayerHeadUpdate(p);
-	    break;
-	  case 0xbd:
-            parseObjectEquipment(p);
-	    break;
-          case 0x8a:
-              p->seek(1);
-              serverprotocol = p->getByte();
-              p->seek(3);  // x.yz version
-              cryptkey = p->getBytes(12);
-	      break;
-	  case 0x55:
-              parseCharacterInfoList(p);
-              break;
-          case 0x5b: /* Crafting timer */
-              parseCraftingTimer(p);
-              break;
-	  case 0x88:
-	      selfid = id = p->getShort();
-	      p->seek(2);
-	      playerx = p->getLong();
-	      playery = p->getLong();
-	      mobinfo.clear();
-	      mobs.clear();
-              objs.clear();
-	      players.clear();
-	      ex->Map->dirty();
-	      break;
-	  case 0x0a:
-	      infoid = p->getShort();
-	      mob = mobinfo.take((void *) ((unsigned int) infoid));
-	      if (mob) {
-		  if (mob->isMob())
-		      mobs.remove((void *) ((unsigned int) mob->getID()));
-		  else if (mob->isObj())
-                      objs.remove((void *) ((unsigned int) mob->getID()));
-                  else
-		      players.remove((void *) ((unsigned int) mob->getID()));
-              }
-              updateObjectTypeCounts();
-	      ex->Map->dirty();
-	      break;
-          case 0x71:
-	  case 0x72:
-          case 0x7c:
-	      infoid = 0;
-	      head = 0;
-              mobrealm = rFriend;
-	      if (command == 0x7c) {
-		  id = p->getShort();
-		  infoid = p->getShort();
-		  x = p->getLong();
-		  y = p->getLong();
-		  z = p->getShort();
-		  head = p->getShort();
-		  p->seek(4);
-                  mobrealm = (Realm) p->getByte();
-		  level = p->getByte();
-		  p->seek(2);
-		  name = p->getPascalString();
-		  guild = p->getPascalString();
-		  surname = p->getPascalString();
-		  ismob = false;
-                  isobj = false;
-	      } else if (command == 0x72) {
-		  infoid = id = p->getShort();
-		  p->seek(2);
-		  head = p->getShort();
-		  z = p->getShort();
-		  x = p->getLong();
-		  y = p->getLong();
-		  p->seek(5);
-		  level = p->getByte();
-		  p->seek(2);
-		  name = p->getPascalString();
-		  guild = p->getPascalString();
-		  ismob = true;
-                  isobj = false;
-	      } else {
-/*000*/           infoid = id = p->getShort();
-/*002*/           p->seek(2);
-/*004*/           head = p->getShort();
-/*006*/           z = p->getShort();
-/*008*/           x = p->getLong();
-/*012*/           y = p->getLong();
-/*016*/           p->seek(4);
-/*021*/           level = 0;
-/*021*/           name = p->getPascalString();
-                  ismob = false;
-                  isobj = true;
-BEGIN_EXPERIMENTAL_CODE
-                  printf("New Object: %4x\n", infoid);
-                  dumpPacket(0x71,p);
-END_EXPERIMENTAL_CODE
-              }
+    updateObjectTypeCounts();
+}
 
-	      mob = NULL;
-	      if (ismob)
-		  mob = mobs.take((void *) ((unsigned int) id));
-	      else if (isobj)
-                  mob = objs.take((void *) ((unsigned int) id));
-              else
-		  mob = players.take((void *) ((unsigned int) id));
-	      if (mob) {
-		  mobinfo.remove((void *) ((unsigned int) mob->getInfoID()));
-		  delete mob;
-	      }
-	      mobinfo.remove((void *) ((unsigned int) infoid));
+void exConnection::parseDetailWindowDisplay(exPacket *p)
+{
+	QString name=p->getPascalString();
+    QString info="";
+    unsigned int linenum;
+    do {
+    	linenum=p->getByte();
+        if (linenum != 0) 
+        	info=info.append(p->getPascalString()).append("\n");
+	} while (linenum != 0);              
+}
 
-	      mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, surname, guild, level, x, y, z, 100, isobj);
-	      mob->setHead(head);
-              mob->setRealm(mobrealm);
-
-	      if (ismob) {
-		  mobs.insert((void *) ((unsigned int) id), mob);
-                  mi = ex->Map->getMap();
-                  if (prefs.dump_mobseen)
-                      cout << "MOBseen," << ((mi) ? mi->getZoneNum() : 0) <<
-                          "," << ((mi) ? x - mi->getBaseX() : x) <<
-                          "," << ((mi) ? y - mi->getBaseY() : y) <<
-                          "," << z <<
-                          "," << level <<
-                          "," << name <<
-                          "," << (guild.length() ? guild : QString("")) <<
-                          endl;
-	      } else if (isobj) {
-                  objs.insert((void *) ((unsigned int) id), mob);
-              } else {
-                  players.insert((void *) ((unsigned int) id), mob);
-                  if (prefs.vader_warn && mob->isInvader() && (mob->getLevel() > 15))
-                  {
-                      title = QString(
-                          "*** INVADER DETECTED *** Name: %1, Level: %2, Distance: %3").
-                          arg(mob->getName()).arg(mob->getLevel()).arg(mob->playerDist());
-                      qWarning(title);
-                      ex->statusBar()->message(title, 10000);
-                      qApp->beep();
-                  }
-              }
-	      mobinfo.insert((void *) ((unsigned int) infoid), mob);
-              updateObjectTypeCounts();
-	      ex->Map->dirty();
-              break;
-          case 0x82:
-              serverprotocol = p->getByte();
-              // x.yz version follows
-              break;
-/*
-          case 0x84:
-          case 0x8b:
-          case 0x8c:
-              p->seek(1);
-              serverversion = p->getLong();
-              printf("Server version set to %x\n", serverversion);
-              break;
-*/
-	  case 0x14:
-	      p->seek(2);
-	      infoid = p->getShort();
-	      p->seek(7);
-	      hp = p->getByte();
-	      mob = mobinfo.find((void *) ((unsigned int) infoid));
-	      if (mob) {
-		  mob->setHP(hp);
-                  updateObjectTypeCounts();
-	      }
-	      break;
-	  case 0x1f:
-              playerregion = p->getShort();
-	      intptr = playerregions.find(playername);
-	      if (intptr) {
+void exConnection::parseRegionChange(exPacket *p)
+{
+	playerregion = p->getShort();
+	int *intptr = playerregions.find(playername);
+	if (intptr) {
 		*intptr = playerregion;
-              }
-                /* clear the groundtarget when we change regions, since the
-                   target is region-specific */
-              clearGroundTarget();
-	      break;
-          case 0xaa:
-              parsePlayerInventoryChange(p);
-              break;         
-	  case 0x6c:
-	      name=p->getPascalString();
-              info="";
-              do {
-                linenum=p->getByte();
-                if (linenum != 0) 
-                  info=info.append(p->getPascalString()).append("\n");
-              } while (linenum != 0);              
-              break;
-	  case 0xbe:
-	      what = p->getByte();
-	      p->seek(1);
-	      tp = p->getByte();
-	      if ((what == 3) && (tp == 0)) {
-		  p->seek(1);
-		  playerlevel = p->getByte();
-		  playername = p->getPascalString();
-                  title = QString("Excalibur -- ").append(playername);
-                  if (link)
-                    title = title.append("  ").append(link->descr());
-                  ex->setCaption(title);
-//		  if (playerregion == 0) {
-		      intptr = playerregions.find(playername);
-		      if (intptr) {
-			  playerregion = *intptr;
-		      }
-		      rptr = playerrealms.find(playername);
-		      if (rptr) {
-			  playerrealm = *rptr;
-		      }
-//		  }
-	      }
-              updateObjectTypeCounts();
-              break;
-
-        case 0x49:
-            infoid = id = p->getShort();
-            mob = mobinfo.find((void *) ((unsigned int) infoid));
-            if (mob) {
-                mob->setStealth(TRUE);
-                ex->Map->dirty();
-            }
-            break;
-
-    /***************************************************************/
-    /* OpCodes with known purpose but unknown structure, or no use */
-    /***************************************************************/
-
-//          case 0xbe: /* Status updates - Ability points, group members
-//                        etc... */
-//              dumpPacket(command, p);
-//              break;
-          case 0x39: /* EXP */
-              BEGIN_EXPERIMENTAL_CODE
-                dumpPacket(command, p);
-              END_EXPERIMENTAL_CODE
-              break;
-          case 0x1e: /* Stealth */
-          case 0x25: /* OpCodes */
-              break; 
-          case 0xd7: /* BUFF OpCode */
-              BEGIN_EXPERIMENTAL_CODE
-                dumpPacket(command, p);
-              END_EXPERIMENTAL_CODE
-              break;
-          case 0x36: /* Region Server Address Info */
-              BEGIN_EXPERIMENTAL_CODE
-                dumpPacket(command, p);
-              END_EXPERIMENTAL_CODE
-          case 0x2b: /* Quest Journal Updates */
-              break;
-          case 0xbf: /* Vemdor Window */
-              break;
-          case 0x29: /* Confirmation Dialog */
-              break;
-	  default:
-	      if (prefs.dump_unknown_packets)
-		  dumpPacket(command, p);	
-	      break;
-	}
     }
+    /* clear the groundtarget when we change regions, since the
+       target is region-specific */
+    clearGroundTarget();
+}
+
+void exConnection::parseCombatSwing(exPacket *p)
+{
+	p->seek(2); // attacker id
+	unsigned int infoid = p->getShort();
+	// 2 bytes - weapon model ID
+	// 2 bytes - unknown
+	// 2 bytes - style ID
+	// 1 byte - swing result (0x00 missed, 0x01 parried, 0x02 blocked, 0x03 evaded, 
+	//						  0x0A hit, 0x0B style performed, 0x80 fired weapon)
+	p->seek(7);
+	unsigned int hp = p->getByte();
+	exMob *mob = mobinfo.find((void *) ((unsigned int) infoid));
+	if (mob) {
+		mob->setHP(hp);
+		updateObjectTypeCounts();
+	}
+}
+
+void exConnection::parseLoginGranted(exPacket *p)
+{
+	serverprotocol = p->getByte();
+    // 1 byte - minor version
+	// 1 byte - build version
+	// ?? bytes - account name
+	// ?? bytes - server name
+}
+
+void exConnection::parseDeleteObject(exPacket *p)
+{
+	unsigned int infoid = p->getShort();
+	exMob *mob = mobinfo.take((void *) ((unsigned int) infoid));
+	if (mob) {
+		if (mob->isMob())
+			mobs.remove((void *) ((unsigned int) mob->getID()));
+		else if (mob->isObj())
+        	objs.remove((void *) ((unsigned int) mob->getID()));
+        else
+			players.remove((void *) ((unsigned int) mob->getID()));
+	}
+	// 2 bytes - type to remove (0x0000 objects/npcs, 0x0001 unknown, 0x0002 player)
+    updateObjectTypeCounts();
+	ex->Map->dirty();
+}
+
+void exConnection::parseNewObject(exPacket *p, int command)
+{
+	unsigned int infoid = 0;
+	unsigned int head = 0;
+    unsigned int id;
+    unsigned int x, y, z;
+    unsigned int level;
+    bool ismob;
+    bool isobj;
+    QString name;
+    QString guild;
+    QString surname;
+
+	Realm mobrealm = rFriend;
+
+	if (command == 0x7c) {
+		id = p->getShort();
+		infoid = p->getShort();
+		x = p->getLong();
+		y = p->getLong();
+		z = p->getShort();
+		head = p->getShort();
+		// 2 bytes - HHHS SMMM MMMM MMMM
+		// H - hair(0-7)
+		// S - size(1 small, 2 medium, 3 tall)
+		// M - 11 bit model id
+		// 1 byte - player death status (0 dead, 1 alive)
+		// 1 byte - unused
+		p->seek(4);
+		mobrealm = (Realm) p->getByte();
+		level = p->getByte();
+		p->seek(2);
+		name = p->getPascalString();
+		guild = p->getPascalString();
+		surname = p->getPascalString();
+		ismob = false;
+		isobj = false;
+	} else if (command == 0x72) {
+		infoid = id = p->getShort();
+		// 2 bytes - mob speed
+		p->seek(2);
+		head = p->getShort();
+		z = p->getShort();
+		x = p->getLong();
+		y = p->getLong();
+		// 2 bytes - unknown
+		// 2 bytes - model
+		// 1 byte - size of mob in % of default model size
+		p->seek(5);
+		level = p->getByte();
+		// 1 byte - RRXX XXXX
+		// RR - mob realm (0 any realm can kill, 1 Albion, 2 Migard, 3 Hibneria)
+		// X - Unknown
+		// 1 byte - maximum stick distance, standard is 0x20
+		p->seek(2);
+		name = p->getPascalString();
+		guild = p->getPascalString();
+		ismob = true;
+        isobj = false;
+	} else {
+		infoid = id = p->getShort();
+		p->seek(2);
+		head = p->getShort();
+		z = p->getShort();
+		x = p->getLong();
+		y = p->getLong();
+		// 2 bytes - object model id
+		// 2 bytes - unknown
+		p->seek(4);
+		level = 0;
+		name = p->getPascalString();
+        ismob = false;
+        isobj = true;
+BEGIN_EXPERIMENTAL_CODE
+        printf("New Object: %4x\n", infoid);
+        dumpPacket(0x71,p);
+END_EXPERIMENTAL_CODE
+	}
+
+	exMob *mob = NULL;
+	if (ismob)
+		mob = mobs.take((void *) ((unsigned int) id));
+	else if (isobj)
+        mob = objs.take((void *) ((unsigned int) id));
+    else
+	    mob = players.take((void *) ((unsigned int) id));
+
+	if (mob) {
+		 mobinfo.remove((void *) ((unsigned int) mob->getInfoID()));
+		 delete mob;
+	}
+	mobinfo.remove((void *) ((unsigned int) infoid));
+
+	mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, surname, guild, level, x, y, z, 100, isobj);
+	mob->setHead(head);
+    mob->setRealm(mobrealm);
+
+	if (ismob) {
+		mobs.insert((void *) ((unsigned int) id), mob);
+        exMapInfo *mi = ex->Map->getMap();
+        if (prefs.dump_mobseen)
+        	cout << "MOBseen," << ((mi) ? mi->getZoneNum() : 0) <<
+                           "," << ((mi) ? x - mi->getBaseX() : x) <<
+                           "," << ((mi) ? y - mi->getBaseY() : y) <<
+                           "," << z <<
+                           "," << level <<
+                           "," << name <<
+                           "," << (guild.length() ? guild : QString("")) <<
+                           endl;
+	} else if (isobj) {
+    	objs.insert((void *) ((unsigned int) id), mob);
+    } else {
+    	players.insert((void *) ((unsigned int) id), mob);
+        if (prefs.vader_warn && mob->isInvader() && (mob->getLevel() > 15)) {
+        	QString title = QString("*** INVADER DETECTED *** Name: %1, Level: %2, Distance: %3").
+                          	arg(mob->getName()).arg(mob->getLevel()).arg(mob->playerDist());
+            //qWarning(title);
+            ex->statusBar()->message(title, 10000);
+            qApp->beep();
+		}
+	}
+	mobinfo.insert((void *) ((unsigned int) infoid), mob);
+    updateObjectTypeCounts();
+	ex->Map->dirty();
+}
+
+void exConnection::parseCharLoginInit(exPacket *p)
+{
+	selfid = p->getShort();
+	// 2 bytes - player z
+	p->seek(2);
+	playerx = p->getLong();
+	playery = p->getLong();
+	mobinfo.clear();
+	mobs.clear();
+	objs.clear();
+	players.clear();
+	ex->Map->dirty();
+    xpStats->StartSession();
+	// 2 bytes - heading
+}
+
+void exConnection::parseVersionAndCryptKey(exPacket *p)
+{
+	p->seek(1);
+	// 0x32 SI, 0x31 Normal
+    serverprotocol = p->getByte();
+    p->seek(3);  // x.yz version
+    cryptkey = p->getBytes(12);
 }
 
 void exConnection::parseCraftingTimer(exPacket *p)
@@ -663,9 +731,14 @@ void exConnection::parseCraftingTimer(exPacket *p)
     int time_count;
     QString product;
 
+	// I have seen this timer sent for stuff besides crafting.
+	// Will have to look into this, might be the rez timer.
+
     if ( prefs.crafting_alerts )
     {
         time_count = p->getShort();
+		// 1 byte - size of craft window title
+		// 1 byte - 0 stop crafting, 1 start crafting
         p->seek(2);
         product = p->getZeroString();
 
@@ -678,6 +751,7 @@ void exConnection::parseCraftingTimer(exPacket *p)
         {
             printf( "Crafting finished.\007\n" );
         }
+		// ?? bytes - crafting title
     }  /* if crafting_alerts */
 }
 
@@ -701,15 +775,23 @@ void exConnection::parsePlayerInventoryChange(exPacket *p)
     QString objname;
 
     objcount = p->getByte();
+	// See DOL EMU for more information
     p->seek(3);
 
     for (i=0; i<objcount; i++)  {
         inv_slot = p->getByte();
+		// 1 byte - level
+		// 4 bytes - See DOL EMU (item value 1/2, flag, type, damage type),
+		// 			 for generic item, cost in copper when you sell it?
+		// 1 byte - weight
         p->seek(7);
         condition = p->getByte();
         durability = p->getByte();
         quality = p->getByte();
         bonus = p->getByte();
+		// 2 bytes - database id
+		// 2 bytes - color
+		// 2 bytes - proc
         p->seek(6);
         objname = p->getPascalString();
     }
@@ -741,6 +823,10 @@ void exConnection::parseObjectEquipment(exPacket *p)
 //    if (objcount && (mob->getLevel() == 50))
 //        cout << mob->getName() << ": ";
 
+	// A good explanation of this packet structure can be found at DOS EMU.
+	// I'm not listing it here because its actually quite detailed.  It
+	// answers the unknowns about this packet structure.
+	
     while (objcount)  {
         slot = p->getByte();
         switch (slot)  {
@@ -780,8 +866,8 @@ void exConnection::parseObjectEquipment(exPacket *p)
 
         ii = new exInventoryItem(slot, obj_list, obj_index, obj_color);
         mob->updateInventory(ii);
-//        if (mob->getLevel() == 50)
-//            cout << ii->getDescription() + ", ";
+        //if (mob->getLevel() == 50)
+        //    cout << mob->getName() << ": " << ii->getDescription() + "\n";
 
         /* it appears if the high bit is set, that this is actually
            a particle effect on the preceeding item? */
@@ -815,11 +901,13 @@ void exConnection::parseMobPosUpdate(exPacket *p)
     unsigned int z;
     unsigned int id;
     unsigned int hp;
+	unsigned int opp_infoid;
 
-      /* pre 1.62 */
+    /* pre 1.62 */
     if (serverprotocol == 0x31) {
         x = p->getLong();
         y = p->getLong();
+		opp_infoid=0;
         p->seek(8);
         z = p->getShort();
         id = p->getShort();
@@ -834,19 +922,24 @@ void exConnection::parseMobPosUpdate(exPacket *p)
         z = p->getShort();
         p->seek(2);  // destinationZ
         id = p->getShort();
-        p->seek(2);  // ??
+		opp_infoid = p->getShort();
         hp = p->getByte();
-        p->seek(1);  // ??
+		// MMRF FFFN
+		// M - 2 bit pair (0-3) trainer, merchant, killable mob = 0
+		// R - running animation on/off and allow mob to fly 
+		// F - have to be present for Z-bits to matter and mob to fly
+		// N - don't display name
+        p->seek(1);
         int zone = p->getByte();
         // p->seek(2);  // destinationZone
 
         exMapInfo *mi;
-          /* I'm guessing that most the time, the mob we'll be
-             updating is in our zone, so skip the exhaustive search */
+        /* I'm guessing that most the time, the mob we'll be
+           updating is in our zone, so skip the exhaustive search */
         mi = ex->Map->getMap();
         if (mi && (mi->getZoneNum() != zone))
             /* if not, then do the search */
-          mi = exMapInfo::getZone(playerregion, zone);
+        	mi = exMapInfo::getZone(playerregion, zone);
 
         if (mi)  {
             x += mi->getBaseX();
@@ -860,6 +953,7 @@ void exConnection::parseMobPosUpdate(exPacket *p)
         mob->setHead(head);
         mob->setSpeed(speed);
         mob->setHP(hp);
+		mob->setOpponentInfoID(opp_infoid);
 
         ex->Map->dirty();
 
@@ -880,13 +974,24 @@ void exConnection::parsePlayerPosUpdate(exPacket *p)
         p->seek(2);
         x = p->getLong();
         y = p->getLong();
-	mob->setPosition(x, y, z);
-	mob->setHead(p->getShort());
+		mob->setPosition(x, y, z);
+		mob->setHead(p->getShort());
+		// Flying bits XXXX DSSS SSSS SSSS
+		// X - empty
+		// D - up/down
+		// S - 11 bit speed ... only if groundspeed > 0
         p->seek(2);
+		// TUXX XXSG
+		// T - torch on/off
+		// X - empty
+		// S - shadow model
+		// G - grid model
         mob->setStealth(p->getByte() & 0x02);  // stealthed but visible
+		// High order bit of hp is actually attack off/on
         hp = p->getByte();
         if (hp <= 100)
             mob->setHP(hp);
+		// 2 bytes - target visibility???
 
         ex->Map->dirty();
 
@@ -903,33 +1008,137 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
     if (mob) {
         unsigned int hp;
 
-	mob->setHead(p->getShort());
+	    mob->setHead(p->getShort());
         p->seek(1);
         mob->setStealth(p->getByte() & 0x02);  // stealthed but visible
         p->seek(2);
         hp = p->getByte();
-	if (hp <= 100)
+	    if (hp <= 100)
             mob->setHP(hp);
 
         ex->Map->dirty();
 
-	if (prefs.sort_when == exPrefs::sortAlways)
-	    ex->ListViewMobs->sort();
+	    if (prefs.sort_when == exPrefs::sortAlways)
+	        ex->ListViewMobs->sort();
     }
 }
 
-/***
 void exConnection::parseSystemMessage (exPacket *p)
 {
+	/*	opCodes
+		System = 0x00
+		Say = 0x01
+		Send = 0x02
+		Group = 0x03
+		Guild = 0x04
+		Broadcast = 0x05
+		Emote = 0x06
+		Help = 0x07
+		Friend = 0x08
+		Advise = 0x09
+		Officer = 0x0a
+		Alliance = 0x0b
+
+		Spell = 0x10
+		YouHit = 0x11
+		YouWereHit = 0x12
+		Skill = 0x13
+		Merchant = 0x14
+		YouDied = 0x15
+		PlayerDied = 0x16
+		OthersCombat = 0x17
+		DamageAdd = 0x18
+		SpellExpires = 0x19
+		Loot = 0x1a
+		SpellResisted = 0x1b
+		Important = 0x1c
+		Damaged = 0x1d
+		Missed = 0x1e
+		SpellPulse = 0x1f
+	*/
+
+    p->seek(4);
+    unsigned int opCode = p->getByte();
+    // The following 3 unknown bytes don't seem to provide any consistent
+    // method of determining the type of the opCode.
+    p->seek(1);
+    p->seek(1); //int typeCode = p->getByte();
+    p->seek(1);
+
+    // Parse system message for class information
+    // available in who and examine.
+    if (opCode == 0x00) { 
+        QString sysString = p->getZeroString();
+        QRegExp rx("\\d+\\).*the Level");
+
+        if (sysString.find(rx) != -1) {
+            sysString = sysString.remove(" <AFK>");
+            sysString = sysString.remove(" the Level");
+		    rx.setPattern(" <.*>");
+		    sysString = sysString.remove(rx);
+            QString name = sysString.section(' ', 1, 1);
+            QString playerclass = sysString.section(' ', 3, 3);
+            QString zone = sysString.section(' ', 5);
+
+            if (zone.find(ex->Map->getMap()->getZoneName(),FALSE) != -1) {
+                QPtrDictIterator<exMob> playeri(players);
+
+                for(;playeri.current();++playeri) { 
+                    exMob *m = playeri.current();
+                    if (name.find(m->getName(),FALSE) != -1) {
+                        if (!m->setClass(playerclass))
+                            cout << "Parse who error!  Failed to set playerclass.  Name: " 
+                                 << name << "  Class: " << playerclass << "  Zone: "
+                                 << zone << endl;
+                        break;
+                    }
+                }
+            }   
+        } else {
+            rx.setPattern("is a member of");
+
+            if (sysString.find(rx) != -1) {
+                QString name = sysString.section(' ',2,2);
+                name = name.remove('.');
+                QString playerclass = sysString.section(' ',10,10);
+
+                if (name != playername) {  
+                    QPtrDictIterator<exMob> playeri(players);
+                    bool found=false;
+
+                    for(;playeri.current();++playeri) { 
+                        exMob *m = playeri.current();
+                        if (name.find(m->getName(),FALSE) != -1) {
+                            found = m->setClass(playerclass);
+                            break;
+                        }
+                    }
+                    if (!found)
+                        cout << "Parse examine error!  Name: " << name << "  Class: "
+                             << playerclass << endl;  
+                }
+            }
+        }
+    }
+
+    if (opCode == 0x1c) {
+        QString xpString = p->getZeroString();
+        // For debugging
+        cout << xpString << endl;
+        QRegExp rx("experience point");
+
+        if (xpString.find(rx) != -1) {
+      	    xpString = xpString.section(' ',2,2);
+      	    xpString = xpString.remove(',');
+      	    unsigned int xp_pnts = xpString.toLong();
+            xpStats->RewardXP(xp_pnts);
+        }
+    }
+ 
+    /*
     exMessage *msg;
     QWidget   *tab;
     QTextEdit *textbox;
-
-    p->seek(4);
-    uint8_t opCode   = p->getByte();
-    p->seek(1);
-    uint8_t typeCode = p->getByte();
-    p->seek(1);
 
     msg = new exMessage(p->getZeroString(), opCode, typeCode);
     msg->parseMsg();
@@ -952,8 +1161,8 @@ void exConnection::parseSystemMessage (exPacket *p)
 
     if (msg != NULL)
         delete msg;
+    */
 }
-***/
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)
 {
@@ -1142,13 +1351,27 @@ void exConnection::parseCharacterInfoList(exPacket *p)
      */
     characters_left = 8;
 
-    p->seek(24);
+    p->seek(24); // account name
     while (characters_left && !p->isAtEOF()) {
         name = p->getZeroString(48);
+	    // 24 bytes - location
+        // 24 bytes - class
+        // 24 bytes - race
+        // 1 byte - level
+        // 1 byte - class id
         p->seek(74);
         character_realm = (Realm) p->getByte();
+        // 1 byte - gender
+        // 1 byte - model
+        // 2 bytes - region id
         p->seek(3);
         zone = p->getByte();
+        // 4 bytes - unknown
+        // 8 bytes - str, con, dex, qui, emp, pie, emp, cha
+        // 16 bytes - models (head, gloves, boots, unused, jerkin, cloak, leggings, arm)
+        // 16 bytes - colors (see above)
+        // 8 bytes - weapon models (right hip, left hip, main back, aux. back)
+        // 5 bytes - unknown
         p->seek(57);
         if ((name.length() > 0) && (zone != 0)) {
             intptr = new int;
@@ -1170,3 +1393,81 @@ void exConnection::clearGroundTarget(void)
     groundtarget_z = 0;
 }
 
+void exConnection::parsePlayerPosUpdateFromClient(exPacket *p)
+{
+    // 2 bytes - player id
+    p->seek(2);
+    // See exMob::getSpeed() for speed format
+    playerspeed = p->getShort() & 0x3ff;
+    if (playerspeed & 0x200)
+        playerspeed = -(playerspeed & 0x1ff);
+	playerz = p->getShort();
+    p->seek(2);
+	playerx = p->getLong();
+	playery = p->getLong();
+    // Floor: 1bit (1=player below,0=player above), 
+    // Unknown: 3bit, 
+    // Heading: 12bit
+    playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
+    player_last_update = exTick;
+	// Flying bits XXXX DSSS SSSS SSSS
+	// X - empty
+	// D - up/down
+	// S - 11 bit speed ... only if groundspeed > 0
+	// TUXX XXSG
+	// T - torch on/off
+	// X - empty
+	// S - shadow model
+	// G - grid model
+    // 1 byte - hp (high order bit is attack on/off)
+
+    exMapInfo *mi = ex->Map->getMap();
+    /* If we have a map, see if it is the right map.  If it is
+       not, get rid of it */
+	if (mi && !mi->right(playerregion, playerx, playery)) {
+	    ex->Map->setMap(NULL);
+		mi = NULL;
+    }
+    /* if we don't have a map, load the map */
+	if (!mi) {
+        mi = exMapInfo::get(playerregion, playerx, playery);
+	    if (mi) {
+		    ex->Map->setMap(mi);
+		    ex->ListViewMobs->triggerUpdate();
+		}
+    }
+
+    unsigned int x = (mi) ? playerx - mi->getBaseX() : playerx;
+    unsigned int y = (mi) ? playery - mi->getBaseY() : playery;
+    unsigned int z = playerz;
+
+    ex->xyzstatus->setText(QString("%1, %2, %3").arg(x).arg(y).arg(z));
+    ex->Zone->setText((mi) ? mi->getZoneName() : QString("Region %1").arg(playerregion));
+	ex->Map->dirty();
+	if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
+        ex->ListViewMobs->sort();
+    if (link && mi)
+        link->send(QString("%1 %2 %3").arg(x).arg(y).arg(z));
+}
+
+void exConnection::parsePlayerHeadUpdateFromClient(exPacket *p)
+{
+    // mob id of client
+    p->seek(2);
+	playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
+    // 1 byte - bit0=wireframe  bit1=seethru  bit7=torch
+    // 2 bytes - unknown
+    // 1 byte - bit6-0=Health  bit7=Combat stance
+    // 1 byte - bit2-0 (position triplet, see exMob::getSpeed()
+	ex->Map->dirty();
+}
+
+void exConnection::parseChangeTarget(exPacket *p)
+{
+    unsigned int destid = p->getShort();
+    // 2 bytes - LOS check
+    if (ex->AutoSelectTarget->isOn()) {
+        selectID(destid);
+		ex->Map->dirty();
+    }
+}

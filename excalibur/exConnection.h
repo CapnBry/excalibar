@@ -46,6 +46,7 @@ class exConnection;
 #include "exLink.h"
 #include "exFilter.h"
 #include "exMessage.h"
+#include "exXP.h"
 
 using namespace std;
 
@@ -67,7 +68,6 @@ protected:
   QDict<int> playerregions;
   QDict<Realm> playerrealms;
   QByteArray cryptkey;
-  unsigned int selfid;
   QString *replayfile;
   exNet *sniff;
   QDataStream *ds;
@@ -85,11 +85,25 @@ protected:
   void parseObjectEquipment(exPacket *p);
   void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
+  void parsePlayerPosUpdateFromClient(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);
-  // void parseSystemMessage(exPacket *p);
+  void parsePlayerHeadUpdateFromClient(exPacket *p);
+  void parseSystemMessage(exPacket *p);
   void parseTouchMob(exPacket *p, unsigned int id_offset); 
   void parseSelfHealthUpdate(exPacket *p);
+  void parseDeleteObject(exPacket *p);
+  void parseCombatSwing(exPacket *p);
+  void parseXPUpdate(exPacket *p);
+  void parseCharStealthed(exPacket *p);
+  void parseDetailWindowDisplay(exPacket *p);
+  void parseNewObject(exPacket *p, int command);
+  void parseLoginGranted(exPacket *p);
+  void parseCharLoginInit(exPacket *p);
+  void parseVersionAndCryptKey(exPacket *p);
+  void parsePlayerStatsUpdate(exPacket *p);
+  void parseRegionChange(exPacket *p);
+  void parseChangeTarget(exPacket *p);
   void dumpPacket(unsigned int command, exPacket *p);
   void clearGroundTarget(void);
 
@@ -101,7 +115,7 @@ public slots:
   bool checkMap  (void);
 public:
   FormExcalibur *ex;
-  // exMessagesUi  *msgui;
+  //exMessagesUi  *msgui;
   QString playername;
   unsigned int playerx, playery, playerz;
   unsigned int groundtarget_x, groundtarget_y, groundtarget_z;
@@ -114,7 +128,9 @@ public:
   int numPaints;
   bool alive;
   unsigned int selectedid;
+  unsigned int selfid;
   exFilter MobFilter;
+  XPStats *xpStats;
 
   exConnection(exNet *s, bool do_link, bool docapture);
   exConnection(QString *f);
