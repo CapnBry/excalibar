@@ -107,13 +107,10 @@ implementation
 uses
   PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
   TellMacro, SpellcraftHelp, FrameFns, DebugAndTracing, Macroing,
-  ConnectionConfig, VCLMemStrms
+  ConnectionConfig, VCLMemStrms, RemoteAdmin
 {$IFDEF OPENGL_RENDERER}
   ,GLRender
 {$ENDIF OPENGL_RENDERER}
-{$IFDEF REMOTE_ADMIN}
-  ,RemoteAdmin
-{$ENDIF REMOTE_ADMIN}
   ;
 
 {$R *.dfm}
@@ -162,9 +159,6 @@ begin
   Application.CreateForm(TfrmGLRender, frmGLRender);
   frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
-{$IFDEF REMOTE_ADMIN}
-  Application.CreateForm(TfrmRemoteAdmin, frmRemoteAdmin);
-{$ENDIF REMOTE_ADMIN}
 end;
 
 function GetVersionString : string;
@@ -308,9 +302,7 @@ begin
       adapter properly }
   frmConnectionConfig.AssignAdapterList(FPReader.AdapterList);
   LoadSettings;
-{$IFDEF REMOTE_ADMIN}
   dmdRemoteAdmin.DAOCControl := FConnection;
-{$ENDIF REMOTE_ADMIN}
 
   FPReader.Promiscuous := frmConnectionConfig.PromiscuousCapture;
   if frmConnectionConfig.SniffPackets then
