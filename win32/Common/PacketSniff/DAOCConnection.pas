@@ -256,7 +256,6 @@ type
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
-    procedure ProcessDAOCPacket(pPacket: TDAOCPacket);
     procedure IntializeFromSegment(AServerSegment: TEthernetSegment);
     procedure ProcessUDPSegment(ASegment: TEthernetSegment);
     procedure ProcessTCPSegment(ASegment: TEthernetSegment);
@@ -316,6 +315,7 @@ type
 
     procedure InitPacketHandlers;
     procedure ProcessEthernetSegment(ASegment: TEthernetSegment);
+    procedure ProcessDAOCPacket(pPacket: TDAOCPacket);
     procedure Clear; virtual;
     procedure CheckForStaleObjects;
     procedure SaveConnectionState(const AFileName: string);
@@ -818,14 +818,15 @@ end;
 procedure TDAOCConnection.ProcessDAOCPacketFromClient(
   pPacket: TDAOCPacket);
 var
-  command:  WORD;
+  command:  BYTE;
   pHandler: TNamedPacketHandler;
 begin
   // seq := pPacket.getShort;
   // srcid := pPacket.getShort;
   // pPacket.seek(2);
-  pPacket.seek(6);
-  command := pPacket.getShort;
+
+  pPacket.seek(7);
+  command := pPacket.getByte;
 
 //  Writeln(Format('seq 0x%4.4x  src 0x%4.4x  cmd 0x%4.4x  dst 0x%4.4x',
 //    [seq, srcid, command, destid]));
@@ -1971,6 +1972,12 @@ end;
 
 procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TDAOCPacket);
 begin
+  if not FActive then begin
+    FActive := true;
+    FCryptKeySet := false;
+    DoOnConnect;
+  end;
+
   if pPacket.Size > FLargestDAOCPacketSeen then
     FLargestDAOCPacketSeen := pPacket.Size;
 
