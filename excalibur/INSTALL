@@ -82,8 +82,8 @@ Under Mandrake 8.1, the libMesa* rpms are called:
   Mesa-common-devel
   
 In addition, if you want to skip building qt 3, grab the qt3 packages from
-ftp://ftp.kde.org/pub/kde/stable/3.0/Mandrake/8.2/RPMS/i586/ or your 
-friendly local kde mirror:
+ftp://ftp.kde.org/pub/kde/stable/3.0.3/Mandrake/8.2/ or your friendly local 
+kde mirror:
 
   libqt3
   libqt3-devel
