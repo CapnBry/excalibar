@@ -5,13 +5,13 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, glWindow, GL, GLU, GLext, DAOCControl, ComCtrls, DAOCObjs,
-  StdCtrls, GLRenderObjects, MapElementList;
+  StdCtrls, GLRenderObjects, MapElementList, Grids, DAOCRegion;
 
 type
   TfrmGLRender = class(TForm)
     glMap: TglWindow;
     slideZoom: TTrackBar;
-    lstMobs: TListBox;
+    grdObjects: TDrawGrid;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -20,20 +20,21 @@ type
     procedure glMapClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure lstMobsDrawItem(Control: TWinControl; Index: Integer;
-      Rect: TRect; State: TOwnerDrawState);
+    procedure grdObjectsDrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure grdObjectsClick(Sender: TObject);
   private
     FDControl: TDAOCControl;
     FRange:     DWORD;
     FGLInitsCalled:     boolean;
-    listTriangle:       GLuint;
     FDirty:   boolean;
     FMapElements:   TVectorMapElementList;
     FMapTextures:   TTextureMapElementList;
     FRangeCircles:  TRangeCircleList;
+    FMobTriangle:     T3DArrowHead;
+    FObjectTriangle:  T3DPyramid;
 
     procedure SetDControl(const Value: TDAOCControl);
-    procedure CreateCallLists;
     procedure Log(const s: string);
     procedure CheckGLError;
     procedure DrawMapRulers;
@@ -44,11 +45,14 @@ type
     procedure DrawMapElements;
     procedure GLInits;
     procedure GLCleanups;
+    procedure GridSelectObject(ADAOCObject: TDAOCObject);
+    procedure DrawPlayerHighlightRing(ADAOCObject: TDAOCObject);
   protected
   public
-    procedure AddDAOCObject(AObj: TDAOCObject);
-    procedure DeleteDAOCObject(AObj: TDAOCObject);
-    procedure UpdateDAOCObject(AObj: TDAOCObject);
+    procedure DAOCAddObject(AObj: TDAOCObject);
+    procedure DAOCDeleteObject(AObj: TDAOCObject);
+    procedure DAOCUpdateObject(AObj: TDAOCObject);
+    procedure DAOCSelectedObjectChanged(AObj: TDAOCObject);
     procedure DAOCRegionChanged;
     procedure DAOCZoneChanged;
 
@@ -64,7 +68,24 @@ implementation
 
 uses DAOCConnection, Unit1;
 
+const
+  COL_NAME = 0;
+  COL_LEVEL = 1;
+  COL_HEALTH = 2;
+
 {$R *.dfm}
+
+function RealmColor(ARealm: TDAOCRealm) : TColor;
+begin
+  case ARealm of
+    drFriend:   Result := clWhite;
+    drAlbion:   Result := clRed;
+    drMidgard:  Result := $efae00;
+    drHibernia: Result := $33cc33;
+    else
+      Result := clFuchsia;
+  end;
+end;
 
 { TfrmGLRender }
 
@@ -128,7 +149,7 @@ end;
 
 procedure TfrmGLRender.glMapInit(Sender: TObject);
 const
-  lightpos: array[0..3] of GLfloat = (-0.5, -0.5, 1.0, 0.0);
+  lightpos: array[0..3] of GLfloat = (-0.5, 0.0, 1.0, 0.0);
   diffuse: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
   ambient: array[0..3] of GLfloat = (0.0, 0.0, 0.0, 1.0);
   material: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
@@ -163,9 +184,7 @@ begin
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  listTriangle := glGenLists(1);
   FGLInitsCalled := false;
-
   CheckGLError;
 end;
 
@@ -186,37 +205,6 @@ begin
   slideZoomChange(Self);
 end;
 
-procedure TfrmGLRender.CreateCallLists;
-var
-  w:  integer;
-  l:  integer;
-begin
-  w := 150;
-  l := w * 2;
-
-  glEdgeFlag(GL_TRUE);
-  glNewList(listTriangle, GL_COMPILE);
-
-  glBegin(GL_TRIANGLE_FAN);
-    glVertex3i(0, 0, w);
-
-    glNormal3f(-(l+w), w, l);
-    glVertex3i(-w, -w, 0);
-    glVertex3i(0, l, 0);
-
-    glNormal3f(l+w, w, l);
-    glVertex3i(w, -w, 0);
-
-    glNormal3f(0, -w, w);
-    glVertex3i(-w, -w, 0);
-  glEnd();
-  glEndList();
-
-  FRangeCircles.GLInitialize;
-  
-  CheckGLError;
-end;
-
 procedure TfrmGLRender.Log(const s: string);
 begin
   frmMain.Log(s);
@@ -235,20 +223,21 @@ procedure TfrmGLRender.DrawMapRulers;
 var
   headrad:  GLfloat;
 begin
+  glDisable(GL_LIGHTING);
+  
     { Draw map rulers }
   glColor3f(0.45, 0.45, 0.45);
   glLineWidth(1.0);
   glBegin(GL_LINES);
-  glVertex3f(-(FRange * 1.5), 0, 0);
-  glVertex3f((FRange * 1.5), 0, 0);
-  glVertex3f(0, -(FRange * 1.5), 0);
-  glVertex3f(0, (FRange * 1.5), 0);
+    glVertex3f(-(FRange * 1.5), 0, 0);
+    glVertex3f((FRange * 1.5), 0, 0);
+    glVertex3f(0, -(FRange * 1.5), 0);
+    glVertex3f(0, (FRange * 1.5), 0);
 
-  headrad := ((FDControl.LocalPlayer.Head - 180) * PI) / 180;
-  glVertex3f(0, 0, 0);
-  glVertex3f(cos(headrad + PI / 2) * (FRange * 1.5),
-    sin(headrad + PI / 2) * (FRange * 1.5), 0);
-
+    headrad := ((FDControl.LocalPlayer.Head - 180) * PI) / 180;
+    glVertex3f(0, 0, 0);
+    glVertex3f(cos(headrad + PI / 2) * (FRange * 1.5),
+      sin(headrad + PI / 2) * (FRange * 1.5), 0);
   glEnd();
 end;
 
@@ -257,11 +246,12 @@ begin
   glEnable(GL_LIGHTING);
   glColor3f(1, 1, 0);
   glRotatef(FDControl.LocalPlayer.Head - 180, 0, 0, 1);
-  glCallList(listTriangle);
+  FMobTriangle.GLRender;
 end;
 
 procedure TfrmGLRender.DrawRangeCircles;
 begin
+  glDisable(GL_LIGHTING);
   FRangeCircles.GLRender;
 end;
 
@@ -273,26 +263,21 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.AddDAOCObject(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCAddObject(AObj: TDAOCObject);
 begin
-  lstMobs.Items.AddObject(Format('%s (%d)', [AObj.Name, AObj.Level]), AObj);
+  grdObjects.RowCount := FDControl.DAOCObjects.Count + 1;
   Dirty;
 end;
 
-procedure TfrmGLRender.DeleteDAOCObject(AObj: TDAOCObject);
-var
-  iIdx:   integer;
+procedure TfrmGLRender.DAOCDeleteObject(AObj: TDAOCObject);
 begin
-  for iIdx := 0 to lstMobs.Items.Count - 1 do
-    if lstMobs.Items.Objects[iIdx] = AObj then begin
-      lstMobs.Items.Delete(iIdx);
-      Dirty;
-      exit;
-    end;
+  grdObjects.RowCount := FDControl.DAOCObjects.Count + 1;
+  Dirty;
 end;
 
-procedure TfrmGLRender.UpdateDAOCObject(AObj: TDAOCObject);
+procedure TfrmGLRender.DAOCUpdateObject(AObj: TDAOCObject);
 begin
+  grdObjects.Invalidate;
   Dirty;
 end;
 
@@ -317,10 +302,9 @@ begin
     @x, @y, @z);
 
   pNearest := FDControl.DAOCObjects.FindNearest(trunc(x), trunc(y), FDControl.LocalPlayer.Z);
-  if Assigned(pNearest) then begin
+  if Assigned(pNearest) then
+      { callback will update screen }
     FDControl.SelectedObject := pNearest;
-    Dirty;
-  end;
 end;
 
 procedure TfrmGLRender.DrawLineToSelected;
@@ -329,6 +313,8 @@ var
 begin
   pSelected := FDControl.SelectedObject;
   if Assigned(pSelected) then begin
+    glDisable(GL_LIGHTING);
+
     glColor3f(1.0, 1.0, 1.0);
     glLineWidth(2.0);
     glBegin(GL_LINES);
@@ -352,11 +338,32 @@ begin
       glTranslatef(pMob.X, pMob.Y, 0);
       glRotatef(pMob.Head - 180, 0, 0, 1);
 
+      if pMob.ObjectClass = ocPlayer then
+        DrawPlayerHighlightRing(pMob);
+
       clMob := pMob.GetConColor(FDControl.LocalPlayer.Level);
       if pMob.Stealthed then
         clMob := clGreen;
       glColor3ubv(PGLubyte(@clMob));
-      glCallList(listTriangle);
+      FMobTriangle.GLRender;
+
+      glPopMatrix();
+
+        { if the mob is on the move, draw a line to its destination }
+      if (pMob.DestinationX <> 0) and (pMob.DestinationY <> 0) then begin
+        glLineWidth(2.0);
+        glColor4f(1, 0, 0, 0.8);
+        glBegin(GL_LINES);
+          glVertex3f(pMob.X, pMob.Y, 0);
+          glVertex3f(pMob.DestinationX, pMob.DestinationY, 0);
+        glEnd();
+      end;  { if destinaton set }
+    end;  { if a class to draw }
+
+    if pMob.ObjectClass = ocObject then begin
+      glPushMatrix();
+      glTranslatef(pMob.X, pMob.Y, 0);
+      FObjectTriangle.GLRender;
       glPopMatrix();
     end;
   end;  { for each object }
@@ -379,11 +386,17 @@ begin
 
   FMapElements := TVectorMapElementList.Create;
   FMapTextures := TTextureMapElementList.Create;
+  FMobTriangle := T3DArrowHead.Create;
+  FObjectTriangle := T3DPyramid.Create;
+
+  grdObjects.DoubleBuffered := true;
 end;
 
 procedure TfrmGLRender.FormDestroy(Sender: TObject);
 begin
   GLCleanups;
+  FMobTriangle.Free;
+  FObjectTriangle.Free;
   FMapElements.Free;
   FMapTextures.Free;
   FRangeCircles.Free;
@@ -391,7 +404,8 @@ end;
 
 procedure TfrmGLRender.GLCleanups;
 begin
-  glDeleteLists(listTriangle, 1);
+  FMobTriangle.GLCleanup;
+  FObjectTriangle.GLCleanup;
   FRangeCircles.GLCleanup;
   FMapElements.GLCleanup;
   FMapTextures.GLCleanup;
@@ -400,7 +414,8 @@ end;
 procedure TfrmGLRender.GLInits;
 begin
   FGLInitsCalled := true;
-  CreateCallLists;
+  FMobTriangle.GLInitialize;
+  FObjectTriangle.GLInitialize;
   FRangeCircles.GLInitialize;
   FMapElements.GLInitialize;
   FMapTextures.GLInitialize;
@@ -454,32 +469,146 @@ begin
   ;
 end;
 
-procedure TfrmGLRender.lstMobsDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+procedure TfrmGLRender.grdObjectsDrawCell(Sender: TObject; ACol,
+  ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
-  pMob: TDAOCObject;
+  pMob:   TDAOCObject;
   cl:     TColor;
   R,G,B:  BYTE;
+  sText:  string;
 begin
-  with lstMobs.Canvas do begin
-    if odSelected in State then
-      Brush.Color := clSkyBlue
-    else
+  if ARow = 0 then
+    with grdObjects.Canvas do begin
       Brush.Color := clBtnFace;
-    lstMobs.Canvas.FillRect(Rect);
+      Font.Color := clBtnText;
 
-    pMob := FDControl.DAOCObjects[Index];
-    if not Assigned(pMob) then
-      exit;
+      FillRect(Rect);
+      case ACol of
+        COL_NAME:   TextOut(Rect.Left + 2, Rect.Top + 1, 'Name');
+        COL_LEVEL:  TextOut(Rect.Left + 2, Rect.Top + 1, 'Level');
+        COL_HEALTH: TextOut(Rect.Left + 2, Rect.Top + 1, 'Health');
+      end;
+    end  { Row 0 / with }
 
-    cl := pMob.GetConColor(FDControl.LocalPlayer.Level);
-    R := GetRValue(cl) shr 1;
-    G := GetGValue(cl) shr 1;
-    B := GetBValue(cl) shr 1;
+  else if ARow <= FDControl.DAOCObjects.Count then
+    with grdObjects.Canvas do begin
+      pMob := FDControl.DAOCObjects[ARow - 1];
 
-    lstMobs.Canvas.Font.Color := RGB(R, G, B);
-    lstMobs.Canvas.TextOut(Rect.Left + 2, Rect.Top + 1, lstMobs.Items[Index]);
-  end;
+        { objects are gray on white }
+      if pMob.ObjectClass = ocObject then begin
+        Font.Color := clGray;
+        Brush.Color := clWhite;
+      end  { object }
+
+        { mobs are con color on white }
+      else if pMob.Realm = drFriend then begin
+        cl := pMob.GetConColor(FDControl.LocalPlayer.Level);
+        R := GetRValue(cl) shr 1;
+        G := GetGValue(cl) shr 1;
+        B := GetBValue(cl) shr 1;
+
+        Font.Color := RGB(R, G, B);
+        Brush.Color := clWhite;
+      end
+
+        { else (should be just players) black on realm color }
+      else begin
+        Font.Color := clBlack;
+        Brush.Color := RealmColor(pMob.Realm)
+      end;
+
+      case ACol of
+        COL_NAME: sText := pMob.Name;
+        COL_LEVEL: sText := IntToStr(pMob.Level);
+        COL_HEALTH:
+          if pMob is TDAOCMovingObject then
+            sText := IntToStr(TDAOCMovingObject(pMob).HitPoints)
+          else
+            sText := '';
+        else
+          sText := 'col' + IntToStr(ACol);
+      end;
+
+      FillRect(Rect);
+      TextOut(Rect.Left + 2, Rect.Top + 2, sText);
+
+      if gdSelected in State then begin
+        Pen.Color := clBlack; // $00ffcc;
+        case ACol of
+          COL_NAME:
+            begin
+              MoveTo(Rect.Right, Rect.Bottom-1);
+              LineTo(Rect.Left, Rect.Bottom-1);
+              LineTo(Rect.Left, Rect.Top);
+              LineTo(Rect.Right, Rect.Top);
+            end;
+          COL_HEALTH:
+            begin
+              MoveTo(Rect.Left, Rect.Bottom-1);
+              LineTo(Rect.Right, Rect.Bottom-1);
+              LineTo(Rect.Right, Rect.Top);
+              LineTo(Rect.Left, Rect.Top);
+            end;
+          else
+            begin
+              MoveTo(Rect.Left, Rect.Bottom-1);
+              LineTo(Rect.Right, Rect.Bottom-1);
+              MoveTo(Rect.Left, Rect.Top);
+              LineTo(Rect.Right, Rect.Top);
+            end;
+        end;
+      end;  { if selected }
+    end  { data row / with }
+
+      { blank row }
+    else begin
+      grdObjects.Canvas.Brush.Color := clWhite;
+      grdObjects.Canvas.FillRect(Rect);
+    end;
+end;
+
+procedure TfrmGLRender.grdObjectsClick(Sender: TObject);
+begin
+  if grdObjects.Row < 1 then
+    exit;
+
+  if grdObjects.Row <= FDControl.DAOCObjects.Count then
+    FDControl.SelectedObject := FDControl.DAOCObjects[grdObjects.Row - 1];
+
+  Dirty;
+end;
+
+procedure TfrmGLRender.GridSelectObject(ADAOCObject: TDAOCObject);
+var
+  I:    integer;
+begin
+  for I := 0 to FDControl.DAOCObjects.Count - 1 do
+    if FDControl.DAOCObjects[I] = ADAOCObject then
+      if (I + 1) < grdObjects.RowCount then begin
+        grdObjects.Row := I + 1;
+        exit;
+      end;
+end;
+
+procedure TfrmGLRender.DAOCSelectedObjectChanged(AObj: TDAOCObject);
+begin
+  GridSelectObject(AObj);
+  Dirty;
+end;
+
+procedure TfrmGLRender.DrawPlayerHighlightRing(ADAOCObject: TDAOCObject);
+var
+  fSize:  GLfloat;
+begin
+  fSize :=  FMobTriangle.Size * 1.33;
+  SetGLColorFromTColor(RealmColor(ADAOCObject.Realm), 1);
+
+  glBegin(GL_TRIANGLES);
+    glNormal3f(0, 0, 1);
+    glVertex3f(-fSize, -fSize, 0);
+    glVertex3F(0, 2 * fSize, 0);
+    glVertex3f(fSize, -fSize, 0);
+  glEnd();
 end;
 
 end.

@@ -18,9 +18,9 @@ object frmGLRender: TfrmGLRender
   PixelsPerInch = 96
   TextHeight = 13
   object glMap: TglWindow
-    Left = 149
+    Left = 221
     Top = 0
-    Width = 686
+    Width = 614
     Height = 592
     Align = alClient
     OnClick = glMapClick
@@ -54,18 +54,24 @@ object frmGLRender: TfrmGLRender
     TickStyle = tsNone
     OnChange = slideZoomChange
   end
-  object lstMobs: TListBox
+  object grdObjects: TDrawGrid
     Left = 0
     Top = 0
-    Width = 149
+    Width = 221
     Height = 592
-    Style = lbOwnerDrawFixed
     Align = alLeft
-    Color = clBtnFace
-    Ctl3D = False
-    ItemHeight = 14
-    ParentCtl3D = False
+    ColCount = 3
+    DefaultRowHeight = 17
+    DefaultDrawing = False
+    FixedCols = 0
+    RowCount = 2
+    Options = [goFixedVertLine, goRowSelect, goThumbTracking]
     TabOrder = 2
-    OnDrawItem = lstMobsDrawItem
+    OnClick = grdObjectsClick
+    OnDrawCell = grdObjectsDrawCell
+    ColWidths = (
+      145
+      33
+      37)
   end
 end
