@@ -314,30 +314,36 @@ void exConnection::processPacket(exPacket * p)
               playerhead = (p->getShort()) & 0xfff;
               player_last_update = exTick;
 
-	      mi = ex->Map->getMap();
+              mi = ex->Map->getMap();
+                /* If we have a map, see if it is the right map.  If it is
+                   not, get rid of it */
 	      if (mi && !mi->right(playerzone, playerx, playery)) {
 		  ex->Map->setMap(NULL);
 		  mi = NULL;
-	      }
+              }
+                /* if we don't have a map, load the map */
 	      if (!mi) {
 		  mi = exMapInfo::get(playerzone, playerx, playery);
 		  if (mi) {
 		      ex->Map->setMap(mi);
 		      ex->ListViewMobs->triggerUpdate();
 		  }
-	      }
-              ex->xyzstatus->setText(QString("%1, %2, %3")
-                     .arg((mi) ? playerx - mi->getBaseX() : playerx)
-                     .arg((mi) ? playery - mi->getBaseY() : playery)
-                     .arg(playerz));
+              }
+
+              x = (mi) ? playerx - mi->getBaseX() : playerx;
+              y = (mi) ? playery - mi->getBaseY() : playery;
+              z = playerz;
+
+              ex->xyzstatus->setText(QString("%1, %2, %3").arg(x).arg(y).arg(z));
               ex->Zone->setText((mi) ? mi->getZoneName() : QString("UNKNOWN"));
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();
               if (link && mi)
-                link->send(QString("%1 %2 %3").arg(playerx - mi->getBaseX()).arg(playery - mi->getBaseY()).arg(playerz));
+                link->send(QString("%1 %2 %3").arg(x).arg(y).arg(z));
 	      break;
-	  case 0x12:
+
+          case 0x12:
 	      playerhead = (p->getShort()) & 0xfff;
 	      ex->Map->dirty();
 	      break;
@@ -348,9 +354,9 @@ void exConnection::processPacket(exPacket * p)
 	      }
 	      break;
           default:
-	    if (prefs.dump_unknown_packets)
+	      if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
-	    break;
+	      break;
 	}
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
