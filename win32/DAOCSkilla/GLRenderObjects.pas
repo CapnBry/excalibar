@@ -594,8 +594,9 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  glCompressedTexImage2D(GL_TEXTURE_2D, 0, FDDSChunk.internalFormat,
-    FDDSChunk.Width, FDDSChunk.Height, 0, FDDSChunk.PixelsSize, FDDSChunk.Pixels);
+  if Assigned(glCompressedTexImage2D) then
+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, FDDSChunk.internalFormat,
+      FDDSChunk.Width, FDDSChunk.Height, 0, FDDSChunk.PixelsSize, FDDSChunk.Pixels);
 
   FreeAndNil(FDDSChunk);
 end;
