@@ -251,19 +251,18 @@ void FormExcalibur::atnDumpMobInfo_activated()
     //cout << mobs << flush;
 }
 
-
 void FormExcalibur::atnRenderObjects_toggled( bool ena )
 {
   prefs.render_objects = ena;
   prefs.activate();
 }
-> 
+
 void FormExcalibur::atnRenderDead_toggled( bool ena )
 {
   prefs.render_dead = ena;
   prefs.activate();
 }
-> 
+
 void FormExcalibur::atnCrafting_toggled( bool ena )
 {
   prefs.crafting_alerts = ena;
