@@ -3,7 +3,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   Top = 292
   BorderStyle = bsDialog
   Caption = 'Connection Configuration'
-  ClientHeight = 353
+  ClientHeight = 375
   ClientWidth = 518
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   TextHeight = 13
   object grpSniff: TGroupBox
     Left = 4
-    Top = 4
+    Top = 24
     Width = 509
     Height = 193
     TabOrder = 0
@@ -114,7 +114,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   end
   object grpRecv: TGroupBox
     Left = 4
-    Top = 200
+    Top = 220
     Width = 509
     Height = 65
     Caption = '  Receive packets from another machine  '
@@ -156,7 +156,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   end
   object btnOK: TBitBtn
     Left = 436
-    Top = 324
+    Top = 344
     Width = 75
     Height = 25
     Caption = '&OK'
@@ -165,7 +165,7 @@ object frmConnectionConfig: TfrmConnectionConfig
   end
   object GroupBox1: TGroupBox
     Left = 4
-    Top = 268
+    Top = 288
     Width = 509
     Height = 40
     Caption = '  Server subnet mask  '
@@ -213,10 +213,19 @@ object frmConnectionConfig: TfrmConnectionConfig
   end
   object chkRemoteAdmin: TCheckBox
     Left = 12
-    Top = 316
+    Top = 336
     Width = 241
     Height = 17
     Caption = 'Enable remote control telnet server'
     TabOrder = 4
+  end
+  object chkEnableInject: TCheckBox
+    Left = 16
+    Top = 2
+    Width = 313
+    Height = 17
+    Caption = 'Read packets directly from DAoC process'
+    TabOrder = 5
+    OnClick = chkEnableInjectClick
   end
 end

@@ -33,12 +33,14 @@ type
     rbnCustomServers: TRadioButton;
     edtServerSubnet: TEdit;
     chkRemoteAdmin: TCheckBox;
+    chkEnableInject: TCheckBox;
     procedure lstAdaptersDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure edtLocalPortKeyPress(Sender: TObject; var Key: Char);
     procedure chkSniffPacketsClick(Sender: TObject);
     procedure rbnCustomServersClick(Sender: TObject);
     procedure edtServerSubnetKeyPress(Sender: TObject; var Key: Char);
+    procedure chkEnableInjectClick(Sender: TObject);
   private
     function GetAdapterName: string;
     function GetLocalCollectorPort: integer;
@@ -58,18 +60,21 @@ type
     procedure SetCustomServerSubnet(const Value: string);
     function GetRemoteAdminEnabled: boolean;
     procedure SetRemoteAdminEnabled(const Value: boolean);
+    function GetInjectClientProcess: boolean;
+    procedure SetInjectClientProcess(const Value: boolean);
   public
     procedure AssignAdapterList(ASrc: TStrings);
 
-    property SniffPackets: boolean read GetSniffPackets write SetSniffPackets;
     property AdapterName: string read GetAdapterName write SetAdapterName;
-    property PromiscuousCapture: boolean read GetPromiscuousCapture write SetPromiscuousCapture;
-    property RemoteCollector: string read GetRemoteCollector write SetRemoteCollector;
+    property CustomServerSubnet: string read GetCustomServerSubnet write SetCustomServerSubnet;
+    property InjectClientProcess: boolean read GetInjectClientProcess write SetInjectClientProcess; 
     property LocalCollectorPort: integer read GetLocalCollectorPort write SetLocalCollectorPort;
     property ProcessLocally: boolean read GetProcessLocally write SetProcessLocally;
+    property PromiscuousCapture: boolean read GetPromiscuousCapture write SetPromiscuousCapture;
+    property RemoteAdminEnabled: boolean read GetRemoteAdminEnabled write SetRemoteAdminEnabled;
+    property RemoteCollector: string read GetRemoteCollector write SetRemoteCollector;
     property ServerSubnet: TServerSubnet read GetServerSubnet write SetServerSubnet;
-    property CustomServerSubnet: string read GetCustomServerSubnet write SetCustomServerSubnet;
-    property RemoteAdminEnabled: boolean read GetRemoteAdminEnabled write SetRemoteAdminEnabled; 
+    property SniffPackets: boolean read GetSniffPackets write SetSniffPackets;
   end;
 
 var
@@ -256,6 +261,22 @@ end;
 procedure TfrmConnectionConfig.SetRemoteAdminEnabled(const Value: boolean);
 begin
   chkRemoteAdmin.Checked := Value;
+end;
+
+procedure TfrmConnectionConfig.chkEnableInjectClick(Sender: TObject);
+begin
+  if chkEnableInject.Checked and chkSniffPackets.Checked then
+    chkSniffPackets.Checked := false;
+end;
+
+function TfrmConnectionConfig.GetInjectClientProcess: boolean;
+begin
+  Result := chkEnableInject.Checked;
+end;
+
+procedure TfrmConnectionConfig.SetInjectClientProcess(const Value: boolean);
+begin
+  chkEnableInject.Checked := Value;
 end;
 
 end.
