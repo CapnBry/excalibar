@@ -56,7 +56,6 @@ type
   TDAOCConnection = class(TObject)
 {$ENDIF}
   private
-
     FClientAddr: DWORD;
     FServerAddr: DWORD;
     FUDPServerAddr: DWORD;
@@ -108,9 +107,12 @@ type
     FOnCombatStyleFailure: TNotifyEvent;
     FOnCombatStyleSuccess: TStringEvent;
     FOnVersionNumsSet: TVersionEvent;
+    FOnRegionChanged: TNotifyEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
+    procedure SetClientIP(const Value: string);
+    procedure SetServerIP(const Value: string);
     procedure ClearCallbackList;
     procedure CheckScheduledTimeoutCallback;
     function GetCryptKey: string;
@@ -172,6 +174,8 @@ type
     procedure ParseCharacterStealthed(pPacket: TDAOCPacket);
     procedure ParseCharacterActivationRequest(pPacket: TDAOCPacket);
     procedure ParseServerProcotolInit(pPacket: TDAOCPacket);
+    procedure ParseRequestPlayerByPlayerID(pPacket: TDAOCPacket);
+    procedure ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TDAOCPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TDAOCPacket);
@@ -233,9 +237,9 @@ type
 
     property Active: boolean read FActive;
     property ClientAddr: DWORD read FClientAddr;
-    property ClientIP: string read GetClientIP;
+    property ClientIP: string read GetClientIP write SetClientIP;
     property ServerAddr: DWORD read FServerAddr;
-    property ServerIP: string read GetServerIP;
+    property ServerIP: string read GetServerIP write SetServerIP;
     property UDPServerAddr: DWORD read FUDPServerAddr;
     property UDPServerIP: string read GetUDPServerIP;
 
@@ -271,6 +275,7 @@ type
     property OnNewDAOCObject: TDAOCObjectNotify read FOnNewDAOCObject write FOnNewDAOCObject;
     property OnDeleteDAOCObject: TDAOCObjectNotify read FOnDeleteDAOCObject write FOnDeleteDAOCObject;
     property OnDAOCObjectMoved: TDAOCObjectNotify read FOnDAOCObjectMoved write FOnDAOCObjectMoved;
+    property OnRegionChanged: TNotifyEvent read FOnRegionChanged write FOnRegionChanged;
     property OnSelectedObjectChange: TDAOCObjectNotify read FOnSelectedObjectChange write FOnSelectedObjectChange;
     property OnSetGroundTarget: TNotifyEvent read FOnSetGroundTarget write FOnSetGroundTarget;
     property OnTradeSkillSuccess: TIntegerEvent read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
@@ -364,7 +369,7 @@ begin
   FChatParser := TDAOCChatParser.Create;
   HookChatParseCallbacks;
 
-  SetMaxObjectDistance(7500);
+  SetMaxObjectDistance(7000);
 end;
 
 destructor TDAOCConnection.Destroy;
@@ -533,8 +538,8 @@ begin
     pTmpItem.Quality := pPacket.getByte;
     pTmpItem.Bonus := pPacket.getByte;
     pPacket.seek(1);
-    pTmpItem.Icon := pPacket.getByte;
-    pPacket.seek(1);
+    pTmpItem.ItemIDMajor := pPacket.getByte;
+    pTmpItem.ItemIDMinor := pPacket.getByte;
     pTmpItem.Color := pPacket.getByte;
     pPacket.seek(2);
     pTmpItem.Description := pPacket.getPascalString;
@@ -662,8 +667,10 @@ begin
     $01:  ParseLocalPosUpdateFromClient(pPacket);
     $07:  ParseCommandFromClient(pPacket);
     $12:  ParseLocalHeadUpdateFromClient(pPacket);
+    $16:  ParseRequestObjectByInfoID(pPacket);
     $18:  ParseSelectedIDUpdate(pPacket);
     $44:  ParseSetGroundTarget(pPacket);
+    $7d:  ParseRequestPlayerByPlayerID(pPacket);
     $b8:  ParseCharacterActivationRequest(pPacket);
     $d0:  ParseRequestBuyItem(pPacket);
   end;
@@ -783,6 +790,9 @@ begin
 
   FMasterVendorList.Clear;
   ClearDAOCObjectList;
+
+  if Assigned(FOnRegionChanged) then
+    FOnRegionChanged(Self);
   // Log('Player region changed to ' + IntToStr(FRegionID));
 end;
 
@@ -878,12 +888,18 @@ begin
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
 
-  if not Assigned(pDAOCObject) then begin
-    pDAOCObject := TDAOCUnknownMovingObject.Create;
-    pDAOCObject.InfoID := wID;
+  if not Assigned(pDAOCObject) then
+    exit;
+(* This is removed because when the client gets this message it
+   will request the NewObject message via a RequetPlayerByPlayerID.
+   Since we don't know the infoid, we can't do anything until then anyway
+   so just wait for the NewObject
+    pDAOCObject := TDAOCPlayer.Create;
+    pDAOCObject.InfoID := 0;
     pDAOCObject.PlayerID := wID;
     FDAOCObjs.AddOrReplace(pDAOCObject);
   end;
+*)
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then
     with TDAOCMovingObject(pDAOCObject) do begin
@@ -916,6 +932,7 @@ var
   iZoneBase:  integer;
   pZoneBase:  TDAOCZoneInfo;
   V162OrGreater:  boolean;
+  bAddedObject:   boolean;
   procedure SetZoneBase;
   begin
     if Assigned(pZoneBase) and (pZoneBase.ZoneNum = iZoneBase) then
@@ -937,12 +954,19 @@ begin
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByInfoID(wID);
 
+    { here we can add the object, even though we don't know what it is.
+      The client will request the object via RequestObjectByInfoID
+      and we'll just replace this object with the real mob.  Make sure
+      we fire the event for the add though! }
   if not Assigned(pDAOCObject) then begin
     pDAOCObject := TDAOCUnknownMovingObject.Create;
     pDAOCObject.InfoID := wID;
     pDAOCObject.PlayerID := wID;
     FDAOCObjs.AddOrReplace(pDAOCObject);
-  end;
+    bAddedObject := true;
+  end
+  else
+    bAddedObject := false;
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then begin
     pPacket.seek(-(iIDOffset + 2));
@@ -993,28 +1017,39 @@ begin
       end;
     end;  { with TDAOCMovingObject(pDAOCObject) }
 
-    DoOnDAOCObjectMoved(pDAOCObject);
+    if bAddedObject then
+      DoOnNewDAOCObject(pDAOCObject)
+    else
+      DoOnDAOCObjectMoved(pDAOCObject);
   end  { if Assigned pDAOCObject }
-  else
-    Log('MobUpdate: Can not find MOB by InfoID 0x' + IntToHex(wID, 4));
+
+  else begin
+    pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
+    if Assigned(pDAOCObject) then
+      Log('MobUpdate: MOB by InfoID 0x' + IntToHex(wID, 4) + ' is in playerid list, not infoid list.  Type: ' + DAOCObjectClassToStr(pDAOCObject.ObjectClass))
+    else
+      Log('MobUpdate: Can not find MOB by InfoID 0x' + IntToHex(wID, 4));
+  end;
 end;
 
 procedure TDAOCConnection.ParsePlayerHeadUpdate(pPacket: TDAOCPacket);
 var
   wID:    WORD;
-  hp:     byte;
   pDAOCObject:  TDAOCObject;
 begin
   pPacket.HandlerName := 'PlayerHeadUpdate';
   wID := pPacket.getShort;
   pDAOCObject := FDAOCObjs.FindByPlayerID(wID);
 
-  if not Assigned(pDAOCObject) then begin
-    pDAOCObject := TDAOCUnknownMovingObject.Create;
-    pDAOCObject.InfoID := wID;
+  if not Assigned(pDAOCObject) then
+    exit;
+(* See PlayerPosUpdate for reason I don't do this
+    pDAOCObject := TDAOCPlayer.Create;
+    pDAOCObject.InfoID := 0;
     pDAOCObject.PlayerID := wID;
     FDAOCObjs.AddOrReplace(pDAOCObject);
   end;
+*)
 
   if Assigned(pDAOCObject) and (pDAOCObject is TDAOCMovingObject) then
     with TDAOCMovingObject(pDAOCObject) do begin
@@ -1022,11 +1057,7 @@ begin
       pPacket.seek(1);
       pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
       pPacket.seek(2);
-      hp := pPacket.getByte;
-      if hp <= 100 then
-        HitPoints := hp
-      else
-        Log('Hitpoints set to ' + IntToHex(hp, 2));
+      HitPoints := pPacket.getByte;
 
       DoOnDAOCObjectMoved(pDAOCObject);
     end  { if obj found / With }
@@ -1161,28 +1192,57 @@ begin
 end;
 
 procedure TDAOCConnection.ParseObjectEquipment(pPacket: TDAOCPacket);
-//var
-//  ID:   integer;
-//  iCnt: integer;
-//  bSlot:  BYTE;
+var
+  ID:   integer;
+  iCnt: integer;
+  bSlot:    byte;
+  obj_major:   byte;
+  obj_minor:  byte;
+  obj_color:  byte;
+  tmpInvItem: TDAOCInventoryItem;
+  pMob:   TDAOCObject;
 begin
   pPacket.HandlerName := 'ObjectEquipment';
-//  ID := pPacket.getShort;
-//  pPacket.seek(2);  // FF FF?  speed?
-//  iCnt := pPacket.getByte;
+  ID := pPacket.getShort;
+  pMob := FDAOCObjs.FindByInfoID(ID);
+  if not Assigned(pMob) or not (pMob is TDAOCMovingObject) then
+    exit;
+  pPacket.seek(2);  // FF FF?  bitfield 2 bits each or ff
+  iCnt := pPacket.getByte;
 
-(**
-16 40 E9 10
-17 40 EA 10
-19 40 E6 10
-1B 40 E7 10
-1C 40 E8 10
-**)
-//  while (iCnt > 0) and not pPacket.EOF do begin
-//    bSlot := pPacket.getByte;
-//    pPacket.seek(3);
-//    dec(iCnt);
-//  end;  { while cnt and !EOF }
+  while (iCnt > 0) and not pPacket.EOF do begin
+    obj_major := 0;
+    obj_minor := 0;
+    obj_color := 0;
+    bSlot := pPacket.getByte;
+
+    case bSlot of
+      $0a..$0d,  // L, R, 2h, Ranged, Thrown
+      $15..$17,  // head, hands, feet
+      $19..$1c:  // chest, cloak, legs, sleeves
+        begin
+          obj_major := pPacket.getByte;    // which object list the index is for
+          obj_minor := pPacket.getByte;   // index in the object list
+          if (obj_major and $40) <> 0 then
+            obj_color := pPacket.getByte;
+          if (obj_major and $20) <> 0 then
+            pPacket.getShort;  // particle effect?
+          if (obj_major and $80) <> 0 then
+            pPacket.getShort;  // guild emblem?
+        end;  { if in a real slot }
+    end;  { case bSlot }
+
+    tmpInvItem := TDAOCInventoryItem.Create;
+    tmpInvItem.Slot := bSlot;
+    tmpInvItem.ItemIDMajor := obj_major and $0f;
+    tmpInvItem.ItemIDMinor := obj_minor;
+    tmpInvItem.Color := obj_color;
+    TDAOCMovingObject(pMob).Inventory.TakeItem(tmpInvItem);
+
+    dec(iCnt);
+  end;  { while cnt and !EOF }
+
+  TDAOCMovingObject(pMob).InventoryChanged;
 end;
 
 procedure TDAOCConnection.ParseMoneyUpdate(pPacket: TDAOCPacket);
@@ -1832,6 +1892,28 @@ end;
 procedure TDAOCConnection.ParseServerProcotolInit(pPacket: TDAOCPacket);
 begin
   FServerProtocol := pPacket.GetByte;
+end;
+
+procedure TDAOCConnection.SetClientIP(const Value: string);
+begin
+  FClientAddr := inet_addr(PChar(Value));
+end;
+
+procedure TDAOCConnection.SetServerIP(const Value: string);
+begin
+  FServerAddr := inet_addr(PChar(Value));
+end;
+
+procedure TDAOCConnection.ParseRequestPlayerByPlayerID(
+  pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'RequestPlayerByPlayerID';
+  // pPacket.getShort;  // PlayerID
+end;
+
+procedure TDAOCConnection.ParseRequestObjectByInfoID(pPacket: TDAOCPacket);
+begin
+  pPacket.HandlerName := 'RequestObjectByInfoID';
 end;
 
 end.
