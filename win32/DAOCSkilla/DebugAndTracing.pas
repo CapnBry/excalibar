@@ -201,11 +201,15 @@ end;
 
 procedure TfrmDebugging.CheckWriteAllMobseen;
 var
-  I:  integer;
+  pObj:   TDAOCObject;
 begin
-  if Assigned(FDControl) then
-    for I := 0 to FDControl.DAOCObjects.Count - 1 do
-      CheckWriteMobseen(FDControl.DAOCObjects[I]);
+  if Assigned(FDControl) then begin
+    pObj := FDControl.DAOCObjects.Head;
+    while Assigned(pObj) do begin
+      CheckWriteMobseen(pObj);
+      pObj := pObj.Next;
+    end;
+  end;
 end;
 
 procedure TfrmDebugging.CheckWriteMobseen(ADAOCObject: TDAOCObject);
@@ -256,10 +260,13 @@ end;
 
 procedure TfrmDebugging.btnDumpMobsClick(Sender: TObject);
 var
-  I:    integer;
+  pObj:   TDAOCObject;
 begin
-  for I := 0 to FDControl.DAOCObjects.Count - 1 do
-    Log(FDControl.DAOCObjects[I].AsString);
+  pObj := FDControl.DAOCObjects.Head;
+  while Assigned(pObj) do begin
+    Log(pObj.AsString);
+    pObj := pObj.Next;
+  end;
 end;
 
 end.

@@ -1002,12 +1002,15 @@ end;
 
 procedure TfrmGLRender.RefreshFilteredList;
 var
-  I:    integer;
+  pObj:   TDAOCObject;
 begin
   FFilteredObjects.Clear;
-  for I := 0 to FDControl.DAOCObjects.Count - 1 do
-    if FRenderPrefs.IsObjectInFilter(FDControl.DAOCObjects[I]) then
-      FilteredObjectInsert(FDControl.DAOCObjects[I]);
+  pObj := FDControl.DAOCObjects.Head;
+  while Assigned(pObj) do begin
+    if FRenderPrefs.IsObjectInFilter(pObj) then
+      FilteredObjectInsert(pObj);
+    pObj := pObj.Next;
+  end;
 
   UpdateObjectCounts;
   SetObjectListRowCount(FFilteredObjects.Count);
