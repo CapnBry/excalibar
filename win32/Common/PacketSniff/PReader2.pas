@@ -235,11 +235,11 @@ begin
   if caplen <> datalen then
     exit;
 
-  if datalen < sizeof(TIPHeader) then
+  if datalen < sizeof(TEthernetHeader) then
     exit;
 
-  if not (PIPHeader(pData)^.Protocol in [SOL_TCP, SOL_UDP]) then
-    exit;
+  //if not (PIPHeader(pData)^.Protocol in [SOL_TCP, SOL_UDP]) then
+  //  exit;
 
   pSegment := TEthernetSegment.CreateFor(pData, datalen);
   FSegmentList.Add(pSegment);
