@@ -323,7 +323,7 @@ Hibs: 0  Mobs: 0</string>
                             </property>
                         </widget>
                         <spacer>
-                            <property name="name" stdset="0">
+                            <property name="name">
                                 <cstring>Spacer1</cstring>
                             </property>
                             <property name="orientation">
@@ -436,6 +436,7 @@ Hibs: 0  Mobs: 0</string>
         <action name="MapAdjacentZones"/>
         <action name="MapPNGs"/>
         <action name="GLRulers"/>
+        <action name="atnRenderObjects"/>
         <separator/>
         <action name="MapReload"/>
         <action name="MapRecache"/>
@@ -787,6 +788,23 @@ Hibs: 0  Mobs: 0</string>
             <string>Dump MobInfo</string>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>atnRenderObjects</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Render Objects</string>
+        </property>
+        <property name="accel">
+            <number>79</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -914,6 +932,12 @@ Hibs: 0  Mobs: 0</string>
         <receiver>FormExcalibur</receiver>
         <slot>atnDumpMobInfo_activated()</slot>
     </connection>
+    <connection>
+        <sender>atnRenderObjects</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>atnRenderObjects_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -944,6 +968,7 @@ Hibs: 0  Mobs: 0</string>
     <slot>GroupItems_toggled( bool ena )</slot>
     <slot>MaxFPS_toggled( bool ena )</slot>
     <slot>atnDumpMobInfo_activated()</slot>
+    <slot>atnRenderObjects_toggled( bool ena )</slot>
 </slots>
 <layoutdefaults spacing="2" margin="0"/>
 </UI>

@@ -432,7 +432,8 @@ void exMap::paintGL() {
     m=mobi.current();
     m->checkStale();
 
-    if (m->isCurrent() && m->insideRect(bounds)) {
+    if (m->isCurrent() && m->insideRect(bounds) &&
+       (!m->isObj() || prefs.render_objects)) {
       glPushMatrix();
       glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0);  // m->getZ()
       objRotate(m->getHead());
@@ -459,7 +460,7 @@ void exMap::paintGL() {
         glCallList(listCircle);
       } // if is player
 
-      if (m->isObj())  {
+      if (m->isObj()) {
         setGLColor(1.0,1.0,1.0, m->getZ());
         glCallList(listSquares);
       } else {

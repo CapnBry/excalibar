@@ -84,6 +84,7 @@ public:
   int map_objsize;
   bool exclude_local;
   bool vader_warn;
+  bool render_objects;
 
   int win_width;
   int win_height;

@@ -74,6 +74,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->MapAdjacentZones->setOn(map_load_adjacent_zones);
     frm->MapPlayerNames->setOn(map_rasterize_player_names);
     frm->MapMerchantTypes->setOn(map_rasterize_merchant_types);
+    frm->atnRenderObjects->setOn(render_objects);
   }
   frm->Map->setObjectSize(map_objsize);
   frm->ListViewMobs->sort();
@@ -268,6 +269,7 @@ void exPrefs::loadSettings() {
 
   maxfps=s.readBoolEntry("/Excalibur/MaxFPS", FALSE);
   exclude_local=s.readBoolEntry("/Excalibur/ExcludeLocal", FALSE);
+  render_objects=s.readBoolEntry("/Excalibur/RenderObjects", TRUE);
 }
 
 void exPrefs::saveSettings() {
@@ -323,6 +325,7 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/MaxFPS", maxfps);
   s.writeEntry("/Excalibur/MapObjSize", map_objsize);
   s.writeEntry("/Excalibur/ExcludeLocal", exclude_local);
+  s.writeEntry("/Excalibur/RenderObjects", render_objects);
 }
 
 void exPrefs::addWindow(FormExcalibur *frm) {

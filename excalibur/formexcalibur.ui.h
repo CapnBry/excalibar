@@ -250,3 +250,10 @@ void FormExcalibur::atnDumpMobInfo_activated()
     cout << flush;
     //cout << mobs << flush;
 }
+
+
+void FormExcalibur::atnRenderObjects_toggled( bool ena )
+{
+  prefs.render_objects = ena;
+  prefs.activate();
+}
