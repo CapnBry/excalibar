@@ -291,10 +291,10 @@ void exMap::resizeGL(int w, int h) {
      If you have a better idea, by all means, let me know!!! - Andon */
 
  
-  GLint minx = (c->playerProjectedX - range + edit_xofs);
-  GLint maxx = (c->playerProjectedX + range + edit_xofs);
-  GLint miny = (c->playerProjectedY - range + edit_yofs);
-  GLint maxy = (c->playerProjectedY + range + edit_yofs);
+  GLint minx = (c->playerx - range + edit_xofs);
+  GLint maxx = (c->playerx + range + edit_xofs);
+  GLint miny = (c->playery - range + edit_yofs);
+  GLint maxy = (c->playery + range + edit_yofs);
 
   GLdouble AspectRatio = (GLdouble)((maxx - minx) / (maxy - miny));
 
