@@ -62,6 +62,7 @@ void exPrefs::activate(FormExcalibur *frm, bool initial) {
     frm->GLRulers->setOn(map_rulers);
     frm->AutoSelectTarget->setOn(select_target);
     frm->GroupPlayers->setOn(sort_group_players);
+    frm->GroupItems->setOn(sort_group_items);
     frm->GLMapFade->setOn(map_fade);
     frm->MapSlider->setValue(map_range);
     frm->SortDistance->setOn(sort_distance);

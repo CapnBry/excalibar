@@ -65,7 +65,7 @@
             <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>134</width>
+                <width>146</width>
                 <height>104</height>
             </rect>
         </property>
@@ -282,6 +282,7 @@
     <item text="Settings" name="PopupMenu_2">
         <action name="AutoSelectTarget"/>
         <action name="GroupPlayers"/>
+        <action name="GroupItems"/>
         <action name="SortDistance"/>
         <separator/>
         <action name="vaderWarn"/>
@@ -620,6 +621,23 @@
             <number>77</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>GroupItems</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Group Items</string>
+        </property>
+        <property name="accel">
+            <number>73</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -735,34 +753,41 @@
         <receiver>FormExcalibur</receiver>
         <slot>MapPlayerNames_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>GroupItems</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>GroupItems_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
 </includes>
 <slots>
-    <slot>resizeEvent(QResizeEvent * e)</slot>
-    <slot>showEvent(QShowEvent * e)</slot>
+    <slot>resizeEvent( QResizeEvent * e )</slot>
+    <slot>showEvent( QShowEvent * e )</slot>
     <slot>init()</slot>
     <slot>destroy()</slot>
     <slot>ReloadMaps_activated()</slot>
-    <slot>MapSlider_valueChanged(int range)</slot>
-    <slot>GroupPlayers_toggled(bool ena)</slot>
-    <slot>GLObjectSizes_selected(QAction * act)</slot>
-    <slot>SortDistance_toggled(bool ena)</slot>
+    <slot>MapSlider_valueChanged( int range )</slot>
+    <slot>GroupPlayers_toggled( bool ena )</slot>
+    <slot>GLObjectSizes_selected( QAction * act )</slot>
+    <slot>SortDistance_toggled( bool ena )</slot>
     <slot>Preferences_activated()</slot>
-    <slot>GLRulers_toggled(bool ena)</slot>
+    <slot>GLRulers_toggled( bool ena )</slot>
     <slot>ItemUpload_activated()</slot>
-    <slot>GLMapFade_toggled(bool ena)</slot>
+    <slot>GLMapFade_toggled( bool ena )</slot>
     <slot>ProfileExit_activated()</slot>
-    <slot>vaderWarn_toggled(bool ena)</slot>
-    <slot>MapPNGs_toggled(bool ena)</slot>
-    <slot>MapAdjacentZones_toggled(bool ena)</slot>
-    <slot>MapPlayerNames_toggled(bool ena)</slot>
-    <slot>MapMerchatTypes_toggled(bool ena)</slot>
-    <slot>MapRecache_activated(void)</slot>
+    <slot>vaderWarn_toggled( bool ena )</slot>
+    <slot>MapPNGs_toggled( bool ena )</slot>
+    <slot>MapAdjacentZones_toggled( bool ena )</slot>
+    <slot>MapPlayerNames_toggled( bool ena )</slot>
+    <slot>MapMerchatTypes_toggled( bool ena )</slot>
+    <slot>MapRecache_activated( void )</slot>
     <slot>MobFilter_returnPressed()</slot>
     <slot>showMsgs()</slot>
     <slot>MapCancel_pressed()</slot>
+    <slot>GroupItems_toggled( bool )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

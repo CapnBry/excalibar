@@ -231,3 +231,9 @@ void FormExcalibur::MapCancel_pressed()
 
   Map->c->cancelMap();
 }
+
+void FormExcalibur::GroupItems_toggled( bool ena )
+{
+  prefs.sort_group_items=ena;
+  prefs.activate();
+}
