@@ -4,6 +4,11 @@ Changes:
   + Made the mob filter a member of the connection class so each window can
     have different filters.
 
+Changes (teerex):
+  + Reduced vertex count on MOB / player objects.  Changed shading model
+    to flat.
+  + Range circles now use GLfloats.
+
 Teerex (13/Feb/02)
 -----------------
 
