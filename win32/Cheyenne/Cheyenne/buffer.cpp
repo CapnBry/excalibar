@@ -193,6 +193,9 @@ bool Buffer::Insert(const void* data,const unsigned int length)
     // increment size
     size+=length;
 
+    // set signal
+    signal.signal();
+    
     // done
     return(true);
 } // end Insert
@@ -303,6 +306,12 @@ bool Buffer::Extract(void* data,const unsigned int length)
     // decrement size
     size -= length;
 
+    // reset signal if we are empty
+    if(size==0)
+        {
+        signal.reset();
+        }
+    
     // done
     return(true);
 } // end Extract
@@ -332,6 +341,15 @@ void Buffer::set(const buffer_space::Buffer& s)
     read=s.read;
     size=s.size;
     memcpy(&buf[0],&s.buf[0],sizeof(buf));
+    
+    if(size)
+        {
+        signal.signal();
+        }
+    else
+        {
+        signal.reset();
+        }
 
     // done
     return;

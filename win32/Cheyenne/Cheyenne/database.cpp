@@ -60,7 +60,7 @@ DWORD Database::Run(const bool& bContinue)
     const CheyenneTime MaintenanceInterval(0.250f);
     unsigned int WaitAmount;
 
-    /* fake character for display testing
+    /* fake character for display testing*/
     {
     daocmessages::player_identity* msg=new daocmessages::player_identity;
 
@@ -129,7 +129,7 @@ DWORD Database::Run(const bool& bContinue)
     msg->target_id=3;
     MessageInputFifo->Push(msg);
     }
-    */
+    //*/
         
     while(bContinue)
         {

@@ -59,6 +59,11 @@ public:
             }
     } // end lock
 
+    template<typename WAIT_FUNCTOR> typename WAIT_FUNCTOR::return_type wait(WAIT_FUNCTOR func,unsigned int timeout_ms)
+    {
+        return(func(hEvent,timeout_ms));
+    } // end functor version of wait
+    
     bool signal(void)
     {
         ::SetEvent(hEvent);
@@ -178,7 +183,8 @@ public:
             }
     }
 
-    EventSignal* WaitAny(unsigned int timeout=1000)
+    typedef std::pair<EventSignal*,int> wait_any_result_type;
+    wait_any_result_type WaitAny(unsigned int timeout=1000)
     {
         // build handle array
         HANDLE* events=new HANDLE[signal_list.size()];
@@ -199,7 +205,7 @@ public:
             case WAIT_TIMEOUT:
             case WAIT_FAILED:
                 delete events;
-                return(NULL);
+                return(wait_any_result_type(NULL,-1));
                 break;
 
             default:
@@ -217,12 +223,12 @@ public:
                     delete events;
 
                     }
-                return(GetSignalFromList(the_event));
+                return(GetSignalFromList(the_event,int(result-WAIT_OBJECT_0)));
                 break;
             }
     }
 
-    EventSignal* GetSignalFromList(HANDLE hEvent)
+    wait_any_result_type GetSignalFromList(HANDLE hEvent,int ndx)
     {
         signal_list_iterator it=signal_list.begin();
 
@@ -230,12 +236,12 @@ public:
             {
             if((*it)->hEvent==hEvent)
                 {
-                return(*it);
+                return(wait_any_result_type((*it),ndx));
                 }
             ++it;
             }
         
-        return(NULL);
+        return(wait_any_result_type(NULL,-1));
     }
     void AddSignalToList(EventSignal& s)
     {
@@ -244,7 +250,7 @@ public:
             }
         else
             {
-            signal_list.insert(signal_list.begin(),&s);
+            signal_list.insert(signal_list.end(),&s);
             }
         
         return;

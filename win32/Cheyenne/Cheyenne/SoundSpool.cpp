@@ -46,7 +46,7 @@ DWORD SoundSpool::Run(const bool& bContinue)
 
     while(bContinue)
         {
-        EventSignal* signal=MySignal.WaitAny();
+        EventSignal* signal=MySignal.WaitAny().first;
 
         if(signal != NULL)
             {

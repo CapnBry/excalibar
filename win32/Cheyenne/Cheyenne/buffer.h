@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // for mutex functions
 #include <windows.h>
 #include "locks.h"
+#include "signals.h"
 
 namespace buffer_space
 {
@@ -39,8 +40,20 @@ public:
     Buffer();
     Buffer(const buffer_space::Buffer& s);
     virtual ~Buffer();
+    
+    bool Wait(unsigned int timeout_ms=1000)const
+    {
+        return(signal.wait(timeout_ms));
+    }
+
+    template<typename WAIT_FUNCTOR> typename WAIT_FUNCTOR::return_type Wait(WAIT_FUNCTOR func,unsigned int timeout_ms)const
+    {
+        return(signal.wait(func,timeout_ms));
+    }
 
     unsigned int Size(void)const{return(size);};
+    unsigned int MaxSize(void)const{return(sizeof(buf));};
+    unsigned int AvailableSize(void)const{return(MaxSize()-Size());};
     bool Peek(void* data,const unsigned int length);
     bool Insert(const void* data,const unsigned int length);
     bool Extract(void* data,const unsigned int length);
@@ -50,6 +63,10 @@ public:
     int GetLastError(void)const{return(last_error);};
 
     buffer_space::Buffer& operator=(const buffer_space::Buffer& s);
+    
+    EventSignal CopySignal(void)const{return(EventSignal(signal));};
+    EventSignal* GetSignalPointer(void)const{return(&signal);};
+    EventSignal& GetSignalReference(void)const{return(signal);};
 
 protected:
 
@@ -68,6 +85,9 @@ private:
 
     // lock
     MutexLock l;
+    
+    // signal
+    mutable EventSignal signal;
 
 }; // end class Buffer
 
