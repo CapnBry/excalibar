@@ -6,8 +6,8 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, WinSock,
   DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   Buttons, DAOCSkilla_TLB, DAOCObjs, Dialogs, DAOCPackets, DAOCPlayerAttributes,
-  Recipes, IdTCPServer, IdBaseComponent, IdComponent, IdTCPConnection,
-  IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns
+  DAOCInventory, Recipes, IdTCPServer, IdBaseComponent, IdComponent,
+  IdTCPConnection, IdTCPClient, QuickLaunchChars, IdHTTP, ShellAPI, FrameFns
 {$IFDEF WINPCAP}
   ,PReader2
 {$ENDIF WINPCAP}
@@ -120,6 +120,7 @@ type
     procedure DAOCPingReply(ASender: TObject; ATime: integer);
     procedure DAOCCharacterLogin(ASender: TObject);
     procedure DAOCUnknownStealther(ASender: TObject; AUnk: TDAOCObject);
+    procedure DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
   public
     procedure Log(const s: string);
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -335,6 +336,7 @@ begin
   FConnection.OnPingReply := DAOCPingReply;
   FConnection.OnCharacterLogin := DAOCCharacterLogin;
   FConnection.OnUnknownStealther := DAOCUnknownStealther;
+  FConnection.OnDelveItem := DAOCDelveItem;
 
   Log('Zonelist contains ' + IntToStr(FConnection.ZoneList.Count) + ' zones');
 end;
@@ -1078,6 +1080,11 @@ begin
 {$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCUnknownStealther(AUnk);
 {$ENDIF OPENGL_RENDERER}
+end;
+
+procedure TfrmMain.DAOCDelveItem(ASender: TObject; AItem: TDAOCInventoryItem);
+begin
+  frmDebugging.DAOCDelveItem(ASender, AItem);
 end;
 
 end.
