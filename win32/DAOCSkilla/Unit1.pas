@@ -658,6 +658,8 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  FPReader.Close;
+  
   SaveSettings;
 {$IFDEF OPENGL_RENDERER}
   if frmGLRender.Visible then
