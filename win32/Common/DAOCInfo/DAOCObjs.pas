@@ -48,6 +48,7 @@ type
     FNext:        TDAOCObject;
     FPrev:        TDAOCObject;
     FHitPoints:   BYTE;
+    FHitPointsLast: BYTE;
 
     function HeadRad: double;
     procedure SetName(const Value: string); virtual;
@@ -90,6 +91,7 @@ type
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
     property HitPoints: BYTE read FHitPoints write SetHitPoints;
+    property HitPointsLast: BYTE read FHitPointsLast; 
     property IsAlive: boolean read GetIsAlive;
     property IsDead: boolean read GetIsDead;
     property IsStale: boolean read GetIsStale;
@@ -888,6 +890,7 @@ end;
 
 procedure TDAOCObject.SetHitPoints(const Value: BYTE);
 begin
+  FHitPointsLast := FHitPoints;
   FHitPoints := Value and $7f;  // bit $80 means *something*
 end;
 
