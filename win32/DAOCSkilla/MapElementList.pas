@@ -37,7 +37,7 @@ type
 
   TTextureMapElementList = class(TZoneGLRenderObjectList)
   public
-    procedure LoadFromFile(const AFileName: string);
+    procedure LoadFromSingleDDSFile(const AFileName: string);
     procedure GLRender(const ARenderBounds: TRect); override;
   end;
 
@@ -159,7 +159,7 @@ begin
   glDisable(GL_TEXTURE_2D);
 end;
 
-procedure TTextureMapElementList.LoadFromFile(const AFileName: string);
+procedure TTextureMapElementList.LoadFromSingleDDSFile(const AFileName: string);
 const
   DDS_SPLIT_COUNT = 4;   // divide DDS into 16 parts
 var
@@ -346,7 +346,7 @@ begin
   pTmpZone.ZoneNum := AZone.ZoneNum;
   pTmpZone.OffsetX := AZone.BaseLoc.X;
   pTmpZone.OffsetY := AZone.BaseLoc.Y;
-  pTmpZone.LoadFromFile(Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]));
+  pTmpZone.LoadFromSingleDDSFile(Format('%szone%3.3d.dds', [FTextureMapDir, AZone.ZoneNum]));
 end;
 
 function TTextureMapElementListList.GetItems(I: integer): TTextureMapElementList;
