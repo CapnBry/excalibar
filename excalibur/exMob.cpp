@@ -177,7 +177,9 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
       clr = QColor(0,153,0);
     else if (l <= (c->playerlevel - ldif * 1)) /* blue */
       clr = QColor(0,0,255);
-    else if (l <= c->playerlevel) /* yellow */
+    else if (l <= c->playerlevel) /* orange */
+      clr = QColor(255,208,0);
+    else if (l <= (c->playerlevel + ldif * 1)) /* yellow */
       clr = QColor(255,153,0);
     else if (l <= (c->playerlevel + ldif * 2)) /* red */
       clr = QColor(255,0,0);
