@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <map>
 #include <vector>
+#include <list>
 #include "..\Utils\CodeUtils.h"
 #include "..\Utils\Times.h"
 #include "..\Utils\locks.h"
@@ -28,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "..\Utils\threads.h"
 #include "..\Utils\CheyenneMessages.h"
 #include ".\actor.h"
+#include ".\stealthmask.h"
 
 class DatabaseFunctor
 {
@@ -144,6 +146,32 @@ private:
 
 }; // end class DatabaseStatistics
 
+class UncorrelatedStealthInfo
+{
+public:
+    typedef std::list<std::pair<StealthMask,Motion> > centers_type;
+    typedef centers_type::size_type centers_size_type;
+    typedef centers_type::iterator centers_iterator;
+    typedef centers_type::const_iterator const_centers_iterator;
+    
+    UncorrelatedStealthInfo();
+    UncorrelatedStealthInfo(const UncorrelatedStealthInfo& s);
+    virtual ~UncorrelatedStealthInfo();
+    
+    void Merge(void);
+    
+    UncorrelatedStealthInfo& operator=(const UncorrelatedStealthInfo& s);
+
+protected:
+private:
+    void set(const UncorrelatedStealthInfo& s);
+    DECL_MEMBER(centers_type,Centers);
+    DECL_MEMBER(StealthMask,Mask);
+    DECL_MEMBER(float,AverageX);
+    DECL_MEMBER(float,AverageY);
+    DECL_MEMBER(float,AverageZ);
+}; // end class UncorrelatedStealthInfo
+
 class Database : public Thread
 {
 public:
@@ -156,6 +184,12 @@ public:
     typedef std::map<Database::id_type,Actor>::const_iterator const_actor_iterator;
     typedef std::map<Database::id_type,Actor>::value_type actor_map_value;
     typedef std::pair<actor_iterator,bool> actor_map_insert_result;
+
+    typedef std::map<Database::id_type,UncorrelatedStealthInfo> stealth_type;
+    typedef std::map<Database::id_type,UncorrelatedStealthInfo>::iterator stealth_iterator;
+    typedef std::map<Database::id_type,UncorrelatedStealthInfo>::const_iterator const_stealth_iterator;
+    typedef std::map<Database::id_type,UncorrelatedStealthInfo>::value_type stealth_map_value;
+    typedef std::pair<stealth_iterator,bool> stealth_map_insert_result;
 
     typedef std::map<Database::id_type,Database::id_type>::iterator infoid_iterator;
     typedef std::map<Database::id_type,Database::id_type>::value_type infoid_map_value;
@@ -232,6 +266,7 @@ private:
     void HandleSniffedMessage(const daocmessages::SniffedMessage* msg);
     void HandleShareMessage(const sharemessages::ShareMessage* msg);
     void DoMaintenance(void);
+    void MaintainUncorrelatedStealth(void);
     void IntegrateActorToCurrentTime(const CheyenneTime& CurrentTime,Actor& ThisActor);
     void SendNetworkUpdate(const Actor& ThisActor,share_opcodes::c_opcode_t opcode);
     
@@ -250,6 +285,7 @@ private:
     void ResetDatabase(void);
 
     Actor* GetActorById(const Database::id_type& info_id);
+    UncorrelatedStealthInfo* GetUncorrelatedStealthById(const Database::id_type& info_id);
     Database::id_type GetActorInfoIdFromId(const Database::id_type& id);
     actor_iterator GetActorIteratorById(const Database::id_type& id);
     Actor& InsertActorById(const Database::id_type& id,bool& bInserted);
@@ -258,24 +294,28 @@ private:
 
     void UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge);
 
+    // actors
     actor_type Actors; // the map of all actors
-    
+    stealth_type UncorrelatedStealthers; // map of all uncorrelated stealthers
+                                         // the maintanance phase limits the internal
+                                         // lists to a max age of 15 seconds
     std::map<Database::id_type,Database::id_type> InfoIdMap; // map between id -> infoid. only used for player actors
-
-    mutable MutexLock DBMutex;
-    tsfifo<CheyenneMessage*>* MessageInputFifo; // input fifo
-
     std::vector<DatabaseFunctorWrapper> ActorEvents;
-
     const CheyenneTime OldActorThreshold;
     const float DeadReconingThreshold;
     const CheyenneTime MinNetworkTime;
     const CheyenneTime NetworkHeartbeat;
+    bool bFullUpdateRequest; // true when a sharenet full update request is active
+
+    // synchronization
+    mutable MutexLock DBMutex;
+    
+    // internal messaging
+    tsfifo<CheyenneMessage*>* MessageInputFifo; // input fifo
+
     
     // these are in global display-adjusted coordinates
     CheyenneTime UncorrelatedStealthTime;
     Actor UncorrelatedStealthCenter;
-    
-    bool bFullUpdateRequest; // true when a sharenet full update request is active
 
 }; // end class Database

@@ -321,7 +321,6 @@ void GLPPI::InitDisplayLists(void)
     const float slice=10.0f*0.017453292519943295769236907684886f; // 10° in radians
     
     glNewList(CircleList,GL_COMPILE);
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
     glBegin(GL_LINE_LOOP);
     for(int i=0;i<36;++i)
         {
@@ -1191,6 +1190,43 @@ void GLPPI::RenderUncorrelatedStealth(const Actor& UncorrelatedPosition)
 
     glPopMatrix();
 } // end RenderUncorrelatedStealth
+
+void GLPPI::RenderUncorrelatedStealthBlock
+    (
+    const float X,
+    const float Y,
+    const float SpanX,
+    const float SpanY,
+    const unsigned char Region
+    )
+{
+    glPushMatrix();
+    
+    // get render position
+    Motion DisplayPos;
+    DisplayPos.SetXPos(X);
+    DisplayPos.SetYPos(Y);
+    AdjustPositionByRegion(DisplayPos,Region);
+    
+    // translate to position
+    glTranslatef(DisplayPos.GetXPos(),DisplayPos.GetYPos(),0.0f);
+    
+    // draw block
+    RenderState.Enable(GL_BLEND);
+    
+    glColor4f(1.0f,0.0f,0.0f,0.25f);
+    glBegin(GL_QUADS);
+        glVertex3f(-SpanX/2.0f,SpanY/2.0f,0.0f);
+        glVertex3f(-SpanX/2.0f,-SpanY/2.0f,0.0f);
+        glVertex3f(SpanX/2.0f,-SpanY/2.0f,0.0f);
+        glVertex3f(SpanX/2.0f,SpanY/2.0f,0.0f);
+    glEnd();
+    
+    // cleanup and done
+    RenderState.Disable(GL_BLEND);
+
+    glPopMatrix();
+} // end RenderUncorrelatedStealthBlock
 
 void GLPPI::RenderEnd(void)
 {

@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 struct USERDATA
 {
 USERDATA() : scriptserver(23),ppi_id(1),data_id(2),Rendering(false),ReferenceSet(false),
-             HookedSet(false){};
+             HookedSet(false),ReferenceTargetSet(false){};
 ~USERDATA(){};
 
 // Win API members
@@ -73,6 +73,8 @@ Actor ReferenceActor;
 bool ReferenceSet;
 Actor HookedActor;
 bool HookedSet;
+Actor ReferenceTarget;
+bool ReferenceTargetSet;
 bool Rendering;
 
 // functions
@@ -246,7 +248,13 @@ void OnRenderActor(const Actor& a)
     // if hooked actor, draw a hook symbol too
     if(a.GetInfoId() == HookedActor.GetInfoId() && HookedSet)
         {
-        ppi.RenderRangeRing(HookedActor,150.0f);
+        ppi.RenderRangeRing(HookedActor,150.0f,0.0f,1.0f,0.0f);
+        }
+    
+    // if reference's target actor, draw target symbol too
+    if(a.GetInfoId() == ReferenceTarget.GetInfoId() && ReferenceTargetSet)
+        {
+        ppi.RenderRangeRing(ReferenceTarget,150.0f,1.0f,0.0f,0.0f);
         }
     
     // done
@@ -255,6 +263,7 @@ void OnRenderActor(const Actor& a)
 
 void OnMaintenanceUpdate(const Actor& a)
 {
+    // chek for reference actor being updated
     if(a.GetInfoId()==ReferenceActor.GetInfoId() && ReferenceSet)
         {
         // save reference actor
@@ -267,6 +276,14 @@ void OnMaintenanceUpdate(const Actor& a)
             ppi.CenterOn(ReferenceActor);
             }
         } // end if the reference actor is being updated
+    
+    // check for reference's target being updated
+    if(a.GetInfoId()==ReferenceActor.GetTargetId() && ReferenceSet)
+        {
+        // save reference's target
+        ReferenceTarget=a;
+        ReferenceTargetSet=true;
+        } // end if reference's target being updated
 } // end OnMaintenanceUpdate
 void OnNewActor(const Actor& a)
 {
@@ -285,6 +302,7 @@ void OnDeleteActor(const Actor& a)
         {
         LOG_FUNC << "reference unset\n";
         ReferenceSet=false;
+        ReferenceTargetSet=false;
         }
 
     if(a.GetInfoId()==HookedActor.GetInfoId())
@@ -1300,6 +1318,12 @@ void Render(USERDATA* data)
         {
         // refresh the position of our hooked actor
         data->HookedActor=data->database.CopyActorById(data->HookedActor.GetInfoId());
+        }
+    
+    if(data->ReferenceTargetSet)
+        {
+        // refresh the position of our reference actor's target
+        data->ReferenceTarget=data->database.CopyActorById(data->ReferenceTarget.GetInfoId());
         }
 
     // set rendering flag and begin

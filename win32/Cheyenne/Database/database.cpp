@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // we have to define NOMINMAX so that the stupid windows header files do 
 // not make macros out of min and max :-/
 #define NOMINMAX
+#include <sstream>
 #include "..\Utils\buffer.h"
 #include "..\Utils\Logger.h"
 #include "..\Utils\Times.h"
@@ -29,8 +30,115 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 extern CheyenneClock Clock;
 extern logger_t Logger;
 
-#include <sstream>
+#include "stealthmask.h"
 #include "database.h"
+
+UncorrelatedStealthInfo::UncorrelatedStealthInfo()
+{
+    ModifyMask().MakeSphere();
+    SetAverageX(0);
+    SetAverageY(0);
+    SetAverageZ(0);
+} // end UncorrelatedStealthInfo()
+
+UncorrelatedStealthInfo::UncorrelatedStealthInfo(const UncorrelatedStealthInfo& s)
+{
+    set(s);
+} // end UncorrelatedStealthInfo(const UncorrelatedStealthInfo&)
+UncorrelatedStealthInfo::~UncorrelatedStealthInfo()
+{
+} // end ~UncorrelatedStealthInfo()
+
+void UncorrelatedStealthInfo::Merge(void)
+{
+    if(GetCenters().size()==0)
+        {
+        // done
+        return;
+        }
+        
+    // first: merge the positions into an average
+    
+    // no weighting is given to new vs. old data
+    // since it is presumed that all are relatively
+    // "fresh" data
+    float AccumX=0;
+    float AccumY=0;
+    float AccumZ=0;
+    
+    const_centers_iterator it;
+    for(it=GetCenters().begin();it!=GetCenters().end();++it)
+        {
+        AccumX+=it->second.GetXPos();
+        AccumY+=it->second.GetYPos();
+        AccumZ+=it->second.GetZPos();
+        } // end for all centers
+    
+    // average them out and store
+    const float NumAccum=(float)GetCenters().size();
+    SetAverageX(AccumX/NumAccum);
+    SetAverageY(AccumY/NumAccum);
+    SetAverageZ(AccumZ/NumAccum);
+    
+    // next: merge the stealth masks as offsets from the average
+    
+    // this must be done as a second for loop since we don't know the 
+    // average until it is completely computed
+    
+    centers_size_type Accumulator[16][16];
+    ZeroMemory(&Accumulator[0][0],sizeof(Accumulator));
+    
+    for(it=GetCenters().begin();it!=GetCenters().end();++it)
+        {
+        // since each bit in the mask is a 200x200 area
+        // we do a bit of math here to get offsets in 
+        // mask bit positions instead of world units
+        
+        const int x_offset=(const int)((it->second.GetXPos() - GetAverageX())/200.0f);
+        const int y_offset=(const int)((it->second.GetYPos() - GetAverageY())/200.0f);
+        
+        for(int y=0;y<16;++y)
+            {
+            for(int x=0;x<16;++x)
+                {
+                Accumulator[x][y]+=it->first.Get(x+x_offset,y+y_offset)?1:0;
+                } // end for x
+            } // end for y
+        
+        } // end for all centers
+    
+    for(int y=0;y<16;++y)
+        {
+        for(int x=0;x<16;++x)
+            {
+            if(Accumulator[x][y]==GetCenters().size())
+                {
+                ModifyMask().Set(x,y,true);
+                }
+            else
+                {
+                ModifyMask().Set(x,y,false);
+                }
+            } // end for x
+        } // end for y
+} // end Merge
+
+UncorrelatedStealthInfo& UncorrelatedStealthInfo::operator=(const UncorrelatedStealthInfo& s)
+{
+    if(this!=&s)
+        {
+        set(s);
+        }
+    return(*this);
+} // end operator=(UncorrelatedStealthInfo&)
+void UncorrelatedStealthInfo::set(const UncorrelatedStealthInfo& s)
+{
+    MEMBER_ASSIGN(Centers);
+    MEMBER_ASSIGN(Mask);
+    MEMBER_ASSIGN(AverageX);
+    MEMBER_ASSIGN(AverageY);
+    MEMBER_ASSIGN(AverageZ);
+} // end set(const UncorrelatedStealthInfo&)
 
 Database::Database() : 
     ActorEvents(DatabaseEvents::_LastEvent),
@@ -58,7 +166,7 @@ Database::~Database()
 DWORD Database::Run(const bool& bContinue)
 {
     Logger << "[Database::Run] beginning execution in thread " << unsigned int(GetCurrentThreadId()) << "\n";
-
+    
     // recover the go param to get the input message fifo
     MessageInputFifo=static_cast<tsfifo<CheyenneMessage*>*>(GoParam);
 
@@ -234,10 +342,67 @@ void Database::UpdateActorByAge(Actor& ThisActor,const CheyenneTime& CurrentAge)
     return;
 } // end UpdateActorByAge
 
+void Database::MaintainUncorrelatedStealth(void)
+{
+    const CheyenneTime MaxAge(15.0); // 15 seconds
+    CheyenneTime CurrentAge;
+    bool MergeRequired; // flag for when merging is required
+    
+    // use while loops because we need to 
+    // control the iteration when we erase items
+    stealth_iterator usi=UncorrelatedStealthers.begin();
+    while(usi!=UncorrelatedStealthers.end())
+        {
+        // claer flag
+        MergeRequired=false;
+        
+        // loop over each center
+        UncorrelatedStealthInfo::centers_iterator centers=usi->second.ModifyCenters().begin();
+        while(centers!=usi->second.ModifyCenters().end())
+            {
+            CurrentAge=::Clock.Current();
+            CurrentAge-=centers->second.GetValidTime();
+            if(CurrentAge > MaxAge)
+                {
+                // erase this one, its too old
+                centers=usi->second.ModifyCenters().erase(centers);
+                
+                // we modified the centers, merging is required
+                MergeRequired=true;
+                }
+            else
+                {
+                // increment to next one
+                ++centers;
+                }
+            } // end for all centers on the current uncorrelated stealther
+        
+        if(usi->second.GetCenters().size() == 0)
+            {
+            // no more centers (they were all too old), erase this one
+            usi=UncorrelatedStealthers.erase(usi);
+            }
+        else
+            {
+            if(MergeRequired)
+                {
+                // merge the uncorrelated info, this
+                // makes UncorrelatedStealthInfo::Mask a valid mask
+                usi->second.Merge();
+                }
+            // increment to next one
+            ++usi;
+            }
+        } // end for all uncorrelated stealthers
+    
+    // done
+    return;
+} // end MaintainUncorrelatedStealth
+
 void Database::DoMaintenance(void)
 {
     std::list<Database::id_type> IdToDelete;
-    CheyenneTime MaxAge;
+    const CheyenneTime MaxAge(600); // 600 seconds (10 minutes)
     CheyenneTime CurrentAge;
 
     // lock the database during the update
@@ -247,27 +412,6 @@ void Database::DoMaintenance(void)
         {
         // update 'em
         Actor& ThisActor=(*it).second;
-
-        // max age depends on 
-        // what type it is
-        switch(ThisActor.GetActorType())
-            {
-            case Actor::Player:
-                // 90 seconds
-                MaxAge=CheyenneTime(90.0);
-                break;
-
-            case Actor::Object:
-                // 600 seconds
-                MaxAge=CheyenneTime(600.0);
-                break;
-
-            case Actor::Mob:
-            default:
-                // 120 seconds
-                MaxAge=CheyenneTime(120.0);
-                break;
-            } // end switch actor type
 
         // get time since last update for this actor
         CurrentAge=::Clock.Current();
@@ -399,6 +543,22 @@ Actor* Database::GetActorById(const Database::id_type& info_id)
         return(&(*it).second);
         }
 } // end GetActorById
+
+UncorrelatedStealthInfo* Database::GetUncorrelatedStealthById(const Database::id_type& info_id)
+{
+    // find it (this works by INFO ID)
+    stealth_iterator it=UncorrelatedStealthers.find(info_id);
+
+    // return NULL if not found
+    if(it == UncorrelatedStealthers.end())
+        {
+        return(NULL);
+        }
+    else
+        {
+        return(&(*it).second);
+        }
+} // end GetUncorrelatedStealthById
 
 bool Database::IsUncorrelatedStealth(void)const
 {
@@ -624,6 +784,9 @@ void Database::ResetDatabase(void)
             DeleteActor(Actors.begin()->second.GetId());
             }
         }
+    
+    // clear uncorrelated stealthers
+    UncorrelatedStealthers.clear();
     
     // call functor
     ActorEvents[DatabaseEvents::DatabaseReset]();
@@ -2026,39 +2189,71 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
         case opcodes::stealth:
             {
             const daocmessages::stealth* p=static_cast<const daocmessages::stealth*>(msg);
+            const id_type id=GetUniqueId(p->detected_region,p->info_id);
+            
+            // new mask, init to a sphere. Use static const since
+            // it is slightly expensive to keep constructing this
+            // as a sphere all the time
+            static const StealthMask new_mask(true);
             
             // get actor
-            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->info_id));
+            Actor* pa=GetActorById(id);
             
             if(!pa)
                 {
+                // save position and time
+                Motion new_position(CopyActorById(GetUniqueId(p->detected_region,p->detector_id)).GetMotion());
+                new_position.SetValidTime(::Clock.Current());
+
+                // see if we can find it in the uncorrelated stealth database
+                if(UncorrelatedStealthInfo* usi=GetUncorrelatedStealthById(id))
+                    {
+                    // add new_position to the existing list, maintenance takes
+                    // care of the 15 second limit
+                    usi->ModifyCenters().insert(usi->ModifyCenters().begin(),std::make_pair(new_mask,new_position));
+                    // we changed the centers: merge is required
+                    usi->Merge();
+                    } // end if already have uncorrelated stealth on this guy
+                else
+                    {
+                    // make a new one
+                    UncorrelatedStealthInfo new_usi;
+                    // add to centers list
+                    new_usi.ModifyCenters().insert(new_usi.ModifyCenters().begin(),std::make_pair(new_mask,new_position));
+                    // we changed the centers (ok, so we created them): merge is required
+                    new_usi.Merge();
+                    // put in database
+                    UncorrelatedStealthers.insert(stealth_map_value(id,new_usi));
+                    } // end else new uncorrelated stealth
                 //Logger << "[Database::HandleSniffedMessage] (stealth) unable to find id " << p->info_id << "\n";
                 // save uncorrelated stealth time
                 UncorrelatedStealthTime=::Clock.Current();
                 // save center point for uncorrelated stealth
                 UncorrelatedStealthCenter=CopyActorById(GetUniqueId(p->detected_region,p->detector_id));
-                break;
-                }
-
-            pa->SetStealth(true);
-            
-            pa->SetLastLocalTime(::Clock.Current());
-
-            // if this is an old actor, we want to keep it "alive" since we are
-            // still seeing packets for it
-            if(pa->GetOld())
+                } // end if uncorrelated stealth
+            else
                 {
-                // save update time, but do not clear old flag. This
-                // will cause the PPI to show it as old, but the 
-                // database will never delete it -- unless we stop receiving
-                // packets for it.
-                pa->SetLastUpdateTime(::Clock.Current());
-                pa->SetLastLocalTime(pa->GetLastUpdateTime());
-                }
+                // set stealth flag
+                pa->SetStealth(true);
+                
+                // save time
+                pa->SetLastLocalTime(::Clock.Current());
 
-            // send visibility update to the network
-            SendNetworkUpdate(*pa,share_opcodes::visibility_update);
+                // if this is an old actor, we want to keep it "alive" since we are
+                // still seeing packets for it
+                if(pa->GetOld())
+                    {
+                    // save update time, but do not clear old flag. This
+                    // will cause the PPI to show it as old, but the 
+                    // database will never delete it -- unless we stop receiving
+                    // packets for it.
+                    pa->SetLastUpdateTime(::Clock.Current());
+                    pa->SetLastLocalTime(pa->GetLastUpdateTime());
+                    }
 
+                // send visibility update to the network
+                SendNetworkUpdate(*pa,share_opcodes::visibility_update);
+                } // end else found stealther
             }
             break;
 
@@ -2099,7 +2294,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 SendNetworkUpdate(*pa,share_opcodes::target_update);
                 }
 
-            //Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
+            //LOG_FUNC << "player target (" << p->player_id << "):\n"
                    //<< "target=" << p->target_id << "\n";
             
             }

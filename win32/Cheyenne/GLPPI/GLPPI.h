@@ -319,6 +319,14 @@ public:
             );
         void RenderAllZones(void);
         void RenderUncorrelatedStealth(const Actor& UncorrelatedPosition);
+        void RenderUncorrelatedStealthBlock
+            (
+            const float X,
+            const float Y,
+            const float SpanX,
+            const float SpanY,
+            const unsigned char Region
+            );
         void RenderRangeRing
             (
             const Actor& Center,
