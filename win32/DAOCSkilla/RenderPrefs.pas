@@ -726,6 +726,7 @@ begin
   chkRedrawOnDelete.Checked := FRenderPrefs.RedrawOnDelete;
   chkRedrawOnTimer.Checked := FRenderPrefs.RedrawOnTimer;
   chkRedrawOnTimerClick(nil);
+  trackMinFPS.Position := FRenderPrefs.MinFPS;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
