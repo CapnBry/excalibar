@@ -111,7 +111,7 @@ void Motion::GetPointRelative
     
     // compute x,y
     x=GetXPos() + (distance*sin(az));
-    y=GetYPos() + (distance*cos(az));
+    y=GetYPos() + (-distance*cos(az));
     
     // done
     return;

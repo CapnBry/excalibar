@@ -33,7 +33,6 @@ extern logger_t Logger;
 #include "database.h"
 
 Database::Database() : 
-    SpeedCorrection(1.0f),
     ActorEvents(DatabaseEvents::_LastEvent),
     OldActorThreshold(15.0),
     bGroundTargetSet(false),
@@ -737,6 +736,44 @@ void Database::SendNetworkUpdate
             }
             break;
             
+        case share_opcodes::heading_update:
+            {
+            sharemessages::heading_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.heading=ThisActor.GetMotion().GetHeading();
+            TransmitMessage(msg);
+            }
+            break;
+        
+        case share_opcodes::speed_update:
+            {
+            sharemessages::speed_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.speed=ThisActor.GetMotion().GetSpeed();
+            TransmitMessage(msg);
+            }
+            break;
+        
+        case share_opcodes::target_update:
+            {
+            sharemessages::target_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.infoid_target=ThisActor.GetTargetId();
+            TransmitMessage(msg);
+            }
+            break;
+        
+        case share_opcodes::ground_target_update:
+            {
+            sharemessages::ground_target_update msg;
+            msg.data.infoid=ThisActor.GetInfoId();
+            msg.data.x=ThisActor.GetGroundTargetX();
+            msg.data.y=ThisActor.GetGroundTargetY();
+            msg.data.z=ThisActor.GetGroundTargetZ();
+            TransmitMessage(msg);
+            }
+            break;
+
         default:
             // hmm...
             ::Logger << "[Database::SendNetworkUpdate] unknown opcode: "
@@ -1004,6 +1041,125 @@ void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
             }
             break;
             
+        case share_opcodes::heading_update:
+            {
+            //::Logger << "[share_opcodes::heading_update]\n";
+            const sharemessages::heading_update* p=static_cast<const sharemessages::heading_update*>(msg);
+            
+            // we get this message when someone needs to update the heading on this actor
+            pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                if(::Clock.Current() - pa->GetLastUpdateTime() > MinNetworkTime)
+                    {
+                    // update heading
+                    pa->ModifyMotion().SetHeading(p->data.heading);
+
+                    // save update time
+                    pa->SetLastUpdateTime(::Clock.Current());
+
+                    // clear old flag
+                    pa->SetOld(false);
+
+                    // set net to be = to the motion stuff we just got
+                    pa->SetNet(pa->GetMotion());
+                    }
+                }
+            else
+                {
+                // got heading_update on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got heading_update on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::speed_update:
+            {
+            //::Logger << "[share_opcodes::speed_update]\n";
+            const sharemessages::speed_update* p=static_cast<const sharemessages::speed_update*>(msg);
+            
+            // we get this message when someone needs to update the speed on this actor
+            pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                if(::Clock.Current() - pa->GetLastUpdateTime() > MinNetworkTime)
+                    {
+                    // update speed
+                    pa->ModifyMotion().SetSpeed(p->data.speed);
+
+                    // save update time
+                    pa->SetLastUpdateTime(::Clock.Current());
+
+                    // clear old flag
+                    pa->SetOld(false);
+
+                    // set net to be = to the motion stuff we just got
+                    pa->SetNet(pa->GetMotion());
+                    }
+                }
+            else
+                {
+                // got speed_update on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got speed_update on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::target_update:
+            {
+            //::Logger << "[share_opcodes::target_update]\n";
+            const sharemessages::target_update* p=static_cast<const sharemessages::target_update*>(msg);
+            
+            // we get this message when someone needs to update the target for an actor
+            pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // update target
+                pa->SetTargetId(p->data.infoid_target);
+
+                // save update time
+                pa->SetLastUpdateTime(::Clock.Current());
+
+                // clear old flag
+                pa->SetOld(false);
+                }
+            else
+                {
+                // got target_update on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got target_update on an actor we don't have!\n";
+                }
+            }
+            break;
+            
+        case share_opcodes::ground_target_update:
+            {
+            //::Logger << "[share_opcodes::ground_target_update]\n";
+            const sharemessages::ground_target_update* p=static_cast<const sharemessages::ground_target_update*>(msg);
+            
+            // we get this message when someone needs to update the ground target for an actor
+            pa=GetActorById(p->data.infoid);
+            
+            if(pa)
+                {
+                // update ground target
+
+                // save update time
+                pa->SetLastUpdateTime(::Clock.Current());
+
+                // clear old flag
+                pa->SetOld(false);
+                }
+            else
+                {
+                // got ground_target_update on an actor we don't hold! Hmmm.
+                Logger << "[Database::HandleShareMessage] got ground_target_update on an actor we don't have!\n";
+                }
+            }
+            break;
+            
         default:
             Logger << "[Database::HandleShareMessage] unknown opcode: "
                    << unsigned int(msg->GetOpcode()) << "\n";
@@ -1056,11 +1212,26 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.ModifyMotion().SetYPos(float(p->y));
             ThisActor.ModifyMotion().SetZPos(float(p->z));
             ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
-            ThisActor.ModifyMotion().SetSpeed(float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff)));
-
-            ThisActor.ModifyMotion().SetSpeed(SpeedCorrection * ThisActor.GetMotion().GetSpeed());
             
-            ThisActor.SetStealth(p->visibility & 0x02 ? true:false);
+            float speed=float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff));
+            
+            if(ThisActor.GetMotion().GetSpeed() != speed)
+                {
+                ThisActor.ModifyMotion().SetSpeed(speed);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::speed_update);
+                }
+
+            // save stealth
+            bool stealth=p->visibility & 0x02 ? true:false;
+            if(ThisActor.GetStealth() != stealth)
+                {
+                ThisActor.SetStealth(stealth);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::visibility_update);
+                }
             
             // set hp
             if(p->hp <= 100)
@@ -1111,10 +1282,26 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             ThisActor.ModifyMotion().SetXPos(float(p->x));
             ThisActor.ModifyMotion().SetYPos(float(p->y));
             ThisActor.ModifyMotion().SetZPos(float(p->z));
-            ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
-            ThisActor.ModifyMotion().SetSpeed(float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff)));
             
-            ThisActor.ModifyMotion().SetSpeed(SpeedCorrection * ThisActor.GetMotion().GetSpeed());
+            float heading=Actor::DAOCHeadingToRadians(p->heading);
+            
+            if(ThisActor.GetMotion().GetHeading() != heading)
+                {
+                ThisActor.ModifyMotion().SetHeading(heading);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::heading_update);
+                }
+
+            float speed=float((p->speed&0x0200 ? -((p->speed & 0x3ff) & 0x1ff) : p->speed & 0x3ff));
+            
+            if(ThisActor.GetMotion().GetSpeed() != speed)
+                {
+                ThisActor.ModifyMotion().SetSpeed(speed);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::speed_update);
+                }
 
             // save other actor info
             ThisActor.SetHealth(p->health);
@@ -1154,10 +1341,24 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             Actor& ThisActor=*pa;
 
             // save heading
-            ThisActor.ModifyMotion().SetHeading(Actor::DAOCHeadingToRadians(p->heading));
+            float heading=Actor::DAOCHeadingToRadians(p->heading);
+            if(ThisActor.GetMotion().GetHeading() != heading)
+                {
+                ThisActor.ModifyMotion().SetHeading(heading);
+                
+                // send update
+                SendNetworkUpdate(ThisActor,share_opcodes::heading_update);
+                }
             
             // save stealth
-            ThisActor.SetStealth(p->visibility & 0x02 ? true:false);
+            bool stealth=p->visibility & 0x02 ? true:false;
+            if(ThisActor.GetStealth() != stealth)
+                {
+                ThisActor.SetStealth(stealth);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::visibility_update);
+                }
 
             // set hp
             if(p->hp <= 100)
@@ -1911,10 +2112,19 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 }
 
             // set actor's target (this is done by INFOID!!)
-            ThisActor.SetTargetId(GetUniqueId(p->detected_region,p->target_id));
+            Database::id_type target_id=GetUniqueId(p->detected_region,p->target_id);
+            
+            if(ThisActor.GetTargetId() != target_id)
+                {
+                // save target
+                ThisActor.SetTargetId(target_id);
+                
+                // send network update
+                SendNetworkUpdate(ThisActor,share_opcodes::target_update);
+                }
 
-            Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
-                   << "target=" << p->target_id << "\n";
+            //Logger << "[Database::HandleSniffedMessage] player target (" << p->player_id << "):\n"
+                   //<< "target=" << p->target_id << "\n";
             
             }
             break;
@@ -1931,7 +2141,24 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             GroundTargetRegion=p->detected_region;
             bGroundTargetSet=true;
             
-            Logger << "[[Database::HandleSniffedMessage] ground target set to: " 
+            // send network update
+            // get actor
+            Actor* pa=GetActorById(GetUniqueId(p->detected_region,p->player_id));
+            
+            if(pa)
+                {
+                pa->SetGroundTargetX(float(p->x));
+                pa->SetGroundTargetY(float(p->y));
+                pa->SetGroundTargetZ(float(p->z));
+                
+                SendNetworkUpdate(*pa,share_opcodes::ground_target_update);
+                }
+            else
+                {
+                ::Logger << "[Database::HandleSniffedMessage] got ground target, but can't find local actor!\n";
+                }
+            
+            Logger << "[Database::HandleSniffedMessage] ground target set to: " 
                    << "<" << GroundTarget.GetXPos() 
                    << "," << GroundTarget.GetYPos()
                    << "," << GroundTarget.GetZPos() << ">\n"

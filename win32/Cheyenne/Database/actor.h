@@ -115,6 +115,9 @@ public:
         SetStealthCycleA(0.0f);
         SetStealthCycleB(0.0f);
         SetStealthCycleC(0.0f);
+        SetGroundTargetX(0.0f);
+        SetGroundTargetY(0.0f);
+        SetGroundTargetZ(0.0f);
     };
     Actor(const Actor& s){set(s);};
     virtual ~Actor(){};
@@ -191,6 +194,9 @@ private:
         MEMBER_ASSIGN(Net);
         MEMBER_ASSIGN(NetTime);
         MEMBER_ASSIGN(LastLocalTime);
+        MEMBER_ASSIGN(GroundTargetX);
+        MEMBER_ASSIGN(GroundTargetY);
+        MEMBER_ASSIGN(GroundTargetZ);
     }
 
     DECL_MEMBER(Motion,Motion);
@@ -200,6 +206,9 @@ private:
     DECL_MEMBER(id_type,Id);
     DECL_MEMBER(id_type,InfoId);
     DECL_MEMBER(id_type,TargetId);
+    DECL_MEMBER(float,GroundTargetX);
+    DECL_MEMBER(float,GroundTargetY);
+    DECL_MEMBER(float,GroundTargetZ);
     DECL_MEMBER(std::string,Name);
     DECL_MEMBER(std::string,Guild);
     DECL_MEMBER(std::string,Surname);

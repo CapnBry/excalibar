@@ -262,7 +262,6 @@ private:
 
     std::vector<DatabaseFunctorWrapper> ActorEvents;
 
-    const float SpeedCorrection;
     const CheyenneTime OldActorThreshold;
     const float DeadReconingThreshold;
     const CheyenneTime MinNetworkTime;
