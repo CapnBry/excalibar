@@ -117,7 +117,7 @@ begin
     Value.TradeSkillOddsloadCount := OddsLoadCount;
     Value.TradeSkillOddsloadPct := trunc(OddsLoadPct * 10);
   end
-  else begin
+  else if Assigned(FDControl) then begin
     FDControl.TradeSkillProgression := '';
     FDControl.TradeSkillTargetQuality := TargetQuality;
     FDControl.TradeSkillTargetSound := TargetSound;
