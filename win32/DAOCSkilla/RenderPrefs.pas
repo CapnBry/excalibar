@@ -530,8 +530,7 @@ begin
   chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
   chkRangeCircles.Checked := FRenderPrefs.DrawRangeCircles;
   chkRulers.Checked := FRenderPrefs.DrawRulers;
-  chkHUD.Enabled := FRenderPrefs.HasGLUT;
-  chkHUD.Checked := FRenderPrefs.HasGLUT and FRenderPrefs.DrawHUD;
+  chkHUD.Checked := FRenderPrefs.DrawHUD;
   chkDestination.Checked := FRenderPrefs.DrawAIDestination;
   chkViewFrustum.Checked := FRenderPrefs.ViewFrustum;
   chkInvaderWarn.Checked := FRenderPrefs.InvaderWarning;
