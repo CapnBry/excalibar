@@ -296,6 +296,7 @@ type
     property AccountCharacterList: TDAOCAccountCharInfoList read FAccountCharacters;
     property ConnectionID: Cardinal read FConnectionID write FConnectionID;
     property DAOCObjects: TDAOCObjectLinkedList read FDAOCObjs;
+    property DAOCObjsStale: TDAOCObjectLinkedList read FDAOCObjsStale;
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
@@ -960,7 +961,8 @@ begin
   else
     bAddedObject := false;
 
-  if Assigned(pDAOCObject) and (pDAOCObject.ObjectClass in [ocMob, ocPlayer, ocVehicle]) then begin
+  if Assigned(pDAOCObject) and
+    (pDAOCObject.ObjectClass in [ocUnknown, ocMob, ocPlayer, ocVehicle]) then begin
     pPacket.seek(-(iIDOffset+2));
 
     with TDAOCMovingObject(pDAOCObject) do begin
