@@ -182,7 +182,8 @@ begin
   WaitFor;
 
   FreeAndNil(FSegmentList);
-
+  DeallocateHWnd(hSegmentNotifyWhd);
+  
   inherited Destroy;
 end;
 
