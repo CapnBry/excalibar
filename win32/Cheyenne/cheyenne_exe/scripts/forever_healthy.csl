@@ -1,0 +1,9 @@
+forever_healthy
+
+// at 75 health, we use little_heal
+// at 50 health, we use medium_heal
+// at 25 health, we use big_heal
+CheckTargetHealthAndCall 75 little_heal 50 medium_heal 25 big_heal
+
+// do this forever
+RestartScript

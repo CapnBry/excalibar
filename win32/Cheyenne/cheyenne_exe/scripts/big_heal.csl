@@ -1,0 +1,13 @@
+big_heal
+
+// switch to hotbar 2
+// this is the only, and best way to do this :/
+KeyboardString /qbar2
+KeyboardVKey VK_RETURN
+Delay 0.1
+
+// big heal mapped to slot 1
+KeyboardString 1
+
+// wait for spell to finish casting
+Delay 3.0

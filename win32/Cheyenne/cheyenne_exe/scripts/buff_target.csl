@@ -1,0 +1,48 @@
+buff_target
+
+// switch to hotbar 10
+KeyboardString /qbar 10
+KeyboardVKey VK_RETURN
+Delay 0.1
+
+// send buffs
+
+// str
+KeyboardString 1
+Delay 2.0
+
+// str/con
+KeyboardString 2
+Delay 2.0
+
+// con
+KeyboardString 3
+Delay 2.0
+
+// dex
+KeyboardString 4
+Delay 2.0
+
+// dex/qui
+KeyboardString 5
+Delay 2.0
+
+// 6 is end regen
+KeyboardString 6
+Delay 2.0
+
+// 7 is brain buff
+KeyboardString 7
+Delay 2.0
+
+// 8 is damage add
+KeyboardString 8
+Delay 2.0
+
+// 9 is damage shield
+KeyboardString 9
+Delay 2.0
+
+// 10 is af buff
+KeyboardString 0
+Delay 2.0

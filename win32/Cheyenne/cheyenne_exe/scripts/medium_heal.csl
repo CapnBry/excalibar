@@ -1,0 +1,13 @@
+medium_heal
+
+// switch to hotbar 2
+// this is the only, and best way to do this :/
+KeyboardString /qbar 2
+KeyboardVKey VK_RETURN
+Delay 0.1
+
+// medium heal mapped to slot 2
+KeyboardString 2
+
+// wait for spell to finish casting
+Delay 3.0

@@ -1,0 +1,14 @@
+timed_buffs_15
+
+// switch to hotbar 10
+// this is the only, and best way to do this :/
+KeyboardString /qbar 10
+KeyboardVKey VK_RETURN
+Delay 0.1
+
+// 8 is damage add
+KeyboardString 8
+// 780 seconds is 13 minutes
+Delay 780.0
+
+RestartScript
