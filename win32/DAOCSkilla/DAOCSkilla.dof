@@ -45,7 +45,7 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
+SearchPath=..\components\dot;..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
 Packages=vcl;rtl;dbrtl;adortl;vcldb;vclx;bdertl;vcldbx;ibxpress;dsnap;cds;bdecds;qrpt;teeui;teedb;tee;dss;teeqr;visualclx;visualdbclx;dsnapcrba;dsnapcon;VclSmp;vclshlctrls;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;inetdb;nmfast;webdsnap;websnap;dbexpress;dbxcds;indy
 Conditionals=GLOBAL_TICK_COUNTER;OPENGL_RENDERER
 DebugSourceDirs=
@@ -56,10 +56,6 @@ HostApplication=
 Launcher=
 UseLauncher=0
 DebugCWD=
-[Language]
-ActiveLang=
-ProjectLang=
-RootDir=
 [Version Info]
 IncludeVerInfo=1
 AutoIncBuild=0
@@ -94,6 +90,7 @@ Item2=GLOBAL_TICK_COUNTER;OPENGL_RENDERER;WINPCAP;DAOC_AUTO_SERVER
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=2
-Item0=..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
-Item1=$(DELPHI)\Lib\Debug;..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
+Count=3
+Item0=..\components\dot;..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
+Item1=..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
+Item2=$(DELPHI)\Lib\Debug;..\components\glWindow;..\components\zlib;..\Common\PacketSniff;..\Common\DAOCAutomation
