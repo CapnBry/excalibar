@@ -64,6 +64,7 @@ type
     FDirtyCount:    integer;
     FInvalidateCount: integer;
     FZoneName:      string;
+    FHasOpenGL13:   boolean;
 
     procedure GLInits;
     procedure GLCleanups;
@@ -241,10 +242,6 @@ const
   ambient: array[0..3] of GLfloat = (0.0, 0.0, 0.0, 1.0);
   material: array[0..3] of GLfloat = (1.0, 1.0, 1.0, 1.0);
 begin
-  { BRY: Handle this gracefully at some point }
-  if not Load_GL_version_1_3 then
-    raise Exception.Create(S_NO_OGL13);
-
   glClearColor(0, 0, 0, 0);
   glPointSize(3);
 
@@ -604,6 +601,8 @@ begin
   FFilteredObjects := TDAOCObjectList.Create(false);
   FRenderPrefs := TRenderPreferences.Create;
   FRenderPrefs.OnObjectFilterChanged := RENDERPrefsObjectFilterChanged;
+  FRenderPrefs.HasOpenGL13 := Load_GL_version_1_3;
+
   UpdateObjectCounts;
 end;
 

@@ -27,7 +27,7 @@ object frmGLRender: TfrmGLRender
     Left = 217
     Top = 0
     Width = 618
-    Height = 609
+    Height = 616
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
@@ -35,7 +35,7 @@ object frmGLRender: TfrmGLRender
       Left = 0
       Top = 0
       Width = 618
-      Height = 585
+      Height = 592
       Align = alClient
       OnClick = glMapClick
       OnMouseDown = glMapMouseDown
@@ -53,7 +53,7 @@ object frmGLRender: TfrmGLRender
     end
     object slideZoom: TTrackBar
       Left = 0
-      Top = 585
+      Top = 592
       Width = 618
       Height = 24
       Align = alBottom
@@ -76,7 +76,7 @@ object frmGLRender: TfrmGLRender
     Left = 0
     Top = 0
     Width = 217
-    Height = 609
+    Height = 616
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
@@ -102,7 +102,7 @@ object frmGLRender: TfrmGLRender
       Left = 0
       Top = 41
       Width = 217
-      Height = 568
+      Height = 575
       Style = lbVirtualOwnerDraw
       Align = alClient
       BorderStyle = bsNone

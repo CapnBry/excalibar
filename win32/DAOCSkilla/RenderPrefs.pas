@@ -41,6 +41,7 @@ type
     AttemptMapDownload: boolean;
     MapBaseURL:       string;
     InvaderWarning:   boolean;
+    HasOpenGL13:      boolean;
 
     constructor Create;
 
@@ -326,7 +327,8 @@ begin
   chkRenderVehicles.Checked := ocVehicle in FRenderPrefs.ObjectFilter;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
-  chkTextureMaps.Checked := FRenderPrefs.DrawMapTexture;
+  chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
+  chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
   chkRangeCircles.Checked := FRenderPrefs.DrawRangeCircles;
   chkRulers.Checked := FRenderPrefs.DrawRulers;
   chkHUD.Checked := FRenderPrefs.DrawHUD;
