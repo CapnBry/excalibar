@@ -879,7 +879,7 @@ begin
 
   FMasterVendorList.Clear;
   ClearDAOCObjectList;
-  Log('Player region changed to ' + IntToStr(FRegionID));
+  // Log('Player region changed to ' + IntToStr(FRegionID));
 end;
 
 procedure TDAOCConnection.ParsePlayerSpecsSpellsAbils(pPacket: TDAOCPacket);
