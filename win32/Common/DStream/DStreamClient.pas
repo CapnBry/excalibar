@@ -13,8 +13,12 @@ unit DStreamClient;
 interface
 
 uses
-  SysUtils, Classes, IdException, IdTCPClient, DStreamDefs, INIFiles, WinSock;
+  SysUtils, Classes, IdException, IdTCPClient, DStreamDefs, INIFiles,
+  Windows, Messages, WinSock;
 
+const
+  WM_DSTREAM_PACKET = WM_USER + 1;
+  
 type
   TDStreamDAOCConnectionDetailsNotify = procedure (Sender: TObject;
     AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
@@ -23,10 +27,26 @@ type
     AConnectionID: Cardinal; AIsFromClient: boolean; AIsTCP: boolean;
     AData: Pointer; ADataLen: integer) of object;
 
+  TDStreamPacketLockedList = class(TObject)
+  private
+    FList:    TThreadList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Clear;
+    
+    function GetFirst: PDStream_Header;
+    procedure Add(APacket: PDStream_Header);
+  end;
+
   TDStreamClient = class(TThread)
   private
-    FClientSock:    TIdTCPClient;
-    FCurrentPacket: PDStream_Header;
+    FNotifyWnd:         HWND;
+    FClientSock:        TIdTCPClient;
+    FIncomingPacket:    PDStream_Header;
+    FIncPacketRcvdCnt:  integer;
+    FReceivedPackets: TDStreamPacketLockedList;
 
     FPort: integer;
     FHost: string;
@@ -43,6 +63,7 @@ type
 //    FOnError: TNotifyEvent;
     FOnStatusChange: TNotifyEvent;
     function GetHostPretty: string;
+    procedure SyncDoOnStatusUpdate;
   protected
     procedure DoRead;
     procedure DoConnect;
@@ -51,7 +72,8 @@ type
     procedure SetStatus(const AStatus: string);
     procedure SyncDoOnNewPacket;
 //    procedure SyncDoOnError;
-    procedure SyncDoOnStatusUpdate;
+    procedure NotifyWndProc(var Msg: TMessage);
+    procedure WMDStreamPacket(var Msg: TMessage);
 
     procedure DoOnDAOCConnectionOpened(AData: Pointer); virtual;
     procedure DoOnDAOCConnectionClosed(AData: Pointer); virtual;
@@ -115,7 +137,7 @@ type
     destructor Destroy; override;
 
     procedure OpenAll;
-    
+
     procedure Add(AItem: TDStreamClient);
     procedure Clear;
     procedure Delete(AIndex: integer);
@@ -134,8 +156,13 @@ type
 
 implementation
 
+uses IdTCPConnection;
+
 resourcestring
   S_INISECTION = 'DStreamServers';
+
+const
+  INCOMING_BUFFER_SIZE = 32 * 1024;
   
 { TDStreamClient }
 
@@ -151,9 +178,14 @@ end;
 
 constructor TDStreamClient.Create;
 begin
+  FReceivedPackets := TDStreamPacketLockedList.Create;
   FClientSock := TIdTCPClient.Create(nil);
   FPort := DSTREAM_DEFAULT_PORT;
   FReconnectDelay := 2000;
+
+    { allocate a fixed buffer to hold the incoming packet we're building }
+  GetMem(FIncomingPacket, INCOMING_BUFFER_SIZE);
+  FNotifyWnd := AllocateHWnd(NotifyWndProc); 
 
   inherited Create(false);
 end;
@@ -161,6 +193,9 @@ end;
 destructor TDStreamClient.Destroy;
 begin
   FreeAndNil(FClientSock);
+  FreeAndNil(FReceivedPackets);
+  FreeMem(FIncomingPacket);
+  DeallocateHWnd(FNotifyWnd);
   inherited;
 end;
 
@@ -173,6 +208,7 @@ begin
   try
     FClientSock.Connect;
     SetStatus('Connected');
+    FIncPacketRcvdCnt := 0;
   except
     On E: EIdSocketError do
       DoOnConnectError(E);
@@ -229,51 +265,41 @@ begin
       FOnDAOCConnect(Self, ConnectionID, ServerIP, ServerPort, ClientIP, ClientPort);
 end;
 
-procedure TDStreamClient.SyncDoOnNewPacket;
-  { this function is synchronized to the main thread }
-var
-  pData:  Pointer;
-begin
-
-  if Assigned(FOnDSPacket) then
-    FOnDSPacket(Self, FCurrentPacket);
-
-  pData := DStreamPointToData(FCurrentPacket);
-  
-  case FCurrentPacket^.command_id of
-    DPACKET_DAOC_CONNECTION_OPENED:
-        DoOnDAOCConnectionOpened(pData);
-    DPACKET_DAOC_CONNECTION_CLOSED:
-        DoOnDAOCConnectionClosed(pData);
-    DPACKET_DAOC_DATA:
-        DoOnDAOCConnectionData(pData);
-  end;
-end;
-
 procedure TDStreamClient.DoRead;
 var
-  RecvHeader:   TDStream_Header;
-  pRecvBuffer:  PDStream_Header;
-  pDataDest:    Pointer;
+//  aIn:    array[0..8191] of char;
+  sIn:    string;
+  I:      integer;
+  iRead:  integer;
+  bGotPacket:   boolean;
+  pWholePacket: PDStream_Header;
 begin
-  FClientSock.ReadBuffer(RecvHeader, sizeof(RecvHeader));
-  if RecvHeader.total_length > sizeof(RecvHeader) then begin
-      { get enough memory to store the total new packet, and copy the
-        existing header into it }
-    GetMem(pRecvBuffer, RecvHeader.total_length);
-    Move(RecvHeader, pRecvBuffer^, sizeof(RecvHeader));
+//  iRead := FClientSock.ReadBuffer(aIn, sizeof(aIn));  // FUCKING INDY!
+  sIn := FClientSock.CurrentReadBuffer;
+  iRead := Length(sIn);
+  if iRead <= 0 then
+    exit;
 
-      { point past the header for the next read }
-    pDataDest := DStreamPointToData(pRecvBuffer);
-    FClientSock.ReadBuffer(pDataDest^, RecvHeader.total_length - sizeof(RecvHeader));
-    inc(FBytesRecv, RecvHeader.total_length);
+  bGotPacket := false;
+  inc(FBytesRecv, iRead);
 
-    FCurrentPacket := pRecvBuffer;
-    Synchronize(SyncDoOnNewPacket);
-    FreeMem(pRecvBuffer);
-  end
-  else
-    inc(FBytesRecv, sizeof(RecvHeader));
+  for I := 0 to iRead - 1 do begin
+    PChar(FIncomingPacket)[FIncPacketRcvdCnt] := sIn[I + 1];
+    inc(FIncPacketRcvdCnt);
+
+    if FIncPacketRcvdCnt > 2 then
+      if FIncomingPacket^.total_length = FIncPacketRcvdCnt then begin
+        GetMem(pWholePacket, FIncomingPacket^.total_length);
+        Move(FIncomingPacket^, pWholePacket^, FIncomingPacket^.total_length);
+        FReceivedPackets.Add(pWholePacket);
+
+        bGotPacket := true;
+        FIncPacketRcvdCnt := 0;
+      end;  { got a whole packet }
+  end;  { for I in iRead }
+
+  if bGotPacket then
+    PostMessage(FNotifyWnd, WM_DSTREAM_PACKET, 0, 0);
 end;
 
 procedure TDStreamClient.Execute;
@@ -352,6 +378,46 @@ begin
     Result := FHost + ':' + IntToStr(FPort)
   else
     Result := FHost;
+end;
+
+procedure TDStreamClient.WMDStreamPacket(var Msg: TMessage);
+var
+  pPacket:  PDStream_Header;
+  pData:    Pointer;
+begin
+  pPacket := FReceivedPackets.GetFirst;
+  while Assigned(pPacket) do begin
+    if Assigned(FOnDSPacket) then
+      FOnDSPacket(Self, pPacket);
+
+    pData := DStreamPointToData(pPacket);
+
+    case pPacket^.command_id of
+      DPACKET_DAOC_CONNECTION_OPENED:
+          DoOnDAOCConnectionOpened(pData);
+      DPACKET_DAOC_CONNECTION_CLOSED:
+          DoOnDAOCConnectionClosed(pData);
+      DPACKET_DAOC_DATA:
+          DoOnDAOCConnectionData(pData);
+    end;
+
+    Dispose(pPacket);
+    
+    pPacket := FReceivedPackets.GetFirst;
+  end;  { while Assigned(pPacket) }
+end;
+
+procedure TDStreamClient.NotifyWndProc(var Msg: TMessage);
+begin
+  case Msg.Msg of
+    WM_DSTREAM_PACKET:
+        WMDStreamPacket(Msg);
+  end;
+end;
+
+procedure TDStreamClient.SyncDoOnNewPacket;
+begin
+
 end;
 
 { TDStreamClientList }
@@ -494,6 +560,60 @@ procedure TDStreamClientList.CLIENTStatusChange(Sender: TObject);
 begin
   if Assigned(FOnStatusChange) then
     FOnStatusChange(Sender);
+end;
+
+{ TDStreamPacketLockedList }
+
+procedure TDStreamPacketLockedList.Add(APacket: PDStream_Header);
+begin
+  with FList.LockList do
+    try
+      Add(APacket);
+    finally
+      FList.UnlockList;
+    end;
+end;
+
+procedure TDStreamPacketLockedList.Clear;
+var
+  I:    integer;
+begin
+  with FList.LockList do
+    try
+      for I := 0 to Count - 1 do
+        Dispose(Items[I]);
+      Clear;
+    finally
+      FList.UnlockList;
+    end;
+end;
+
+constructor TDStreamPacketLockedList.Create;
+begin
+  inherited;
+  FList := TThreadList.Create;
+end;
+
+destructor TDStreamPacketLockedList.Destroy;
+begin
+  Clear;
+  FreeAndNil(FList);
+  inherited;
+end;
+
+function TDStreamPacketLockedList.GetFirst: PDStream_Header;
+begin
+  with FList.LockList do
+    try
+      if Count > 0 then begin
+        Result := PDStream_Header(First);
+        Delete(0);
+      end
+      else
+        Result := nil;
+    finally
+      FList.UnlockList;
+    end;  { with List }
 end;
 
 end.
