@@ -1,3 +1,74 @@
+Andon (28/Feb/02)
+-----------------
+Major Changes:
+==============
+ + Optimized the hell out of the OpenGL rendering
+   algorithms. I'm NOT exagerating when I say you
+   can expect a good 2 - 3x performance gain with
+   1.2.0 !!!
+
+ + Changed depth fading to use a higher quality
+   and quicker alpha blending routine.
+
+ + Changed the default size of objects when you
+   start Excalibur..
+
+
+Major Additions:
+================
+ + 2 - 3x the framerate (this isn't really an add-
+   ition, I just like mentioning it :))
+
+ + Up to 1/2 the memory requirements for PNG maps.
+   I will be fooling around with the OpenGL exten-
+   sion for S3TC (S3 Texture Compression) soon, so
+   these numbers may become even more attractive.
+
+ + Added a new FPS meter to the status bar.. It's
+   an average of calculated FPS for all frames in
+   the past 1 second. Therefore, this number will
+   NOT change unless something on the map moves,
+   or you resize the window. This is ALSO why the
+   FPS meter reads "???" when you initially start
+   Excalibur.
+
+
+Bug Fixes:
+ + The option to toggle "Simple Objects" has been
+   restored.. Sorry about that, my bad?
+
+ + The mob list doesn't resort itself every time
+   a player moves anymore. It was NEVER intended
+   to function that way.
+
+ + Issues where the map rulers' color attributes
+   were being corrupted at render time have been
+   addressed. (I think anyway, this may require
+   more debugging to completely fix).
+
+ + Several SEGV / Uncontrolable thread issues in
+   the PNG loader have been corrected. The newer
+   Mutex / Semaphore system should ultimately be
+   more stable and quicker than it was in 1.1.x.
+
+ + Fixed a few memory leaks in:
+  - The Excalibur GUI
+  - The Map Loader Engine
+  - The Excalibur Map
+  - Druppy's Message Parser
+
+  NOTE: Just as the 1.1.x series added the new
+        Map Loader engine, 1.2.0 has several new
+        planned features. Almost all of them are
+        map related.. Most notable, S3TC for HW
+        accelerated OpenGL (NVidia / DRI), this
+        will decrease the memory needed for PNG
+        maps considerably, with a small loss of
+        image quality (it'll be optional though)
+
+  * Version bumped to 1.2.0
+
+
 Andon (26/Feb/02)
 -----------------
 Changes:

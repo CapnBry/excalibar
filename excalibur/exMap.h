@@ -30,6 +30,23 @@
 #include "exConnection.h"
 #include "exMapInfo.h"
 
+#include <pthread.h>
+#include <sched.h>
+
+#if !defined(BSD) && !defined(_WIN32)
+# define MUST_DO_SELECT
+#endif
+
+#ifdef MUST_DO_SELECT
+#include <sys/time.h>
+#include <unistd.h>
+#endif
+
+#ifndef _WIN32
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 class exMapElement {
   protected:
     double r,g,b;
@@ -153,7 +170,7 @@ protected:
   GLuint listCircle;
   GLuint listSquares;
   exMapInfo *mi;
-  uint8_t objsize;
+  unsigned int objsize;
   exTimeType _lastDarken;
   bool mobDarken;
   QPtrList<exMapElement> map;
@@ -163,7 +180,12 @@ protected:
   bool lastfill;
   int lastz;
   bool recache;
-  bool rasterize_player_names;
+  
+  unsigned int  fps, frames;
+  QTime        *_instant_fps;
+  exTimeType    _last_fps;
+  
+  
 public:
   exConnection *c;
   int range;
@@ -190,7 +212,7 @@ public:
   void mapRead();
   void loadVectorMap (const exMapInfo *mi);
   void textGL(QString text, int x, int y, int z);
-  void setObjectSize(uint8_t uiSize);
+  void setObjectSize(unsigned int uiSize);
   int stringInt(QStringList *sl, unsigned int sec);
   exMapInfo *getMap();
   void makeObjects(bool simple);

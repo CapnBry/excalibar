@@ -178,77 +178,6 @@
             </widget>
             <widget class="QGroupBox">
                 <property name="name">
-                    <cstring>AutoSimplifyGroup</cstring>
-                </property>
-                <property name="enabled">
-                    <bool>false</bool>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>495</x>
-                        <y>10</y>
-                        <width>105</width>
-                        <height>70</height>
-                    </rect>
-                </property>
-                <property name="title">
-                    <string>AutoSimplify</string>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>MapSimplifyRangeLabel</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>20</y>
-                            <width>90</width>
-                            <height>22</height>
-                        </rect>
-                    </property>
-                    <property name="font">
-                        <font>
-                            <pointsize>9</pointsize>
-                        </font>
-                    </property>
-                    <property name="text">
-                        <string>TextLabel1</string>
-                    </property>
-                </widget>
-                <widget class="QSlider">
-                    <property name="name">
-                        <cstring>MapSimplifyRange</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>40</y>
-                            <width>90</width>
-                            <height>24</height>
-                        </rect>
-                    </property>
-                    <property name="minValue">
-                        <number>25</number>
-                    </property>
-                    <property name="maxValue">
-                        <number>300</number>
-                    </property>
-                    <property name="lineStep">
-                        <number>10</number>
-                    </property>
-                    <property name="pageStep">
-                        <number>25</number>
-                    </property>
-                    <property name="value">
-                        <number>50</number>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                </widget>
-            </widget>
-            <widget class="QGroupBox">
-                <property name="name">
                     <cstring>GroupBox2</cstring>
                 </property>
                 <property name="geometry">
@@ -262,22 +191,6 @@
                 <property name="title">
                     <string>Drawing Options</string>
                 </property>
-                <widget class="QCheckBox">
-                    <property name="name">
-                        <cstring>GLSimpleObjects</cstring>
-                    </property>
-                    <property name="geometry">
-                        <rect>
-                            <x>10</x>
-                            <y>40</y>
-                            <width>148</width>
-                            <height>27</height>
-                        </rect>
-                    </property>
-                    <property name="text">
-                        <string>Simple Objects</string>
-                    </property>
-                </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>Layout10</cstring>
@@ -417,6 +330,93 @@
                             </property>
                         </widget>
                     </vbox>
+                </widget>
+            </widget>
+            <widget class="QGroupBox">
+                <property name="name">
+                    <cstring>AutoSimplifyGroup</cstring>
+                </property>
+                <property name="enabled">
+                    <bool>true</bool>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>495</x>
+                        <y>10</y>
+                        <width>105</width>
+                        <height>95</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>AutoSimplify</string>
+                </property>
+                <widget class="QSlider">
+                    <property name="name">
+                        <cstring>MapSimplifyRange</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>10</x>
+                            <y>65</y>
+                            <width>85</width>
+                            <height>24</height>
+                        </rect>
+                    </property>
+                    <property name="minValue">
+                        <number>25</number>
+                    </property>
+                    <property name="maxValue">
+                        <number>300</number>
+                    </property>
+                    <property name="lineStep">
+                        <number>10</number>
+                    </property>
+                    <property name="pageStep">
+                        <number>25</number>
+                    </property>
+                    <property name="value">
+                        <number>50</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                </widget>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>MapSimplifyRangeLabel</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>5</x>
+                            <y>45</y>
+                            <width>95</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="font">
+                        <font>
+                            <pointsize>9</pointsize>
+                        </font>
+                    </property>
+                    <property name="text">
+                        <string>TextLabel1</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>GLSimpleObjects</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>15</x>
+                            <y>25</y>
+                            <width>75</width>
+                            <height>16</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>Simplify</string>
+                    </property>
                 </widget>
             </widget>
         </widget>
@@ -1263,7 +1263,7 @@
     <connection>
         <sender>GLSimpleObjects</sender>
         <signal>toggled(bool)</signal>
-        <receiver>AutoSimplifyGroup</receiver>
+        <receiver>MapSimplifyRange</receiver>
         <slot>setEnabled(bool)</slot>
     </connection>
     <connection>
@@ -1279,13 +1279,16 @@
         <slot>setEnabled(bool)</slot>
     </connection>
 </connections>
+<includes>
+    <include location="local" impldecl="in implementation">prefsdialog.ui.h</include>
+</includes>
 <slots>
-    <slot>SliderAliveColor_valueChanged(int v)</slot>
-    <slot>SliderDeadColor_valueChanged(int v)</slot>
-    <slot>ItemAutoUpload_toggled(bool)</slot>
-    <slot>MapSimplifyRange_valueChanged(int val)</slot>
-    <slot>PrefsDialog_destroyed(QObject *)</slot>
-    <slot>TextLabel1_3_destroyed(QObject *)</slot>
+    <slot>SliderAliveColor_valueChanged( int v )</slot>
+    <slot>SliderDeadColor_valueChanged( int v )</slot>
+    <slot>ItemAutoUpload_toggled( bool )</slot>
+    <slot>MapSimplifyRange_valueChanged( int val )</slot>
+    <slot>PrefsDialog_destroyed( QObject * )</slot>
+    <slot>TextLabel1_3_destroyed( QObject * )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

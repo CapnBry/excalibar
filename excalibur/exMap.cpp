@@ -25,6 +25,7 @@
 #include <math.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
+#include <qpixmap.h>
 #include <qaction.h>
 #include <qinputdialog.h>
 #include <qregexp.h>
@@ -32,14 +33,13 @@
 #include <qtextstream.h>
 #include <qslider.h>
 #include <qimage.h>
-#include <qpixmap.h>
 #include <qmessagebox.h>
 
 #include <stdio.h>
 
 exMap::exMap(QWidget *parent, const char *name)
  : QGLWidget(QGLFormat(DoubleBuffer|DepthBuffer|Rgba|DirectRendering),parent,name) {
-  objsize = 100; 
+  objsize = 150; 
   range = 8000;
   c = NULL; 
   is_dirty = true; 
@@ -53,6 +53,7 @@ exMap::exMap(QWidget *parent, const char *name)
   MapLoader.initialize();
   MapLoader.setParent(this);
   m_bNeedMapReload = false;
+  _instant_fps=new QTime;
 }
 
 exMap::~exMap() {
@@ -60,6 +61,9 @@ exMap::~exMap() {
   
   if (mi)
     delete mi;
+
+ if (_instant_fps)
+   delete _instant_fps;
 }
 
 void exMap::dirty() {
@@ -81,7 +85,7 @@ void exMap::setMap(exMapInfo *m) {
   map_load=true;
 }
 
-void exMap::setObjectSize(uint8_t uiSize) {
+void exMap::setObjectSize(unsigned int uiSize) {
   objsize = uiSize;
   makeObjects(prefs.map_simple);
 }
@@ -198,10 +202,10 @@ bool exMap::isNVidiaModuleLoaded() {
 }
 
 void exMap::initializeGL() {
-  static GLfloat lightpos[4]={0.5,-1.0,1.0,0.0};
-  static GLfloat diffuse[4]={0.5,0.5,0.5,1.0};
-  static GLfloat ambient[4]={-0.0,-0.0,-0.0,1.0};
-  static GLfloat material[4]={0.5,0.5,0.5,1.0};
+  static GLfloat lightpos[4] = { 0.5, -1.0,  1.0, 0.0};
+  static GLfloat diffuse [4] = { 0.5,  0.5,  0.5, 1.0};
+  static GLfloat ambient [4] = {-0.0, -0.0, -0.0, 1.0};
+  static GLfloat material[4] = { 0.5,  0.5,  0.5, 1.0};
 
   if (! format().doubleBuffer())
     qWarning("Single Buffer GL only - Flicker might happen");
@@ -223,7 +227,7 @@ void exMap::initializeGL() {
     has_direct   = FALSE;
   }
 
-  glClearColor(0.0,0.0,0.0,0.0);
+  glClearColor(0.0, 0.0, 0.0, 0.0);
   glDisable(GL_CULL_FACE);
 
   glShadeModel(GL_FLAT);
@@ -255,6 +259,7 @@ void exMap::resizeGL(int w, int h) {
 }
 
 void exMap::paintGL() {
+  _instant_fps->restart(); 
   const QPtrDict<exMob> mobs=c->getMobs();
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
@@ -318,6 +323,7 @@ void exMap::paintGL() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
+  glColor3f(0.75, 0.75, 0.75);
   glLineWidth(1.0);
   glPointSize(3.0);
 
@@ -341,7 +347,6 @@ void exMap::paintGL() {
 
   if (prefs.map_rulers) {
     qglColor( darkGray );
-    glLineWidth ( 1.0 );
     glBegin(GL_LINES);
     glVertex3i(c->playerx - range * 2, c->playery, 500);
     glVertex3i(c->playerx + range * 2, c->playery, 500);
@@ -352,16 +357,15 @@ void exMap::paintGL() {
     glEnd();
   }
 
+  if(prefs.player_circle_1 >= 226 || prefs.player_circle_2 >= 251) {
 
-  if(prefs.player_circle_1 >= 226){
-    glLineWidth (2.0);
     glColor3f (0.45f, 0.45f, 0.45f);
-    drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
-  }
-  if(prefs.player_circle_2 >= 251){
-    glLineWidth (2.0);
-    glColor3f (0.45f, 0.45f, 0.45f);
-    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
+
+    if (prefs.player_circle_1 >= 226)
+      drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
+
+    if (prefs.player_circle_2 >= 251)
+      drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
   }
 
 
@@ -372,12 +376,10 @@ void exMap::paintGL() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  qglColor( yellow ); 
-
   glPushMatrix();
   glDepthFunc  (GL_LEQUAL);
   glColor3f    (1.0f, 1.0f, 0.0f);
-  glTranslated (c->playerx, c->playery, c->playerz);
+  glTranslatef (c->playerx, c->playery, c->playerz);
   objRotate    (c->playerhead);
   glCallList   (listTriangle);
   glPopMatrix();
@@ -396,63 +398,21 @@ void exMap::paintGL() {
       /* if it is filtered draw a yellow circle around it */
 
       if (m->getZ() >= 0.01f)
-        glTranslated(m->getProjectedX(), m->getProjectedY(), 0.01f);
+        glTranslatef(m->getProjectedX(), m->getProjectedY(), 0.01f);
       else
-        glTranslated(m->getProjectedX(), m->getProjectedY(), m->getZ() - 0.01f);
-
-        glPushMatrix();
-        if ((m->isMob() && m->getGuild().length() > 0 && prefs.map_rasterize_merchant_types) || (! m->isMob() && ! m->isObj() && prefs.map_rasterize_player_names)) {
-          glPushAttrib (GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
-          glDisable    (GL_LIGHTING);
-          glEnable     (GL_DEPTH_TEST);
-          glDepthFunc  (GL_ALWAYS);
-          glColor3f (1.0, 1.0, 1.0);
-
-          glBegin(GL_POINTS);
-          glVertex3i(0,0,m->getZ()+((int)(2.5*objsize)));
-          glEnd();
-
-          glColor3f (1.0,1.0,1.0);
-
-          QString qsPlayerName;
-          QString qsFormattedName;
-
-          if (m->isMob())
-            qsFormattedName = m->getGuild();
-
-          else {
-            if (m->getSurname().length() > 0)
-              qsPlayerName.sprintf("%s %s", m->getName().latin1(), m->getSurname().
-latin1());
-            else
-              qsPlayerName.sprintf("%s", m->getName().latin1());
-
-            if (m->getGuild().length() > 0)
-              qsFormattedName.sprintf("%s <%s>",qsPlayerName.latin1(), m->getGuild(
-).latin1());
-            else
-              qsFormattedName = qsPlayerName;
-          }
-
-          glRasterPos3i(20,20,m->getZ()+(3*objsize));
-          for (unsigned int i=0;i<qsFormattedName.length();i++) {
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName.at(i).latin1()); }
-
-          glPopAttrib();
-        }
-        glPopMatrix();
+        glTranslatef(m->getProjectedX(), m->getProjectedY(), m->getZ() - 0.01f);
 
 
       glPushMatrix();
       if( m->isFiltered() && prefs.filter_circles ) {
 
         if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
-          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+          glEnable     (GL_BLEND);
+          glEnable     (GL_DEPTH_TEST);
           glDisable    (GL_LIGHTING);
           glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
-          glCullFace   (GL_BACK);
 
 
           if (prefs.alpha_borders) {
@@ -488,12 +448,12 @@ latin1());
       else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
 
         if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
-          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+          glEnable     (GL_BLEND);
+          glEnable     (GL_DEPTH_TEST);
           glDisable    (GL_LIGHTING);
           glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
-          glCullFace   (GL_BACK);
 
 
           if (prefs.alpha_borders) {
@@ -524,7 +484,7 @@ latin1());
           glPushAttrib (GL_ENABLE_BIT);
           glDisable    (GL_LIGHTING);
 
-          glLineWidth(1.0);
+          glLineWidth(1.0f);
 
           if (prefs.agro_fading) {
             glColor3f ((1.0f - (m->playerDist() / 2000.0f)),
@@ -542,9 +502,9 @@ latin1());
       glPopMatrix();
 
       glPushMatrix();
-      glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glPushAttrib (GL_DEPTH_BUFFER_BIT);
       glDepthFunc  (GL_LESS);
-      glTranslated(m->getProjectedX(),m->getProjectedY(),m->getZ());
+      glTranslatef (m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
 
       if (! m->isMob()) {
@@ -587,6 +547,51 @@ latin1());
       else
         glCallList(listSquares);
 
+      glPushMatrix();
+      if ((m->isMob() && m->getGuild().length() > 0 && prefs.map_rasterize_merchant_types) || (! m
+->isMob() && ! m->isObj() && prefs.map_rasterize_player_names)) {
+
+        glPushAttrib (GL_ENABLE_BIT);
+ //       glEnable     (GL_DEPTH_TEST);
+        glDisable    (GL_LIGHTING);
+//        glDepthFunc  (GL_ALWAYS);
+
+        glColor3f  (1.0, 1.0, 1.0);
+
+        glBegin    (GL_POINTS);
+        glVertex3f (0.0, 0.0, m->getZ() + (float)(2.5 * objsize));
+        glEnd();
+
+        QString qsPlayerName;
+        QString qsFormattedName;
+
+        if (m->isMob())
+          qsFormattedName = m->getGuild();
+
+        else {
+          if (m->getSurname().length() > 0)
+             qsPlayerName.sprintf("%s %s", m->getName().latin1(), m->getSurname().latin1())
+;
+          else
+            qsPlayerName.sprintf("%s", m->getName().latin1());
+
+          if (m->getGuild().length() > 0)
+            qsFormattedName.sprintf("%s <%s>",qsPlayerName.latin1(), m->getGuild().latin1()
+);
+          else
+            qsFormattedName = qsPlayerName;
+        }
+
+        glRasterPos3i(20, 20, m->getZ() + (3 * objsize));
+        for (unsigned int i = 0; i < qsFormattedName.length(); i++) {
+          glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, qsFormattedName.at(i).latin1());
+        }
+
+        glPopAttrib();
+      }
+      glPopMatrix();
+
+
       glPopAttrib();
       glPopMatrix();
     }
@@ -597,7 +602,7 @@ latin1());
 
   m=mobs.find((void *)c->selectedid);
   if (m && m->isCurrent()) {
-    qglColor( white );
+    glColor3f(1.0, 1.0, 1.0);
     glLineWidth ( 2.0 );
     glBegin(GL_LINES);
     glVertex3i(c->playerx,c->playery,c->playerz);
@@ -608,6 +613,30 @@ latin1());
   is_dirty = false;
 
   glFlush();
+
+  if (_instant_fps->elapsed() > 0) {
+//  printf("Instant Framerate [%d] :\t%d frames per second (based on this frame ONLY)\n", exTick, (int)(1000/_instant_fps->elapsed()));
+     
+    fps    += (1000/_instant_fps->elapsed());
+    frames += 1;
+  }
+
+  if ((exTick - _last_fps) >= 1000) {
+
+    if (frames > 0) {
+      if (((int)fps / frames) >= 250)
+        c->ex->FPS->setText("??? FPS");
+       else
+         c->ex->FPS->setText(QString().sprintf("%d FPS", (int)(fps / frames)));
+    }
+        
+//  printf("Average Framerate [%d] :\t%d frames per second (derived from the past 1 second(s) worth of frames)\n", exTick, (int)(fps / frames));
+     
+    fps    = 0;
+    frames = 0;
+
+    _last_fps=exTick;
+  }
 }
 
 void exMap::drawCircle(int center_x, int center_y, int radius, uint8_t segments)
@@ -752,9 +781,9 @@ void exMap::setGLColor(QColor col, int z) {
 }
 
 void exMap::objRotate(unsigned int daocheading) {
-  double r=daocheading;
-  r*=360;
-  r/=0x1000;
+  GLfloat r = daocheading;
+  r *= 360;
+  r /= 0x1000;
   glRotatef(r,0.0,0.0,1.0);
 }
 
@@ -795,10 +824,10 @@ exMapElement::~exMapElement() {
 }
 
 void exMapElement::recache(exMap *map) {
-    glNewList(displist, GL_COMPILE);
-    draw(map);
-    glEndList();
-    glCallList(displist);
+  glNewList(displist, GL_COMPILE);
+  draw(map);
+  glEndList();
+  glCallList(displist);
 }
 
 
@@ -885,16 +914,16 @@ void exMapElementTexture::draw(exMap *) {
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_QUADS);
 
-  glTexCoord2d(0.0, 1.0);
+  glTexCoord2f(0.0, 1.0);
   glVertex3i(bounds.left(), bounds.top(), 250);
 
-  glTexCoord2d(1.0, 1.0);
+  glTexCoord2f(1.0, 1.0);
   glVertex3i(bounds.right(), bounds.top(), 250);
 
-  glTexCoord2d(1.0, 0.0);
+  glTexCoord2f(1.0, 0.0);
   glVertex3i(bounds.right(), bounds.bottom(), 250);
 
-  glTexCoord2d(0.0, 0.0);
+  glTexCoord2f(0.0, 0.0);
   glVertex3i(bounds.left(), bounds.bottom(), 250);
   glEnd();
 
@@ -1222,7 +1251,15 @@ void exMapLoader::setParent ( exMap *parent )
 
 void exMapLoader::run (void)
 {
-BeginMapLoad:
+BeginMapLoaderThread:
+
+#ifndef _WIN32
+  struct sched_param sp;
+  memset(&sp, 0, sizeof(sp));
+  sp.sched_priority=sched_get_priority_min(SCHED_RR) + 1;
+  setpriority(PRIO_PROCESS, getpid(), 7);
+#endif
+
   parent->m_bNeedMapReload = false;
 
   if (parent == NULL) {
@@ -1284,8 +1321,8 @@ END_EXPERIMENTAL_CODE
 
       if (img.load(fimg.name())) {
 
-        int w = img.width();
-        int h = img.height();
+        const int w = img.width();
+        const int h = img.height();
 
         const int xadd = mi->getBaseX();
         const int yadd = mi->getBaseY();
@@ -1348,7 +1385,7 @@ END_EXPERIMENTAL_CODE
     qApp->postEvent(&empldProgress, new QCustomEvent(CALLBACK_PNG_FNSH, (void*)1));
 
   if (parent->m_bNeedMapReload)
-    goto BeginMapLoad;
+    goto BeginMapLoaderThread;
 }
 
 
@@ -1360,8 +1397,7 @@ bool exMap::event (QEvent *e)
     if (pc != NULL)
     {
       map.append(new exMapElementTexture(pc->a, pc->b, pc->c, pc->d, this, pc->img,true));
-
-      pc->img = (QImage)NULL;
+      delete (struct PNGCallback*)pc;
     }
 
     if (! MapLoader.running()) {
@@ -1412,8 +1448,15 @@ exMapPNGLoaderDialog::~exMapPNGLoaderDialog (void) { }
 
 void exMapPNGLoaderDialog::run (void)
 {
+#ifndef _WIN32
+  struct sched_param sp;
+  memset(&sp, 0, sizeof(sp)); 
+  sp.sched_priority=sched_get_priority_min(SCHED_RR) + 1;
+  setpriority(PRIO_PROCESS, getpid(), 15);
+#endif
+
   while (true)
-    msleep(15);
+    msleep(150);
 }
 
 bool exMapPNGLoaderDialog::event (QEvent *e)

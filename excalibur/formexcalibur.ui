@@ -19,26 +19,15 @@
         <property name="name">
             <cstring>xyzstatus</cstring>
         </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>100</width>
-                <height>30</height>
-            </rect>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>FPS</cstring>
         </property>
     </widget>
     <widget class="QLabel">
         <property name="name">
             <cstring>Zone</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>100</width>
-                <height>30</height>
-            </rect>
         </property>
     </widget>
     <widget class="QSplitter">
@@ -178,10 +167,10 @@
                         <cstring>MapSlider</cstring>
                     </property>
                     <property name="minValue">
-                        <number>1000</number>
+                        <number>750</number>
                     </property>
                     <property name="maxValue">
-                        <number>100000</number>
+                        <number>150000</number>
                     </property>
                     <property name="value">
                         <number>8000</number>

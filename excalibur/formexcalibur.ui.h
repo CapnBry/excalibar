@@ -53,6 +53,7 @@ void FormExcalibur::init()
 {
     prefs.addWindow(this);
 
+    FPS       = new QLabel( statusBar(), "FPS" );
     Zone      = new QLabel( statusBar(), "Zone" );
     xyzstatus = new QLabel( statusBar(), "xyzstatus" );
 
@@ -60,14 +61,26 @@ void FormExcalibur::init()
     xyzstatus->setAlignment(AlignHCenter);
     Zone->setMinimumWidth(110);
     Zone->setAlignment(AlignHCenter);
+    FPS->setMinimumWidth(50);
+    FPS->setAlignment(AlignHCenter);
 
-    statusBar()->addWidget(Zone, 0, TRUE);
+    statusBar()->addWidget(FPS,       0, TRUE);
+    statusBar()->addWidget(Zone,      0, TRUE);
     statusBar()->addWidget(xyzstatus, 0, TRUE);
 
 }
 
 void FormExcalibur::destroy()
 {
+    if (FPS != NULL)
+        delete FPS;
+
+    if (Zone != NULL)
+        delete Zone;
+
+    if (xyzstatus != NULL)
+        delete xyzstatus;
+
     prefs.removeWindow(this);
     exItem::save();
     exItem::upload(FALSE);
@@ -95,11 +108,11 @@ void FormExcalibur::GroupPlayers_toggled( bool ena )
 void FormExcalibur::GLObjectSizes_selected( QAction * act)
 {
     if (act == GLObjectsSmall)
-      Map->setObjectSize(40);
+      Map->setObjectSize(75);
     else if (act == GLObjectsMedium)
-      Map->setObjectSize(80);
+      Map->setObjectSize(150);
     else
-      Map->setObjectSize(160);
+      Map->setObjectSize(300);
 }
 
 void FormExcalibur::SortDistance_toggled( bool ena )
