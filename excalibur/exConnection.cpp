@@ -93,6 +93,7 @@ void exConnection::setup()
 	msgui = new exMessagesUi;
 
     alive = true;
+	vaderWarn = prefs.vaderWarn;
     mobs.setAutoDelete(true);
     objs.setAutoDelete(true);
     players.setAutoDelete(true);
