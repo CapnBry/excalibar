@@ -156,7 +156,7 @@ bool Config::Load(const std::string& filename)
     
     file >> ModifySimplifyLines() >> std::ws;
     file >> ModifySimplifyLinesTolerance() >> std::ws;
-
+    
     // done
     return(true);
 } // end Load

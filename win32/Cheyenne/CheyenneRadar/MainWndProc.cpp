@@ -291,11 +291,43 @@ void OnNewActor(const Actor& a)
 {
     if(!ReferenceSet)
         {
-        LOG_FUNC << "reference set\n";
-        // set new reference actor
-        ReferenceSet=true;
-        ReferenceActor=a;
-        }
+        // only set players as the reference actor
+        if(a.IsType(Actor::Player))
+            {
+            LOG_FUNC << "reference set\n";
+            // set new reference actor
+            ReferenceSet=true;
+            ReferenceActor=a;
+            }
+        } // end if reference not set
+    else
+        {
+        // see about playing sounds
+        switch(a.GetRealm())
+            {
+            case Actor::Albion:
+                if(::RadarConfig.GetPlayAlbSound()) PlaySound(::RadarConfig.GetNewAlbSound().c_str(),NULL,SND_FILENAME|SND_ASYNC|SND_NOSTOP|SND_NOWAIT);
+                break;
+            case Actor::Hibernia:
+                if(::RadarConfig.GetPlayHibSound()) PlaySound(::RadarConfig.GetNewHibSound().c_str(),NULL,SND_FILENAME|SND_ASYNC|SND_NOSTOP|SND_NOWAIT);
+                break;
+            case Actor::Midgard:
+                if(::RadarConfig.GetPlayMidSound()) PlaySound(::RadarConfig.GetNewMidSound().c_str(),NULL,SND_FILENAME|SND_ASYNC|SND_NOSTOP|SND_NOWAIT);
+                break;
+                
+            default:
+                // mob or object, this will get handled below
+                break;
+            } // end switch realm
+        // use named mob for players as well as mobs :)
+        if(::RadarConfig.GetPlayNamedMobSound())
+            {
+            if(::RadarConfig.GetNamedMobName() == a.GetName())
+                {
+                PlaySound(::RadarConfig.GetNamedMobSound().c_str(),NULL,SND_FILENAME|SND_ASYNC|SND_NOSTOP|SND_NOWAIT);
+                } // end if name match
+            } // end if play named mob sound
+        } // end else reference set
 } // end OnNewActor
 
 void OnDeleteActor(const Actor& a)
@@ -983,9 +1015,15 @@ void HandleCreate(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
         SWP_NOMOVE|SWP_NOOWNERZORDER|SWP_NOZORDER
         );
         
-    
-            
-    //data->dstream.Open("ignats","9867");
+    if(::RadarConfig.GetDStreamServer() != "<no server>")
+        {
+        // go ahead and connect automatically
+        data->dstream.Open
+            (
+            ::RadarConfig.GetDStreamServer().c_str(),
+            ::RadarConfig.GetDStreamServerPort()
+            );
+        }
     
     // done
     return;
@@ -1236,6 +1274,8 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         // put followed actor in
         oss << "Reference Actor:\n"
             << data->ReferenceActor.GetName() << "\n"
+            << "Hdg: " << ToDegrees(data->ReferenceActor.GetMotion().GetHeading()) << "°\n"
+            << "Spd: " << data->ReferenceActor.GetMotion().GetSpeed() << "\n"
             << "<" << data->ReferenceActor.GetMotion().GetXPos() << ","
             << data->ReferenceActor.GetMotion().GetYPos() << ">\n\n";
         }
@@ -1245,6 +1285,8 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         // put hooked actor in
         oss << "Target Actor:\n"
             << data->ReferenceTarget.GetName() << "\n"
+            << "Hdg: " << ToDegrees(data->ReferenceTarget.GetMotion().GetHeading()) << "°\n"
+            << "Spd: " << data->ReferenceTarget.GetMotion().GetSpeed() << "\n"
             << "<" << data->ReferenceTarget.GetMotion().GetXPos() << ","
             << data->ReferenceTarget.GetMotion().GetYPos() << ">\n\n";
         }
@@ -1254,6 +1296,8 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
         // put hooked actor in
         oss << "Hooked Actor:\n"
             << data->HookedActor.GetName() << "\n"
+            << "Hdg: " << ToDegrees(data->HookedActor.GetMotion().GetHeading()) << "°\n"
+            << "Spd: " << data->HookedActor.GetMotion().GetSpeed() << "\n"
             << "<" << data->HookedActor.GetMotion().GetXPos() << ","
             << data->HookedActor.GetMotion().GetYPos() << ">\n\n";
         }
