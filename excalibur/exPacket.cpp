@@ -160,14 +160,15 @@ QString exPacket::getZeroString(const unsigned int &minlen) {
   unsigned int start;
 
   start=offset;
-  do {
-    Q_ASSERT(d.size() >= (offset + 1));
-    c=(char)(data[offset]);
-    if (c) {
-      v.append(c);
-    }
-    offset++;
-  } while (c);
+  if (!isAtEOF())
+    do {
+      Q_ASSERT(d.size() >= (offset + 1));
+      c=(char)(data[offset]);
+      if (c) {
+        v.append(c);
+      }
+      offset++;
+    } while (c);
   if (offset < start+minlen)
     offset=start+minlen;
   return v;
