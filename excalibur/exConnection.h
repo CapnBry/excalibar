@@ -48,6 +48,7 @@ class exConnection : public QObject {
   Q_OBJECT
 protected:
   QPtrDict<exMob> mobs;
+  QPtrDict<exMob> objs;
   QPtrDict<exMob> players;
   QPtrDict<exMob> mobinfo;
   QDict<int> playerzones;
@@ -66,7 +67,9 @@ protected:
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);
+  void parseSystemMessage(exPacket *p);
   void dumpPacket(unsigned int command, exPacket *p);
+
 public slots:
   void listSelectionChanged(QListViewItem *i);
   void replaytimer();

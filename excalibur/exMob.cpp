@@ -27,7 +27,7 @@ static const QColor cHibernia(0,255,0);
 static const QColor cAlbion(255,0,0);
 static const QColor cFriendly(0,255,255);
 
-exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp) 
+exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp, bool newobj) 
  : QListViewItem(view)
 {
   id=newid;
@@ -40,6 +40,7 @@ exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid
   hp=nhp;
   mana=0;
   mob=newmob;
+  obj=newobj;
   head=0x800;
   speed=0;
   c=con;
@@ -62,8 +63,11 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
 
   mob=(exMob *)i;
 
-  if (prefs.sort_group_players && ((isMob() && !mob->isMob()) || (!isMob() && mob->isMob()))) {
-    updown=isMob();
+  if (prefs.sort_group_players && ((isMob() && !mob->isMob()) || (!isMob() && mob->isMob()) || ((isObj() && !mob->isObj()) || (!isObj() && mob->isObj())))) {
+    if (!isMob() && !isObj())
+      updown=false;
+    else
+      updown=true;
     if (! ascending)
       updown=!updown;
     if (updown)
@@ -142,7 +146,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   QColorGroup cols(cg);
   QColor c;
 
-  if (! isMob()) {
+  if (! isMob() && ! isObj()) {
     c=getColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     cols.setColor(QColorGroup::Base, c);
   }
@@ -196,6 +200,10 @@ QString exMob::getName() const {
 
 bool exMob::isMob() const {
   return mob;
+}
+
+bool exMob::isObj() const {
+  return obj;
 }
 
 bool exMob::isDead() const {

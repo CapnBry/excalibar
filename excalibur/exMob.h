@@ -40,6 +40,7 @@ class exMob : public QListViewItem {
     double headrad;
     unsigned int speed;
     bool mob;
+    bool obj;
     bool current;
     exTimeType _lasttick;
     exTimeType _lastdist;
@@ -50,7 +51,7 @@ class exMob : public QListViewItem {
     exConnection *c;
     Realm realm;
   public:
-    exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp);
+    exMob(QListView *view, exConnection *con, bool newmob, unsigned int newid, unsigned int newinfoid, QString newname, int newlevel, int nx, int ny, int nz, int nhp, bool newobj);
     virtual int compare(QListViewItem *i, int col, bool ascending) const;
     virtual QString text(int column) const;
     void paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align);
@@ -59,6 +60,7 @@ class exMob : public QListViewItem {
     unsigned int getInfoID() const;
     QString getName() const;
     bool isMob() const;
+    bool isObj() const;
     bool isInvader() const;
     bool isDead() const;
     bool isCurrent() const;

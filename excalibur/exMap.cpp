@@ -349,6 +349,8 @@ END_NORMAL_CODE
       if (! m->isMob()) {
         if (m->isDead()) {
           setGLColor (m->getColor().dark(160), m->getZ());
+        } else if (m->isObj()) {
+          setGLColor (m->getColor().dark(10), m->getZ());
         } else if (! m->isInvader()) {
           setGLColor (m->getColor(), m->getZ());
         } else {
@@ -374,6 +376,9 @@ END_NORMAL_CODE
         setGLColor(1.0,0.0,0.0,m->getZ());
       else 
         setGLColor(1.0,0.0,1.0,m->getZ());
+
+      if (m->isObj())
+        setGLColor(1.0,1.0,1.0, m->getZ());
 
       glCallList(listTriangle);
       glPopMatrix();

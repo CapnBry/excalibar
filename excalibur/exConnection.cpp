@@ -85,6 +85,7 @@ void exConnection::setup()
 
     alive = true;
     mobs.setAutoDelete(true);
+    objs.setAutoDelete(true);
     players.setAutoDelete(true);
     mobinfo.setAutoDelete(false);
     playerzones.setAutoDelete(true);
@@ -100,6 +101,7 @@ void exConnection::setup()
 exConnection::~exConnection()
 {
     mobs.clear();
+    objs.clear();
     players.clear();
     mobinfo.clear();
 
@@ -226,6 +228,7 @@ void exConnection::processPacket(exPacket * p)
     unsigned int x, y, z;
     unsigned int hp;
     bool ismob;
+    bool isobj;
     unsigned int command;
     unsigned int seq;
     exMapInfo *mi;
@@ -248,6 +251,9 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
 	    break;
+          case 0x07:
+            parseSystemMessage(p);
+            break;
 	  case 0x09:
 	    parseMobPosUpdate(p);
 	    break;
@@ -319,6 +325,9 @@ END_EXPERIMENTAL_CODE
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
 	    break;
+          case 0x07:
+            parseSystemMessage(p);
+            break;
 	  case 0x09:
 	    parseMobPosUpdate(p);
 	    break;
@@ -364,6 +373,7 @@ END_EXPERIMENTAL_CODE
 	      playery = p->getLong();
 	      mobinfo.clear();
 	      mobs.clear();
+              objs.clear();
 	      players.clear();
 	      ex->Map->dirty();
 	      break;
@@ -373,13 +383,16 @@ END_EXPERIMENTAL_CODE
 	      if (mob) {
 		  if (mob->isMob())
 		      mobs.remove((void *) ((unsigned int) mob->getID()));
-		  else
+		  else if (mob->isObj())
+                      objs.remove((void *) ((unsigned int) mob->getID()));
+                  else
 		      players.remove((void *) ((unsigned int) mob->getID()));
 	      }
 	      ex->Map->dirty();
 	      break;
-	  case 0x7c:
+          case 0x71:
 	  case 0x72:
+          case 0x7c:
 	      infoid = 0;
 	      head = 0;
               mobrealm = rFriend;
@@ -398,7 +411,8 @@ END_EXPERIMENTAL_CODE
 		  guild = p->getPascalString();
 		  surname = p->getPascalString();
 		  ismob = false;
-	      } else {
+                  isobj = false;
+	      } else if (command == 0x72) {
 		  infoid = id = p->getShort();
 		  p->skip(2);
 		  head = p->getShort();
@@ -412,12 +426,27 @@ END_EXPERIMENTAL_CODE
 		  guild = p->getPascalString();
 		  surname = p->getPascalString();
 		  ismob = true;
-	      }
+                  isobj = false;
+	      } else {
+/*000*/           infoid = id = p->getShort();
+/*002*/           p->skip(2);
+/*004*/           head = p->getShort();
+/*006*/           z = p->getShort();
+/*008*/           x = p->getLong();
+/*012*/           y = p->getLong();
+/*016*/           p->skip(4);
+/*021*/           level = 0;
+/*021*/           name = p->getPascalString();
+                  ismob = false;
+                  isobj = true;
+              }
 
 	      mob = NULL;
 	      if (ismob)
 		  mob = mobs.take((void *) ((unsigned int) id));
-	      else
+	      else if (isobj)
+                  mob = objs.take((void *) ((unsigned int) id));
+              else
 		  mob = players.take((void *) ((unsigned int) id));
 	      if (mob) {
 		  mobinfo.remove((void *) ((unsigned int) mob->getInfoID()));
@@ -425,13 +454,15 @@ END_EXPERIMENTAL_CODE
 	      }
 	      mobinfo.remove((void *) ((unsigned int) infoid));
 
-	      mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, level, x, y, z, 100);
+	      mob = new exMob(ex->ListViewMobs, this, ismob, id, infoid, name, level, x, y, z, 100, isobj);
 	      mob->setHead(head);
               mob->setRealm(mobrealm);
 
 	      if (ismob) {
 		  mobs.insert((void *) ((unsigned int) id), mob);
-	      } else {
+	      } else if (isobj) {
+                  objs.insert((void *) ((unsigned int) id), mob);
+              } else {
 		  players.insert((void *) ((unsigned int) id), mob);
               }
 	      mobinfo.insert((void *) ((unsigned int) infoid), mob);
@@ -573,6 +604,20 @@ void exConnection::parsePlayerHeadUpdate(exPacket *p)
 	if (prefs.sort_when == exPrefs::sortAlways)
 	    ex->ListViewMobs->sort();
     }
+}
+
+void exConnection::parseSystemMessage (exPacket *p)
+{
+/* NOTE: This code is disabled because it currently has no use
+
+    p->skip(7);
+
+    uint8_t      MessageType = p->getByte();
+    char*        Message     = strdup(p->getZeroString().ascii());
+
+    qWarning("Type: %x - Message: %s", MessageType, Message);
+
+*/
 }
 
 void exConnection::selectID(unsigned int id)

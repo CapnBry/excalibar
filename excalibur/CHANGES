@@ -2,6 +2,12 @@ Andon (10/Feb/02)
 ------------------
 
 Additions:
+ + Added support for object spawns..  These include things
+   such as:  Graves, Realm Banners, and other misc. spawns.
+
+   * I will give object spawns their own size / shape and
+     color in a future patch..
+
  + Added support to compile Excalibur 1.0.7 in FreeBSD!!
     (Thank you Ackmed)
 
