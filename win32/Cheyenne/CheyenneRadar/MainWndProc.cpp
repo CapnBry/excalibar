@@ -234,9 +234,10 @@ void OnRenderActor(const Actor& a)
             }
         }
     
-    // check if we need to do the range rings
+    // check if this is the reference actor    
     if(a.GetInfoId() == ReferenceActor.GetInfoId())
         {
+        // do the range rings
         if(::RadarConfig.GetShowRangeRing1())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange1());
         if(::RadarConfig.GetShowRangeRing2())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange2());
         if(::RadarConfig.GetShowRangeRing3())ppi.RenderRangeRing(ReferenceActor,::RadarConfig.GetRangeRingRange3());
@@ -1271,9 +1272,24 @@ void DrawDataWindow(HWND hWnd,HDC hFront,USERDATA* data)
 
     if(data->ReferenceSet)
         {
+        MapInfo::ZoneIndexType zone_number;
+        unsigned int x,y;
+        unsigned short z;
+        const MapInfo::ZoneInfo& zone=::Zones.GetZoneFromGlobal
+            (
+            data->ReferenceActor.GetRegion(),
+            (unsigned int)data->ReferenceActor.GetMotion().GetXPos(),
+            (unsigned int)data->ReferenceActor.GetMotion().GetYPos(),
+            (unsigned int)data->ReferenceActor.GetMotion().GetZPos(),
+            x,
+            y,
+            z,
+            zone_number
+            );
+            
         // put followed actor in
         oss << "Reference Actor:\n"
-            << data->ReferenceActor.GetName() << "\n"
+            << data->ReferenceActor.GetName() << " (" << zone.ZoneFile << ")\n"
             << "Hdg: " << ToDegrees(data->ReferenceActor.GetMotion().GetHeading()) << "°\n"
             << "Spd: " << data->ReferenceActor.GetMotion().GetSpeed() << "\n"
             << "<" << data->ReferenceActor.GetMotion().GetXPos() << ","
