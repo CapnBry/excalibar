@@ -89,6 +89,34 @@ void Motion::Print(std::ostream& os)const
     return;
 } // end Motion::Print
 
+void Motion::GetPointRelative
+    (
+    const float bearing,
+    const float distance,
+    float& x,
+    float& y
+    )const
+{
+    float az=GetHeading() + bearing;
+    
+    // make [0,2PI)
+    if(az > 2.0f*3.1415926535897932384626433832795f)
+        {
+        az -= 2.0f*3.1415926535897932384626433832795f;
+        }
+    else if(az<0.0f)
+        {
+        az += 2.0f*3.1415926535897932384626433832795f;
+        }
+    
+    // compute x,y
+    x=GetXPos() + (distance*sin(az));
+    y=GetYPos() + (distance*cos(az));
+    
+    // done
+    return;
+} // end GetPointRelative
+
 float Actor::DAOCHeadingToDegrees(unsigned short heading)
 {
     float val=float(heading)*(360.0f/4096.0f);

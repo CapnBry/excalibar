@@ -69,6 +69,14 @@ public:
     
     void Print(std::ostream& os)const;
 
+    void GetPointRelative
+        (
+        const float bearing, // radians
+        const float distance,
+        float& x,
+        float& y
+        )const;
+
 protected:
 
 private:
