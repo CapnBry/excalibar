@@ -3,6 +3,14 @@ Teerex (10/Apr/02)
 Changes:
  + Fixed syntax error before '&' in exConnection.h 
    and exMob.h using gcc3.
+ + Fixed namespace collision in exMap.cpp causing
+   "prototype does not match any in class" error
+   in gcc3
+ + Decreased stale range to 7500, since we don't
+   get any updates past this point.
+ + Added projected player position to move player
+   smoothly across map rather than updating every
+   second.
 
 Teerex (07/Apr/02)
 ------------------
