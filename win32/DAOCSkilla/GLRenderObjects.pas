@@ -3,7 +3,7 @@ unit GLRenderObjects;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLUT, DDSImage;
+  Windows, SysUtils, Classes, Graphics, Contnrs, GL, GLext, GLU, GLUT, DDSImage;
 
 type
   TGLRenderObject = class(TObject)
@@ -144,6 +144,24 @@ type
     constructor Create; override;
     procedure GLInitialize; override;
 
+    property Size: integer read FSize write SetSize;
+  end;
+
+  TGLBullsEye = class(TGLCallListObject)
+  private
+    FSize: integer;
+    FY: GLuint;
+    FX: GLuint;
+    procedure SetSize(const Value: integer);
+  public
+    constructor Create; override;
+
+    procedure GLInitialize; override;
+    procedure GLRender(const ARenderBounds: TRect); override;
+
+    procedure Assign(AX, AY: GLuint);
+    property X: GLuint read FX write FX;
+    property Y: GLuint read FY write FY;
     property Size: integer read FSize write SetSize;
   end;
 
@@ -670,6 +688,67 @@ begin
 end;
 
 procedure T3DPyramid.SetSize(const Value: integer);
+begin
+  FSize := Value;
+end;
+
+{ TGLBullsEye }
+
+procedure TGLBullsEye.Assign(AX, AY: GLuint);
+begin
+  FX := AX;
+  FY := AY;
+end;
+
+constructor TGLBullsEye.Create;
+begin
+  inherited;
+  FSize := 350;
+end;
+
+procedure TGLBullsEye.GLInitialize;
+var
+  pQuadric:   PGLUquadric;
+begin
+  inherited;
+  FUseColor := false;
+
+  glNewList(FGLList, GL_COMPILE);
+
+  pQuadric := gluNewQuadric();
+  gluQuadricOrientation(pQuadric, GLU_INSIDE);
+
+  glColor4f(1, 0, 0, 0.50);
+  gluDisk(pQuadric, (2/3) * FSize, FSize, 15, 2);
+
+  glColor4f(1, 1, 1, 0.50);
+  gluDisk(pQuadric, (1/3) * FSize, (2/3) * FSize, 15, 2);
+
+  glColor4f(1, 0, 0, 0.50);
+  gluDisk(pQuadric, 0, (1/3) * FSize, 15, 2);
+
+  gluDeleteQuadric(pQuadric);
+
+  glEndList();
+end;
+
+procedure TGLBullsEye.GLRender(const ARenderBounds: TRect);
+begin
+  if (FX = 0) or (FY = 0) or not PointInRect(ARenderBounds, FX, FY) then
+    exit;
+
+  glDisable(GL_LIGHTING);
+  glEnable(GL_BLEND);
+
+  glPushMatrix();
+  glTranslatef(FX, FY, 0);
+
+  inherited;
+
+  glPopMatrix();
+end;
+
+procedure TGLBullsEye.SetSize(const Value: integer);
 begin
   FSize := Value;
 end;
