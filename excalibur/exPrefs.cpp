@@ -40,6 +40,9 @@ exPrefs::exPrefs() {
 
 void exPrefs::activate() {
   FormExcalibur *frm;
+
+  saveSettings();
+
   for (frm=f.first();(frm != NULL);frm=f.next())
     activate(frm);
 }
@@ -202,7 +205,6 @@ void exPrefs::accept() {
     map_fade=frm->GLMapFade->isOn();
   }
 
-  saveSettings();
   activate();
 }
 
