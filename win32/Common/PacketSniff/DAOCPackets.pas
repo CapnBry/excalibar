@@ -43,7 +43,7 @@ type
     property IsAck: boolean read GetIsAck;
   end;
 
-  TDAOCIPPrococol = (daocpTCP, daocpUDP);
+  TDAOCIPProtocol = (daocpTCP, daocpUDP);
 
   TDAOCPacket = class(TObject)
   private
@@ -52,7 +52,7 @@ type
     FPacketDataEnd:   PChar;
     FSize:        Cardinal;
     FIsFromClient: boolean;
-    FIPProtocol:  TDAOCIPPrococol;
+    FIPProtocol:  TDAOCIPProtocol;
     FHandlerName: string;
     FOwnsPacketData:  boolean;
     function GetIsFromServer: boolean;
@@ -64,6 +64,8 @@ type
     procedure CopyDataToPacket(AData: Pointer; ASize: integer);
     procedure LinkDataToPacket(AData: Pointer; ASize: integer);
     procedure SaveToFile(const AFName: string);
+    procedure LoadFromSream(AStrm: TStream);
+    procedure SaveToStream(AStrm: TStream);
     procedure Decrypt(const AKey: TDAOCCryptKey);
     procedure seek(iCount: integer);
     function getByte : BYTE;
@@ -79,7 +81,7 @@ type
     property Size: Cardinal read FSize;
     property IsFromClient: boolean read FIsFromClient write FIsFromClient;
     property IsFromServer: boolean read GetIsFromServer;
-    property IPProtocol: TDAOCIPPrococol read FIPProtocol write FIPProtocol;
+    property IPProtocol: TDAOCIPProtocol read FIPProtocol write FIPProtocol;
   end;
 
   TPacketEvent = procedure (Sender: TObject; APacket: TDAOCPacket) of Object;
@@ -482,7 +484,7 @@ procedure TDAOCPacket.CopyDataToPacket(AData: Pointer; ASize: integer);
 begin
   FreePacketData;
 
-  FOwnsPacketData := true;  
+  FOwnsPacketData := true;
   FSize := ASize;
   GetMem(FPacketDataStart, FSize);
   Move(AData^, FPacketDataStart^, FSize);
@@ -643,10 +645,29 @@ procedure TDAOCPacket.LinkDataToPacket(AData: Pointer; ASize: integer);
 begin
   FreePacketData;
 
-  FOwnsPacketData := false;  
+  FOwnsPacketData := false;
   FSize := ASize;
 
   FPacketDataStart := AData;
+  FPacketDataPos := FPacketDataStart;
+  FPacketDataEnd := FPacketDataStart + FSize;
+end;
+
+procedure TDAOCPacket.LoadFromSream(AStrm: TStream);
+var
+  b:  BYTE;
+begin
+  FreePacketData;
+  AStrm.Read(FSize, sizeof(FSize));
+  AStrm.Read(b, sizeof(b));
+  FIsFromClient := b = 1;
+  AStrm.Read(b, sizeof(b));
+  FIPProtocol := TDAOCIPProtocol(b);
+
+  FOwnsPacketData := true;
+  GetMem(FPacketDataStart, FSize);
+  AStrm.Read(FPacketDataStart^, FSize);
+
   FPacketDataPos := FPacketDataStart;
   FPacketDataEnd := FPacketDataStart + FSize;
 end;
@@ -656,8 +677,23 @@ var
   fs:  TFileStream;
 begin
   fs := TFileStream.Create(AFName, fmCreate or fmShareDenyWrite);
-  fs.Write(FPacketDataStart^, FSize);
+  SaveToStream(fs);
   fs.Free;
+end;
+
+procedure TDAOCPacket.SaveToStream(AStrm: TStream);
+var
+  b:  BYTE;
+begin
+  AStrm.Write(FSize, sizeof(FSize));
+  if FIsFromClient then
+    b := 1
+  else
+    b := 0;
+  AStrm.Write(b, sizeof(b));
+  b := ord(FIPProtocol);
+  AStrm.Write(b, sizeof(b));
+  AStrm.Write(FPacketDataStart^, FSize);
 end;
 
 procedure TDAOCPacket.seek(iCount: integer);
