@@ -177,12 +177,19 @@ procedure TfrmSpellcraftHelp.LoadGemEffects(const ARealm: string);
 var
   I:    integer;
   INI:  TINIFile;
+  sFileName:  string;
   sSection:   string;
   slEffects:  TStringList;
   slPlusses:  TStringList;
 begin
   ClearGemEffects;
-  INI := TINIFile.Create('.\' + ARealm + '_SC.ini');
+  sFileName := ExtractFilePath(ParamStr(0)) + ARealm + '_SC.ini';
+  if not FileExists(sFileName) then begin
+    ShowMessage('No spellcraft definition file: ' + ARealm + '_SC.ini');
+    exit;
+  end;
+
+  INI := TINIFile.Create(sFileName);
   with INI do begin
     for I := 0 to 6 do begin
       sSection := 'Type' + IntToStr(I);
