@@ -32,11 +32,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "buffer.h"
 
 Database::Database() : 
-    //SpeedCorrection(0.259162303664921465968586387433f), // this is garnered from experience :(
-    //SpeedCorrection(0.021f), // this is garnered from experience :(
     SpeedCorrection(1.0f),
     ActorEvents(DatabaseEvents::_LastEvent),
-    OldActorThreshold(15.0)
+    OldActorThreshold(15.0),
+    bGroundTargetSet(false)
 {
 
     // done
@@ -126,6 +125,16 @@ DWORD Database::Run(const bool& bContinue)
     
     msg->info_id=2;
     
+    MessageInputFifo->Push(msg);
+    }
+    {
+    daocmessages::player_ground_target* msg=new daocmessages::player_ground_target;
+    msg->player_id=1;
+    msg->detected_region=100;
+    msg->x=737280;
+    msg->y=606208;
+    msg->z=0;
+
     MessageInputFifo->Push(msg);
     }
     */
@@ -502,6 +511,9 @@ void Database::ResetDatabase(void)
             DeleteActor(Actors.begin()->second.GetId());
             }
         }
+    
+    // clear ground target
+    bGroundTargetSet=false;
 
     // done
     return;
@@ -1310,6 +1322,21 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
 
         case opcodes::ground_target:
             {
+            const daocmessages::player_ground_target* p=static_cast<const daocmessages::player_ground_target*>(msg);
+            
+            // the ground-target is region specific, we need to adjust 
+            // for the region this target was detected in
+            GroundTarget.SetXPos(p->x);
+            GroundTarget.SetYPos(p->y);
+            GroundTarget.SetZPos(p->z);
+            GroundTargetRegion=p->detected_region;
+            bGroundTargetSet=true;
+            
+            Logger << "[[Database::HandleSniffedMessage] ground target set to: " 
+                   << "<" << GroundTarget.GetXPos() 
+                   << "," << GroundTarget.GetYPos()
+                   << "," << GroundTarget.GetZPos() << ">\n"
+                   << "in region " << unsigned int(GroundTargetRegion) << "\n";
             }
             break;
 

@@ -92,8 +92,8 @@ public:
         unsigned int YMax;
         unsigned int ZMin;
         unsigned int ZMax;
-        int XOffset;
-        int YOffset;
+        int XOffset; // the offsets are used for display purposes
+        int YOffset; // the offsets are used for display purposes
         unsigned char Region;
         }; // end struct RegionLimits
 

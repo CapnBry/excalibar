@@ -482,7 +482,7 @@ void DAOCConnection::BuildMessages(void)
 
     // grab size from the buffers
     // check to make sure we have 
-    // add the data, then make
+    // all the data, then make
     // messages based on the extracted
     // data
 
@@ -1050,6 +1050,9 @@ void DAOCConnection::BuildMessagesFromTCPClient
 
             // set player id
             msg->player_id=self_id;
+            
+            // set detected region
+            msg->detected_region=self_region;
 
             // put on fifo for server
             fifo->Push(msg);

@@ -54,18 +54,16 @@ EXTERN CheyenneClock Clock;
 EXTERN CheyenneConfig Config;
 
 // global functions
-inline void DrawGLUTFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
+// the imlpementations of the global graphics functions are in 
+// central.cpp
+void DrawGLUTFontString(const std::string& text,void* font);
+void DrawWGLFontString(const std::string& text);
+inline void DrawGLFontString(const std::string& text,void* font=GLUT_BITMAP_HELVETICA_10)
 {
-    std::string::const_iterator it;
-    for(it=text.begin();it!=text.end();++it)
-        {
-        glutBitmapCharacter(font,int(*it));
-        }
-};
-
-inline void DrawGLFontString(const std::string& text)
-{
-    DrawGLUTFontString(text);
+    // do GLUT
+    //DrawGLUTFontString(text,font);
+    // do WGL
+    DrawWGLFontString(text);
 }
 
 template<class container> typename container::value_type::second_type PngBindContainer

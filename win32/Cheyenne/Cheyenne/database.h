@@ -209,6 +209,9 @@ public:
 
     Actor CopyActorById(const unsigned int& info_id)const;
     void GetDatabaseStatistics(DatabaseStatistics& stats)const;
+    bool IsGroundTargetSet(void)const{return(bGroundTargetSet);};
+    Motion GetGroundTarget(void)const{return(GroundTarget);};
+    unsigned char GetGroundTargetRegion(void)const{return(GroundTargetRegion);};
 
 protected:
 private:
@@ -243,6 +246,11 @@ private:
 
     const float SpeedCorrection;
     const CheyenneTime OldActorThreshold;
+    
+    // these are in global display-adjusted coordinates
+    Motion GroundTarget;
+    unsigned char GroundTargetRegion;
+    bool bGroundTargetSet;
 
 }; // end class Database
 

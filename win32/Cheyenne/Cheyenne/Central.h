@@ -52,11 +52,15 @@ public:
 
     WPARAM Go(HINSTANCE hInst);
 
+    inline void AdjustPositionByRegion(Motion& Position,const unsigned char Region)const
+    {
+        Position.SetXPos(Position.GetXPos() + float(Zones.GetLimitsFromRegion(Region).XOffset));
+        Position.SetYPos(Position.GetYPos() + float(Zones.GetLimitsFromRegion(Region).YOffset));
+    }
     inline void GetRenderPosition(const Actor& ThisActor,Motion& Position)const
     {
         Position=ThisActor.GetMotion();
-        Position.SetXPos(Position.GetXPos() + float(Zones.GetLimitsFromRegion(ThisActor.GetRegion()).XOffset));
-        Position.SetYPos(Position.GetYPos() + float(Zones.GetLimitsFromRegion(ThisActor.GetRegion()).YOffset));
+        AdjustPositionByRegion(Position,ThisActor.GetRegion());
     }
 
     inline bool IsZoneVisible(int BaseX, int BaseY, int MaxX, int MaxY)const
@@ -76,6 +80,10 @@ public:
     const int NumFontLists;
     const float XLimit;
     const float YLimit;
+    const float ActorXScale;
+    const float ActorYScale;
+    const float GroundTargetXScale;
+    const float GroundTargetYScale;
     const unsigned int NumVectorMapLists;
 
     enum ConAssociations
@@ -113,6 +121,11 @@ public:
     generic_mid,
     generic_mob
     };
+    
+    enum GeneralAssociations
+    {
+    ground_target
+    };
 
     typedef std::map<unsigned char,unsigned int> ZoneTextureMapType;
     typedef ZoneTextureMapType::iterator ZoneTextureMapIteratorType;
@@ -123,6 +136,11 @@ public:
     typedef ConTextureMapType::iterator ConTextureMapIteratorType;
     typedef ConTextureMapType::const_iterator ConTextureMapConstIteratorType;
     typedef ConTextureMapType::value_type ConTextureMapValueType;
+
+    typedef std::map<GeneralAssociations,unsigned int> GeneralTextureMapType;
+    typedef GeneralTextureMapType::iterator GeneralTextureMapIteratorType;
+    typedef GeneralTextureMapType::const_iterator GeneralTextureMapConstIteratorType;
+    typedef GeneralTextureMapType::value_type GeneralTextureMapValueType;
 
     class TargetPair
     {
@@ -258,6 +276,13 @@ private:
         return((it != ConTextureMap.end()) ? it->second : 0);
     };
 
+    inline GeneralTextureMapValueType::second_type GetTexture(const GeneralAssociations& assoc)const
+    {
+        GeneralTextureMapConstIteratorType it=GeneralTextureMap.find(assoc);
+
+        return((it != GeneralTextureMap.end()) ? it->second : 0);
+    };
+
     ConTextureMapValueType::second_type GetConTexture(const Actor& ThisActor,bool bSetColor=false) const;
     
     tsfifo<CheyenneMessage*> MessageInputFifo;
@@ -281,6 +306,8 @@ private:
     float ProjectionWidthY;
     float ActorVertexX;
     float ActorVertexY;
+    float GroundTargetVertexX;
+    float GroundTargetVertexY;
     float ZoomIncrement;
     float PanIncrement;
     unsigned int VectorMapListBase;
@@ -309,13 +336,9 @@ private:
     float FollowedActorHeadingDegrees;
 
     ZoneTextureMapType ZoneTextureMap;
-
     ConTextureMapType ConTextureMap;
+    GeneralTextureMapType GeneralTextureMap;
 
-    /*typedef std::map<unsigned short,int> ListDataType;
-    typedef ListDataType::iterator ListDataIteratorType;
-    typedef ListDataType::value_type ListDataValueType;
-    ListDataType ListData;*/
     TEXTMETRIC TahomaTextMetric;
 
     // database statistics

@@ -204,6 +204,7 @@ struct player_ground_target : public daocmessages::SniffedMessage
     ~player_ground_target(){};
 
     unsigned short player_id;
+    unsigned char detected_region;
     unsigned int x;
     unsigned int y;
     unsigned int z; // strange that this is 4 bytes, normally z seems to be 2 bytes...

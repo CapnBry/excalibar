@@ -38,12 +38,30 @@ const UINT RENDER_NOW=WM_USER+3;
 // init font list base statically
 const int Central::FontListBase=1000;
 
+// global graphics functions
+void DrawGLUTFontString(const std::string& text,void* font)
+{
+    std::string::const_iterator it;
+    for(it=text.begin();it!=text.end();++it)
+        {
+        glutBitmapCharacter(font,int(*it));
+        }
+}
+
+void DrawWGLFontString(const std::string& text)
+{
+    glListBase(Central::FontListBase);
+    glCallLists(text.size(),GL_UNSIGNED_BYTE,text.c_str());
+}
+
 Central::Central() :
     DataWindowTimerId(1),NumFontLists(256),NumVectorMapLists(256),VectorMapListBase(0),CircleList(0),
     ProjectionX(600000.0f),ProjectionY(500000.0f),
     XLimit(2000000.0f),YLimit(2000000.0f),ProjectionWidthX(10000.0f),ProjectionWidthY(10000.0f),
     ZoomIncrement(5000.0f),PanIncrement(5000.0f),
-    IDToFollowZone(255),IDToFollowLevel(0)
+    IDToFollowZone(255),IDToFollowLevel(0),
+    ActorXScale(0.009f),ActorYScale(0.0135f),
+    GroundTargetXScale(0.018f),GroundTargetYScale(0.018f)
 {
     hMainWnd=NULL;
     hDataWnd=NULL;
@@ -53,8 +71,10 @@ Central::Central() :
     hPPIDC=NULL;
     bDisplayListsCreated=false;
     bTexturesCreated=false;
-    ActorVertexX=ProjectionWidthX*0.009f;
-    ActorVertexY=ProjectionWidthY*0.0135f;
+    ActorVertexX=ProjectionWidthX*ActorXScale;
+    ActorVertexY=ProjectionWidthY*ActorYScale;
+    GroundTargetVertexX=ProjectionWidthX*GroundTargetXScale;
+    GroundTargetVertexY=ProjectionWidthY*GroundTargetYScale;
     IDToFollow=0;
     HookedActor=0;
     FollowedActorHeadingDegrees=0.0f;
@@ -127,16 +147,6 @@ WPARAM Central::Go(HINSTANCE hInst)
             break;
             }
         }
-    
-
-    /*
-    while(GetMessage(&msg,hMainWnd,0,0)==TRUE)
-        {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-        }
-    */
-
     return(msg.wParam);
 
 } // end Go
@@ -1188,8 +1198,10 @@ void Central::RecenterDisplay(void)
     ProjectionY=0.0f;
     ProjectionWidthX=5000.0f;
     ProjectionWidthY=5000.0f;
-    ActorVertexX=ProjectionWidthX*0.009f;
-    ActorVertexY=ProjectionWidthY*0.0135f;
+    ActorVertexX=ProjectionWidthX*ActorXScale;
+    ActorVertexY=ProjectionWidthY*ActorYScale;
+    GroundTargetVertexX=ProjectionWidthX*GroundTargetXScale;
+    GroundTargetVertexY=ProjectionWidthY*GroundTargetYScale;
     InitDisplayMatrices();
     return;
 }
@@ -1214,8 +1226,10 @@ void Central::ZoomIn(void)
     ProjectionX+=ZoomIncrement*0.5f;
     ProjectionY+=ZoomIncrement*0.5f;
 
-    ActorVertexX=ProjectionWidthX*0.009f;
-    ActorVertexY=ProjectionWidthY*0.0135f;
+    ActorVertexX=ProjectionWidthX*ActorXScale;
+    ActorVertexY=ProjectionWidthY*ActorYScale;
+    GroundTargetVertexX=ProjectionWidthX*GroundTargetXScale;
+    GroundTargetVertexY=ProjectionWidthY*GroundTargetYScale;
 
     // init display matrices
     InitDisplayMatrices();
@@ -1247,8 +1261,10 @@ void Central::ZoomOut(void)
     ProjectionX-=ZoomIncrement*0.5f;
     ProjectionY-=ZoomIncrement*0.5f;
 
-    ActorVertexX=ProjectionWidthX*0.009f;
-    ActorVertexY=ProjectionWidthY*0.0135f;
+    ActorVertexX=ProjectionWidthX*ActorXScale;
+    ActorVertexY=ProjectionWidthY*ActorYScale;
+    GroundTargetVertexX=ProjectionWidthX*GroundTargetXScale;
+    GroundTargetVertexY=ProjectionWidthY*GroundTargetYScale;
 
     // init display matrices
     InitDisplayMatrices();
@@ -1622,6 +1638,9 @@ void Central::InitTextures(void)
     PngBindContainer(ConTextureMap,Central::generic_hib,"skins\\generic_hib.png");
     PngBindContainer(ConTextureMap,Central::generic_mid,"skins\\generic_mid.png");
     PngBindContainer(ConTextureMap,Central::generic_mob,"skins\\generic_mob.png");
+    
+    // load the general textures
+    PngBindContainer(GeneralTextureMap,Central::ground_target,"skins\\ground_target.png");
 
     // flag
     bTexturesCreated=true;
@@ -2316,8 +2335,48 @@ void Central::DrawPPI(void)
     // draw the world geometry
     RenderWorld();
 
-    // render all actors with no depth test so they all display
+    // render all actors and ground target with no depth test so they all display
     glDisable(GL_DEPTH_TEST);
+    
+    // first, draw ground target
+    if(db.IsGroundTargetSet())
+        {
+        // set to cyan and half-transparent
+        glColor4f(0.0f,1.0f,1.0f,0.5f);
+        
+        // get the display position for the ground target
+        Motion gt(db.GetGroundTarget());
+        AdjustPositionByRegion(gt,db.GetGroundTargetRegion());
+        
+        // enable alpha blending
+        glEnable(GL_BLEND);
+
+        // enable textures
+        glEnable(GL_TEXTURE_2D);
+
+        // set texture 
+        glBindTexture(GL_TEXTURE_2D,GetTexture(GeneralAssociations::ground_target));
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f,1.0f);
+        glVertex3f(gt.GetXPos()-GroundTargetVertexX,gt.GetYPos()+GroundTargetVertexY,0.0f);
+        
+        glTexCoord2f(0.0f,0.0f);
+        glVertex3f(gt.GetXPos()-GroundTargetVertexX,gt.GetYPos()-GroundTargetVertexY,0.0f);
+        
+        glTexCoord2f(1.0f,0.0f);
+        glVertex3f(gt.GetXPos()+GroundTargetVertexX,gt.GetYPos()-GroundTargetVertexY,0.0f);
+        
+        glTexCoord2f(1.0f,1.0f);
+        glVertex3f(gt.GetXPos()+GroundTargetVertexX,gt.GetYPos()+GroundTargetVertexY,gt.GetZPos());
+        glEnd();
+
+        // disable textures
+        glDisable(GL_TEXTURE_2D);
+
+        // disable alpha blending
+        glDisable(GL_BLEND);
+        } // end if ground target is set
 
     // see which database iteration function we are supposed to use
     if(Config.GetUpdateWhenRendered())
