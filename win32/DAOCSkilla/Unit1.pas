@@ -1006,6 +1006,8 @@ begin
   sVerFile := ExtractFilePath(ParamStr(0)) + 'versions.ini';
   FS := TFileStream.Create(sVerFile, fmCreate);
   try
+    httpUpdateChecker.Request.UserAgent := 'Mozilla/3.0 (compatible; DaocSkilla ' +
+      GetVersionString + ')';
     httpUpdateChecker.Get('http://capnbry.net/daoc/versions.php', FS);
   except
   end;
