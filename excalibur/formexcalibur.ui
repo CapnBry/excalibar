@@ -66,6 +66,76 @@
             <set>AlignTop</set>
         </property>
     </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>MapStatus</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1</width>
+                <height>1</height>
+            </rect>
+        </property>
+        <property name="alignment">
+            <set>AlignTop</set>
+        </property>
+    </widget>
+    <widget class="QProgressBar">
+        <property name="name">
+            <cstring>MapProgress</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1</width>
+                <height>1</height>
+            </rect>
+        </property>
+        <property name="paletteForegroundColor">
+            <color>
+                <red>85</red>
+                <green>0</green>
+                <blue>255</blue>
+            </color>
+        </property>
+        <property name="frameShadow">
+            <enum>Sunken</enum>
+        </property>
+        <property name="totalSteps">
+            <number>64</number>
+        </property>
+        <property name="centerIndicator">
+            <bool>true</bool>
+        </property>
+        <property name="indicatorFollowsStyle">
+            <bool>false</bool>
+        </property>
+        <property name="percentageVisible">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>MapCancel</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>-360</y>
+                <width>1</width>
+                <height>1</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Cancel</string>
+        </property>
+        <property name="flat">
+            <bool>false</bool>
+        </property>
+    </widget>
     <widget class="QSplitter">
         <property name="name">
             <cstring>HSplitter</cstring>
@@ -74,9 +144,17 @@
             <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>146</width>
-                <height>104</height>
+                <width>560</width>
+                <height>164</height>
             </rect>
+        </property>
+        <property name="sizePolicy">
+            <sizepolicy>
+                <hsizetype>7</hsizetype>
+                <vsizetype>7</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+            </sizepolicy>
         </property>
         <property name="orientation">
             <enum>Horizontal</enum>
@@ -162,10 +240,27 @@
             <property name="name">
                 <cstring>ListViewMobs</cstring>
             </property>
+            <property name="sizePolicy">
+                <sizepolicy>
+                    <hsizetype>7</hsizetype>
+                    <vsizetype>7</vsizetype>
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                </sizepolicy>
+            </property>
+            <property name="frameShape">
+                <enum>StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
+            <property name="allColumnsShowFocus">
+                <bool>true</bool>
+            </property>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout3</cstring>
+                <cstring>Layout4</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -175,23 +270,117 @@
                     <number>0</number>
                 </property>
                 <property name="spacing">
-                    <number>2</number>
+                    <number>0</number>
                 </property>
-                <widget class="QLineEdit">
+                <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>MobFilter</cstring>
+                        <cstring>Layout3</cstring>
                     </property>
-                    <property name="lineWidth">
-                        <number>1</number>
-                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>4</number>
+                        </property>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>MobFilter</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>7</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="lineWidth">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enter a regex and press enter to highlight matching MOBs</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>lblCounts</cstring>
+                            </property>
+                            <property name="font">
+                                <font>
+                                    <pointsize>9</pointsize>
+                                </font>
+                            </property>
+                            <property name="text">
+                                <string>Albs: 0  Mids: 0
+Hibs: 0  Mobs: 0</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Total count of objects being tracked</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>Spacer1</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Vertical</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Fixed</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>4</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
                 </widget>
-                <widget class="exMap">
+                <widget class="QFrame">
                     <property name="name">
-                        <cstring>Map</cstring>
+                        <cstring>pnlMap</cstring>
                     </property>
-                    <property name="focusPolicy">
-                        <enum>StrongFocus</enum>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
                     </property>
+                    <property name="frameShadow">
+                        <enum>Sunken</enum>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>1</number>
+                        </property>
+                        <property name="spacing">
+                            <number>0</number>
+                        </property>
+                        <widget class="exMap">
+                            <property name="name">
+                                <cstring>Map</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>7</hsizetype>
+                                    <vsizetype>7</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>StrongFocus</enum>
+                            </property>
+                        </widget>
+                    </vbox>
                 </widget>
                 <widget class="QSlider">
                     <property name="name">
@@ -215,84 +404,20 @@
                     <property name="orientation">
                         <enum>Horizontal</enum>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Zoom in / Zoom out of map</string>
+                    </property>
                 </widget>
             </vbox>
         </widget>
-    </widget>
-    <widget class="QLabel">
-        <property name="name">
-            <cstring>MapStatus</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>1</width>
-                <height>1</height>
-            </rect>
-        </property>
-        <property name="alignment">
-            <set>AlignTop</set>
-        </property>
-    </widget>
-    <widget class="QProgressBar">
-        <property name="name">
-            <cstring>MapProgress</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>1</width>
-                <height>1</height>
-            </rect>
-        </property>
-        <property name="paletteForegroundColor">
-            <color>
-                <red>85</red>
-                <green>0</green>
-                <blue>255</blue>
-            </color>
-        </property>
-        <property name="frameShadow">
-            <enum>Sunken</enum>
-        </property>
-        <property name="totalSteps">
-            <number>64</number>
-        </property>
-        <property name="centerIndicator">
-            <bool>true</bool>
-        </property>
-        <property name="indicatorFollowsStyle">
-            <bool>false</bool>
-        </property>
-        <property name="percentageVisible">
-            <bool>true</bool>
-        </property>
-    </widget>
-    <widget class="QPushButton">
-        <property name="name">
-            <cstring>MapCancel</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>0</x>
-                <y>-360</y>
-                <width>1</width>
-                <height>1</height>
-            </rect>
-        </property>
-        <property name="text">
-            <string>Cancel</string>
-        </property>
-        <property name="flat">
-            <bool>false</bool>
-        </property>
     </widget>
 </widget>
 <menubar>
     <property name="name">
         <cstring>menubar</cstring>
+    </property>
+    <property name="frameShape">
+        <enum>Box</enum>
     </property>
     <item text="Settings" name="PopupMenu_2">
         <action name="AutoSelectTarget"/>
@@ -808,5 +933,5 @@
     <slot>GroupItems_toggled( bool ena )</slot>
     <slot>MaxFPS_toggled( bool ena )</slot>
 </slots>
-<layoutdefaults spacing="6" margin="11"/>
+<layoutdefaults spacing="2" margin="0"/>
 </UI>
