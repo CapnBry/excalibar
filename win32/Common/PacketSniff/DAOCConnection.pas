@@ -155,6 +155,7 @@ type
     procedure CPARSETradeSkillCapped(ASender: TDAOCChatParser);
     procedure CPARSECombatStyleSuccess(ASender: TDAOCChatParser);
     procedure CPARSECombatStyleFailure(ASender: TDAOCChatParser);
+    procedure CPARSETargetChanged(ASender: TDAOCChatParser);
 
     procedure ParseSetEncryptionKey(pPacket: TDAOCPacket);
     procedure ParseSetPlayerRegion(pPacket: TDAOCPacket);
@@ -1757,6 +1758,7 @@ begin
   FChatParser.OnTradeSkillSuccess := CPARSETradeSkillSuccess;
   FChatParser.OnTradeSkillFailure := CPARSETradeSkillFailure;
   FChatParser.OnTradeskillCapped := CPARSETradeSkillCapped;
+  FChatParser.OnTargetChange := CPARSETargetChanged;
 end;
 
 procedure TDAOCConnection.CPARSETradeSkillCapped(ASender: TDAOCChatParser);
@@ -2341,6 +2343,20 @@ begin
     { there's some other information here, like the account name, but its
       at the end of some other ??? data, so we'll wait until the server
       sends back the account name }
+end;
+
+procedure TDAOCConnection.CPARSETargetChanged(ASender: TDAOCChatParser);
+var
+  pSelected:  TDAOCObject;
+begin
+  pSelected := SelectedObject;
+    { if this player is an invader then update their name }
+  if Assigned(pSelected) and (pSelected.Realm <> FLocalPlayer.Realm) and
+    (pSelected is TDAOCPlayer) then
+    if pSelected.Name <> FChatParser.Target then begin
+      pSelected.Name := FChatParser.Target;
+      DoOnDAOCObjectMoved(pSelected);
+    end;
 end;
 
 end.
