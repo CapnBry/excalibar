@@ -113,11 +113,11 @@ object frmRenderPrefs: TfrmRenderPrefs
       object Label35: TLabel
         Left = 28
         Top = 260
-        Width = 365
+        Width = 374
         Height = 13
         Caption = 
-          'Display a player'#39's inventory when you select them.  Use the '#39'?'#39' ' +
-          'key if disabled.'
+          'Display a player'#39's inventory when you select them.  Use the '#39'tab' +
+          #39' key if disabled.'
       end
       object chkAdjacentZones: TCheckBox
         Left = 8
@@ -206,7 +206,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 244
         Width = 181
         Height = 17
-        Caption = 'Show select player'#39's inventory'
+        Caption = 'Show selected player'#39's inventory'
         TabOrder = 9
         OnClick = chkShowPlayerInventoryClick
       end
