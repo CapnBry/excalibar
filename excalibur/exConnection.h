@@ -61,6 +61,7 @@ protected:
   exPacket *nextpacket;
   exLink *link;
   
+  void parseObjectStopped(exPacket *p);
   void parsePlayerPosUpdate(exPacket *p);
   void parseMobPosUpdate(exPacket *p);
   void parsePlayerHeadUpdate(exPacket *p);

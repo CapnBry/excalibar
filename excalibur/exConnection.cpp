@@ -242,6 +242,7 @@ void exConnection::processPacket(exPacket * p)
     if (p->is_udp && p->from_server) {
 	seq = p->getShort();
 	command = p->getByte();
+	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
@@ -252,6 +253,9 @@ void exConnection::processPacket(exPacket * p)
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
 	    break;	
+	  case 0xbd:
+	    parseObjectStopped(p);
+	    break;
 	  default:
 	    if (prefs.dump_unknown_packets)
 		dumpPacket(command, p);
@@ -309,6 +313,7 @@ void exConnection::processPacket(exPacket * p)
 	}
     } else if (!p->is_udp && p->from_server) {
 	command = p->getByte();
+	// dumpPacket(command, p);
 	switch (command) {
 	  case 0x01:
 	    parsePlayerPosUpdate(p);
@@ -318,6 +323,9 @@ void exConnection::processPacket(exPacket * p)
 	    break;
 	  case 0x12:
 	    parsePlayerHeadUpdate(p);
+	    break;
+	  case 0xbd:
+	    parseObjectStopped(p);
 	    break;
 	  case 0x8a:
 	      p->skip(2);
@@ -494,6 +502,14 @@ void exConnection::processPacket(exPacket * p)
 	      break;
 	}
     }
+}
+
+void exConnection::parseObjectStopped(exPacket *p)
+{
+    unsigned int infoid = p->getShort();
+    exMob *mob = mobinfo.take((void *) ((unsigned int) infoid));
+    if (mob)  
+	mob->setSpeed(0);
 }
 
 void exConnection::parseMobPosUpdate(exPacket *p)
