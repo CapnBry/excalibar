@@ -22,6 +22,8 @@ type
     DrawRangeCircles: boolean;
     DrawAIDestination:boolean;
     TrackMapClick:    boolean;
+    TrackInGameSelect:  boolean;
+    DrawTypeTag:      boolean;
 
     constructor Create;
 
@@ -55,6 +57,8 @@ type
     btnCancel: TBitBtn;
     grpUIOptions: TGroupBox;
     chkTrackMapClick: TCheckBox;
+    chkTrackGameSelection: TCheckBox;
+    chkTypeTag: TCheckBox;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -63,6 +67,8 @@ type
     procedure chkHUDClick(Sender: TObject);
     procedure chkDestinationClick(Sender: TObject);
     procedure chkTrackMapClickClick(Sender: TObject);
+    procedure chkTrackGameSelectionClick(Sender: TObject);
+    procedure chkTypeTagClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     procedure SyncFormToPrefs;
@@ -92,6 +98,8 @@ begin
   Result.DrawRangeCircles := DrawRangeCircles;
   Result.DrawAIDestination := DrawAIDestination;
   Result.TrackMapClick := TrackMapClick;
+  Result.TrackInGameSelect := TrackInGameSelect;
+  Result.DrawTypeTag := DrawTypeTag;
 end;
 
 constructor TRenderPreferences.Create;
@@ -120,6 +128,8 @@ begin
     DrawRangeCircles := ReadBool('RenderPrefs', 'DrawRangeCircles', true);
     DrawAIDestination := ReadBool('RenderPrefs', 'DrawAIDestination', true);
     TrackMapClick := ReadBool('RenderPrefs', 'TrackMapClick', true);
+    TrackInGameSelect := ReadBool('RenderPrefs', 'TrackInGameSelect', true);
+    DrawTypeTag := ReadBool('RenderPrefs', 'DrawTypeTag', true);
   end;
 end;
 
@@ -139,6 +149,8 @@ begin
     WriteBool('RenderPrefs', 'DrawRangeCircles', DrawRangeCircles);
     WriteBool('RenderPrefs', 'DrawAIDestination', DrawAIDestination);
     WriteBool('RenderPrefs', 'TrackMapClick', TrackMapClick);
+    WriteBool('RenderPrefs', 'TrackInGameSelect', TrackInGameSelect);
+    WriteBool('RenderPrefs', 'DrawTypeTag', DrawTypeTag);
   end;
 end;
 
@@ -218,11 +230,23 @@ begin
   chkDestination.Checked := FRenderPrefs.DrawAIDestination;
 
   chkTrackMapClick.Checked := FRenderPrefs.TrackMapClick;
+  chkTrackGameSelection.Checked := FRenderPrefs.TrackInGameSelect;
+  chkTypeTag.Checked := FRenderPrefs.DrawTypeTag;
 end;
 
 procedure TfrmRenderPrefs.chkTrackMapClickClick(Sender: TObject);
 begin
   FRenderPrefs.TrackMapClick := chkTrackMapClick.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkTrackGameSelectionClick(Sender: TObject);
+begin
+  FRenderPrefs.TrackInGameSelect := chkTrackGameSelection.Checked;
+end;
+
+procedure TfrmRenderPrefs.chkTypeTagClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawTypeTag := chkTypeTag.Checked;
 end;
 
 end.

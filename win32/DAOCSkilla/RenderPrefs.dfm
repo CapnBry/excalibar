@@ -174,7 +174,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     end
   end
   object btnOK: TBitBtn
-    Left = 368
+    Left = 372
     Top = 16
     Width = 75
     Height = 25
@@ -183,7 +183,7 @@ object frmRenderPrefs: TfrmRenderPrefs
     Kind = bkOK
   end
   object btnCancel: TBitBtn
-    Left = 368
+    Left = 372
     Top = 56
     Width = 75
     Height = 25
@@ -194,7 +194,7 @@ object frmRenderPrefs: TfrmRenderPrefs
   object grpUIOptions: TGroupBox
     Left = 176
     Top = 0
-    Width = 165
+    Width = 177
     Height = 101
     Caption = ' UI options'
     TabOrder = 2
@@ -206,6 +206,24 @@ object frmRenderPrefs: TfrmRenderPrefs
       Caption = 'Click in map selects object'
       TabOrder = 0
       OnClick = chkTrackMapClickClick
+    end
+    object chkTrackGameSelection: TCheckBox
+      Left = 8
+      Top = 36
+      Width = 153
+      Height = 17
+      Caption = 'Track in-game selection'
+      TabOrder = 1
+      OnClick = chkTrackGameSelectionClick
+    end
+    object chkTypeTag: TCheckBox
+      Left = 8
+      Top = 56
+      Width = 153
+      Height = 17
+      Caption = 'Overlay NPC type tag (G)'
+      TabOrder = 2
+      OnClick = chkTypeTagClick
     end
   end
 end
