@@ -76,16 +76,11 @@ void exPacket::exCrypt_c(char *data, int data_size, const char *key, int key_siz
         if (key_pos == key_size)
             key_pos = 0;
 
-        work_val = key[key_pos];
-        work_val = work_val + data_pos;
-        work_val = work_val + key_pos;
-        seed_2 = seed_2 + work_val;
-        work_val = work_val * seed_1;
-        seed_1 = work_val + 1;
-        work_val = seed_1;
-        work_val = work_val * seed_2;
+        work_val = key[key_pos] + data_pos + key_pos;
+        seed_1 = work_val * seed_1 + 1;
+        seed_2 = work_val + seed_2;
 
-        status_vect = status_vect + work_val;
+        status_vect = status_vect + (seed_1 * seed_2);
         data[data_pos] = data[data_pos] ^ status_vect;
 
         data_pos++;
