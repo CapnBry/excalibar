@@ -3,7 +3,7 @@ unit DAOCInventory;
 interface
 
 uses
-  SysUtils, Contnrs;
+  SysUtils, Contnrs, DAOCClasses;
 
 type
   TDAOCInventoryItem = class(TObject)
@@ -16,9 +16,10 @@ type
     FCondition: integer;
     FCountlessDescription: string;
     FDescription: string;
-    FIcon:  BYTE;
     FColor: BYTE;
     FLevel: BYTE;
+    FItemIDMajor: BYTE;
+    FItemIDMinor: BYTE;
 
     procedure SetDescription(const Value: string);
     function GetSlotName: string;
@@ -31,6 +32,7 @@ type
     constructor Create;
     function AsText : string;
 
+    function ClassRestriction : TDAOCCharacterClass;
 
     property Description: string read FDescription write SetDescription;
     property CountlessDescription: string read FCountlessDescription;
@@ -42,7 +44,8 @@ type
     property Quality: integer read FQuality write FQuality;
     property Bonus: integer read FBonus write FBonus;
     property Color: BYTE read FColor write FColor;
-    property Icon: BYTE read FIcon write FIcon;
+    property ItemIDMajor: BYTE read FItemIDMajor write FItemIDMajor;
+    property ItemIDMinor: BYTE read FItemIDMinor write FItemIDMinor;
     property Level: BYTE read FLevel write FLevel;
     property IsInBag: boolean read GetIsInBag;
     property BagPage: integer read SlotAsBag;
@@ -83,9 +86,172 @@ function TDAOCInventoryItem.AsText: string;
 begin
   Result := Format('  %s (%s) quantity %d'#13#10 +
     '    Con %d%% Dur %d%% Qual %d%% Bon %d%%'#13#10 +
-    '    Level %d Color 0x%2.2x Icon 0x%2.2x',
+    '    Level %d Color 0x%2.2x ItemID 0x%2.2x %2.2x',
     [FDescription, GetSlotName, FCount, FCondition, FDurability, FQuality,
-    FBonus, FLevel, FColor, FIcon]);
+    FBonus, FLevel, FColor, FItemIDMajor, FItemIDMinor]);
+end;
+
+function TDAOCInventoryItem.ClassRestriction: TDAOCCharacterClass;
+begin
+    { DO NOT use Helms to identify a class, because most classes
+    use the same helm mesh }
+  case FItemIDMajor of
+    $00:  Result := ccUnknown;
+    $01:
+//      case FItemIDMinor of
+          // $50:  Result := ccRunemaster;  Helm
+          // $51:  Result := ccShadowblade; Helm
+          // $b6:  Result := ccHero; Helm
+//        else
+          Result := ccUnknown;
+//      end  { case list 0x01 }
+
+    $02:
+      case FItemIDMinor of
+        $aa:  Result := ccCabalist;  // chest
+        $b0:  Result := ccArmsman;  // chest
+        $b1:  Result := ccArmsman;  // leggings
+        $b2:  Result := ccArmsman;  // sleeves
+        $b3:  Result := ccArmsman;  // gloves
+        $b4:  Result := ccArmsman;  // boots
+        $b5:  Result := ccPaladin;  // chest
+        $b6:  Result := ccPaladin;  // leggings
+        $b7:  Result := ccPaladin;  // sleeves
+        $b8:  Result := ccPaladin;  // gloves
+        $b9:  Result := ccPaladin;  // boots
+        $ba:  Result := ccHealer;  // chest
+        $bb:  Result := ccHealer;  // leggings
+        $bc:  Result := ccHealer;  // sleeves
+        $bd:  Result := ccHealer;  // gloves
+        $be:  Result := ccHealer;  // boots
+        $bf:  Result := ccRunemaster;  // chest
+        $c0:  Result := ccRunemaster;  // leggings
+        $c1:  Result := ccRunemaster;  // sleeves
+        $c2:  Result := ccRunemaster;  // boots
+        $c3:  Result := ccRunemaster;  // gloves
+        $c4:  Result := ccHero;  // chest
+        $c5:  Result := ccHero;  // leggings
+        $c6:  Result := ccHero;  // sleeves
+        $c7:  Result := ccHero;  // gloves
+        $c8:  Result := ccHero;  // boots
+        $c9:  Result := ccCleric;  // chest
+        $ca:  Result := ccCleric;  // leggings
+        $cb:  Result := ccCleric;  // sleeves
+        $cc:  Result := ccCleric;  // gloves
+        $cd:  Result := ccCleric;  // boots
+        $ce:  Result := ccMercenary;  // chest
+        $cf:  Result := ccMercenary;  // leggings
+        $d0:  Result := ccMercenary;  // sleeves
+        $d1:  Result := ccMercenary;  // gloves
+        $d2:  Result := ccMercenary;  // boots
+        $d3:  Result := ccMinstrel;  // chest
+        $d4:  Result := ccMinstrel;  // leggings
+        $d5:  Result := ccMinstrel;  // sleeves
+        $d6:  Result := ccMinstrel;  // gloves
+        $d7:  Result := ccMinstrel;  // boots
+        $d8:  Result := ccScout;  // chest
+        $d9:  Result := ccScout;  // legs
+        $da:  Result := ccScout;  // sleeves
+        $db:  Result := ccScout;  // gloves
+        $dc:  Result := ccScout;  // boots
+        $dd:  Result := ccTheurgist;  // chest
+        $de:  Result := ccBard;  // chest
+        $df:  Result := ccBard;  // leggings
+        $e0:  Result := ccBard;  // sleeves
+        $e1:  Result := ccBard;  // gloves
+        $e2:  Result := ccBard;  // boots
+        $e3:  Result := ccDruid;  // chest
+        $e4:  Result := ccDruid;  // leggings
+        $e5:  Result := ccDruid;  // sleeves
+        $e6:  Result := ccDruid;  // gloves
+        $e7:  Result := ccDruid;  // boots
+        $e8:  Result := ccEldritch;  // chest
+        $e9:  Result := ccMentalist;  // chest
+        $ea:  Result := ccNightshade;  // chest
+        $eb:  Result := ccNightshade;  // leggings
+        $ec:  Result := ccNightshade;  // sleeves
+        $ed:  Result := ccNightshade;  // gloves
+        $ee:  Result := ccNightshade;  // boots
+        $ef:  Result := ccBerserker;  // chest
+        $f0:  Result := ccBerserker;  // leggings
+        $f1:  Result := ccBerserker;  // sleeves
+        $f2:  Result := ccBerserker;  // gloves
+        $f3:  Result := ccBerserker;  // boots
+        $f4:  Result := ccHunter;  // chest
+        $f5:  Result := ccHunter;  // leggings
+        $f6:  Result := ccHunter;  // sleeves
+        $f7:  Result := ccHunter;  // gloves
+        $f8:  Result := ccHunter;  // boots
+        $f9:  Result := ccShadowblade;  // chest
+        $fa:  Result := ccShadowblade;  // leggings
+        $fb:  Result := ccShadowblade;  // sleeves
+        $fc:  Result := ccShadowblade;  // gloves
+        $fd:  Result := ccShadowblade;  // boots
+        $fe:  Result := ccShaman;  // chest
+        $ff:  Result := ccShaman;  // leggings
+        else
+          Result := ccUnknown;
+      end;  { case list 0x02 }
+    $03:
+      case FItemIDMinor of
+        $00:  Result := ccShaman;  // sleeves
+        $01:  Result := ccShaman;  // gloves
+        $02:  Result := ccShaman;  // boots
+        $03:  Result := ccSkald;  // chest
+        $04:  Result := ccSkald;  // leggings
+        $05:  Result := ccSkald;  // sleeves
+        $06:  Result := ccSkald;  // gloves
+        $07:  Result := ccSkald;  // boots
+        $08:  Result := ccWarrior;  // chest
+        $09:  Result := ccWarrior;  // leggings
+        $0a:  Result := ccWarrior;  // sleeves
+        $0b:  Result := ccWarrior;  // gloves
+        $0c:  Result := ccWarrior;  // boots
+        $0d:  Result := ccEnchanter; // chest
+        $0e:  Result := ccBlademaster; // chest
+        $0f:  Result := ccBlademaster; // leggings
+        $10:  Result := ccBlademaster; // sleeves
+        $11:  Result := ccBlademaster; // gloves
+        $12:  Result := ccBlademaster; // boots
+        $13:  Result := ccThane;  // chest
+        $14:  Result := ccThane;  // leggings
+        $15:  Result := ccThane;  // sleeves
+        $16:  Result := ccThane;  // gloves
+        $17:  Result := ccThane;  // boots
+        $18:  Result := ccInfiltrator; // chest
+        $19:  Result := ccInfiltrator; // leggings
+        $1a:  Result := ccInfiltrator; // sleeves
+        $1b:  Result := ccInfiltrator; // gloves
+        $1c:  Result := ccInfiltrator; // boots
+        $1d:  Result := ccFriar; // chest
+        $1e:  Result := ccWizard; // chest
+        $1f:  Result := ccSpiritmaster; // chest
+        $20:  Result := ccSpiritmaster; // leggings
+        $21:  Result := ccSpiritmaster; // sleeves
+        $22:  Result := ccSpiritmaster; // gloves
+        $23:  Result := ccSpiritmaster; // boots
+        $24:  Result := ccSorcerer; // chest
+        $25:  Result := ccWarden; // chest
+        $26:  Result := ccWarden; // leggings
+        $27:  Result := ccWarden; // sleeves
+        $28:  Result := ccWarden; // gloves
+        $29:  Result := ccWarden; // boots
+        $2a:  Result := ccChampion; // chest
+        $2b:  Result := ccChampion; // leggings
+        $2c:  Result := ccChampion; // sleeves
+        $2d:  Result := ccChampion; // gloves
+        $2e:  Result := ccChampion; // boots
+        $2f:  Result := ccRanger; // chest
+        $30:  Result := ccRanger; // leggings
+        $31:  Result := ccRanger; // sleeves
+        $32:  Result := ccRanger; // gloves
+        $33:  Result := ccRanger; // boots
+        else
+          Result := ccUnknown;
+      end;  { case list 0x03 }
+    else
+      Result := ccUnknown;
+  end;  { case itemmajor }
 end;
 
 constructor TDAOCInventoryItem.Create;
@@ -265,7 +431,7 @@ procedure TDAOCInventory.TakeItem(AItem: TDAOCInventoryItem);
 begin
   ClearSlot(AItem.Slot);
     { if the description is blank, we're just clearing the slot }
-  if AItem.Description = '' then
+  if (AItem.ItemIDMajor = 0) and (AItem.ItemIDMinor = 0) then  // if AItem.Description = '' then
     AItem.Free
   else
     Add(AItem);
