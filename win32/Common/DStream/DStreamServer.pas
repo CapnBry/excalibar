@@ -13,7 +13,9 @@ unit DStreamServer;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, WinSock, ScktComp, DStreamDefs;
+  GlobalTickCounter, Classes, SysUtils, Contnrs, WinSock, ScktComp, DStreamDefs;
+
+{$DEFINE CHUNKEDQUEUE_LATENCY}
 
 const
     { Pipe command types }
@@ -26,10 +28,13 @@ const
 
 type
   TStringNotify = procedure (Sender: TObject; const s: string) of object;
-  
+
   PChunkedQueueItem = ^TChunkedQueueItem;
   TChunkedQueueItem = packed record
     Next: PChunkedQueueItem;
+{$IFDEF CHUNKEDQUEUE_LATENCY}
+    QueuedAt: Cardinal;
+{$ENDIF CHUNKEDQUEUE_LATENCY}
     ReadPos:  WORD;
     Size:     WORD;  // vv Everything here and after should match dstream_header vv
     CommandID:BYTE;
@@ -45,6 +50,7 @@ type
     procedure Add(AItem: PChunkedQueueItem);
     function GetDataPtr: Pointer;
     function GetDataSize: Cardinal;
+    function GetLatency: Cardinal;
   public
     constructor Create;
     destructor Destroy; override;
@@ -52,6 +58,7 @@ type
     procedure Write(ACommandID: BYTE; const Buffer; ASize: WORD);
     procedure UsedData(ASize: Cardinal);
 
+    property Latency: Cardinal read GetLatency;
     property TotalSize: Cardinal read FTotalSize;
       { current chunk }
     property DataPtr: Pointer read GetDataPtr;
@@ -69,6 +76,7 @@ type
     FAuthenticated: boolean;
     FSquelchList:   TList;
     function GetRemoteHost: string;
+    function GetLatency: Cardinal;
   protected
     procedure SOCKWrite;
     procedure SOCKRead;
@@ -87,6 +95,7 @@ type
 
     property AuthRequired: boolean read FAuthRequired write FAuthRequired;
     property Authenticated: boolean read FAuthenticated write FAuthenticated;
+    property Latency: Cardinal read GetLatency;
     property RemoteHost: string read GetRemoteHost;
   end;
 
@@ -111,6 +120,7 @@ type
     function FindSocket(ASocket: TCustomWinSocket) : TDStreamClientHandler;
     function GetPort: integer;
     procedure SetPort(const Value: integer);
+    function GetMaxLatency: Cardinal;
   protected
     procedure Log(const s: string);
     procedure SOCKClientConnect(Sender: TObject; Socket: TCustomWinSocket);
@@ -136,6 +146,7 @@ type
     property Active: boolean read GetActive write SetActive;
     property AuthRequired: boolean read FAuthRequired write FAuthRequired;
     property Items[I: integer]: TDStreamClientHandler read GetItems; default;
+    property MaxLatency: Cardinal read GetMaxLatency;
     property Port: integer read GetPort write SetPort;
     
     property OnLog: TStringNotify read FOnLog write FOnLog;
@@ -147,6 +158,11 @@ implementation
 
 procedure TChunkedQueue.Add(AItem: PChunkedQueueItem);
 begin
+{$IFDEF CHUNKEDQUEUE_LATENCY}
+  UpdateGlobalTickCount;
+  AItem^.QueuedAt := GlobalTickCount;
+{$ENDIF CHUNKEDQUEUE_LATENCY}
+
   if not Assigned(FHead) then begin
     FHead := AItem;
     FTail := AItem;
@@ -200,6 +216,20 @@ begin
     Result := FHead^.Size - FHead^.ReadPos
   else
     Result := 0;
+end;
+
+function TChunkedQueue.GetLatency: Cardinal;
+begin
+{$IFDEF CHUNKEDQUEUE_LATENCY}
+  if Assigned(FHead) then begin
+    UpdateGlobalTickCount;
+    Result := GlobalTickCount - FHead^.QueuedAt;
+  end
+  else
+    Result := 0;
+{$ELSE}
+  Result := 0;
+{$ENDIF CHUNKEDQUEUE_LATENCY}
 end;
 
 procedure TChunkedQueue.UsedData(ASize: Cardinal);
@@ -287,6 +317,11 @@ begin
     inc(ADest);
     dec(ASize);
   end;
+end;
+
+function TDStreamClientHandler.GetLatency: Cardinal;
+begin
+  Result := FWriteBuffer.Latency;
 end;
 
 function TDStreamClientHandler.GetRemoteHost: string;
@@ -607,6 +642,18 @@ end;
 procedure TDStreamServer.SetPort(const Value: integer);
 begin
   FServerSock.Port := Value;
+end;
+
+function TDStreamServer.GetMaxLatency: Cardinal;
+(*** Return the current maximum latency (NOT the historical max latency ***)   
+var
+  I:    integer;
+begin
+  { LOCK }
+  Result := 0;
+  for I := 0 to Count - 1 do 
+    if Items[I].Latency > Result then
+      Result := Items[I].Latency;
 end;
 
 end.
