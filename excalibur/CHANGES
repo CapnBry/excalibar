@@ -9,6 +9,8 @@ Changes:
      --druppy-leak
 
 Bug Fixes:
+ + Agro and Filtered circles are now being lit and
+   faded the same way they were pre-1.1.2.
  + Camelot Hills is now being detected by the adjac-
    ent zone detection algorithm.. It snuck through
    the cracks since the algorithm assumed the zone

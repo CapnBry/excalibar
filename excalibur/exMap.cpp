@@ -449,6 +449,7 @@ latin1());
         if (prefs.alpha_circles && ! prefs.map_simple) {
           glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
           glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glDisable    (GL_LIGHTING);
           glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
           glCullFace   (GL_BACK);
@@ -473,9 +474,13 @@ latin1());
         }
 
         else {
-          glLineWidth (1.0);
-          glColor3f   (1.0f, 1.0f, 0.0f);
-          drawCircle  (0, 0, 500, 18);
+          glPushAttrib (GL_ENABLE_BIT);
+          glDisable    (GL_LIGHTING);
+
+          glLineWidth  (1.0);
+          glColor3f    (1.0f, 1.0f, 0.0f);
+          drawCircle   (0, 0, 500, 18);
+          glPopAttrib  ();
         }
       }
 
@@ -485,6 +490,7 @@ latin1());
         if (prefs.alpha_circles && ! prefs.map_simple) {
           glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
           glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glDisable    (GL_LIGHTING);
           glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glDepthFunc  (GL_LEQUAL);
           glCullFace   (GL_BACK);
@@ -496,7 +502,7 @@ latin1());
           }
 
           if (prefs.agro_fading) {
-            glColor4f ( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+            glColor4f ((1.0f - (m->playerDist() / 1500.0f)),
                         0.0f, 0.0f, 0.25f );
 
           } else {
@@ -515,16 +521,20 @@ latin1());
         }
 
         else {
+          glPushAttrib (GL_ENABLE_BIT);
+          glDisable    (GL_LIGHTING);
+
           glLineWidth(1.0);
 
           if (prefs.agro_fading) {
-            glColor3f ( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+            glColor3f ((1.0f - (m->playerDist() / 2000.0f)),
                         0.0f, 0.0f );
           } else {
             glColor3f (1.0f, 0.0f, 0.0f);
           }
 
-          drawCircle(0, 0, 500, 18);
+          drawCircle  (0, 0, 500, 18);
+          glPopAttrib ();
         }
       }
       glPopMatrix();
@@ -843,7 +853,7 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
       else
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
     if (prefs.map_mipmap)
@@ -1313,7 +1323,7 @@ END_EXPERIMENTAL_CODE
     if (parent != NULL && mi != NULL)
       qApp->postEvent(parent, new QCustomEvent(CALLBACK_VCT_LOAD, (void*)mi));
 
-    if (i <= 0)
+    if (i < 0 || mi->getZoneNum() == 0)
       i++;
 
     else if (mi != NULL)
