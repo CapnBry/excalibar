@@ -1067,13 +1067,14 @@ void exConnection::parseCharacterInfoList(exPacket *p)
     Realm *rptr;
 
     /*
-     Mythic said "No account shall ever have more than 4 characters
-     because it's too hard to change".  So they make our lives easy
+     xxx Mythic said "No account shall ever have more than 4 characters xxx
+     xxx because it's too hard to change".  So they make our lives easy xxx
+     Mythic lied, now there are 8 slots
      */
-    characters_left = 4;
+    characters_left = 8;
 
     p->seek(24);
-    while (characters_left) {
+    while (characters_left && !p->isAtEOF()) {
         name = p->getZeroString(48);
         p->seek(74);
         character_realm = (Realm) p->getByte();
