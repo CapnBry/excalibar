@@ -68,6 +68,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="1"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"

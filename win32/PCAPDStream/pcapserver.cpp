@@ -64,21 +64,6 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 
 	//AttachConsole();
 	
-	//test if already run
-	SECURITY_ATTRIBUTES sa;
-	HANDLE	hMutex;
-	sa.nLength              = sizeof(sa);
-	sa.bInheritHandle       = TRUE;
-	sa.lpSecurityDescriptor = NULL;
-    hMutex = CreateMutex(&sa, FALSE, "TESTMUTEX");
-	DWORD dwError = GetLastError();
-	if(dwError == ERROR_ALREADY_EXISTS)
-	{
-		ReleaseMutex(hMutex);
-		//DetachConsole();
-		return 0;
-	}
-
 	cMain MainApp(hInstance);
 	cSniffer Sniffer;
 	cDStream DStream;
