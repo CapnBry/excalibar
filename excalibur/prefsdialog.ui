@@ -1000,10 +1000,28 @@
         <slot>MapSimplifyRange_valueChanged(int)</slot>
     </connection>
     <connection>
+        <sender>PrefsDialog</sender>
+        <signal>destroyed(QObject*)</signal>
+        <receiver>PrefsDialog</receiver>
+        <slot>PrefsDialog_destroyed(QObject*)</slot>
+    </connection>
+    <connection>
+        <sender>TextLabel1_3</sender>
+        <signal>destroyed(QObject*)</signal>
+        <receiver>PrefsDialog</receiver>
+        <slot>TextLabel1_3_destroyed(QObject*)</slot>
+    </connection>
+    <connection>
         <sender>PlayerCircle1</sender>
         <signal>valueChanged(const QString&amp;)</signal>
         <receiver>PrefsDialog</receiver>
-        <slot>SpinBox1_valueChanged(const QString&amp;)</slot>
+        <slot>PlayerCircle1_valueChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>PlayerCircle1</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>PrefsDialog</receiver>
+        <slot>PlayerCircle1_valueChanged(int)</slot>
     </connection>
 </connections>
 <includes>
@@ -1014,7 +1032,11 @@
     <slot>SliderDeadColor_valueChanged( int v )</slot>
     <slot>ItemAutoUpload_toggled( bool )</slot>
     <slot>MapSimplifyRange_valueChanged( int val )</slot>
-    <slot>SpinBox1_valueChanged( const QString &amp; )</slot>
+    <slot>PrefsDialog_destroyed( QObject * )</slot>
+    <slot>TextLabel1_3_destroyed( QObject * )</slot>
+    <slot>PlayerCircle1_valueChanged( int )</slot>
+    <slot>PlayerCircle1_destroyed( QObject * )</slot>
+    <slot>PlayerCircle1_valueChanged( const QString &amp; )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
