@@ -1819,6 +1819,10 @@ begin
   iDataLen := wUDPDatagramLen - (sizeof(TUDPHeader) - sizeof(TIPHeader));
   pPayloadDataPtr := Pointer(DWORD(ASegment.Data) + sizeof(TUDPHeader));
 
+  pDAOCPacket := TDAOCPacket.Create;
+  pDAOCPacket.IsFromClient := bIsFromClient;
+  pDAOCPacket.IPProtocol := daocpUDP;
+
   while iDataLen > 2 do begin
       { first bytes are the DAOC Packet Len }
     iPacketLen := (PBYTEARRAY(pPayloadDataPtr)^[0] shl 8) + PBYTEARRAY(pPayloadDataPtr)^[1];
@@ -1827,32 +1831,31 @@ begin
       { which is understated by 3 }
     inc(iPacketLen, 3);
 
+      { remove the packet len from the buffer }
     dec(iDataLen, 2);
     inc(DWORD(pPayloadDataPtr), 2);
 
     if iDataLen < iPacketLen then begin
       Log('UDP packet too short to contain stated DAOC packet, discarded');
+      pDAOCPacket.Free;
       exit;
     end;
 
-    pDAOCPacket := TDAOCPacket.Create;
-    pDAOCPacket.IsFromClient := bIsFromClient;
-    pDAOCPacket.IPProtocol := daocpUDP;
-    pDAOCPacket.CopyDataToPacket(pPayloadDataPtr, iPacketLen);
-
+    pDAOCPacket.LinkDataToPacket(pPayloadDataPtr, iPacketLen);
     ProcessDAOCPacket(pDAOCPacket);
-    pDAOCPacket.Free;
 
     dec(iDataLen, iPacketLen);
     inc(DWORD(pPayloadDataPtr), iPacketLen);
   end;
+
+  pDAOCPacket.Free;
 end;
 
 procedure TDAOCConnection.ProcessDAOCPacket(pPacket: TDAOCPacket);
 begin
   if pPacket.Size > FLargestDAOCPacketSeen then
     FLargestDAOCPacketSeen := pPacket.Size;
-    
+
   if FCryptKeySet then
       { decrypt all TCP packets and all UDP from server }
     if (pPacket.IPProtocol = daocpTCP) or pPacket.IsFromServer then
