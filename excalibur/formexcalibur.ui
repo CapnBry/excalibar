@@ -201,39 +201,6 @@
                     <bool>true</bool>
                 </property>
             </column>
-            <column>
-                <property name="text">
-                    <string>X</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                    <string>Y</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                    <string>Z</string>
-                </property>
-                <property name="clickable">
-                    <bool>true</bool>
-                </property>
-                <property name="resizeable">
-                    <bool>true</bool>
-                </property>
-            </column>
             <property name="name">
                 <cstring>ListViewMobs</cstring>
             </property>
@@ -390,13 +357,13 @@ Hibs: 0  Mobs: 0</string>
                         </size>
                     </property>
                     <property name="minValue">
-                        <number>25</number>
+                        <number>100</number>
                     </property>
                     <property name="maxValue">
-                        <number>150000</number>
+                        <number>75000</number>
                     </property>
                     <property name="value">
-                        <number>16000</number>
+                        <number>4000</number>
                     </property>
                     <property name="orientation">
                         <enum>Horizontal</enum>
@@ -418,6 +385,7 @@ Hibs: 0  Mobs: 0</string>
         <action name="GroupPlayers"/>
         <action name="GroupItems"/>
         <action name="SortDistance"/>
+        <action name="atnCrafting"/>
         <separator/>
         <action name="MaxFPS"/>
         <action name="vaderWarn"/>
@@ -437,6 +405,7 @@ Hibs: 0  Mobs: 0</string>
         <action name="MapPNGs"/>
         <action name="GLRulers"/>
         <action name="atnRenderObjects"/>
+        <action name="atnRenderDead"/>
         <separator/>
         <action name="MapReload"/>
         <action name="MapRecache"/>
@@ -450,7 +419,7 @@ Hibs: 0  Mobs: 0</string>
 <customwidgets>
     <customwidget>
         <class>exMap</class>
-        <header location="local">exMap.h</header>
+        <header location="local">../exMap.h</header>
         <sizehint>
             <width>-1</width>
             <height>-1</height>
@@ -805,6 +774,40 @@ Hibs: 0  Mobs: 0</string>
             <number>79</number>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>atnRenderDead</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Render Dead</string>
+        </property>
+        <property name="accel">
+            <number>90</number>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>atnCrafting</cstring>
+        </property>
+        <property name="toggleAction">
+            <bool>true</bool>
+        </property>
+        <property name="on">
+            <bool>true</bool>
+        </property>
+        <property name="text">
+            <string>Crafting Alerts</string>
+        </property>
+        <property name="accel">
+            <number>67</number>
+        </property>
+    </action>
 </actions>
 <images>
     <image name="image0">
@@ -938,6 +941,18 @@ Hibs: 0  Mobs: 0</string>
         <receiver>FormExcalibur</receiver>
         <slot>atnRenderObjects_toggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>atnRenderDead</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>atnRenderDead_toggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>atnCrafting</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>FormExcalibur</receiver>
+        <slot>atnCrafting_toggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">formexcalibur.ui.h</include>
@@ -969,6 +984,8 @@ Hibs: 0  Mobs: 0</string>
     <slot>MaxFPS_toggled( bool ena )</slot>
     <slot>atnDumpMobInfo_activated()</slot>
     <slot>atnRenderObjects_toggled( bool ena )</slot>
+    <slot>atnRenderDead_toggled( bool ena )</slot>
+    <slot>atnCrafting_toggled( bool ena )</slot>
 </slots>
 <layoutdefaults spacing="2" margin="0"/>
 </UI>
