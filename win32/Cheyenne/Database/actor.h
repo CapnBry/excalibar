@@ -64,6 +64,7 @@ public:
     } // end IntegrateMotion
     
     float RangeTo(const Motion& To)const;
+    float SquaredRangeTo(const Motion& To)const;
     
     std::pair<float,float> RangeAzimuthTo(const Motion& To)const;
     
@@ -145,10 +146,10 @@ public:
 
     enum Realms
     {
-        MOB,
-        Albion,
-        Midgard,
-        Hibernia
+        MOB=0,
+        Albion=1,
+        Midgard=2,
+        Hibernia=3
     };
 
     bool IsType(ActorTypes t)const{return(GetActorType()==t);};
@@ -207,9 +208,6 @@ private:
     DECL_MEMBER(id_type,Id);
     DECL_MEMBER(id_type,InfoId);
     DECL_MEMBER(id_type,TargetId);
-    DECL_MEMBER(float,GroundTargetX);
-    DECL_MEMBER(float,GroundTargetY);
-    DECL_MEMBER(float,GroundTargetZ);
     DECL_MEMBER(std::string,Name);
     DECL_MEMBER(std::string,Guild);
     DECL_MEMBER(std::string,Surname);
@@ -227,4 +225,7 @@ private:
     DECL_MEMBER(Motion,Net); // network motion data
     DECL_MEMBER(CheyenneTime,NetTime); // time this actor was last seen on the shared network
     DECL_MEMBER(CheyenneTime,LastLocalTime); // time this actor was last seen locally (via sniffer)
+    DECL_MEMBER(float,GroundTargetX);
+    DECL_MEMBER(float,GroundTargetY);
+    DECL_MEMBER(float,GroundTargetZ);
 }; // end class Actor

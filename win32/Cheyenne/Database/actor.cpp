@@ -38,6 +38,18 @@ float Motion::RangeTo(const Motion& To)const
     
     return(sqrt(x*x + y*y + z*z));
 }
+float Motion::SquaredRangeTo(const Motion& To)const
+{
+    float x,y,z;
+    
+    // get coordinates
+    x=To.GetXPos()-GetXPos();
+    y=To.GetYPos()-GetYPos();
+    z=To.GetZPos()-GetZPos();
+    
+    // don't take squareroot 
+    return(x*x + y*y + z*z);
+}
 
 std::pair<float,float> Motion::RangeAzimuthTo(const Motion& To)const
 {
