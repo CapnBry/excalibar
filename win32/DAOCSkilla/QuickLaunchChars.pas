@@ -18,11 +18,13 @@ type
     function GetServerIP: string;
     function GetServerName: string;
     function GetServer: string;
+    function GetDisplayName: string;
   protected
     FParent:    TQuickLaunchCharList;
   public
     property Account: string read FAccount write FAccount;
     property Password: string read FPassword write FPassword;
+    property DisplayName: string read GetDisplayName;
     property Name: string read FName write FName;
     property Realm: integer read FRealm write FRealm;
     property ServerAddr: DWORD read FServerAddr write FServerAddr;
@@ -172,6 +174,11 @@ begin
 end;
 
 { TQuickLaunchChar }
+
+function TQuickLaunchChar.GetDisplayName: string;
+begin
+  Result := Format('%s (%s)', [FName, Server]);
+end;
 
 function TQuickLaunchChar.GetServer: string;
 begin
