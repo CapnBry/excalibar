@@ -95,7 +95,7 @@ void exConnection::setup()
 
     playerregion = 0;
     playerspeed = 0;
-    playerhead = 0;
+    playerhead = 0.0f;
     playerx = 0;
     playery = 0;
     playerz = 0;
@@ -204,7 +204,7 @@ void exConnection::replaytimer()
     else  {
         nextpacket = NULL;
         timer.start(500, TRUE);
-//        qApp->quit();
+        qApp->quit();
     }
 }
 
@@ -325,7 +325,7 @@ void exConnection::processPacket(exPacket * p)
               p->seek(2);
 	      playerx = p->getLong();
 	      playery = p->getLong();
-              playerhead = (p->getShort()) & 0xfff;
+              playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
               player_last_update = exTick;
 
               mi = ex->Map->getMap();
@@ -359,7 +359,7 @@ void exConnection::processPacket(exPacket * p)
 
           case 0x12:
               p->seek(2);
-	      playerhead = (p->getShort()) & 0xfff;
+	      playerhead = DAOCHEAD_TO_DEGREES(p->getShort());
 	      ex->Map->dirty();
 	      break;
 	  case 0x18:
@@ -1013,16 +1013,13 @@ bool exConnection::checkMap (void)
 
 void exConnection::updateProjectedPlayer(void)
 {
-  const float head_per_pi = (float)(1.0 / 2048.0);
-
   float projected_mag;
   float player_head_rad;
   int mag;
 
   projected_mag = (float)playerspeed * (float)(exTick - player_last_update) *
       (float)(1.0 / 1000.0);
-  /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
-  player_head_rad = (float)playerhead * (float)M_PI * head_per_pi;
+  player_head_rad = playerhead * (float)(M_PI / 180.0);
 
   FLOAT_TO_INT((sin(player_head_rad) * projected_mag), mag);
   playerProjectedX = playerx - mag;

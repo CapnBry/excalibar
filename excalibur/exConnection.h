@@ -103,8 +103,10 @@ public:
   FormExcalibur *ex;
   // exMessagesUi  *msgui;
   QString playername;
-  int playerx, playery, playerz, playerhead, playerspeed, playerregion, playerlevel;
-  int groundtarget_x, groundtarget_y, groundtarget_z;
+  unsigned int playerx, playery, playerz;
+  unsigned int groundtarget_x, groundtarget_y, groundtarget_z;
+  float playerhead;
+  int playerspeed, playerregion, playerlevel;
   exTimeType player_last_update;
   int playerProjectedX, playerProjectedY;
   int player_health, player_mana, player_endurance;

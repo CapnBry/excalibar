@@ -333,9 +333,11 @@ void exMap::paintGL() {
   QPtrDictIterator<exMob> mobi(mobs);
   exMapElement *mapel;
   exMob *m;
-  float playerhead;
   float playerrad;
   int minx, maxx, miny, maxy;
+  bool update_fps_counter;
+
+  update_fps_counter = (exTick - _last_fps) >= 1000;
 
   if (!objects_made)
     makeObjects(prefs.map_simple);
@@ -374,13 +376,12 @@ void exMap::paintGL() {
 
   c->updateProjectedPlayer();
 
-  playerhead = c->playerhead * (float)(360.0 / 4096.0);
-  playerrad = playerhead * (float)(M_PI / 180.0);
+  playerrad = c->playerhead * (float)(M_PI / 180.0);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   if (prefs.map_rotate)
-      glRotatef(180.0+playerhead, 0.0, 0.0, 1.0);
+      glRotatef(180.0+c->playerhead, 0.0, 0.0, 1.0);
   else if (mi)
       if (mi->getRotate() != 0)
           glRotatef((GLfloat)mi->getRotate(), 0.0, 0.0, 1.0);
@@ -430,55 +431,17 @@ void exMap::paintGL() {
 
   for(;mobi.current();++mobi) {
     m=mobi.current();
-    m->checkStale();
+
+    /* we only check stale every time we update the fps counter
+     (1 sec), since potentially checking 1000 times per second is
+     just overkill */
+    if (update_fps_counter)
+      m->checkStale();
 
     if (m->isCurrent() && m->insideRect(bounds) &&
-        (!m->isObj() || prefs.render_objects) &&
-        (!m->isDead() || prefs.render_dead)) {
-      glPushMatrix();
-      glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0f);  // m->getZ()
-      objRotate(m->getHead());
-
-      /* if it is filtered draw a yellow circle around it */
-      if (prefs.filter_circles && m->isFiltered())
-          drawAggroCircle(1.0, 1.0, 0.0, 0.0);
-
-      /* if the mob is within range, draw an agro circle around it */
-      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))
-          drawAggroCircle(1.0, 0.0, 0.0,
-                          (prefs.agro_fading) ? m->playerDist() * (1.0f / 1500.0f) : 0.0f);
-
-        /* if this is a player, draw the realm color ring */
-      if (!m->isMobOrObj()) {
-        if (m->isDead()) {
-          setGLColor (m->getRealmColor().dark(160), m->getZ());
-        } else if (! m->isInvader()) {
-          setGLColor (m->getRealmColor(), m->getZ());
-        } else {
-          setGLColor ( (mobDarken) ? m->getRealmColor().dark(150) : m->getRealmColor().light(150), m->getZ());
-        }
-
-        glCallList(listCircle);
-      } // if is player
-
-      if (m->isObj()) {
-        setGLColor(1.0,1.0,1.0, m->getZ());
-        glCallList(listSquares);
-      } else {
-        QColor clr;
-        clr = m->getConColor(c->playerlevel);
-        if (m->isStealthed())
-          clr = clr.dark(200);
-        setGLColor(clr, m->getZ());
-        glCallList(listTriangle);
-      }  // if !obj
-
-      if ((prefs.map_rasterize_merchant_types && m->isMob()) ||
-          (prefs.map_rasterize_player_names && !m->isMobOrObj()))
-          drawMobName(m);
-
-      glPopMatrix();
-    }  // if isCurrent
+        (prefs.render_objects || !m->isObj()) &&
+        (prefs.render_dead || !m->isDead()))
+      drawEXMob(m);
   }  // for mobs
 
   if (c->groundtarget_x && c->groundtarget_y)
@@ -530,9 +493,9 @@ void exMap::paintGL() {
     /* Player triangle */
   if (!prefs.map_simple)
     glEnable(GL_LIGHTING);
-  glColor3f    (1.0f, 1.0f, 0.0f);
-  objRotate    (c->playerhead);
-  glCallList   (listTriangle);
+  glColor3f(1.0f, 1.0f, 0.0f);
+  glRotatef(c->playerhead, 0.0, 0.0, 1.0);
+  glCallList(listTriangle);
 
     /* pop from the move to player position */
   glPopMatrix();
@@ -540,7 +503,7 @@ void exMap::paintGL() {
   is_dirty = false;
 
   frames += 1;
-  if ((exTick - _last_fps) >= 1000) {
+  if (update_fps_counter) {
     c->ex->FPS->setText(QString().sprintf("%.1f FPS",
       (1000.0f * (float)frames) / (float)(exTick - _last_fps)));
     frames = 0;
@@ -557,6 +520,53 @@ void exMap::paintGL() {
 
   if (prefs.maxfps && !idleTimer.isActive())
       idleTimer.start(0, true);
+}
+
+void exMap::drawEXMob(exMob *m)
+{
+    glPushMatrix();
+    glTranslatef(m->getProjectedX(),m->getProjectedY(), 0.0f);  // m->getZ()
+    glRotatef(m->getHead(), 0.0f, 0.0f, 1.0f);
+
+    /* if it is filtered draw a yellow circle around it */
+    if (prefs.filter_circles && m->isFiltered())
+        drawAggroCircle(1.0, 1.0, 0.0, 0.0);
+
+    /* if the mob is within range, draw an agro circle around it */
+    else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist2DL1() < 14200)))
+        drawAggroCircle(1.0, 0.0, 0.0,
+                        (prefs.agro_fading) ? m->playerDist() * (1.0f / 1500.0f) : 0.0f);
+
+    /* if this is a player, draw the realm color ring */
+      if (!m->isMobOrObj()) {
+          if (m->isDead()) {
+              setGLColor (m->getRealmColor().dark(160), m->getZ());
+          } else if (! m->isInvader()) {
+              setGLColor (m->getRealmColor(), m->getZ());
+        } else {
+              setGLColor ( (mobDarken) ? m->getRealmColor().dark(150) : m->getRealmColor().light(150), m->getZ());
+        }
+
+          glCallList(listCircle);
+      } // if is player
+
+      if (m->isObj()) {
+          setGLColor(1.0,1.0,1.0, m->getZ());
+          glCallList(listSquares);
+      } else {
+          QColor clr;
+          clr = m->getConColor(c->playerlevel);
+          if (m->isStealthed())
+              clr = clr.dark(200);
+          setGLColor(clr, m->getZ());
+          glCallList(listTriangle);
+      }  // if !obj
+
+      if ((prefs.map_rasterize_merchant_types && m->isMob()) ||
+          (prefs.map_rasterize_player_names && !m->isMobOrObj()))
+          drawMobName(m);
+
+      glPopMatrix();
 }
 
 void exMap::drawMobName(exMob *m)
@@ -813,12 +823,6 @@ void exMap::setGLColor(QColor col, int z) {
              col.green() * COLOR_SCALE_FACTOR,
              col.blue() * COLOR_SCALE_FACTOR,
              z);
-}
-
-void exMap::objRotate(unsigned int daocheading) {
-  float r;
-  r = (float)daocheading * (float)(360.0 / 4096.0);
-  glRotatef(r,0.0f,0.0f,1.0f);
 }
 
 int exMap::stringInt(QStringList *sl, unsigned int sec) {
@@ -1264,12 +1268,9 @@ void exMap::loadVectorMap (const exMapInfo *mi) {
 
 
   /* Not sure what the issue here is.. Something isn't thread safe!!! */
-
   QString qsName;
-  try {
-    qsName = ((exMapInfo*)mi)->getName();
-    Q_ASSERT(qsName != NULL);
-  } catch (...) {
+  qsName = ((exMapInfo*)mi)->getName();
+  if (qsName == NULL)  {
     qWarning("Error:\texMapInfo == NULL!");
     return;
   }

@@ -169,7 +169,7 @@ protected:
   int edit_yofs;
   bool lastfade;
   bool lastfill;
-  int lastz;
+  unsigned int lastz;
   bool recache;
   bool objects_made;
   
@@ -178,6 +178,7 @@ protected:
   QTimer idleTimer;
   
   void drawCircle(int radius, uint8_t segments);
+  void drawEXMob(exMob *m);
   void drawMobName(exMob *m);
   void drawAggroCircle(GLfloat R, GLfloat G, GLfloat B, GLfloat distfade_pct);
   void drawGroundTarget();
@@ -207,7 +208,6 @@ public:
   void adjustGLColor(double *col, double z);
   void dirty();
   void setConnection(exConnection *nc);
-  void objRotate(unsigned int daocheading);
   void setMap(exMapInfo *m);
   void mapRead();
   void loadVectorMap (const exMapInfo *mi);

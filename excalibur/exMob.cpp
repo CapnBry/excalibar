@@ -32,7 +32,9 @@ static const QColor cHibernia(0,255,0);
 static const QColor cAlbion(255,0,0);
 static const QColor cFriendly(0,255,255);
 
-static double max_stale_range = 7500.0;
+// static float max_stale_range = 7500.0f;
+  /* range is in manhattan distance (L1) 10600 = ~7500 (L2) */
+static unsigned int max_stale_range = 10600;
 
 exMob::exMob(QListView *view, exConnection *con, bool newmob, unsigned int
 newid, unsigned int newinfoid, QString newname, QString newsurname, QString newguild, int newlevel, int nx, int ny, int nz, int nhp, bool newobj)
@@ -51,10 +53,15 @@ newid, unsigned int newinfoid, QString newname, QString newsurname, QString newg
   mana=0;
   mob=newmob;
   obj=newobj;
-  head=0x800;
+  head=0.0f;
+  headrad=0.0f;
   speed=0;
   stealth = 0;
   c=con;
+  lastconcolor = gray;
+  lastconcolortolevel = 0;
+  lastDist2DL1Ticks = 0;
+  lastDist2DL1 = 0;
 
   current = true;
   
@@ -101,9 +108,9 @@ int exMob::compare(QListViewItem *i, int col, bool ascending) const {
 
   // Players should be sorted out now if group_players is true
   if (prefs.sort_group_items &&
-      ((isObj() && !mob->isObj()) || (!isObj() && mob->isObj()))
+      ((obj && !mob->isObj()) || (!obj && mob->isObj()))
      ) {
-    if (!isObj())
+    if (!obj)
       updown=false;
     else
       updown=true;
@@ -181,7 +188,7 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
     clr = getRealmColor().light(isDead() ? prefs.brightness_dead : prefs.brightness_alive);
     new_colors.setColor(QColorGroup::Base, clr);
   }
-  else if (!isObj() && prefs.MobListColors)
+  else if (!obj && prefs.MobListColors)
   {
     clr = getConColor(c->playerlevel).dark(175);
     new_colors.setColor(QColorGroup::Text, clr);
@@ -206,9 +213,8 @@ void exMob::setPosition(unsigned int nx, unsigned int ny, unsigned int nz) {
 }
 
 void exMob::setHead(unsigned int nhead) {
-  head=nhead & 0xfff;
-  /* (((head * 360.0) / 4096.0) * M_PI) / 180.0; */
-  headrad = head * (float)M_PI * (1.0f / 2048.0f);
+  head = DAOCHEAD_TO_DEGREES(nhead);
+  headrad = head * (float)(M_PI / 180.0);
   touch();
 }
 
@@ -228,55 +234,55 @@ void exMob::setRealm(Realm nrealm) {
 }
 
 
-unsigned int exMob::getID() const {
+const unsigned int exMob::getID() const {
   return id;
 }
 
-unsigned int exMob::getInfoID() const {
+const unsigned int exMob::getInfoID() const {
   return infoid;
 }
 
-QString exMob::getName() const {
+const QString exMob::getName() const {
   return name;
 }
 
-QString exMob::getSurname() const {
+const QString exMob::getSurname() const {
   return surname;
 }
 
-QString exMob::getGuild() const {
+const QString exMob::getGuild() const {
   return guild;
 }
 
-bool exMob::isMob() const {
+const bool exMob::isMob() const {
   return mob;
 }
 
-bool exMob::isObj() const {
+const bool exMob::isObj() const {
   return obj;
 }
 
-bool exMob::isMobOrObj() const {
+const bool exMob::isMobOrObj() const {
   return mob || obj;
 }
 
-bool exMob::isDead() const {
+const bool exMob::isDead() const {
   return (hp == 0) ? true : false;
 }
 
-bool exMob::isCurrent() const {
+const bool exMob::isCurrent() const {
   return current;
 }
 
-bool exMob::isInvader() const {
+const bool exMob::isInvader() const {
   return (c->playerrealm != realm);
 }
 
-unsigned int exMob::getX() const {
+const unsigned int exMob::getX() const {
    return x;
 }
 
-unsigned int exMob::getY() const {
+const unsigned int exMob::getY() const {
    return y;
 }
 
@@ -314,15 +320,15 @@ void exMob::updateProjectedPosition() {
     projectedY = y + mag;
 }
 
-unsigned int exMob::getZ() const {
+const unsigned int exMob::getZ() const {
    return z;
 }
 
-unsigned int exMob::getHead() const {
+const float exMob::getHead() const {
    return head;
 }
 
-int exMob::getSpeed() const {
+const int exMob::getSpeed() const {
     /* the bit 9 is the sign, 10 = swimming? */
     if (speed & 0x0200)
         return -((speed & 0x3ff) & 0x1ff);
@@ -330,16 +336,16 @@ int exMob::getSpeed() const {
         return (speed & 0x3ff);
 }
 
-unsigned int exMob::getLevel() const {
+const unsigned int exMob::getLevel() const {
    return level;
 }
 
-Realm exMob::getRealm() const {
+const Realm exMob::getRealm() const {
    return realm;
 }
 
 const QColor exMob::getRealmColor() const {
-  if (! isInvader())
+  if (!isInvader())
     return cFriendly;
 
   switch (realm) {
@@ -352,14 +358,19 @@ const QColor exMob::getRealmColor() const {
   }
 }
 
-const QColor exMob::getConColor(unsigned int to_level) const
+const QColor exMob::getConColor(unsigned int to_level)
 {
+    if (to_level == lastconcolortolevel)
+        return lastconcolor;
+
     int l_quanta;
     int l_steps_taken;
 
+    lastconcolortolevel = to_level;
+
     l_steps_taken = 0;
-    while ((to_level > 0) && (to_level < 100) &&
-           (l_steps_taken > -3) && (l_steps_taken < 3))  {
+    while ((l_steps_taken > -3) && (l_steps_taken < 3) &&
+           (to_level > 0) && (to_level < 100))  {
 
         l_quanta = (to_level / 10) + 1;
         if (l_quanta > 5)
@@ -381,30 +392,32 @@ const QColor exMob::getConColor(unsigned int to_level) const
 
     switch (l_steps_taken)  {
     case -3:
-        return gray;
+        lastconcolor = gray;
         break;
     case -2:
-        return green;
+        lastconcolor = green;
         break;
     case -1:
-        return blue;
+        lastconcolor = blue;
         break;
     case  0:
-        return yellow;
+        lastconcolor = yellow;
         break;
     case  1:
-        return QColor(255, 127, 0); // orange
+        lastconcolor = QColor(255, 127, 0); // orange
         break;  
     case  2:
-        return red;
+        lastconcolor = red;
         break;
     case  3:
-        return magenta;
+        lastconcolor = magenta;
         break;
     default:
-        return black;
+        lastconcolor = black;
         break;
     }
+
+    return lastconcolor;
 }
 
 QColor exMob::getColorForRealm(Realm r) {
@@ -438,6 +451,35 @@ float exMob::playerDist() {
   return lastdist;
 }
 
+const unsigned int exMob::playerDist2DL1()
+{
+    if (exTick == lastDist2DL1Ticks)
+        return lastDist2DL1;
+
+    lastDist2DL1Ticks = exTick;
+
+    /*
+     int xdist = x - c->playerx;
+    if (xdist < 0)
+        xdist = -xdist;
+    int ydist = y - c->playery;
+    if (ydist < 0)
+        ydist = -ydist;
+        */
+    unsigned int xdist;
+    unsigned int ydist;
+    if (x > c->playerx)
+        xdist = x - c->playerx;
+    else
+        xdist = c->playerx - x;
+    if (y > c->playery)
+        ydist = y - c->playery;
+    else
+        ydist = c->playery - y;
+
+    lastDist2DL1 = xdist + ydist;
+    return lastDist2DL1;
+}
 
 void exMob::touch() {
   _lasttick=exTick;
@@ -450,19 +492,12 @@ void exMob::touch() {
 }
 
 void exMob::checkStale() {
-  int maxtime;
-
-  if (! current)
+  if (!current)
     return;
 
-//  if ((speed & 0xFF) == 0)
-    maxtime=120000;
-//  else
-//    maxtime=10000;
-
       /* mobs get updated to around 7000-7500 */
-  if ((playerDist() > max_stale_range) ||
-      (!obj && ((exTick - _lasttick) > maxtime))
+  if ((playerDist2DL1() > max_stale_range) ||
+      (!obj && ((exTick - _lasttick) > 120000))
      ) {
     current = false;
     c->mobWentStale(this);
@@ -492,7 +527,7 @@ ostream& operator << (ostream& os, const exMob &p)
         << "  Head: " << p.head << " Speed: " << p.speed << endl;
 }
 
-bool exMob::isStealthed() const
+const bool exMob::isStealthed() const
 {
     return stealth;
 }
@@ -503,17 +538,17 @@ void exMob::setStealth(bool bstealth)
     touch();
 }
 
-bool exMob::insideRect(QRect &r)
+const bool exMob::insideRect(QRect &r) const
 {
     return r.contains(x, y);
 }
 
-bool exMob::isPlayer(void) const
+const bool exMob::isPlayer(void) const
 {
     return !(mob || obj);
 }
 
-QString exMob::getClassName(void) const
+const QString exMob::getClassName(void) const
 {
     switch (playerclass)
     {

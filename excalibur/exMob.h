@@ -34,6 +34,8 @@ using namespace std;
 
 class exInventoryItem;
 
+#define DAOCHEAD_TO_DEGREES(x) (float)(x & 0x0fff) * (360.0 / 4096.0)
+
 class exMob : public QListViewItem {
 public:
     enum playerClass {
@@ -56,7 +58,7 @@ private:
     unsigned int hp;
     unsigned int mana;
     unsigned int x,y,z;
-    unsigned int head;
+    float head;
     float headrad;
     unsigned int speed;
     bool mob;
@@ -72,6 +74,10 @@ private:
     Realm realm;
     QPtrDict<exInventoryItem> inventory;
     playerClass playerclass;
+    QColor lastconcolor;
+    unsigned int lastconcolortolevel;
+    exTimeType lastDist2DL1Ticks;
+    unsigned int lastDist2DL1;
 
     void exMob::setConnection( exConnection *con);
 
@@ -82,34 +88,39 @@ public:
     virtual QString text(int column) const;
     void paintCell(QPainter *p, const QColorGroup &cg, int column, int width, int align);
 	
-    unsigned int getID() const;
-    unsigned int getInfoID() const;
-    QString getName() const;
-    QString getSurname() const;
-    QString getGuild() const;
-    QString getClassName() const;
-    bool isMob() const;
-    bool isObj() const;
-    bool isMobOrObj() const;
-    bool isPlayer() const;
-    bool isInvader() const;
-    bool isDead() const;
-    bool isCurrent() const;
-    bool isStealthed() const;
-    unsigned int getX() const;
-    unsigned int getY() const;
-    unsigned int getZ() const;
+    static QColor getColorForRealm(Realm r);
+    static void setFilter( QString );
+
+    const unsigned int getID() const;
+    const unsigned int getInfoID() const;
+    const QString getName() const;
+    const QString getSurname() const;
+    const QString getGuild() const;
+    const QString getClassName() const;
+    const bool isMob() const;
+    const bool isObj() const;
+    const bool isMobOrObj() const;
+    const bool isPlayer() const;
+    const bool isInvader() const;
+    const bool isDead() const;
+    const bool isCurrent() const;
+    const bool isStealthed() const;
+    const unsigned int getX() const;
+    const unsigned int getY() const;
+    const unsigned int getZ() const;
+    const float getHead() const;
+    const int getSpeed() const;
+    const unsigned int getLevel() const;
+    const unsigned int playerDist2DL1();
+    const Realm getRealm() const;
+    const QColor getRealmColor() const;
+    const QColor getConColor(unsigned int to_level);
+    const bool insideRect(QRect &r) const;
+
     unsigned int getProjectedX();
     unsigned int getProjectedY();
     void updateProjectedPosition();
-    unsigned int getHead() const;
-    int getSpeed() const;
-    unsigned int getLevel() const;
     float playerDist();
-    Realm getRealm() const;
-    const QColor getRealmColor() const;
-    const QColor getConColor(unsigned int to_level) const;
-    static QColor getColorForRealm(Realm r);
 
     void touch();
     void checkStale();
@@ -120,8 +131,6 @@ public:
     void setRealm(Realm newr);
     void setStealth(bool stealth);
     bool isFiltered();
-    static void setFilter( QString );
-    bool insideRect(QRect &r);
     void updateInventory(exInventoryItem *ii);
     void clearInventory(void);
 
