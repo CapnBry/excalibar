@@ -28,65 +28,35 @@ application or its source code.
 1.  Borland Delphi (32-bit) http://www.borland.com/
     I use Delphi 6 Enterprise but Personal and Professional also work.
     Delphi 7 should work as well, Delphi 5 probably needs the Indy
-    components for the RemoteAdmin unit.
+    components for the RemoteAdmin unit.  Make sure you include the
+     "Program Files/Sample Applications" feature since we use the SpinEdit
+     control from that group.
     
-2.  WinPCAP 3.0 Runtime http://winpcap.polito.it/
-    Required services to read network traffic.  You don't need the
-    development stuff, just the driver+DLLs (auto-installer).
-    
-3.  glWindow Component http://www.cfxweb.net/~delphigl/files/glWindow.zip
-    Install this into your IDE via instructions below. You only need this
-    if you want to build the OpenGL renderer.
-
-4.  A CVS client (Cygwin CVS, CVSGui, etc)
-    Just to get the source.
-
-5.  Decent OpenGL units http://www.delphi3d.net/download.php
-    These are needed if you're going to build the OpenGL radar screen.
+2.  A CVS client (Cygwin CVS, WinCVS, etc)
+    Just to get the source.  I use WinCVS from http://cvsgui.sf.net/
 
 --------------
     Setup
 --------------
 
-1.  Get the win32 source from CVS.  I put the source in an Excalibur
-    directory.  Using Cygwin's command line CVS:
-    mkdir Excalibur
-    cd Excalibur
-    cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar login
-    (press enter when asked for a password)
-    cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32
+1.  Get the win32 source from CVS.  At a minumim you'll need the
+    following modules:
+        win32/Common
+        win32/Components
+        win32/DAOCSkilla
+    I put the source in an Excalibur directory.  Using Cygwin's command
+    line CVS:
+        mkdir Excalibur
+        cd Excalibur
+        cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar login
+        (press enter when asked for a password)
+        cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32/Common
+        cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32/Components
+        cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/excalibar co win32/DAOCSkilla
 
-2.  Extract the glWindow component to the Components\glWindow directory
-    off your base directory.  Your directory structure should look like this:
-    Excalibur\
-    Excalibur\win32\
-    Excalibur\win32\Components\
-    Excalibur\win32\Components\glWindow\
-    Excalibur\win32\Components\zlib\
-    Excalibur\win32\Common\
-    Excalivur\win32\Common\ChatParse\
-    Excalivur\win32\Common\DAOCAutomation\
-    Excalivur\win32\Common\DAOCInfo\
-    Excalibur\win32\Common\PacketSniff\
-    Excalibur\win32\DaocSkilla\
-    Excalibur\win32\CamelotChatRT\
-    etc.
+2.  Open DAOCSkilla.dpr from the File | Open Project... menu
 
-3.  Install the glWindow component in the Delphi IDE.
-    a.  Go to the Component menu and select Install Component...
-    b.  In the Unit File Name box, browse to and select the
-        glWindow.pas
-    c.  Package file name isn't important unless you know what you're
-        doing.  dclusr.dpk works fine.
-    d.  Click OK
-    d.  On the Package dialog that comes up next, click the Install
-        button.  You should get a message that the glWindow component
-        has been registered.
-        
-4.  Open DAOCSkilla.dpr from the File | Open Project... menu
-
-5.  Run!
-
+3.  Run!
 
 -------------
  Optionality
@@ -95,7 +65,8 @@ There are a couple options which can be turned off if they are causing
 you troubles in building.  They can be accessed from Project |
 Options... window, Directories/Conditionals tab, Conditional Defines
 box.  When changing defines, you *MUST* do a "Build all" in order for
-the changes to take effect throughout all the code.
+the changes to take effect throughout all the code.  These options are
+not guaranteed to work if disabled, as they are never regression tested.
 
 OPENGL_RENDERER: Enables the building of all OpenGL-based render
     dialog.  Remove the define to build without it.
