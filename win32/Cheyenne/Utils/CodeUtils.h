@@ -199,6 +199,24 @@ void WM_SIZING_LIMIT
     const LONG MinWidth,
     const LONG MinHeight
     );
+    
+// math helpers
+inline double ToRadians(const double degrees)
+{
+    return(degrees*(1.0/57.295779513082320876798154814105));
+}
+inline double ToDegrees(const double radians)
+{
+    return(radians*57.295779513082320876798154814105);
+}
+inline float ToRadians(const float degrees)
+{
+    return(degrees*(1.0f/57.295779513082320876798154814105f));
+}
+inline float ToDegrees(const float radians)
+{
+    return(radians*57.295779513082320876798154814105f);
+}
 
 // intercept template functions
 template<typename T> bool is_near(const T& a,const T&b,const T& threshold=T(0.00001))
