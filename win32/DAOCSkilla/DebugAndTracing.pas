@@ -224,10 +224,12 @@ begin
     Z := ADAOCObject.Z;
     if (X >= 65535) or (Y > 65535) then
       exit;
-    s := Format('MOBseen,%d,%d,%d,%d,%d,%s,%s'#13#10, [
+    s := Format('MOBseen,%d,%d,%d,%d,%d,%s,', [
       FDControl.Zone.ZoneNum, X, Y, Z,
-      ADAOCObject.Level, ADAOCObject.Name, TDAOCMob(ADAOCObject).TypeTag
-      ]);
+      ADAOCObject.Level, ADAOCObject.Name]);
+    if ADAOCObject is TDAOCMob then
+      s := s + TDAOCMob(ADAOCObject).TypeTag;
+    s := s + #13#10;
     FMobseenFile.Write(s[1], Length(s));
   end;
 end;

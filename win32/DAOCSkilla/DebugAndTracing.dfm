@@ -1,7 +1,7 @@
 object frmDebugging: TfrmDebugging
   Left = 259
   Top = 186
-  BorderStyle = bsDialog
+  BorderStyle = bsSingle
   Caption = 'Tracing and Debugging'
   ClientHeight = 134
   ClientWidth = 423
