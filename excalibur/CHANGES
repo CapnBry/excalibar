@@ -1,3 +1,30 @@
+Andon (24/Feb/02)
+-----------------
+Additions:
+ + Added support for Mip Mapping on NVidia cards...
+   This can be enabled / disabled in the preferences.
+ + Added support for linear texture filtering on NVidia
+   cards. This can also be enabled / disabled.
+
+Changes:
+ + Alpha blended circles now work without depth fading
+   enabled.
+ + Changed the map rendering order around a bit.. To
+   make sure that the player arrow is always rendered
+   and that all range circles correctly alpha blend.
+
+Bug Fixes:
+ + Fixed a bug where the rotation of the map was offset
+   by +1 degree (counter clockwise).
+
+ * Version bumped to 1.1.3a
+
+ NOTE: Mip Mapping will significantly increase the mem-
+       ory requirements of Excalibur.. It's probably
+       not a good idea to enable this in combination
+       with Adjacent Zone loading.
+
+
 Andon (23/Feb/02)
 -----------------
 Major Changes:

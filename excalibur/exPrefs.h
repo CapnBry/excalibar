@@ -61,6 +61,8 @@ public:
   bool map_fill;
   bool map_load_adjacent_zones;
   bool map_load_png_maps;
+  bool map_linear_filter;
+  bool map_mipmap;
   bool agro_circles;
   bool filter_circles;
   bool agro_fading;

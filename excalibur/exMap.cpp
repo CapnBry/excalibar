@@ -245,6 +245,8 @@ void exMap::initializeGL() {
   listCircle   = glGenLists(1);
   listSquares  = glGenLists(1);
 
+  glFlush();
+
   makeObjects(prefs.map_simple);
 }
 
@@ -349,6 +351,19 @@ void exMap::paintGL() {
     glEnd();
   }
 
+
+  if(prefs.player_circle_1 >= 226){
+    glLineWidth (2.0);
+    glColor3f (0.45f, 0.45f, 0.45f);
+    drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
+  }
+  if(prefs.player_circle_2 >= 251){
+    glLineWidth (2.0);
+    glColor3f (0.45f, 0.45f, 0.45f);
+    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
+  }
+
+
   if (! prefs.map_simple ) {
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -356,14 +371,7 @@ void exMap::paintGL() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  glPushMatrix();
-  qglColor( yellow );
-  glTranslated(c->playerx,c->playery,c->playerz);
-  objRotate(c->playerhead);
-  glCallList(listTriangle);
-  glPopMatrix();
-
-  if ((exTick - _lastDarken) > 250) {
+ if ((exTick - _lastDarken) > 250) {
     mobDarken = ! mobDarken;
     _lastDarken = exTick;
   }
@@ -373,6 +381,104 @@ void exMap::paintGL() {
 
     if (m->isCurrent()) {
       glPushMatrix();
+      /* if it is filtered draw a yellow circle around it */
+
+      if (m->getZ() >= 0.01f)
+        glTranslated(m->getProjectedX(), m->getProjectedY(), 0.01f);
+      else
+        glTranslated(m->getProjectedX(), m->getProjectedY(), m->getZ() - 0.01f);
+ 
+      if( m->isFiltered() && prefs.filter_circles ) {
+
+        if (prefs.alpha_circles && ! prefs.map_simple) {
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+          glDepthFunc  (GL_LEQUAL);
+          glCullFace   (GL_BACK);
+
+
+          if (prefs.alpha_borders) {
+            glColor3f  (1.0f, 0.0f, 0.0f);
+            drawCircle (0, 0, 500, 18);
+          }
+
+          glColor4f  (1.0f, 1.0f, 0.0f, 0.25f);
+
+          GLUquadricObj *qoCircle;
+          qoCircle = gluNewQuadric();
+
+          if (prefs.alpha_speed)
+            gluDisk   (qoCircle, 0, 500, 18, 18);
+
+          else
+            gluSphere (qoCircle, 500, 32, 32);
+          glPopAttrib();
+        }
+
+        else {
+          glLineWidth (1.0);
+          glColor3f   (1.0f, 1.0f, 0.0f);
+          drawCircle  (0, 0, 500, 18);
+        }
+        
+      }
+
+      /* if the mob is within range, draw an agro circle around it */
+      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
+
+        if (prefs.alpha_circles && ! prefs.map_simple) {
+          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
+          glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          glDepthFunc  (GL_LEQUAL);
+          glCullFace   (GL_BACK);
+
+
+          if (prefs.alpha_borders) {
+            glColor3f  (1.0f, 1.0f, 0.0f);
+            drawCircle (0, 0, 500, 18);
+          }
+
+          if (prefs.agro_fading) {
+            glColor4f ( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+                        0.0f, 0.0f, 0.25f );
+
+          } else {
+           glColor4f ( 1.0f, 0.0f, 0.0f, 0.25f );
+          }
+          
+          GLUquadricObj *qoCircle;
+          qoCircle = gluNewQuadric();
+
+          if (prefs.alpha_speed)
+            gluDisk   (qoCircle, 0, 500, 18, 18);
+
+          else
+            gluSphere (qoCircle, 500, 32, 32);
+          glPopAttrib();
+        }
+
+        else {
+          glLineWidth(1.0);
+
+          if (prefs.agro_fading) {
+            glColor3f ( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
+                        0.0f, 0.0f );
+          } else {
+            glColor3f (1.0f, 0.0f, 0.0f);
+          }
+
+          drawCircle(0, 0, 500, 18);
+        }
+      }
+      glPopMatrix();
+
+      qglColor( yellow );
+ 
+      glPushMatrix();
+      glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glDepthFunc  (GL_LEQUAL);
       glTranslated(m->getProjectedX(),m->getProjectedY(),m->getZ());
       objRotate(m->getHead());
 
@@ -416,103 +522,9 @@ void exMap::paintGL() {
       else
         glCallList(listSquares);
 
+      glPopAttrib();
       glPopMatrix();
-
-      glPushMatrix();
-      /* if it is filtered draw a yellow circle around it */
-      if( m->isFiltered() && prefs.filter_circles ) {
-
-        if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
-          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
-          glBlendFunc  (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-          glDepthFunc  (GL_LEQUAL);
-          glCullFace   (GL_BACK);
-
-        
-          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f); 
-
-          if (prefs.alpha_borders) {
-            qglColor   (darkRed);
-            drawCircle (0, 0, 500, 18);
-          }
-
-          setGLColor  (1.0f, 1.0f, 0.0f, (int)0.25f);
-
-          GLUquadricObj *qoCircle;
-          qoCircle = gluNewQuadric();
-
-          if (prefs.alpha_speed)
-            gluDisk   (qoCircle, 0, 500, 18, 18);
-
-          else
-            gluSphere (qoCircle, 500, 32, 32);
-          glPopAttrib();
-        }
-
-        else {
-          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
-          glLineWidth(1.0);
-          qglColor(yellow);
-          drawCircle(0, 0, 500, 18);
-        }
-        
-      }
-
-      /* if the mob is within range, draw an agro circle around it */
-      else if (prefs.agro_circles && ((m->isMob()) && (m->playerDist() < 1000)))      {
-
-        if (prefs.alpha_circles && ! prefs.map_simple) {
-          glPushAttrib (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
-          glEnable     (GL_BLEND | GL_DEPTH_TEST | GL_CULL_FACE);
-          glBlendFunc  (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glDepthFunc  (GL_LEQUAL);
-          glCullFace   (GL_BACK);
-
-          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
-
-          if (prefs.alpha_borders) {
-            qglColor   (yellow);
-            drawCircle (0, 0, 500, 18);
-          }
-
-          if (prefs.agro_fading) {
-            setGLColor( ((float)((0xff - ((char)(m->playerDist() / 6)) & 0xff)) / 255),
-                        0.0f, 0.0f, (int)0.25f );
-
-          } else {
-            setGLColor( 1.0f, 0.0f, 0.0f, (int)0.25f );
-          }
-          
-          GLUquadricObj *qoCircle;
-          qoCircle = gluNewQuadric();
-
-          if (prefs.alpha_speed)
-            gluDisk   (qoCircle, 0, 500, 18, 18);
-
-          else
-            gluSphere (qoCircle, 500, 32, 32);
-          glPopAttrib();
-        }
-
-        else {
-          glTranslated(m->getProjectedX(),m->getProjectedY(),0.01f);
-          glLineWidth(1.0);
-
-          if (prefs.agro_fading) {
-            QColor qcMyColor ( ((0xff << 24) |
-                     (((0xff - ((char)(m->playerDist() / 6))) & 0xff) << 16) |
-                        0x00 << 8 | 0x00));
-            qglColor( qcMyColor );
-          } else {
-            qglColor( darkRed );
-          }
-
-          drawCircle(0, 0, 500, 18);
-        }
-      }
     }
-    glPopMatrix();
 
     m->checkStale();
   }
@@ -527,19 +539,14 @@ void exMap::paintGL() {
     glEnd();
   }
 
-/* draw a couple range cirlces around the player */
-
-  if(prefs.player_circle_1 >= 226){
-    glLineWidth (2.0);
-    qglColor(darkGray);
-    drawCircle(c->playerx, c->playery, prefs.player_circle_1, 20);
-  }
-  if(prefs.player_circle_2 >= 251){
-    glLineWidth (2.0);
-    qglColor(darkGray);
-    drawCircle(c->playerx, c->playery, prefs.player_circle_2, 20);
-}
-	     
+  glPushMatrix();
+  glDepthFunc  (GL_ALWAYS);
+  glColor3f    (1.0f, 1.0f, 0.0f);
+  glTranslated (c->playerx, c->playery, c->playerz);
+  objRotate    (c->playerhead);
+  glCallList   (listTriangle);
+  glPopMatrix();
+ 
   is_dirty = false;
 
   glFlush();
@@ -661,10 +668,10 @@ void exMap::setGLColor(double *col, double z) {
   double darken;
 
   if (! prefs.map_fade) {
-     col[3]=1.0;
-     return;
+    col[3]=1.0;
+    return;
   }
-  
+
   darken=fabs(c->playerz - z) / 500.0;
   if (darken < 0.60) {
     darken=1.0 - darken;
@@ -775,11 +782,29 @@ exMapElementTexture::exMapElementTexture(int px, int py, int pw, int ph, exMap *
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  if (map->has_direct) {
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB16, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+
+  if (map->has_direct || map->has_NVdriver) {
+    if (prefs.map_linear_filter) {
+      if (prefs.map_mipmap)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      else
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+      if (prefs.map_mipmap)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+      else
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
+    if (prefs.map_mipmap)
+      gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB16, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    else
+      glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+
   } else {
+
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());

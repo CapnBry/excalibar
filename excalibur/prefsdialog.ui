@@ -364,7 +364,7 @@
                         </widget>
                         <widget class="QCheckBox">
                             <property name="name">
-                                <cstring>CheckBox17</cstring>
+                                <cstring>TextureMipMap</cstring>
                             </property>
                             <property name="enabled">
                                 <bool>false</bool>
@@ -375,7 +375,7 @@
                         </widget>
                         <widget class="QCheckBox">
                             <property name="name">
-                                <cstring>CheckBox18</cstring>
+                                <cstring>TextureFilter</cstring>
                             </property>
                             <property name="enabled">
                                 <bool>false</bool>
@@ -1232,6 +1232,18 @@
         <sender>GLSimpleObjects</sender>
         <signal>toggled(bool)</signal>
         <receiver>AutoSimplifyGroup</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>LoadPNGMaps</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>TextureMipMap</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>LoadPNGMaps</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>TextureFilter</receiver>
         <slot>setEnabled(bool)</slot>
     </connection>
 </connections>

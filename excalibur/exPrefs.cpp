@@ -91,6 +91,8 @@ void exPrefs::show() {
   dlg->GLMapFill->setChecked(map_fill);
   dlg->LoadAdjacentZones->setChecked(map_load_adjacent_zones);
   dlg->LoadPNGMaps->setChecked(map_load_png_maps);
+  dlg->TextureMipMap->setChecked(map_mipmap);
+  dlg->TextureFilter->setChecked(map_linear_filter);
   dlg->AgroCircles->setChecked(agro_circles);
   dlg->FilterCircles->setChecked(filter_circles);
   dlg->AgroFading->setChecked(agro_fading);
@@ -155,6 +157,8 @@ void exPrefs::accept() {
 
   map_load_adjacent_zones=dlg->LoadAdjacentZones->isOn();
   map_load_png_maps=dlg->LoadPNGMaps->isOn();
+  map_mipmap=dlg->TextureMipMap->isOn();
+  map_linear_filter=dlg->TextureFilter->isOn();
 
 
   agro_circles=dlg->AgroCircles->isOn();
@@ -226,6 +230,8 @@ void exPrefs::loadSettings() {
   map_autosimplifyrange=s.readNumEntry("/Excalibur/MapAutoSimplifyRange", 50);
   map_load_adjacent_zones=s.readBoolEntry("/Excalibur/LoadAdjacentZones", FALSE);
   map_load_png_maps=s.readBoolEntry("/Excalibur/LoadPNGMaps", FALSE);
+  map_mipmap=s.readBoolEntry("/Excalibur/TextureMipMap", FALSE);
+  map_linear_filter=s.readBoolEntry("/Excalibur/TextureFilter", FALSE);
 
 
   player_circle_1=s.readNumEntry("/Excalibur/PlayerCircle1", 225);
@@ -280,6 +286,8 @@ void exPrefs::saveSettings() {
   s.writeEntry("/Excalibur/MapAutoSimplifyRange", map_autosimplifyrange);
   s.writeEntry("/Excalibur/LoadAdjacentZones", map_load_adjacent_zones);
   s.writeEntry("/Excalibur/LoadPNGMaps", map_load_png_maps);
+  s.writeEntry("/Excalibur/TextureMipMap", map_mipmap);
+  s.writeEntry("/Excalibur/TextureFilter", map_linear_filter);
   s.writeEntry("/Excalibur/AutoSelectTarget", select_target);
   s.writeEntry("/Excalibur/GroupPlayers", sort_group_players);
   s.writeEntry("/Excalibur/SortDistance", sort_distance);
