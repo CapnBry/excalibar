@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   PReader2, DAOCControl, DAOCConnection, ExtCtrls, StdCtrls, bpf, INIFiles,
   DAOCWindows, DAOCInventory, Buttons, PowerSkill, DAOCSkilla_TLB,
-  DAOCObjs, DAOCPlayerAttributes, Recipes, Dialogs;
+  DAOCObjs, DAOCPlayerAttributes, Recipes, Dialogs, DAOCPackets;
 
 type
   TSavedCaptureState = record
@@ -176,6 +176,7 @@ procedure CreateOptionalForms;
 begin
 {$IFDEF OPENGL_RENDERER}
   Application.CreateForm(TfrmGLRender, frmGLRender);
+  frmGLRender.DAOCControl := frmMain.FConnection;
 {$ENDIF OPENGL_RENDERER}
 end;
 
@@ -366,6 +367,10 @@ begin
   end
   else
     lblZone.Caption := 'Region ' + IntToStr(FConnection.RegionID);
+
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCZoneChanged;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.LoadSettings;
@@ -376,6 +381,7 @@ begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', '');
+    FConnection.MaxObjectDistance := ReadFloat('Main', 'MaxObjectDistance', 8000);
     Caption := 'DAOC Skilla - ' + FConnection.DAOCPath;
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);

@@ -36,7 +36,12 @@ uses
   AXScript in '..\Common\DAOCAutomation\AXScript.pas',
   ScriptSiteImpl in '..\Common\DAOCAutomation\ScriptSiteImpl.pas',
   SpellcraftHelp in '..\Common\DAOCAutomation\SpellcraftHelp.pas' {frmSpellcraftHelp},
-  RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule};
+  RemoteAdmin in '..\Common\DAOCAutomation\RemoteAdmin.pas' {dmdRemoteAdmin: TDataModule},
+  GLRenderObjects in 'GLRenderObjects.pas',
+  MapElementList in 'MapElementList.pas',
+  DDSImage in 'DDSImage.pas',
+  VCLMemStrms in '..\Common\VCLMemStrms.pas',
+  DAOCPackets in '..\Common\PacketSniff\DAOCPackets.pas';
 
 {$R *.TLB}
 
