@@ -106,6 +106,7 @@ type
     function GetXProjected: DWORD;
     function GetYProjected: DWORD;
     function GetIsDead: boolean;
+    function GetIsAlive: boolean;
   protected
     FHitPoints:  BYTE;
     FSpeedWord:  WORD;
@@ -119,6 +120,7 @@ type
     property YProjected: DWORD read GetYProjected;
     property Speed: integer read GetSpeed;
     property SpeedWord: WORD read FSpeedWord write SetSpeedWord;
+    property IsAlive: boolean read GetIsAlive;
     property IsDead: boolean read GetIsDead;
     property IsSwimming: boolean read GetIsSwimming;
     property HitPoints: BYTE read FHitPoints write FHitPoints;
@@ -303,6 +305,11 @@ begin
   FHitPoints := 100;
 end;
 
+function TDAOCMovingObject.GetIsAlive: boolean;
+begin
+  REsult := FHitPoints <> 0;
+end;
+
 function TDAOCMovingObject.GetIsDead: boolean;
 begin
   Result := FHitPoints = 0;
@@ -385,7 +392,7 @@ begin
   FDestinationY := 0;
   FLastUpdate := 0;
   FLevel := 0;
-  FRealm := drFriend;
+  FRealm := drNeutral;
   FName := '';
   FHeadWord := 0;
 end;
