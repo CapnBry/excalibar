@@ -542,13 +542,15 @@ begin
 
   FMapElements.OffsetX := FDControl.Zone.BaseLoc.X;
   FMapElements.OffsetY := FDControl.Zone.BaseLoc.Y;
-  FMapElements.LoadFromFile('maps\' + FDControl.Zone.MapName);
+  FMapElements.LoadFromFile(ExtractFilePath(ParamStr(0)) +
+    'maps\' + FDControl.Zone.MapName);
   FMapElements.GLInitialize;
 
   FMapTextures.GLCleanup;
   FMapTextures.OffsetX := FDControl.Zone.BaseLoc.X;
   FMapTextures.OffsetY := FDControl.Zone.BaseLoc.Y;
-  FMapTextures.LoadFromFile(Format('maps\dds\zone%3.3d.dds', [FDControl.Zone.ZoneNum]));
+  FMapTextures.LoadFromFile(ExtractFilePath(ParamStr(0)) +
+    Format('maps\dds\zone%3.3d.dds', [FDControl.Zone.ZoneNum]));
   FMapTextures.GLInitialize;
 end;
 
