@@ -26,6 +26,7 @@
 #include "exMob.h"
 #include "exPrefs.h"
 #include "quickmath.h"
+#include "exConSystem.h"
 
 static const QColor cMidgaard(0,0,255);
 static const QColor cHibernia(0,255,0);
@@ -188,8 +189,8 @@ void exMob::paintCell(QPainter *p, const QColorGroup &cg, int column, int width,
   }
   else if (!obj && prefs.MobListColors)
   {
-    clr = getConColor(c->playerlevel).dark(175);
-    new_colors.setColor(QColorGroup::Text, clr);
+      clr = exMob::getConColor(c->playerlevel).dark(175);
+      new_colors.setColor(QColorGroup::Text, clr);
   }
 
   if(isFiltered())
@@ -360,64 +361,24 @@ const QColor exMob::getRealmColor() const {
 
 const QColor exMob::getConColor(unsigned int to_level)
 {
-    if (to_level == lastconcolortolevel)
-        return lastconcolor;
-
-    int l_quanta;
-    int l_steps_taken;
-
-    lastconcolortolevel = to_level;
-
-    l_steps_taken = 0;
-    while ((l_steps_taken > -3) && (l_steps_taken < 3) &&
-           (to_level > 0) && (to_level < 100))  {
-
-        l_quanta = (to_level / 10) + 1;
-        if (l_quanta > 5)
-            l_quanta = 5;
-
-        if ((level > (to_level - l_quanta)) &&
-            (level <= to_level))
-            break;
-
-        if (level < to_level)  {
-            to_level -= l_quanta;
-            l_steps_taken--;
-        }
-        else  {
-            to_level += l_quanta;
-            l_steps_taken++;
-        }
-    }  /* while to_level in range */
-
-    switch (l_steps_taken)  {
-    case -3:
-        lastconcolor = gray;
-        break;
-    case -2:
-        lastconcolor = green;
-        break;
-    case -1:
-        lastconcolor = blue;
-        break;
-    case  0:
-        lastconcolor = yellow;
-        break;
-    case  1:
-        lastconcolor = QColor(255, 127, 0); // orange
-        break;  
-    case  2:
-        lastconcolor = red;
-        break;
-    case  3:
-        lastconcolor = magenta;
-        break;
+    switch (::concolor_for_level(to_level, level))  {
+    case ccGray:
+        return gray;
+    case ccGreen:
+        return green;
+    case ccBlue:
+        return blue;
+    case ccYellow:
+        return yellow;
+    case ccOrange:
+        return QColor(255, 127, 0); // orange
+    case ccRed:
+        return red;
+    case ccPurple:
+        return magenta;
     default:
-        lastconcolor = black;
-        break;
+        return black;
     }
-
-    return lastconcolor;
 }
 
 QColor exMob::getColorForRealm(Realm r) {
