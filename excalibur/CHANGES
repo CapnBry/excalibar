@@ -1,5 +1,18 @@
 Andon (07/Feb/02)
------------------
+------------------
+
+Additions:
+ + Removed the lame X/Y/Z / Zone indicator above the spawn
+   list, it's been moved to the status bar now!
+ + Added a Zone ID --> Zone Name feature, see the status bar
+   for an example.
+
+Bug Fixes:
+ + Applied CapnBry's patch to fix some map "issues" in Albion.
+
+
+Andon (07/Feb/02)
+------------------
 
 Additions:
  + Added CapnBry's patch for mob agro indicators..

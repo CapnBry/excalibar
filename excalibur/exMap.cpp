@@ -540,7 +540,7 @@ void exMap::mapRead() {
 
   ignore_fill = false;
 
-  QFile fimg(QString("maps/zone%1.png").arg(mi->getZoneNum(),3,10));
+  QFile fimg(QString().sprintf("maps/zone%03d.png", mi->getZoneNum()));
   if (fimg.exists()) {
     QImage img;
     if (img.load(fimg.name())) {

@@ -325,10 +325,13 @@ void exConnection::processPacket(exPacket * p)
 		      ex->ListViewMobs->triggerUpdate();
 		  }
 	      }
-	      ex->X->setNum((mi) ? playerx - mi->getBaseX() : playerx);
-	      ex->Y->setNum((mi) ? playery - mi->getBaseY() : playery);
-	      ex->Z->setNum(playerz);
-	      ex->Zone->setNum(playerzone);
+              ex->xyzstatus->setText(QString().sprintf("X: %5hd\tY: %5hd\tZ: %5hd",
+                     ((mi) ? playerx - mi->getBaseX() : playerx),
+                     ((mi) ? playery - mi->getBaseY() : playery),
+                     playerz));
+              ex->Zone->setText(QString().sprintf("Zone:\t%d\t(%s)\t",
+                     playerzone,
+                     ((mi) ? mi->getZoneName(playerzone) : "N/A")));
 	      ex->Map->dirty();
 	      if (prefs.sort_when == exPrefs::sortPlayer || prefs.sort_when == exPrefs::sortAlways)
 		  ex->ListViewMobs->sort();

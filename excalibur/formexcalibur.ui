@@ -15,6 +15,16 @@
     <property name="caption">
         <string>Excalibur</string>
     </property>
+          <widget class="QLabel">
+              <property name="name">
+                  <cstring>xyzstatus</cstring>
+              </property>
+          </widget>
+          <widget class="QLabel">
+              <property name="name">
+                  <cstring>Zone</cstring>
+              </property>
+          </widget>
     <widget class="QSplitter">
         <property name="name">
             <cstring>HSplitter</cstring>
@@ -43,86 +53,6 @@
             <property name="orientation">
                 <enum>Vertical</enum>
             </property>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>LayoutInfo</cstring>
-                </property>
-                <grid>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <property name="margin">
-                        <number>0</number>
-                    </property>
-                    <property name="spacing">
-                        <number>6</number>
-                    </property>
-                    <widget class="QLabel" row="2" column="0">
-                        <property name="name">
-                            <cstring>TextLabel3</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Z</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="2" column="1">
-                        <property name="name">
-                            <cstring>Z</cstring>
-                        </property>
-                        <property name="text">
-                            <string>3</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="0" column="1">
-                        <property name="name">
-                            <cstring>X</cstring>
-                        </property>
-                        <property name="text">
-                            <string>1</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="1" column="0">
-                        <property name="name">
-                            <cstring>TextLabel2</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Y</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="3" column="1">
-                        <property name="name">
-                            <cstring>Zone</cstring>
-                        </property>
-                        <property name="text">
-                            <string>100</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="3" column="0">
-                        <property name="name">
-                            <cstring>TextLabel4</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Zone</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="0" column="0">
-                        <property name="name">
-                            <cstring>TextLabel1</cstring>
-                        </property>
-                        <property name="text">
-                            <string>X</string>
-                        </property>
-                    </widget>
-                    <widget class="QLabel" row="1" column="1">
-                        <property name="name">
-                            <cstring>Y</cstring>
-                        </property>
-                        <property name="text">
-                            <string>2</string>
-                        </property>
-                    </widget>
-                </grid>
-            </widget>
             <widget class="QListView">
                 <column>
                     <property name="text">

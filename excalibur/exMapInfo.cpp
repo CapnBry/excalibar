@@ -60,6 +60,18 @@ int exMapInfo::getZoneNum() const {
   return zonenum;
 }
 
+char* exMapInfo::getZoneName(int iZoneNum) const {
+  if (iZoneNum == 001)
+    return "Albion";
+  else if (iZoneNum == 100)
+    return "Midgard";
+  else if (iZoneNum == 200)
+    return "Hibernia";
+  else
+    return "Unknown";
+}
+  
+
 void exMapInfo::setup(QString infofile) {
   QFile f(infofile);
   QString line;

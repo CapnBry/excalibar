@@ -1,6 +1,6 @@
 /*
  * Copyright 2002 the Excalibur contributors (http://excalibar.sourceforge.net/)
- *
+ * 
  * Portions of this software are based on the work of Slicer/Hackersquest.
  * Those portions, Copyright 2001 Slicer/Hackersquest <slicer@hackersquest.org)
  * 
@@ -30,6 +30,9 @@
 #include <qsettings.h>
 #include <qvaluelist.h>
 #include <qmessagebox.h>
+#include <qstatusbar.h>
+#include <qlabel.h>
+#include <qlabel.h>
 #include <qaction.h>
 #include <qcolor.h>
 #include "excalibur.h"
@@ -48,6 +51,15 @@ void FormExcalibur::showEvent(QShowEvent *e) {
 void FormExcalibur::init()
 {
     prefs.addWindow(this);
+
+    Zone      = new QLabel( statusBar(), "Zone" );
+    xyzstatus = new QLabel( statusBar(), "xyzstatus" );
+    
+    statusBar()->addWidget(Zone, 0, TRUE);
+    statusBar()->addWidget(xyzstatus, 2, TRUE);
+    
+    Zone->setText("Zone:\t000\t");
+    xyzstatus->setText("X: 0\tY: 0\tZ: 0");
 }
 
 void FormExcalibur::destroy()

@@ -49,6 +49,7 @@ class exMapInfo {
     int getBaseY() const;
     int getRotate() const;
     int getZoneNum() const;
+    char* getZoneName(int iZoneNum) const;
     static void setup(QString infofile);
     static exMapInfo *get(int zone, int x, int y);
 };
