@@ -497,6 +497,11 @@ var
   I:    integer;
   bAddedRequested:  boolean;
 begin
+  if not Assigned(AZone) then begin
+    GLCleanupExcept(-1);
+    exit;
+  end;
+
   GLCleanupExcept(AZone.ZoneNum);
 
   for I := Count - 1 downto 0 do
