@@ -518,9 +518,6 @@ begin
 
   for I := 0 to FFilteredObjects.Count - 1 do begin
     pObj := FFilteredObjects[I];
-    if not pObj.IsInUpdateRange then
-      continue;
-
     if pObj.ObjectClass in [ocUnknown, ocMob, ocPlayer] then begin
       pMovingObj := TDAOCMovingObject(pObj);
       if pObj.Stealthed then
