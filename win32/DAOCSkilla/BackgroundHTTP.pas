@@ -7,20 +7,32 @@ uses
   IdTCPConnection, IdTCPClient, IdHTTP;
 
 type
+  TBackgroundHTTPRequest = class;
+
+  THTTPErrorEvent = procedure (const AErr: string; AResponse: TBackgroundHTTPRequest) of object;
+  THTTPCompletionEvent = procedure (AResponse: TBackgroundHTTPRequest) of object;
+
   TBackgroundHTTPRequest = class(TObject)
   private
     FTag: integer;
     FURL: string;
     FResponseStream: TStream;
     FMethod: TIdHTTPMethod;
+    FOnHTTPError: THTTPErrorEvent;
+    FOnRequestComplete: THTTPCompletionEvent;
+
+    procedure DoOnRequestComplete;
+    procedure DoOnHTTPError(const AErr: string);
   public
     constructor CreateGET;
     destructor Destroy; override;
-    
+
     property Method: TIdHTTPMethod read FMethod write FMethod;
     property URL: string read FURL write FURL;
     property ResponseStream: TStream read FResponseStream write FResponseStream;
     property Tag: integer read FTag write FTag;
+    property OnHTTPError: THTTPErrorEvent read FOnHTTPError write FOnHTTPError;
+    property OnRequestComplete: THTTPCompletionEvent read FOnRequestComplete write FOnRequestComplete;
   end;
 
   TBackgroundHTTPRequestList = class(TList)
@@ -39,24 +51,18 @@ type
     property Items[I: integer]: TBackgroundHTTPRequest read GetItems; default;
   end;
 
-  THTTPErrorEvent = procedure (const AErr: string; AResponse: TBackgroundHTTPRequest) of object;
-  THTTPCompletionEvent = procedure (AResponse: TBackgroundHTTPRequest) of object;
-
   TBackgroundHTTPManager = class(TThread)
   private
     FRequestList:   TBackgroundHTTPRequestList;
     FIdHTTP:        TIdHTTP;
     FRequestEvent:  THANDLE;
-    FOnHTTPError: THTTPErrorEvent;
     FNotifyWnd:     THANDLE;
-    FOnRequestComplete: THTTPCompletionEvent;
   protected
     procedure ProcessRequests;
     procedure Execute; override;
-    procedure DoOnHTTPError(const AErr: string; ARequest: TBackgroundHTTPRequest);
-    procedure DoOnHTTPComplete(ARequest: TBackgroundHTTPRequest);
     procedure NotifyProc(var Msg: TMessage);
     procedure DoOnRequestCompleteMainThread(ARequest: TBackgroundHTTPRequest);
+    procedure DoOnHTTPComplete(ARequest: TBackgroundHTTPRequest);
   public
     constructor Create;
     destructor Destroy; override;
@@ -64,9 +70,6 @@ type
     procedure Shutdown;
     procedure Request(ARequest: TBackgroundHTTPRequest);
     procedure ClearRequests;
-
-    property OnHTTPError: THTTPErrorEvent read FOnHTTPError write FOnHTTPError;
-    property OnRequestComplete: THTTPCompletionEvent read FOnRequestComplete write FOnRequestComplete; 
   end;
 
 implementation
@@ -170,18 +173,10 @@ begin
     PostMessage(FNotifyWnd, WM_REQUEST_COMPLETE, 0, LPARAM(ARequest));
 end;
 
-procedure TBackgroundHTTPManager.DoOnHTTPError(const AErr: string;
-  ARequest: TBackgroundHTTPRequest);
-begin
-  if Assigned(FOnHTTPError) then
-    FOnHTTPError(AErr, ARequest);
-end;
-
 procedure TBackgroundHTTPManager.DoOnRequestCompleteMainThread(
   ARequest: TBackgroundHTTPRequest);
 begin
-  if Assigned(FOnRequestComplete) then
-    FOnRequestComplete(ARequest);
+  ARequest.DoOnRequestComplete;
   ARequest.Free;
 end;
 
@@ -216,7 +211,7 @@ begin
       DoOnHTTPComplete(pRequest);
     except
       on E: Exception do begin
-        DoOnHTTPError(E.Message, pRequest);
+        pRequest.DoOnHTTPError(E.Message);
         pRequest.Free;
       end;
     end;
@@ -248,6 +243,18 @@ destructor TBackgroundHTTPRequest.Destroy;
 begin
   FResponseStream.Free;
   inherited;
+end;
+
+procedure TBackgroundHTTPRequest.DoOnHTTPError(const AErr: string);
+begin
+  if Assigned(FOnHTTPError) then
+    FOnHTTPError(AErr, Self);
+end;
+
+procedure TBackgroundHTTPRequest.DoOnRequestComplete;
+begin
+  if Assigned(FOnRequestComplete) then
+    FOnRequestComplete(Self);
 end;
 
 end.
