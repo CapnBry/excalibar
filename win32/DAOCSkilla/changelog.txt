@@ -5,14 +5,13 @@
     item in the list's timer.
   + Decreased stale timers on players to 5-10s for moving players,
     and 10-20s for static players.
-  + ZIP contains latest mapinfo.txt from Excalibur.
+  + ZIP contains latest mapinfo.txt from Excalibur with Atlantis zones.
   + No longer throws an exception when starting without a *_SC.ini
   + Only grabs DDS maps if zone type is overworld or housing.
   + Added connection setup dialog.
   + Rearranged main dialog.
   + Added support for tunneling packets from DAOC machine to another
     monitor machine on the network.
-  + New Atlantis zones added to mapinfo.txt from Excalibur.
   + Added support for promiscuous packet capture for people on hubs.
 
 2003 Sep 24 - v1.42
