@@ -35,14 +35,14 @@ type
 
   PTexGlyphVertexInfo = ^TexGlyphVertexInfo;
   TexGlyphVertexInfo = packed record
-    t0: array[0..1] of GLfloat;
     v0: array[0..1] of GLshort;
-    t1: array[0..1] of GLfloat;
     v1: array[0..1] of GLshort;
-    t2: array[0..1] of GLfloat;
     v2: array[0..1] of GLshort;
-    t3: array[0..1] of GLfloat;
     v3: array[0..1] of GLshort;
+    t0: array[0..1] of GLfloat;
+    t1: array[0..1] of GLfloat;
+    t2: array[0..1] of GLfloat;
+    t3: array[0..1] of GLfloat;
     advance:  GLfloat;
   end;
 
@@ -341,6 +341,7 @@ var
   tgvi: PTexGlyphVertexInfo;
 begin
   tgvi := getTCVI(c);
+
   glBegin(GL_QUADS);
     glTexCoord2fv(@tgvi^.t0);
     glVertex2sv(@tgvi^.v0);
