@@ -514,6 +514,9 @@ void exMap::paintGL() {
                 gluErrorString(error), error);
     }
   }
+
+  if (prefs.maxfps && !idleTimer.isActive())
+      idleTimer.start(0, true);
 }
 
 void exMap::drawMobName(exMob *m)
