@@ -11,14 +11,11 @@ object frmGLRender: TfrmGLRender
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  KeyPreview = True
   OldCreateOrder = False
   Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyDown = FormKeyDown
-  OnKeyPress = FormKeyPress
   OnMouseWheelDown = FormMouseWheelDown
   OnMouseWheelUp = FormMouseWheelUp
   OnShow = FormShow
@@ -152,6 +149,175 @@ object frmGLRender: TfrmGLRender
     object mniShowZoneInfo: TMenuItem
       Caption = 'Show zone information'
       OnClick = mniShowZoneInfoClick
+    end
+  end
+  object atlRadarKeys: TActionList
+    Left = 32
+    Top = 68
+    object atnShowInventory: TAction
+      Category = 'Extra Info'
+      Caption = 'Show inventory'
+      ShortCut = 9
+      OnExecute = atnShowInventoryExecute
+    end
+    object atnInvaderWarningToggle: TAction
+      Category = 'UI toggles'
+      Caption = 'Invader warning'
+      ShortCut = 65
+      OnExecute = atnInvaderWarningToggleExecute
+    end
+    object atnDrawTextureToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw texture maps'
+      ShortCut = 66
+      OnExecute = atnDrawTextureToggleExecute
+    end
+    object atnDrawRangeCirclesToggle: TAction
+      Category = 'UI toggles'
+      Caption = 'Draw rance circles'
+      ShortCut = 67
+      OnExecute = atnDrawRangeCirclesToggleExecute
+    end
+    object atnDrawAIDestinationToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw AI destination'
+      ShortCut = 68
+      OnExecute = atnDrawAIDestinationToggleExecute
+    end
+    object atnDrawFriendlyPlayersToggle: TAction
+      Category = 'Filter'
+      Caption = 'Draw friendly players'
+      ShortCut = 70
+      OnExecute = atnDrawFriendlyPlayersToggleExecute
+    end
+    object atnDrawGridToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw grid'
+      ShortCut = 71
+      OnExecute = atnDrawGridToggleExecute
+    end
+    object atnDrawHUDToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw HUD'
+      ShortCut = 72
+      OnExecute = atnDrawHUDToggleExecute
+    end
+    object atnAddPushPin: TAction
+      Category = 'Extra Info'
+      Caption = 'Add pushpin'
+      ShortCut = 73
+      OnExecute = atnAddPushPinExecute
+    end
+    object atnDrawMobsToggle: TAction
+      Category = 'Filter'
+      Caption = 'Draw mobs'
+      ShortCut = 77
+      OnExecute = atnDrawMobsToggleExecute
+    end
+    object atnDrawObjectsToggle: TAction
+      Category = 'Filter'
+      Caption = 'Draw objects'
+      ShortCut = 79
+      OnExecute = atnDrawObjectsToggleExecute
+    end
+    object atnDrawPlayersToggle: TAction
+      Category = 'Filter'
+      Caption = 'Draw players'
+      ShortCut = 80
+      OnExecute = atnDrawPlayersToggleExecute
+    end
+    object atnDrawRulersToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw rulers'
+      ShortCut = 82
+      OnExecute = atnDrawRulersToggleExecute
+    end
+    object atnStayOnTopToggle: TAction
+      Category = 'UI toggles'
+      Caption = 'Stay on top'
+      ShortCut = 84
+      OnExecute = atnStayOnTopToggleExecute
+    end
+    object atnDrawUnknownToggle: TAction
+      Category = 'Filter'
+      Caption = 'Draw unknown'
+      ShortCut = 85
+      OnExecute = atnDrawUnknownToggleExecute
+    end
+    object atnDrawTypeTagToggle: TAction
+      Category = 'UI toggles'
+      Caption = 'Draw typetag'
+      ShortCut = 89
+      OnExecute = atnDrawTypeTagToggleExecute
+    end
+    object atnDrawVectorToggle: TAction
+      Category = 'Extra Info'
+      Caption = 'Draw vector maps'
+      ShortCut = 86
+      OnExecute = atnDrawVectorToggleExecute
+    end
+    object atnNextConnection: TAction
+      Caption = 'Next connection'
+      ShortCut = 122
+      OnExecute = atnNextConnectionExecute
+    end
+    object atnPreviousConnection: TAction
+      Caption = 'Previous connection'
+      ShortCut = 8314
+      OnExecute = atnPreviousConnectionExecute
+    end
+    object atnZoomIn: TAction
+      Category = 'Movement'
+      Caption = 'Zoom in'
+      ShortCut = 34
+      OnExecute = atnZoomInExecute
+    end
+    object atnZoomOut: TAction
+      Category = 'Movement'
+      Caption = 'Zoom out'
+      ShortCut = 33
+      OnExecute = atnZoomOutExecute
+    end
+    object atnRecenterMap: TAction
+      Category = 'Movement'
+      Caption = 'Recenter map'
+      ShortCut = 36
+      OnExecute = atnRecenterMapExecute
+    end
+    object atnScrollLeft: TAction
+      Category = 'Movement'
+      Caption = 'Scroll left'
+      ShortCut = 37
+      OnExecute = atnScrollLeftExecute
+    end
+    object atnScrollRight: TAction
+      Category = 'Movement'
+      Caption = 'Scroll right'
+      ShortCut = 39
+      OnExecute = atnScrollRightExecute
+    end
+    object atnScrollUp: TAction
+      Category = 'Movement'
+      Caption = 'Scroll up'
+      ShortCut = 38
+      OnExecute = atnScrollUpExecute
+    end
+    object atnScrollDown: TAction
+      Category = 'Movement'
+      Caption = 'Scroll down'
+      ShortCut = 40
+      OnExecute = atnScrollDownExecute
+    end
+    object atnShowPrefsDialog: TAction
+      Caption = 'Show Render Preferences dialog'
+      ShortCut = 112
+      OnExecute = atnShowPrefsDialogExecute
+    end
+    object atnShowHideMobList: TAction
+      Category = 'Mob List'
+      Caption = 'Show / Hide mob list'
+      ShortCut = 113
+      OnExecute = atnShowHideMobListExecute
     end
   end
 end

@@ -11,7 +11,7 @@ uses
 {$ENDIF !LINUX}
   SysUtils, Classes, glWindow, GL, GLU, GLext, DAOCConnection, DAOCConnectionList,
   DAOCObjs, GLRenderObjects, MapElementList, DAOCRegion, RenderPrefs, DAOCClasses,
-  QuickSinCos, BackgroundHTTP, TexFont, GLUT, Menus;
+  QuickSinCos, BackgroundHTTP, TexFont, GLUT, Menus, ActnList;
 
 type
   { A simple list box that you can prevent drawing }
@@ -46,6 +46,35 @@ type
     lblInventory: TLabel;
     lblInventoryHeader: TLabel;
     mniForceContextCurrent: TMenuItem;
+    atlRadarKeys: TActionList;
+    atnShowInventory: TAction;
+    atnInvaderWarningToggle: TAction;
+    atnDrawTextureToggle: TAction;
+    atnDrawRangeCirclesToggle: TAction;
+    atnDrawAIDestinationToggle: TAction;
+    atnDrawFriendlyPlayersToggle: TAction;
+    atnDrawGridToggle: TAction;
+    atnDrawHUDToggle: TAction;
+    atnAddPushPin: TAction;
+    atnDrawMobsToggle: TAction;
+    atnDrawObjectsToggle: TAction;
+    atnDrawPlayersToggle: TAction;
+    atnDrawRulersToggle: TAction;
+    atnStayOnTopToggle: TAction;
+    atnDrawUnknownToggle: TAction;
+    atnDrawTypeTagToggle: TAction;
+    atnNextConnection: TAction;
+    atnPreviousConnection: TAction;
+    atnZoomIn: TAction;
+    atnZoomOut: TAction;
+    atnRecenterMap: TAction;
+    atnScrollLeft: TAction;
+    atnScrollRight: TAction;
+    atnScrollUp: TAction;
+    atnScrollDown: TAction;
+    atnShowPrefsDialog: TAction;
+    atnShowHideMobList: TAction;
+    atnDrawVectorToggle: TAction;
     procedure glMapDraw(Sender: TObject);
     procedure glMapInit(Sender: TObject);
     procedure glMapResize(Sender: TObject);
@@ -55,15 +84,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrMinFPSTimer(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure glMapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure lstObjectsDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -75,6 +101,34 @@ type
     procedure mniShowZoneInfoClick(Sender: TObject);
     procedure pumRadarPopup(Sender: TObject);
     procedure mniForceContextCurrentClick(Sender: TObject);
+    procedure atnShowInventoryExecute(Sender: TObject);
+    procedure atnInvaderWarningToggleExecute(Sender: TObject);
+    procedure atnDrawTextureToggleExecute(Sender: TObject);
+    procedure atnDrawRangeCirclesToggleExecute(Sender: TObject);
+    procedure atnDrawAIDestinationToggleExecute(Sender: TObject);
+    procedure atnDrawFriendlyPlayersToggleExecute(Sender: TObject);
+    procedure atnDrawGridToggleExecute(Sender: TObject);
+    procedure atnDrawHUDToggleExecute(Sender: TObject);
+    procedure atnAddPushPinExecute(Sender: TObject);
+    procedure atnDrawMobsToggleExecute(Sender: TObject);
+    procedure atnDrawObjectsToggleExecute(Sender: TObject);
+    procedure atnDrawPlayersToggleExecute(Sender: TObject);
+    procedure atnDrawRulersToggleExecute(Sender: TObject);
+    procedure atnStayOnTopToggleExecute(Sender: TObject);
+    procedure atnDrawUnknownToggleExecute(Sender: TObject);
+    procedure atnDrawTypeTagToggleExecute(Sender: TObject);
+    procedure atnDrawVectorToggleExecute(Sender: TObject);
+    procedure atnNextConnectionExecute(Sender: TObject);
+    procedure atnPreviousConnectionExecute(Sender: TObject);
+    procedure atnZoomInExecute(Sender: TObject);
+    procedure atnZoomOutExecute(Sender: TObject);
+    procedure atnRecenterMapExecute(Sender: TObject);
+    procedure atnScrollLeftExecute(Sender: TObject);
+    procedure atnScrollRightExecute(Sender: TObject);
+    procedure atnScrollUpExecute(Sender: TObject);
+    procedure atnScrollDownExecute(Sender: TObject);
+    procedure atnShowPrefsDialogExecute(Sender: TObject);
+    procedure atnShowHideMobListExecute(Sender: TObject);
   private
     glMap:     TglWindow;
     FCurrConn: TDAOCConnection;
@@ -178,7 +232,6 @@ type
     procedure AdjustMobTriangleSize;
     procedure AdjustMinFPSTimer;
     function ZDeltaStr(AObj: TDAOCObject; AVerbose: boolean) : string;
-    procedure DisplaySelectedObjectInventory;
     procedure CheckMouseOverUnproject;
     procedure SetDAOCConnectionList(const Value: TDAOCConnectionList);
     procedure PreviousConnection;
@@ -186,7 +239,7 @@ type
     procedure SetCurrentConnection(AConn: TDAOCConnection);
     procedure AutoSelectConnection;
     procedure UpdateCaption;
-    procedure UpdateInventoryPanel;
+    procedure UpdateInventoryPanel(AForce: boolean);
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure DumpMVM(const where: string);
@@ -461,7 +514,7 @@ procedure TfrmGLRender.FormShow(Sender: TObject);
 begin
   LoadSettings;
   UpdateStayOnTop;
-  UpdateInventoryPanel;
+  UpdateInventoryPanel(false);
 end;
 
 procedure TfrmGLRender.Log(const s: string);
@@ -670,17 +723,16 @@ begin
   else
     pNearest := FFilteredObjects.FindNearest2D(x, y);
 
-  if Assigned(pNearest) then begin
-    if pNearest.DistanceSqr2D(x, y) > FCurrConn.LocalPlayer.DistanceSqr2D(x, y) then
-      pNearest := FCurrConn.LocalPlayer;
+  if not Assigned(pNearest) or
+    (pNearest.DistanceSqr2D(x, y) > FCurrConn.LocalPlayer.DistanceSqr2D(x, y)) then
+    pNearest := FCurrConn.LocalPlayer;
 
-    if FRenderPrefs.TrackInGameSelect then
-        { callback will update screen }
-      FCurrConn.SelectedObject := pNearest
-    else
-      GridSelectObject(pNearest);
-    Dirty;
-  end;  { if pNearest }
+  if FRenderPrefs.TrackInGameSelect then
+      { callback will update screen }
+    FCurrConn.SelectedObject := pNearest
+  else
+    GridSelectObject(pNearest);
+  Dirty;
 end;
 
 procedure TfrmGLRender.DrawLineToSelected;
@@ -966,8 +1018,8 @@ var
   I:        integer;
   iOldTop:  integer;
 begin
-  UpdateInventoryPanel;
-  
+  UpdateInventoryPanel(false);
+
   if Assigned(ADAOCObject) then
     I := FFilteredObjects.IndexOf(ADAOCObject)
   else
@@ -1208,70 +1260,6 @@ begin
   glOrtho(0, glMap.ClientWidth, 0, glMap.ClientHeight, 1, -1);
 end;
 
-procedure TfrmGLRender.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  case Key of
-    VK_F11:
-        if ssShift in Shift then
-          PreviousConnection
-        else
-          NextConnection;
-    VK_PRIOR:
-      begin
-        if lstObjects.Focused then
-          exit;
-        slideZoom.Position := slideZoom.Position - slideZoom.PageSize;
-      end;
-    VK_NEXT:
-      begin
-        if lstObjects.Focused then
-          exit;
-        slideZoom.Position := slideZoom.Position + slideZoom.PageSize;
-      end;
-    VK_HOME:
-      begin
-        FMapToPlayerOffset.X := 0;
-        FMapToPlayerOffset.Y := 0;
-        Key := 0;
-      end;
-    VK_LEFT:
-      begin
-        dec(FMapToPlayerOffset.X, FRange div 10);
-        Key := 0;
-      end;
-    VK_UP:
-      begin
-        if lstObjects.Focused then
-          exit;
-        dec(FMapToPlayerOffset.Y, FRange div 10);
-        Key := 0;
-      end;
-    VK_RIGHT:
-      begin
-        inc(FMapToPlayerOffset.X, FRange div 10);
-        Key := 0;
-      end;
-    VK_DOWN:
-      begin
-        if lstObjects.Focused then
-          exit;
-        inc(FMapToPlayerOffset.Y, FRange div 10);
-        Key := 0;
-      end;
-    VK_F1:
-      begin
-        DoPrefsDialog;
-        Key := 0;
-      end;
-    VK_F2:
-      begin
-        pnlLeft.Visible := not pnlLeft.Visible; 
-        Key := 0;
-      end;
-  end;
-end;
-
 procedure TfrmGLRender.glMapMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
@@ -1290,106 +1278,6 @@ procedure TfrmGLRender.FormMouseWheelDown(Sender: TObject;
 begin
   slideZoom.Position := slideZoom.Position - slideZoom.Frequency;
   Handled := true;
-end;
-
-procedure TfrmGLRender.FormKeyPress(Sender: TObject; var Key: Char);
-begin
-  case Key of
-    '?':    DisplaySelectedObjectInventory;
-    'a', 'A':
-      begin
-        FRenderPrefs.InvaderWarning := not FRenderPrefs.InvaderWarning;
-        Dirty;
-        Key := #0;
-      end;
-    'b', 'B':
-      begin
-        FRenderPrefs.DrawMapTexture := not FRenderPrefs.DrawMapTexture;
-        Dirty;
-        Key := #0;
-      end;
-    'c', 'C':
-      begin
-        FRenderPrefs.DrawRangeCircles := not FRenderPrefs.DrawRangeCircles;
-        Dirty;
-        Key := #0;
-      end;
-    'd', 'D':
-      begin
-        FRenderPrefs.DrawAIDestination := not FRenderPrefs.DrawAIDestination;
-        Dirty;
-        Key := #0;
-      end;
-    'f', 'F':
-      begin
-        FRenderPrefs.DrawFriendlyPlayers := not FRenderPrefs.DrawFriendlyPlayers;
-        Key := #0;
-      end;
-    'g', 'G':
-      begin
-        FRenderPrefs.DrawGrid := not FRenderPrefs.DrawGrid;
-        Dirty;
-        Key := #0;
-      end;
-    'h', 'H':
-      begin
-        FRenderPrefs.DrawHUD := not FRenderPrefs.DrawHUD;
-        Dirty;
-        Key := #0;
-      end;
-    'i', 'I':
-      begin
-        AddPushPin;
-        Key := #0;
-      end;
-    'm', 'M':
-      begin
-        FRenderPrefs.XORObjectClassFilter(ocMob);
-        Key := #0;
-      end;
-    'o', 'O':
-      begin
-        FRenderPrefs.XORObjectClassFilter(ocObject);
-        Key := #0;
-      end;
-    'p', 'P':
-      begin
-        FRenderPrefs.XORObjectClassFilter(ocPlayer);
-        Key := #0;
-      end;
-    'r', 'R':
-      begin
-        FRenderPrefs.DrawRulers := not FRenderPrefs.DrawRulers;
-        Dirty;
-        Key := #0;
-      end;
-    't', 'T':
-      begin
-        FRenderPrefs.StayOnTop := not FRenderPrefs.StayOnTop;
-        UpdateStayOnTop;
-        Key := #0;
-      end;
-    'u', 'U':
-      begin
-        FRenderPrefs.XORObjectClassFilter(ocUnknown);
-        RefreshFilteredList;
-        Key := #0;
-      end;
-    'v', 'V':
-      begin
-        FRenderPrefs.DrawMapVector := not FRenderPrefs.DrawMapVector;
-        Dirty;
-        Key := #0;
-      end;
-    'y', 'Y':
-      begin
-        FRenderPrefs.DrawTypeTag := not FRenderPrefs.DrawTypeTag;
-        FRenderPrefs.AlternateMobListText := FRenderPrefs.DrawTypeTag;
-        lstObjects.Invalidate;
-        Dirty;
-        Key := #0;
-      end;
-  end;
 end;
 
 procedure TfrmGLRender.RefreshFilteredList;
@@ -1664,7 +1552,7 @@ procedure TfrmGLRender.ReloadMapElementsAndTextures;
 begin
   FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
   FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
-  
+
   FMapElementsListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
   FMapTexturesListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
 end;
@@ -1950,7 +1838,7 @@ procedure TfrmGLRender.RENDERPrefsMobListOptionChanged(Sender: TObject);
 begin
   RefreshFilteredList;
   lstObjects.Invalidate;
-  UpdateInventoryPanel;
+  UpdateInventoryPanel(false);
 end;
 
 function TfrmGLRender.FilteredObjectInsertByDistance(ADAOCObject: TDAOCObject): integer;
@@ -2250,20 +2138,6 @@ begin
   end;
 end;
 
-procedure TfrmGLRender.DisplaySelectedObjectInventory;
-var
-  pSelected:  TDAOCObject;
-  s:    string;
-begin
-  pSelected := FCurrConn.SelectedObject;
-  if Assigned(pSelected) then begin
-    if pSelected.ObjectClass in [ocMob, ocPlayer, ocLocalPlayer] then begin
-      s := TDAOCMovingObject(pSelected).Inventory.AsString(false);
-      ShowMessage(s);
-    end;
-  end;  { if object selected }
-end;
-
 procedure TfrmGLRender.CheckMouseOverUnproject;
 begin
   if (FRenderPrefs.EasyMouseOvers and (GetForegroundWindow = Handle)) or
@@ -2476,15 +2350,20 @@ begin
   mniShowZoneInfo.Enabled := Assigned(FCurrConn) and Assigned(FCurrConn.Zone);
 end;
 
-procedure TfrmGLRender.UpdateInventoryPanel;
+procedure TfrmGLRender.UpdateInventoryPanel(AForce: boolean);
 var
   pObj:   TDAOCMovingObject;
 begin
-  if FRenderPrefs.ShowPlayerInventory and
-    Assigned(FCurrConn) and Assigned(FCurrConn.SelectedObject) and
-    (FCurrConn.SelectedObject.ObjectClass = ocPlayer) then begin
+  if Assigned(FCurrConn) and Assigned(FCurrConn.SelectedObject) and
+      { the idea here is that ShowPlayerInventory only works on ocPlayer,
+        and Force works on Mobs, Players, UnknownMoving, and LocalPlayer }
+    (
+      (FRenderPrefs.ShowPlayerInventory and (FCurrConn.SelectedObject.ObjectClass = ocPlayer))
+    or
+      (AForce and (FCurrConn.SelectedObject.ObjectClass in [ocUnknown, ocMob, ocPlayer, ocLocalPlayer]))
+    ) then begin
 
-    pObj := TDAOCPlayer(FCurrConn.SelectedObject);
+    pObj := TDAOCMovingObject(FCurrConn.SelectedObject);
     lblInventory.Caption := pObj.Inventory.AsString(false);
     pnlInventory.Height := lblInventoryHeader.Height + (pObj.Inventory.Count * 13);
     pnlInventory.Visible := true;
@@ -2498,12 +2377,172 @@ end;
 procedure TfrmGLRender.DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
 begin
   if (Sender = FCurrConn) and (AObj = FCurrConn.SelectedObject) then
-    UpdateInventoryPanel;
+    UpdateInventoryPanel(false);
 end;
 
 procedure TfrmGLRender.mniForceContextCurrentClick(Sender: TObject);
 begin
   glMap.MakeCurrent;
+end;
+
+procedure TfrmGLRender.atnShowInventoryExecute(Sender: TObject);
+begin
+    { force to show if not already visible }
+  UpdateInventoryPanel(not pnlInventory.Visible);
+end;
+
+procedure TfrmGLRender.atnInvaderWarningToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawMapTexture := not FRenderPrefs.DrawMapTexture;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawTextureToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawMapTexture := not FRenderPrefs.DrawMapTexture;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawRangeCirclesToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawRangeCircles := not FRenderPrefs.DrawRangeCircles;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawAIDestinationToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawAIDestination := not FRenderPrefs.DrawAIDestination;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawFriendlyPlayersToggleExecute(
+  Sender: TObject);
+begin
+  FRenderPrefs.DrawFriendlyPlayers := not FRenderPrefs.DrawFriendlyPlayers;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawGridToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawGrid := not FRenderPrefs.DrawGrid;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawHUDToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawHUD := not FRenderPrefs.DrawHUD;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnAddPushPinExecute(Sender: TObject);
+begin
+  AddPushPin;
+end;
+
+procedure TfrmGLRender.atnDrawMobsToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.XORObjectClassFilter(ocMob);
+end;
+
+procedure TfrmGLRender.atnDrawObjectsToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.XORObjectClassFilter(ocObject);
+end;
+
+procedure TfrmGLRender.atnDrawPlayersToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.XORObjectClassFilter(ocPlayer);
+end;
+
+procedure TfrmGLRender.atnDrawRulersToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawRulers := not FRenderPrefs.DrawRulers;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnStayOnTopToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.StayOnTop := not FRenderPrefs.StayOnTop;
+  UpdateStayOnTop;
+end;
+
+procedure TfrmGLRender.atnDrawUnknownToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.XORObjectClassFilter(ocUnknown);
+end;
+
+procedure TfrmGLRender.atnDrawTypeTagToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawTypeTag := not FRenderPrefs.DrawTypeTag;
+  FRenderPrefs.AlternateMobListText := FRenderPrefs.DrawTypeTag;
+  lstObjects.Invalidate;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnDrawVectorToggleExecute(Sender: TObject);
+begin
+  FRenderPrefs.DrawMapVector := not FRenderPrefs.DrawMapVector;
+  Dirty;
+end;
+
+procedure TfrmGLRender.atnNextConnectionExecute(Sender: TObject);
+begin
+  NextConnection;
+end;
+
+procedure TfrmGLRender.atnPreviousConnectionExecute(Sender: TObject);
+begin
+  PreviousConnection;
+end;
+
+procedure TfrmGLRender.atnZoomInExecute(Sender: TObject);
+begin
+  if lstObjects.Focused then
+    exit;
+  slideZoom.Position := slideZoom.Position - slideZoom.PageSize;
+end;
+
+procedure TfrmGLRender.atnZoomOutExecute(Sender: TObject);
+begin
+  if lstObjects.Focused then
+    exit;
+  slideZoom.Position := slideZoom.Position + slideZoom.PageSize;
+end;
+
+procedure TfrmGLRender.atnRecenterMapExecute(Sender: TObject);
+begin
+  FMapToPlayerOffset.X := 0;
+  FMapToPlayerOffset.Y := 0;
+end;
+
+procedure TfrmGLRender.atnScrollLeftExecute(Sender: TObject);
+begin
+  dec(FMapToPlayerOffset.X, FRange div 10);
+end;
+
+procedure TfrmGLRender.atnScrollRightExecute(Sender: TObject);
+begin
+  inc(FMapToPlayerOffset.X, FRange div 10);
+end;
+
+procedure TfrmGLRender.atnScrollUpExecute(Sender: TObject);
+begin
+  dec(FMapToPlayerOffset.Y, FRange div 10);
+end;
+
+procedure TfrmGLRender.atnScrollDownExecute(Sender: TObject);
+begin
+  inc(FMapToPlayerOffset.Y, FRange div 10);
+end;
+
+procedure TfrmGLRender.atnShowPrefsDialogExecute(Sender: TObject);
+begin
+  DoPrefsDialog;
+end;
+
+procedure TfrmGLRender.atnShowHideMobListExecute(Sender: TObject);
+begin
+  pnlLeft.Visible := not pnlLeft.Visible;
 end;
 
 end.
