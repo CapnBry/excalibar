@@ -31,7 +31,7 @@ ShowHints=1
 ShowWarnings=1
 UnitAliases=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [Linker]
-MapFile=0
+MapFile=1
 OutputObjs=0
 ConsoleApp=1
 DebugInfo=0
@@ -45,9 +45,9 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=components\glWindow\Source;..\components\zlib
+SearchPath=..\components\glWindow;..\components\zlib
 Packages=vcl;rtl;dbrtl;adortl;vcldb;vclx;bdertl;vcldbx;ibxpress;dsnap;cds;bdecds;qrpt;teeui;teedb;tee;dss;teeqr;visualclx;visualdbclx;dsnapcrba;dsnapcon;VclSmp;vclshlctrls;vclie;xmlrtl;inet;inetdbbde;inetdbxpress;inetdb;nmfast;webdsnap;websnap;dbexpress;dbxcds;indy
-Conditionals=DAOC_AUTO_SERVER=1
+Conditionals=DAOC_AUTO_SERVER,REMOTE_ADMIN;OPENGL_RENDERER
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
@@ -66,7 +66,7 @@ AutoIncBuild=0
 MajorVer=1
 MinorVer=0
 Release=0
-Build=5
+Build=6
 Debug=0
 PreRelease=0
 Special=0
@@ -77,7 +77,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=
-FileVersion=1.0.0.5
+FileVersion=1.0.0.6
 InternalName=
 LegalCopyright=
 LegalTrademarks=
@@ -86,20 +86,13 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 [HistoryLists\hlConditionals]
-Count=2
-Item0=DAOC_AUTO_SERVER=1
-Item1=DAOC_AUTO_SERVER
+Count=3
+Item0=DAOC_AUTO_SERVER,REMOTE_ADMIN;OPENGL_RENDERER
+Item1=DAOC_AUTO_SERVER,REMOTE_ADMIN
+Item2=DAOC_AUTO_SERVER,OPENGL_RENDERER,REMOTE_ADMIN
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=5
-Item0=components\glWindow\Source;..\components\zlib
-Item1=C:\utils\Camelot\DAoCSkilla\components\glWindow\Source
-Item2=$(DELPHI)\Lib\Debug;C:\utils\Camelot\DAoCSkilla\components\glWindow\Source
-Item3=C:\utils\Camelot\DAoCSkilla\components\glWindow\Source;C:\temp\OpenGL\GLHeaders
-Item4=components\glAux
-[HistoryLists\hlOutputDirectorry]
-Count=2
-Item0=c:\temp\
-Item1=c:\temp
+Count=1
+Item0=..\components\glWindow;..\components\zlib

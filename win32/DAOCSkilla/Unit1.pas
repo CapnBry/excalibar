@@ -83,6 +83,7 @@ type
 
     procedure LoadSettings;
     procedure SaveSettings;
+    function GetConfigFileName : string;
     procedure SetupDAOCConnectionObj;
     procedure UpdatePlayer;
     procedure EthernetSegment(Sender: TObject; ASegment: TEthernetSegment);
@@ -115,18 +116,25 @@ type
 var
   frmMain: TfrmMain;
 
+procedure CreateOptionalForms;
+
 implementation
 
 uses
-  RemoteAdmin, PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
-  GLRender, TellMacro, SpellcraftHelp;
-  
+  PowerSkillSetup, ShowMapNodes, MacroTradeSkill, AFKMessage,
+  TellMacro, SpellcraftHelp, FrameFns, RemoteAdmin
+{$IFDEF OPENGL_RENDERER}
+  ,GLRender
+{$ENDIF OPENGL_RENDERER}
+  ;
+
 {$R *.dfm}
 
 const
   TIMEOUT_AUTOSELL = 1;
   TIMEOUT_AUTOBUY = 2;
 
+var
     { ip and net 208.254.16.0/24 and ((tcp and port 10622) or udp) }
   BP_Instns: array[0..16] of Tbpf_insn = (
     (code: BPF_LD + BPF_H + BPF_ABS; jt: 0; jf: 0; k: 12),  // load the ethernet protocol word (offset 12)
@@ -135,12 +143,12 @@ const
       { source net 208.254.16.0/24 }
     (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 26),  // load the source DWORD
     (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 3; jf: 0; k: $D0FE1000),  // is it 208.254.16.0
+{4} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 3; jf: 0; k: $D0FE1000),  // is it 208.254.16.0
 
       { dest net 208.254.16.0/24 }
     (code: BPF_LD + BPF_W + BPF_ABS; jt: 0; jf: 0; k: 30),  // load the dest DWORD
     (code: BPF_ALU + BPF_AND + BPF_K; jt: 0; jf: 0; k: $ffffff00),  // AND the netmask
-    (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 8; k: $D0FE1000),  // is it 208.254.16.0?
+{7} (code: BPF_JMP + BPF_JEQ + BPF_K; jt: 0; jf: 8; k: $D0FE1000),  // is it 208.254.16.0?
 
       { udp }
     (code: BPF_LD + BPF_B + BPF_ABS; jt: 0; jf: 0; k: 23),  // load the IP proto byte (23)
@@ -164,6 +172,18 @@ const
 
   BPProgram: Tbpf_program = (bf_len: 17; bf_insns: @BP_Instns);
 
+procedure CreateOptionalForms;
+begin
+{$IFDEF OPENGL_RENDERER}
+  Application.CreateForm(TfrmGLRender, frmGLRender);
+{$ENDIF OPENGL_RENDERER}
+end;
+
+function IPAddrToString(dwIP: DWORD) : string;
+begin
+
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   SetupDAOCConnectionObj;
@@ -175,6 +195,13 @@ begin
 
   lstAdapters.Items.Assign(FPReader.AdapterList);
   Log(IntToStr(FPReader.AdapterList.Count) + ' network adapters found');
+
+{$IFNDEF OPENGL_RENDERER}
+  btnGLRender.Visible := false;
+{$ENDIF}
+{$IFNDEF DAOC_AUTO_SERVER}
+  btnTellMacro.Visible := false;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
@@ -300,7 +327,7 @@ begin
   FConnection := TDAOCControl.Create;
   FIConnection := FConnection as IDAOCControl;
   FConnection.MainHWND := Handle;
-  
+
   FConnection.OnPlayerPosUpdate := DAOCPlayerPosUpdate;
   FConnection.OnLog := DAOCLog;
   FConnection.OnConnect := DAOCConnect;
@@ -323,6 +350,7 @@ procedure TfrmMain.FormShow(Sender: TObject);
 begin
   LoadSettings;
   dmdRemoteAdmin.DAOCControl := FConnection;
+  Log('ServerNet set to ' + my_inet_htoa(BP_Instns[4].k));
 end;
 
 procedure TfrmMain.DAOCLog(Sender: TObject; const s: string);
@@ -344,13 +372,20 @@ procedure TfrmMain.LoadSettings;
 var
   s:    string;
 begin
-  with TINIFile.Create('.\DaocSkilla.ini') do begin
+  with TINIFile.Create(GetConfigFileName) do begin
     Left := ReadInteger('Main', 'Left', Left);
     Top := ReadInteger('Main', 'Top', Top);
-
     FConnection.DAOCPath := ReadString('Main', 'DAOCPath', '');
     Caption := 'DAOC Skilla - ' + FConnection.DAOCPath;
+
+    FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
     edtPlayback.Text := ReadString('Main', 'CaptureFile', 'c:\savedcap.cap');
+
+      { The ServerNet is stored in host order like 1.2.3.4 = $01020304,
+        also remember it is a NET not an IP so the last number should be 00 }
+    BP_Instns[4].k := ReadInteger('Main', 'ServerNet', BP_Instns[4].k);
+    BP_Instns[7].k := BP_Instns[4].k;
+
     s := ReadString('Main', 'Adapter', '');
     if (s <> '') and (lstAdapters.Items.IndexOf(s) <> -1) then begin
       lstAdapters.ItemIndex := lstAdapters.Items.IndexOf(s);
@@ -444,7 +479,7 @@ procedure TfrmMain.DAOCPacket(Sender: TObject; APacket: TDAOCPacket);
 var
   sProto:   string;
   sDirec:   string;
-  kk:       TDAOCCryptKey;
+//  kk:       TDAOCCryptKey;
 begin
   if chkDumpPackets.Checked then begin
     if APacket.IPProtocol = daocpTCP then
@@ -677,11 +712,13 @@ end;
 
 procedure TfrmMain.btnGLRenderClick(Sender: TObject);
 begin
+{$IFDEF OPENGL_RENDERER}
   frmGLRender.DAOCControl := FConnection;
   if frmGLRender.Visible then
     frmGLRender.Close
   else
     frmGLRender.Show;
+{$ENDIF}
 end;
 
 procedure TfrmMain.lstAdaptersClick(Sender: TObject);
@@ -701,39 +738,49 @@ end;
 
 procedure TfrmMain.btnTellMacroClick(Sender: TObject);
 begin
+{$IFNDEF DAOC_AUTO_SERVER}
   frmTellMacro.DAOCControl := FConnection;
   if frmTellMacro.Visible then
     frmTellMacro.Close
   else
     frmTellMacro.Show;
+{$ENDIF DAOC_AUTO_SERVER}
 end;
 
 procedure TfrmMain.UpdateGLRender;
 begin
+{$IFDEF OPENGL_RENDERER}
   if frmGLRender.Visible then
     frmGLRender.Dirty;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCDeleteObject(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
+{$IFDEF OPENGL_RENDERER}
   frmGLRender.DeleteDAOCObject(ADAOCObject);
   UpdateGLRender;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCNewObject(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
+{$IFDEF OPENGL_RENDERER}
   frmGLRender.AddDAOCObject(ADAOCObject);
   UpdateGLRender;
+{$ENDIF OPENGL_RENDERER}
   CheckWriteMobseen(ADAOCObject);
 end;
 
 procedure TfrmMain.DAOCObjectMoved(ASender: TObject;
   ADAOCObject: TDAOCObject);
 begin
+{$IFDEF OPENGL_RENDERER}
   frmGLRender.UpdateDAOCObject(ADAOCObject);
   UpdateGLRender;
+{$ENDIF OPENGL_RENDERER}
 end;
 
 procedure TfrmMain.DAOCSkillLevelChanged(ASender: TObject;
@@ -826,6 +873,11 @@ var
 begin
   for I := 0 to FConnection.DAOCObjects.Count - 1 do
     CheckWriteMobseen(FConnection.DAOCObjects[I]);
+end;
+
+function TfrmMain.GetConfigFileName: string;
+begin
+  Result := ChangeFileExt(ParamStr(0), '.ini');
 end;
 
 end.
