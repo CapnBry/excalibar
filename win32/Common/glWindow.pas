@@ -465,8 +465,7 @@ end;
 
 function TglWindow.WidgetFlags: integer;
 begin
-  Result := inherited WidgetFlags;
-  Result := Result or integer(WidgetFlags_WRepaintNoErase) or
+  Result := inherited WidgetFlags or integer(WidgetFlags_WRepaintNoErase) or
     integer(WidgetFlags_WResizeNoErase);
 end;
 {$ENDIF}
