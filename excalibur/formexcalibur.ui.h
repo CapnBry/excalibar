@@ -4,7 +4,7 @@
  * Portions of this software are based on the work of Slicer/Hackersquest.
  * Those portions, Copyright 2001 Slicer/Hackersquest <slicer@hackersquest.org)
  * 
- * This file is part of Excal/ibur.
+ * This file is part of Excalibur.
  *
  * Excalibur is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ void FormExcalibur::init()
 {
     prefs.addWindow(this);
 
+    Zoom       = new QLabel( statusBar(), "Zoom");
     FPS         = new QLabel( statusBar(), "FPS" );
     Zone        = new QLabel( statusBar(), "Zone" );
     xyzstatus   = new QLabel( statusBar(), "xyzstatus" );
@@ -61,6 +62,8 @@ void FormExcalibur::init()
     MapProgress = new QProgressBar( statusBar(), "MapProgress" );
     MapCancel   = new QPushButton( "Cancel", statusBar(), "MapCancel" );
 
+    Zoom->setMinimumWidth(100);
+    Zoom->setAlignment(AlignHCenter | AlignTop);
     xyzstatus->setMinimumWidth(125);
     xyzstatus->setAlignment(AlignHCenter | AlignTop);
     Zone->setMinimumWidth(110);
@@ -79,13 +82,17 @@ void FormExcalibur::init()
     
     connect(MapCancel, SIGNAL(pressed()), this, SLOT(MapCancel_pressed()));
 
+    statusBar()->addWidget(Zoom       , 0, TRUE);
     statusBar()->addWidget(MapStatus  , 0, TRUE);
     statusBar()->addWidget(MapProgress, 0, TRUE);
     statusBar()->addWidget(MapCancel,   0, TRUE);
     statusBar()->addWidget(FPS,         0, TRUE);
     statusBar()->addWidget(Zone,        0, TRUE);
     statusBar()->addWidget(xyzstatus,   0, TRUE);
+    
+    last_zoom = prefs.zoom_default;
 
+    Zoom->setText(QString("Zoom: ").append(QString::number(Map->range)));
 }
 
 void FormExcalibur::destroy()
@@ -107,6 +114,9 @@ void FormExcalibur::destroy()
 
     if (xyzstatus != NULL)
         delete xyzstatus;
+    
+    if (Zoom != NULL)
+        delete Zoom;
 
     prefs.removeWindow(this);
 }
@@ -117,10 +127,10 @@ void FormExcalibur::ReloadMaps_activated()
   Map->setMap(NULL);
 }
 
-
 void FormExcalibur::MapSlider_valueChanged( int range)
 {
   prefs.map_range=Map->range=range;
+  Zoom->setText(QString("Zoom: ").append(QString::number(range)));
   Map->dirty();
 }
 
@@ -261,9 +271,113 @@ void FormExcalibur::atnCrafting_toggled( bool ena )
   prefs.activate();
 }
 
-
 void FormExcalibur::AutoSelectTarget_toggled( bool ena )
 {
   prefs.select_target = ena;
   prefs.activate();
+}
+
+void FormExcalibur::ExpWindow_toggled( bool ena )
+{
+  if (ena)
+    xpFrame->show();
+  else
+    xpFrame->hide();
+
+  prefs.exp_window = ena;
+  prefs.activate();
+}
+
+void FormExcalibur::ZoomClose_activated()
+{
+    if (Map->range != prefs.zoom_close) {
+        // Remember the last custom zoom, not one of the default zooms
+        if (Map->range != prefs.zoom_default &&
+            Map->range != prefs.zoom_far)
+        	last_zoom = Map->range;
+
+        prefs.map_range = Map->range = prefs.zoom_close; 
+        MapSlider->setValue(prefs.zoom_close);
+        Map->dirty();
+    }
+}
+
+void FormExcalibur::ZoomDefault_activated()
+{
+    if (Map->range != prefs.zoom_default) {
+        if (Map->range != prefs.zoom_close &&
+            Map->range != prefs.zoom_far)
+        	last_zoom = Map->range;
+
+        prefs.map_range = Map->range = prefs.zoom_default; 
+        MapSlider->setValue(prefs.zoom_default);
+        Map->dirty();
+    }
+}
+
+void FormExcalibur::ZoomFar_activated()
+{
+    if (Map->range != prefs.zoom_far) {
+        if (Map->range != prefs.zoom_close &&
+            Map->range != prefs.zoom_default)
+        	last_zoom = Map->range;
+
+        prefs.map_range = Map->range = prefs.zoom_far; 
+        MapSlider->setValue(prefs.zoom_far);
+        Map->dirty();
+    }
+}
+
+void FormExcalibur::ZoomLast_activated()
+{
+   	prefs.map_range = Map->range = last_zoom;
+   	MapSlider->setValue(last_zoom);
+   	Map->dirty();
+}
+
+void FormExcalibur::comboXPRate_activated( int sel )
+{
+    if (sel == 0)
+        Map->c->xpStats->setDisplayRateMult(1);
+    else
+        Map->c->xpStats->setDisplayRateMult(60);
+    Map->c->xpStats->Update();
+}
+
+void FormExcalibur::comboXPTick_activated( int sel )
+{
+    int mult;
+    if (sel == 0)
+        mult = 1;
+    else if (sel == 1)
+        mult = 10;
+    else
+        mult = 100;
+
+    Map->c->xpStats->setDisplayEEPTMult(mult);
+    Map->c->xpStats->Update();
+}
+
+void FormExcalibur::comboDuration_activated( int sel )
+{
+    cout << sel << endl;
+
+    int mult;
+    if (sel == 0)
+        mult = -1;
+    else if (sel == 1)
+        mult = 5;
+    else if (sel == 2)
+        mult = 10;
+    else if (sel == 3)
+        mult = 15;
+    else if (sel == 4)
+        mult = 20;
+    else if (sel == 5)
+        mult = 30;
+    else
+        mult = 60;
+
+    Map->c->xpStats->setDuration(mult);
+    Map->c->xpStats->Update();
 }
