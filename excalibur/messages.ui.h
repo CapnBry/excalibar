@@ -20,11 +20,12 @@ void exMessagesUi::resizeEvent( QResizeEvent *e)
     w = e->size().width() - 47;
 
     for( int x = 0; x < count; x++)
-    {
-	tab = this->tabWidget->page( x);
-	textbox = (QTextEdit*)tab->childAt(10, 10);
-	
-	textbox->resize( w > 0 ? w : 0, h > 0 ? h : 0);
-    }
-	QDialog::resizeEvent( e);
+        {
+        tab = this->tabWidget->page( x);
+        textbox = (QTextEdit*)tab->childAt(10, 10);
+    
+        textbox->resize( w > 0 ? w : 0, h > 0 ? h : 0);
+        }
+
+    QDialog::resizeEvent( e);
 }
