@@ -222,7 +222,7 @@ begin
 
     { read the dirctory }
   zDS := TDecompressionStream.Create(FS);
-  ms := TMemoryStream.Create;
+  ms := TVCLMemoryStream.Create;
   repeat
     iRead := zDS.Read(aBuffer, sizeof(aBuffer));
     if iRead > 0 then
