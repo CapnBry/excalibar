@@ -178,12 +178,6 @@ QString exMob::text(int column) const {
       return QString::number(hp);
     case 3:
       return QString::number( static_cast< int >(const_cast< exMob *>(this)->playerDist()));
-    case 4:
-      return QString::number((mi) ? x - mi->getBaseX() : x);
-    case 5:
-      return QString::number((mi) ? y - mi->getBaseY() : y);
-    case 6:
-      return QString::number(z);
     default:
       return NULL;
   }
@@ -450,7 +444,7 @@ double exMob::playerDist() {
   ydist = y - c->playery;
   zdist = z - c->playerz;
 
-  lastdist=sqrt((double)xdist*xdist+ydist*ydist); // zdist*zdist
+  lastdist=sqrt((double)xdist*xdist+ydist*ydist+zdist*zdist);
 
   _lastdist=exTick;
   return lastdist;
