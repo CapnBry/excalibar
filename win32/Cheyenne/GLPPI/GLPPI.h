@@ -275,6 +275,7 @@ public:
     typedef TextureMapType::value_type TextureMapValueType;
     typedef TextureMapType::value_type::second_type GLTextureIdType;
     
+    // public api
     void Wrap(HWND Window,const bool LoadZoneTextures=true,const bool LoadVectorMaps=true); // call one time -- must be first call to this class
     void Unwrap(void); // call one time -- must be last call to this class
     void Resize(void); // call when the wrapped window size changes
@@ -317,6 +318,18 @@ public:
     void PanDown(void);
     void PanUp(void);
     void CenterOn(const Actor& actor);
+
+    // utility api
+    void GetRenderPosition(const Actor& ThisActor,Motion& Position)const;
+    bool GetScreenPosition
+        (
+        GLdouble ObjX,
+        GLdouble ObjY,
+        GLdouble ObjZ,
+        GLdouble* ScreenX,
+        GLdouble* ScreenY,
+        GLdouble* ScreenZ
+        )const;
     
 protected:
 private:
@@ -362,22 +375,12 @@ private:
 
     // helper functions for determining where to draw positions
     void AdjustPositionByRegion(Motion& Position,const unsigned char Region)const;
-    void GetRenderPosition(const Actor& ThisActor,Motion& Position)const;
     bool IsVisible(int BaseX, int BaseY, int MaxX, int MaxY)const;
     bool IsVisible(const float x, const float y)const;
     void GetBoundingRectangle(const MapInfo::ZoneInfo& zone,int& BaseX,int& BaseY,int& MaxX,int& MaxY)const;
     bool IsZoneVisible(const MapInfo::ZoneInfo& zone)const;
     void RecalcIncrements(void);
     void InitDisplayMatrices(void)const;
-    bool GetScreenPosition
-        (
-        GLdouble ObjX,
-        GLdouble ObjY,
-        GLdouble ObjZ,
-        GLdouble* ScreenX,
-        GLdouble* ScreenY,
-        GLdouble* ScreenZ
-        )const;
     
     // texture helpers
     bool BindTexture(const TextureId& id)const

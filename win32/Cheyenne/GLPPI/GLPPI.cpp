@@ -70,8 +70,8 @@ GLPPI::GLPPI() :
     CircleList=0;
     DiscList=0;
 
-    ProjectionX=0.0f;
-    ProjectionY=0.0f;
+    ProjectionX=500000.0f;
+    ProjectionY=475000.0f;
     ProjectionWidthX=10000.0f;
     ProjectionWidthY=10000.0f;
     ZoomIncrement=1.0f;
