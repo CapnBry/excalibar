@@ -125,16 +125,3 @@ void exMessage::parseMsg()
 		printf("[%s] %s\n", "Unknown", this->Msg.ascii());
 
 }
-
-int exMessage::getType()
-{
-	if( "Say" == MsgType) return 1;
-	if( "Tell" == MsgType) return 2;
-	if( "Party" == MsgType) return 3;
-	if( "Guild" == MsgType) return 4;
-	if( "Broadcast" == MsgType) return 5;
-	if( "Chat" == MsgType) return 6;
-	if( "PML" == MsgType) return 7;
-
-	return 8;
-}		

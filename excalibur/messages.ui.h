@@ -12,12 +12,12 @@
 void exMessagesUi::resizeEvent( QResizeEvent *e)
 {
     QWidget *tab;
-	int h, w;
+    int h, w;
     QTextEdit *textbox;
-	int count = this->tabWidget->count();
+    int count = this->tabWidget->count();
 
-	h = e->size().height() - 117;
-	w = e->size().width() - 47;
+    h = e->size().height() - 117;
+    w = e->size().width() - 47;
 
     for( int x = 0; x < count; x++)
     {

@@ -81,7 +81,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>Widget9</cstring>
+                    <cstring>Say</cstring>
                 </property>
                 <attribute name="title">
                     <string>Say</string>
@@ -105,7 +105,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Tell</cstring>
                 </property>
                 <attribute name="title">
                     <string>Tell</string>
@@ -129,7 +129,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Group</cstring>
                 </property>
                 <attribute name="title">
                     <string>Group</string>
@@ -153,7 +153,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Guild</cstring>
                 </property>
                 <attribute name="title">
                     <string>Guild</string>
@@ -177,7 +177,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Broadcast</cstring>
                 </property>
                 <attribute name="title">
                     <string>Broadcast</string>
@@ -201,7 +201,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Chat</cstring>
                 </property>
                 <attribute name="title">
                     <string>Chat</string>
@@ -225,7 +225,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>PML</cstring>
                 </property>
                 <attribute name="title">
                     <string>PML</string>
@@ -249,7 +249,7 @@
             </widget>
             <widget class="QWidget">
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>Unknown</cstring>
                 </property>
                 <attribute name="title">
                     <string>Unknown</string>
@@ -333,7 +333,7 @@
     <include location="local" impldecl="in implementation">messages.ui.h</include>
 </includes>
 <slots>
-    <slot>resizeEvent(QResizeEvent * e)</slot>
+    <slot>resizeEvent( QResizeEvent * e )</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

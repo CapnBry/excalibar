@@ -646,9 +646,16 @@ void exConnection::parseSystemMessage (exPacket *p)
     textbox = (QTextEdit*)tab->childAt( 10, 10);
     textbox->append( "[" + msg->getMsgType() + "] " + msg->getFormattedText());
 
-    tab = msgui->tabWidget->page( msg->getType());
-    textbox = (QTextEdit*)tab->childAt( 10, 10);
-    textbox->append( msg->getFormattedText());
+	for( int x = 1; x < msgui->tabWidget->count(); x++)
+		{
+		tab = msgui->tabWidget->page( x);
+		if( msg->getMsgType() == tab->name())
+			{
+    		textbox = (QTextEdit*)tab->childAt( 10, 10);
+    		textbox->append( msg->getFormattedText());
+			break;
+			}
+		}
 }
 
 void exConnection::parseTouchMob(exPacket *p, unsigned int id_offset)

@@ -33,7 +33,6 @@ class exMessage{
 		void exMessage::parseMsg();
 		QString getFormattedText() { return FormattedText; }
 		QString getMsgType()       { return MsgType; }
-		int exMessage::getType();
 
 	private:
 		QString Msg,
