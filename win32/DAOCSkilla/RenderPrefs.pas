@@ -65,6 +65,7 @@ type
     PlayerRealm:      TDAOCRealm;
     PlayerLevel:      integer;
     DrawGrid:         boolean;
+    DrawPushPins:     boolean;
 
     constructor Create;
 
@@ -160,6 +161,8 @@ type
     Label20: TLabel;
     Label21: TLabel;
     Label22: TLabel;
+    chkPushpins: TCheckBox;
+    Label23: TLabel;
     procedure ObjectFilterClick(Sender: TObject);
     procedure chkVectorMapsClick(Sender: TObject);
     procedure chkTextureMapsClick(Sender: TObject);
@@ -191,6 +194,7 @@ type
     procedure chkGroupByClassClick(Sender: TObject);
     procedure edtInvaderWarnTicksExit(Sender: TObject);
     procedure edtInvaderWarnTicksKeyPress(Sender: TObject; var Key: Char);
+    procedure chkPushpinsClick(Sender: TObject);
   private
     FRenderPrefs:   TRenderPreferences;
     FRangeCircles:  TRangeCircleList;
@@ -251,7 +255,8 @@ begin
   Result.DrawGrid := DrawGrid;
   Result.ObjectConFilter := ObjectConFilter;
   Result.MobListSortOrder := MobListSortOrder;
-  Result.GroupByClass := GroupByClass; 
+  Result.GroupByClass := GroupByClass;
+  Result.DrawPushPins := DrawPushPins; 
 end;
 
 constructor TRenderPreferences.Create;
@@ -322,6 +327,7 @@ begin
     DrawGrid := ReadBool('RenderPrefs', 'DrawGrid', false);
     MobListSortOrder := TMobListSortOrder(ReadInteger('RenderPrefs', 'MobListSortOrder', 0));
     GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
+    DrawPushPins := ReadBool('RenderPrefs', 'DrawPushPins', true);
   end;
 end;
 
@@ -363,6 +369,7 @@ begin
     WriteBool('RenderPrefs', 'DrawGrid', DrawGrid);
     WriteInteger('RenderPrefs', 'MobListSortOrder', ord(MobListSortOrder));
     WriteBool('RenderPrefs', 'GroupByClass', GroupByClass);
+    WriteBool('RenderPrefs', 'DrawPushPins', DrawPushPins);
   end;
 end;
 
@@ -526,6 +533,7 @@ begin
   chkShowPurples.Checked := ccPurple in FRenderPrefs.ObjectConFilter;
 
   chkVectorMaps.Checked := FRenderPrefs.DrawMapVector;
+  chkPushpins.Checked := FRenderPrefs.DrawPushPins;
   chkTextureMaps.Enabled := FRenderPrefs.HasOpenGL13;
   chkTextureMaps.Checked := FRenderPrefs.HasOpenGL13 and FRenderPrefs.DrawMapTexture;
   chkRangeCircles.Checked := FRenderPrefs.DrawRangeCircles;
@@ -748,6 +756,11 @@ procedure TfrmRenderPrefs.edtInvaderWarnTicksKeyPress(Sender: TObject;
 begin
   if not (Key in [#8, '0'..'9']) then
     Key := #0;
+end;
+
+procedure TfrmRenderPrefs.chkPushpinsClick(Sender: TObject);
+begin
+  FRenderPrefs.DrawPushPins := chkPushpins.Checked;
 end;
 
 end.

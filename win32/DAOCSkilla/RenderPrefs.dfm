@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabOptions
+    ActivePage = tabExtras
     Align = alTop
     MultiLine = True
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -189,7 +189,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       ImageIndex = 2
       object Label7: TLabel
         Left = 26
-        Top = 204
+        Top = 216
         Width = 339
         Height = 13
         Caption = 
@@ -198,14 +198,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label6: TLabel
         Left = 26
-        Top = 168
+        Top = 184
         Width = 258
         Height = 13
         Caption = 'Draw a line to an AI object'#39's destination while en-route.'
       end
       object Label5: TLabel
         Left = 26
-        Top = 132
+        Top = 152
         Width = 329
         Height = 13
         Caption = 
@@ -214,14 +214,14 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label4: TLabel
         Left = 26
-        Top = 96
+        Top = 120
         Width = 178
         Height = 13
         Caption = 'The vertical and horizontal crosshairs.'
       end
       object Label2: TLabel
         Left = 26
-        Top = 60
+        Top = 88
         Width = 358
         Height = 13
         Caption = 
@@ -237,14 +237,23 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object Label16: TLabel
         Left = 26
-        Top = 240
+        Top = 248
         Width = 239
         Height = 13
         Caption = 'Draw a 10k x 10k overlay grid on the current zone.'
       end
+      object Label23: TLabel
+        Left = 28
+        Top = 56
+        Width = 382
+        Height = 13
+        Caption = 
+          'Display points added using the "Add Pushpin" dialog (press i fro' +
+          'm the map dialog)'
+      end
       object chkViewFrustum: TCheckBox
         Left = 8
-        Top = 188
+        Top = 200
         Width = 241
         Height = 17
         Caption = 'Show Dark Age renderer "visible" area'
@@ -262,7 +271,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkTextureMaps: TCheckBox
         Left = 8
-        Top = 44
+        Top = 72
         Width = 241
         Height = 17
         Caption = 'Background image maps (B)'
@@ -271,7 +280,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkRulers: TCheckBox
         Left = 8
-        Top = 80
+        Top = 104
         Width = 241
         Height = 17
         Caption = 'Map rulers (R)'
@@ -280,7 +289,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkHUD: TCheckBox
         Left = 8
-        Top = 116
+        Top = 136
         Width = 241
         Height = 17
         Caption = 'Selected object and player  HUD (H)'
@@ -289,7 +298,7 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkDrawGrid: TCheckBox
         Left = 8
-        Top = 224
+        Top = 232
         Width = 241
         Height = 17
         Caption = 'Draw location grid over background (G)'
@@ -298,12 +307,21 @@ object frmRenderPrefs: TfrmRenderPrefs
       end
       object chkDestination: TCheckBox
         Left = 8
-        Top = 152
+        Top = 168
         Width = 241
         Height = 17
         Caption = 'AI destination vector (D)'
         TabOrder = 4
         OnClick = chkDestinationClick
+      end
+      object chkPushpins: TCheckBox
+        Left = 8
+        Top = 40
+        Width = 241
+        Height = 17
+        Caption = 'Pushpins'
+        TabOrder = 7
+        OnClick = chkPushpinsClick
       end
     end
     object tabFilter: TTabSheet
