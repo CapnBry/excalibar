@@ -57,6 +57,71 @@ CSLLoader::~CSLLoader()
         }
 } // end ~CSLLoader
 
+void CSLLoader::ReloadScripts(void)
+{
+    // remove cached subroutines
+    while(SubCache.begin() != SubCache.end())
+        {
+        cache_iterator it=SubCache.begin();
+        delete it->second.second; // we can delete NULL pointers...
+        SubCache.erase(it);
+        }
+
+    // load 'em
+    LoadScripts();
+    
+    // done
+    return;
+} // end ReloadScripts
+
+void CSLLoader::LoadScripts(void)
+{
+    // init script cache
+    WIN32_FIND_DATA find_data;
+    ZeroMemory(&find_data,sizeof(find_data));
+    std::ostringstream search_criteria;
+    std::ostringstream initial_directory;
+    std::ostringstream full_file_name;
+
+    initial_directory << ::InitialDir << "scripts\\";
+    search_criteria << initial_directory.str() << "*.csl";
+    
+    HANDLE hFind=FindFirstFile(search_criteria.str().c_str(),&find_data);
+    
+    if(!hFind || hFind==INVALID_HANDLE_VALUE)
+        {
+        // none found
+        return;
+        }
+    
+    // find all files (including the one we just found)
+    do
+        {
+        // make sure its not a directory
+        if(!(find_data.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
+            {
+            full_file_name.seekp(0);
+            full_file_name.str("");
+            full_file_name.clear();
+            
+            // get file name
+            full_file_name << initial_directory.str() << find_data.cFileName;
+            
+            // get subroutine name
+            std::string sub_name=GetSubroutineNameFromFile(full_file_name.str());
+            
+            ::Logger << "[CSLLoader::LoadScripts] found subroutine \"" << sub_name << "\" in file \""
+                     << full_file_name.str() << "\"\n";
+            // add to cache with pointer value of 0 so we know to load it later
+            // when it is first used -- save a bit of memory doing this
+            SubCache.insert(cache_value(sub_name,std::make_pair(full_file_name.str(),static_cast<csl::CSLSubroutine*>(0))));
+            } // end if not a directory
+        } while(FindNextFile(hFind,&find_data) != 0);
+    
+    // done with this
+    FindClose(hFind);
+} // end LoadScripts
+
 void CSLLoader::Init(void)
 {
     // init dictionary
@@ -190,10 +255,20 @@ void CSLLoader::Init(void)
     params:
     string
     */
+    CmdLookup.insert(lookup_value("InterceptActorOffset",new csl::InterceptActorOffset));
+    /*
+    params:
+    name reference_velocity heading_offset distance time_limit
+    */
     CmdLookup.insert(lookup_value("InterceptActor",new csl::InterceptActor));
     /*
     params:
     name reference_velocity time_limit
+    */
+    CmdLookup.insert(lookup_value("InterceptTargetOffset",new csl::InterceptTargetOffset));
+    /*
+    params:
+    reference_velocity heading_offset distance time_limit
     */
     CmdLookup.insert(lookup_value("InterceptTarget",new csl::InterceptTarget));
     /*
@@ -207,49 +282,19 @@ void CSLLoader::Init(void)
     constraints: health1 > health2 > health3
     */
     
-    // init cache
-    WIN32_FIND_DATA find_data;
-    ZeroMemory(&find_data,sizeof(find_data));
-    std::ostringstream search_criteria;
-    std::ostringstream initial_directory;
-    std::ostringstream full_file_name;
-
-    initial_directory << ::InitialDir << "scripts\\";
-    search_criteria << initial_directory.str() << "*.csl";
+    // print available commands
+    ::Logger << "[CSLLoader::Init] Available commands:\n";
     
-    HANDLE hFind=FindFirstFile(search_criteria.str().c_str(),&find_data);
+    csl::CSLLoader::const_lookup_iterator it;
     
-    if(!hFind || hFind==INVALID_HANDLE_VALUE)
+    for(it=CmdLookup.begin();it!=CmdLookup.end();++it)
         {
-        // none found
-        return;
+        ::Logger << "\t" << it->first << "\n";
         }
-    
-    // find all files (including the one we just found)
-    do
-        {
-        // make sure its not a directory
-        if(!(find_data.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY))
-            {
-            full_file_name.seekp(0);
-            full_file_name.str("");
-            full_file_name.clear();
-            
-            // get file name
-            full_file_name << initial_directory.str() << find_data.cFileName;
-            
-            // get subroutine name
-            std::string sub_name=GetSubroutineNameFromFile(full_file_name.str());
-            
-            // add to cache with pointer value of 0 so we know to load it later
-            // when it is first used -- save a bit of memory doing this
-            SubCache.insert(cache_value(sub_name,std::make_pair(full_file_name.str(),static_cast<csl::CSLSubroutine*>(0))));
-            } // end if not a directory
-        } while(FindNextFile(hFind,&find_data) != 0);
-    
-    // done with this
-    FindClose(hFind);
-    
+        
+    // load scripts
+    LoadScripts();
+        
     // done
     return;
 } // end Init
@@ -290,44 +335,8 @@ std::string CSLLoader::GetSubroutineNameFromFile(const std::string& file_name)co
     return(sub_name);
 } // end GetSubroutineNameFromFile
 
-CSLSubroutine* CSLLoader::LoadSubroutine(const std::string& script_name)
+CSLSubroutine* CSLLoader::LoadSubroutine(std::istream& file)
 {
-    // first, check if it is in our cache
-    cache_iterator cache_it=SubCache.find(script_name);
-    if(cache_it==SubCache.end())
-        {
-        // that script does not exist!
-        ::Logger << "[CSLLoader::LoadSubroutine] \"" << script_name << "\" does not exist!\n";
-        return(0);
-        }
-    
-    if(cache_it->second.second)
-        {
-        // second is the subroutine pointer: it is not NULL,
-        // so we have loaded this before. Return a copy
-        // of the pre-existing subroutine instead of loading
-        // off disk again
-        csl::CSLSubroutine* sub=new csl::CSLSubroutine(*cache_it->second.second);
-        // init it
-        sub->Init();
-        // done
-        return(sub);
-        }
-    
-    // it was not in the cache, load from disk
-
-    // first is the file name of the script file
-    std::string ScriptFile(cache_it->second.first);
-    
-    // open file for it
-    std::ifstream file(ScriptFile.c_str());
-    
-    if(!file.is_open())
-        {
-        ::Logger << "[CSLLoader::LoadSubroutine] unable to open " << ScriptFile.c_str() << "\n";
-        return(0);
-        }
-    
     // get name
     std::string Name;
     file >> std::ws >> Name >> std::ws;
@@ -410,12 +419,60 @@ CSLSubroutine* CSLLoader::LoadSubroutine(const std::string& script_name)
         // skip whitespace
         file >> std::ws;
         } // end while commands remain in the file
+
+    // done, return new subroutine
+    return(sub);
+} // end LoadSubroutine
+
+CSLSubroutine* CSLLoader::LoadSubroutine(const std::string& script_name)
+{
+    // first, check if it is in our cache
+    cache_iterator cache_it=SubCache.find(script_name);
+    if(cache_it==SubCache.end())
+        {
+        // that script does not exist!
+        ::Logger << "[CSLLoader::LoadSubroutine] \"" << script_name << "\" does not exist!\n";
+        return(0);
+        }
     
-    // tell the subroutine to init
-    sub->Init();
+    if(cache_it->second.second)
+        {
+        // second is the subroutine pointer: it is not NULL,
+        // so we have loaded this before. Return a copy
+        // of the pre-existing subroutine instead of loading
+        // off disk again
+        csl::CSLSubroutine* sub=new csl::CSLSubroutine(*cache_it->second.second);
+        // init it
+        sub->Init();
+        // done
+        return(sub);
+        }
     
-    // add a copy to cache
-    cache_it->second.second=new csl::CSLSubroutine(*sub);
+    // it was not in the cache, load from disk
+
+    // first is the file name of the script file
+    std::string ScriptFile(cache_it->second.first);
+    
+    // open file for it
+    std::ifstream file(ScriptFile.c_str());
+    
+    if(!file.is_open())
+        {
+        ::Logger << "[CSLLoader::LoadSubroutine] unable to open " << ScriptFile.c_str() << "\n";
+        return(0);
+        }
+    
+    // load subroutine from file
+    CSLSubroutine* sub=LoadSubroutine(file);
+    
+    if(sub)
+        {
+        // tell the subroutine to init
+        sub->Init();
+        
+        // add a copy to cache
+        cache_it->second.second=new csl::CSLSubroutine(*sub);
+        }
 
     // done
     return(sub);

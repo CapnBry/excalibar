@@ -37,11 +37,11 @@ public:
         
         if(host->ExecuteScript(cmd))
             {
-            result_stream << "Executing \"" << cmd << "\" was successful.\r\n>";
+            result_stream << "Executing \"" << cmd << "\" was successful.\r\n\r\n>";
             }
         else
             {
-            result_stream << "Executing \"" << cmd << "\" FAILED.\r\n>";
+            result_stream << "Executing \"" << cmd << "\" FAILED.\r\n\r\n>";
             }
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new ExecuteScriptCmd(*this));};
@@ -58,11 +58,11 @@ public:
         
         if(host->StopScript(cmd))
             {
-            result_stream << "Stop \"" << cmd << "\" was successful.\r\n>";
+            result_stream << "Stop \"" << cmd << "\" was successful.\r\n\r\n>";
             }
         else
             {
-            result_stream << "Stop \"" << cmd << "\" FAILED.\r\n>";
+            result_stream << "Stop \"" << cmd << "\" FAILED.\r\n\r\n>";
             }
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new StopScriptCmd(*this));};
@@ -74,7 +74,7 @@ public:
     virtual void Execute(std::istream& arg_stream,std::ostream& result_stream,csl::CSLScriptHost* host)
     {
         host->StopAllScripts();
-        result_stream << "Stop all scripts was successful.\r\n>";
+        result_stream << "Stop all scripts was successful.\r\n\r\n>";
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new StopAllScriptsCmd(*this));};
 }; // end StopAllScriptsCmd
@@ -96,7 +96,7 @@ public:
             {
             result_stream << it->c_str() << " \r\n";
             }
-        result_stream << ">";
+        result_stream << "\r\n>";
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new GetRunningScriptsCmd(*this));};
 }; // end GetRunningScriptsCmd
@@ -118,10 +118,69 @@ public:
             {
             result_stream << *it << " \r\n";
             }
-        result_stream << ">";
+        result_stream << "\r\n>";
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new GetAvailableScriptsCmd(*this));};
 }; // end GetAvailableScriptsCmd
+
+class ReloadScriptsCmd : public csl::CSLHostCommandAPI
+{
+public:
+    virtual void Execute(std::istream& arg_stream,std::ostream& result_stream,csl::CSLScriptHost* host)
+    {
+        // reload scripts
+        host->ReloadScripts();
+        
+        // print new available script list
+        std::list<std::string> script_list;
+        
+        // get running scripts
+        host->GetAvailableScripts(script_list);        
+        
+        // send 'em back
+        result_stream << unsigned int(script_list.size()) << " reload: available scripts\r\n";
+        std::list<std::string>::const_iterator it;
+        for(it=script_list.begin();it!=script_list.end();++it)
+            {
+            result_stream << *it << " \r\n";
+            }
+        result_stream << "\r\n\r\n>";
+    }
+    virtual csl::CSLHostCommandAPI* Clone(void)const{return(new ReloadScriptsCmd(*this));};
+}; // end ReloadScriptsCmd
+
+class ExecCommandCmd : public csl::CSLHostCommandAPI
+{
+public:
+    virtual void Execute(std::istream& arg_stream,std::ostream& result_stream,csl::CSLScriptHost* host)
+    {
+        // make a subroutine out of the command
+        csl::CSLSubroutine* cmd=host->LoadSubroutine(arg_stream);
+        
+        // we own cmd now
+        
+        if(cmd)
+            {
+            if(host->ExecuteScript(cmd))
+                {
+                // host owns cmd now
+                result_stream << "Executing \"" << cmd->GetName() << "\" was successful.\r\n\r\n>";
+                }
+            else
+                {
+                // we are responsible for deleting cmd
+                delete cmd;
+                result_stream << "Executing \"" << cmd->GetName() << "\" FAILED.\r\n\r\n>";
+                }
+            } // end if cmd
+        else
+            {
+            // no cmd
+            result_stream << "Parsing FAILED.\r\n\r\n>";
+            } // end else not cmd
+    }
+    virtual csl::CSLHostCommandAPI* Clone(void)const{return(new ExecCommandCmd(*this));};
+}; // end ExecCommandCmd
 
 class HelpCmd : public csl::CSLHostCommandAPI
 {
@@ -134,8 +193,10 @@ public:
                       << "GetAvailableScripts\r\n"
                       << "StopScript <script_name>\r\n"
                       << "StopAllScripts\r\n"
+                      << "ReloadScripts\r\n"
+                      << "ExecCommand\r\n"
                       << "Help, help, or ?\r\n"
-                      << "I do not handle backspaces well, sorry.\r\n>";
+                      << "I do not handle backspaces particularly well, sorry.\r\n\r\n>";
     }
     virtual csl::CSLHostCommandAPI* Clone(void)const{return(new HelpCmd(*this));};
 }; // end HelpCmd
@@ -155,6 +216,8 @@ CSLScriptHost::CSLScriptHost()
     HostCommands.insert(hostcmd_value("GetAvailableScripts",new csl::GetAvailableScriptsCmd));
     HostCommands.insert(hostcmd_value("StopScript",new csl::StopScriptCmd));
     HostCommands.insert(hostcmd_value("StopAllScripts",new csl::StopAllScriptsCmd));
+    HostCommands.insert(hostcmd_value("ReloadScripts",new csl::ReloadScriptsCmd));
+    HostCommands.insert(hostcmd_value("ExecCommand",new csl::ExecCommandCmd));
     HostCommands.insert(hostcmd_value("Help",new csl::HelpCmd));
     HostCommands.insert(hostcmd_value("help",new csl::HelpCmd));
     HostCommands.insert(hostcmd_value("?",new csl::HelpCmd));
@@ -274,6 +337,23 @@ void CSLScriptHost::CleanStack(stack_t& st,bool bTrace)
         }
 } // end CleanStack
 
+bool CSLScriptHost::ExecuteScript(csl::CSLSubroutine* sub)
+{
+    // init subroutine
+    sub->Init();
+    
+    // create a temporary stack and put
+    // the subroutine on it
+    stack_t temp_stack;
+    temp_stack.push(sub);
+    
+    // add to the list
+    ScriptList.insert(ScriptList.end(),temp_stack);
+    
+    // done
+    return(true);
+} // end ExecuteScript
+
 bool CSLScriptHost::ExecuteScript(const std::string& script_name)
 {
     // lock
@@ -292,19 +372,8 @@ bool CSLScriptHost::ExecuteScript(const std::string& script_name)
         return(false);
         }
 
-    // init subroutine
-    sub->Init();
-    
-    // create a temporary stack and put
-    // the subroutine on it
-    stack_t temp_stack;
-    temp_stack.push(sub);
-    
-    // add to the list
-    ScriptList.insert(ScriptList.end(),temp_stack);
-    
-    // done
-    return(true);
+    // return execute status
+    return(ExecuteScript(sub));
 } // end ExecuteScript
 
 bool CSLScriptHost::CallScript(const std::string& script_name,csl::EXECUTE_PARAMS& current_params)

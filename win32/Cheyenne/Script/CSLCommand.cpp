@@ -1971,26 +1971,38 @@ csl::CSLCommandAPI::EXECUTE_STATUS Delay::Execute(csl::EXECUTE_PARAMS& params)
     return(std::make_pair(true,true));
 } // end Delay::Execute
 
-bool InterceptActor::Extract(std::istream& arg_stream)
+bool InterceptActorOffset::Extract(std::istream& arg_stream)
 {
     arg_stream >> std::ws >> Name 
                >> std::ws >> reference_velocity 
+               >> std::ws >> heading_offset
+               >> std::ws >> distance
                >> std::ws >> time_limit 
                >> std::ws;
     
     if(Name.length() == 0)
         {
-        ::Logger << "[InterceptActor::Extract] expected a non zero name argument.\n";
+        ::Logger << "[InterceptActorOffset::Extract] expected a non zero name argument.\n";
         return(false);
         }
     else if(reference_velocity<=0.0 || reference_velocity > 3600.0f)
         {
-        ::Logger << "[InterceptActor::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        ::Logger << "[InterceptActorOffset::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else if(heading_offset<0.0 || heading_offset >= 360.0f)
+        {
+        ::Logger << "[InterceptActorOffset::Extract] expected heading offset to be [0,360)" << std::endl;
+        return(false);
+        }
+    else if(distance<0.0 || distance > 10000.0f)
+        {
+        ::Logger << "[InterceptActorOffset::Extract] expected distance to be [0,10000)" << std::endl;
         return(false);
         }
     else if(time_limit<=0.0 || time_limit > 3600.0f)
         {
-        ::Logger << "[InterceptActor::Extract] expected time limit to be (0,3600]" << std::endl;
+        ::Logger << "[InterceptActorOffset::Extract] expected time limit to be (0,3600]" << std::endl;
         return(false);
         }
     else
@@ -2003,7 +2015,7 @@ bool InterceptActor::Extract(std::istream& arg_stream)
         }
 } // end Extract
 
-void InterceptActor::Reinit(csl::EXECUTE_PARAMS& params)
+void InterceptActorOffset::Reinit(csl::EXECUTE_PARAMS& params)
 {
     
     start_time=-1.0;
@@ -2033,12 +2045,19 @@ void InterceptActor::Reinit(csl::EXECUTE_PARAMS& params)
     return;
 } // end Reinit
 
-bool InterceptActor::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target)
+bool InterceptActorOffset::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target)
 {
+    // turn heading and distance offset into 
+    // x,y offsets (we have to do this every
+    // time since Target may be turning
+    float x_offset;
+    float y_offset;
+    Target.GetMotion().GetPointRelative(heading_offset,distance,x_offset,y_offset);
+    
     // create intercept data
     INTERCEPT_DATA<float> id;
-    id.params.t0x=Target.GetMotion().GetXPos();
-    id.params.t0y=Target.GetMotion().GetYPos();
+    id.params.t0x=x_offset+Target.GetMotion().GetXPos();
+    id.params.t0y=y_offset+Target.GetMotion().GetYPos();
     id.params.a0x=params.followed_actor->GetMotion().GetXPos();
     id.params.a0y=params.followed_actor->GetMotion().GetYPos();
     id.params.s=float(reference_velocity);
@@ -2052,7 +2071,7 @@ bool InterceptActor::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target
     if(!FindIntercept(id))
         {
         // no intercept
-        ::Logger << "[InterceptActor::DoIntercept] no intercept possible for \"" 
+        ::Logger << "[InterceptActorOffset::DoIntercept] no intercept possible for \"" 
                  << Target.GetName() << "\"" << std::endl;
         
         return(false);
@@ -2105,12 +2124,12 @@ bool InterceptActor::DoIntercept(csl::EXECUTE_PARAMS& params,const Actor& Target
         }
 } // end DoIntercept
 
-csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& params)
+csl::CSLCommandAPI::EXECUTE_STATUS InterceptActorOffset::Execute(csl::EXECUTE_PARAMS& params)
 {
     // make sure we are following someone
     if(!params.followed_actor->GetInfoId())
         {
-        ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+        ::Logger << "[InterceptActorOffset::Execute] intercept \"" << Name << "\" failed to complete in "
                  << time_limit << " seconds because there is no followed (reference) actor" << std::endl;
         
         // reinit
@@ -2131,7 +2150,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& 
     if(start_time+time_limit < params.current_time->Seconds())
         {
         // we exceeded out time limit
-        ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+        ::Logger << "[InterceptActorOffset::Execute] intercept \"" << Name << "\" failed to complete in "
                  << time_limit << " seconds" << std::endl;
         
         // reinit
@@ -2156,7 +2175,7 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& 
         if(!params.database->CopyActorByName(Name,Target))
             {
             // we lost the target
-            ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+            ::Logger << "[InterceptActorOffset::Execute] intercept \"" << Name << "\" failed to complete in "
                     << time_limit << " seconds, we lost the target!" << std::endl;
             
             // reinit
@@ -2192,10 +2211,175 @@ csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& 
     return(status);
 } // end Execute
 
+bool InterceptActor::Extract(std::istream& arg_stream)
+{
+    arg_stream >> std::ws >> Name 
+               >> std::ws >> reference_velocity 
+               >> std::ws >> time_limit 
+               >> std::ws;
+    
+    if(Name.length() == 0)
+        {
+        ::Logger << "[InterceptActor::Extract] expected a non zero name argument.\n";
+        return(false);
+        }
+    else if(reference_velocity<=0.0 || reference_velocity > 3600.0f)
+        {
+        ::Logger << "[InterceptActor::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[InterceptActor::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        return(true);
+        }
+} // end Extract
+
+csl::CSLCommandAPI::EXECUTE_STATUS InterceptActor::Execute(csl::EXECUTE_PARAMS& params)
+{
+    // make sure we are following someone
+    if(!params.followed_actor->GetInfoId())
+        {
+        ::Logger << "[InterceptActor::Execute] intercept \"" << Name << "\" failed to complete in "
+                 << time_limit << " seconds because there is no followed (reference) actor" << std::endl;
+        
+        // return error
+        return(std::make_pair(false,true));
+        } // end if no followed actor
+    
+    if(!proxy)
+        {
+        // make a stream with command arguments for intercept actor offset
+        std::stringstream ss;
+        ss << params.targetted_actor->GetName() << " " 
+           << reference_velocity << " "
+           << "0 " // heading offset 0
+           << "0 " // distance offset 0 
+           << time_limit << std::endl;
+        csl::InterceptActorOffset* iao=new csl::InterceptActorOffset;
+        if(!iao->Extract(ss))
+            {
+            delete iao;
+            // intercept actor offset extract failed
+            return(std::make_pair(false,true));
+            }
+        
+        // save as proxy, iao will do the rest of my job for me
+        proxy=iao;
+        
+        // done, stay on this command
+        return(std::make_pair(true,false));
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
+} // end Execute
+
+bool InterceptTargetOffset::Extract(std::istream& arg_stream)
+{
+    arg_stream >> reference_velocity >> std::ws
+               >> std::ws >> heading_offset
+               >> std::ws >> distance
+               >> std::ws >> time_limit;
+    
+    if(time_limit<=0.0 || time_limit > 3600.0f)
+        {
+        ::Logger << "[InterceptTargetOffset::Extract] expected time limit to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else if(heading_offset<0.0 || heading_offset >= 360.0f)
+        {
+        ::Logger << "[InterceptTargetOffset::Extract] expected heading offset to be [0,360)" << std::endl;
+        return(false);
+        }
+    else if(distance<0.0 || distance > 10000.0f)
+        {
+        ::Logger << "[InterceptTargetOffset::Extract] expected distance to be [0,10000)" << std::endl;
+        return(false);
+        }
+    else if(reference_velocity<=0.0 || reference_velocity > 3600.0f)
+        {
+        ::Logger << "[InterceptTargetOffset::Extract] expected reference velicity to be (0,3600]" << std::endl;
+        return(false);
+        }
+    else
+        {
+        proxy=0; // init to 0
+        return(true);
+        }
+} // end Extract
+
+csl::CSLCommandAPI::EXECUTE_STATUS InterceptTargetOffset::Execute(csl::EXECUTE_PARAMS& params)
+{
+    if(!proxy)
+        {
+        if(!params.targetted_actor->GetInfoId())
+            {
+            // did not find it
+            ::Logger << "[InterceptTargetOffset::Execute] no target!" << std::endl;
+            return(std::make_pair(false,true));
+            }
+        else
+            {
+            // make a stream with command arguments for intercept actor offset
+            std::stringstream ss;
+            ss << params.targetted_actor->GetName() << " " 
+               << reference_velocity << " " 
+               << heading_offset << " "
+               << distance << " "
+               << time_limit << std::endl;
+            csl::InterceptActorOffset* iao=new csl::InterceptActorOffset;
+            if(!iao->Extract(ss))
+                {
+                delete iao;
+                // intercept actor extract failed
+                return(std::make_pair(false,true));
+                }
+            
+            // save as proxy, iao will do the rest of my job for me
+            proxy=iao;
+            
+            // done, stay on this command
+            return(std::make_pair(true,false));
+            }
+        } // end if not proxy
+    else
+        {
+        // proxy the execute command
+        csl::CSLCommandAPI::EXECUTE_STATUS status=proxy->Execute(params);
+        
+        // see if we need to delete the proxy
+        if(!status.first || !status.second)
+            {
+            delete proxy;
+            proxy=0;
+            }
+        
+        // return proxy's status
+        return(status);
+        } // end else proxy
+} // end Execute
+
 bool InterceptTarget::Extract(std::istream& arg_stream)
 {
-    arg_stream >> std::ws >> time_limit 
-               >> reference_velocity >> std::ws;
+    arg_stream >> reference_velocity >> std::ws
+               >> std::ws >> time_limit;
     
     if(time_limit<=0.0 || time_limit > 3600.0f)
         {

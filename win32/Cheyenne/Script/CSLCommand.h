@@ -449,14 +449,14 @@ private:
     std::string Output;
 }; // end class DebugString
 
-class InterceptActor : public CSLCommandAPI
+class InterceptActorOffset : public CSLCommandAPI
 {
 public:
-    InterceptActor(){move_point=0;};
-    ~InterceptActor(){delete move_point;};
+    InterceptActorOffset(){move_point=0;};
+    ~InterceptActorOffset(){delete move_point;};
     virtual bool Extract(std::istream& arg_stream);
     virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
-    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptActor(*this));};
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptActorOffset(*this));};
 protected:
 private:
     void Reinit(csl::EXECUTE_PARAMS& params);
@@ -469,8 +469,43 @@ private:
     double last_target_check_time;
     float intercept_x;
     float intercept_y;
+    float heading_offset;
+    float distance;
     csl::CSLCommandAPI* move_point;
+}; // end class InterceptActorOffset
+
+class InterceptActor : public CSLCommandAPI
+{
+public:
+    InterceptActor(){proxy=0;};
+    ~InterceptActor(){delete proxy;};
+    virtual bool Extract(std::istream& arg_stream);
+    virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptActor(*this));};
+protected:
+private:
+    std::string Name;
+    double time_limit;
+    double reference_velocity;
+    csl::CSLCommandAPI* proxy;
 }; // end class InterceptActor
+
+class InterceptTargetOffset : public CSLCommandAPI
+{
+public:
+    InterceptTargetOffset(){proxy=0;};
+    ~InterceptTargetOffset(){delete proxy;};
+    virtual bool Extract(std::istream& arg_stream);
+    virtual csl::CSLCommandAPI::EXECUTE_STATUS Execute(csl::EXECUTE_PARAMS& params);
+    virtual csl::CSLCommandAPI* Clone(void)const{return(new InterceptTargetOffset(*this));};
+protected:
+private:
+    double time_limit;
+    double reference_velocity;
+    float heading_offset;
+    float distance;
+    csl::CSLCommandAPI* proxy;
+}; // end class InterceptTargetOffset
 
 class InterceptTarget : public CSLCommandAPI
 {

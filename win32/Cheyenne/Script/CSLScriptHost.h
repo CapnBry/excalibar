@@ -64,6 +64,8 @@ public:
     
     // script api
     bool ExecuteScript(const std::string& script_name);
+    bool ExecuteScript(csl::CSLSubroutine* sub);
+    csl::CSLSubroutine* LoadSubroutine(std::istream& file){return(ScriptLoader.LoadSubroutine(file));};
     bool CallScript(const std::string& script_name,csl::EXECUTE_PARAMS& current_params);
     bool RestartScript(void);
     void GetRunningScripts(std::list<std::string>& output)const;
@@ -71,6 +73,7 @@ public:
     
     void StopAllScripts(void);
     void GetAvailableScripts(std::list<std::string>& names)const{ScriptLoader.GetAvailableScripts(names);};
+    void ReloadScripts(void){ScriptLoader.ReloadScripts();};
     
     // api specifically for commands to interface with me
     void SetReferenceActor(const Actor& NewReferenceActor);

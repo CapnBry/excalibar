@@ -47,12 +47,16 @@ public:
     virtual ~CSLLoader();
     
     CSLSubroutine* LoadSubroutine(const std::string& script_name);
+    CSLSubroutine* LoadSubroutine(std::istream& file);
     
     void GetAvailableScripts(std::list<std::string>& names)const;
+    
+    void ReloadScripts(void);
     
 protected:
 private:
     void Init(void);
+    void LoadScripts(void);
     std::string GetSubroutineNameFromFile(const std::string& file_name)const;
     
     lookup_t CmdLookup;
