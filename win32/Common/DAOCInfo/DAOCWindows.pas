@@ -37,6 +37,7 @@ type
     FOnNeedSendKeys: TNeedSendKeysEvent;
     FOnNeedVKDown: TNeedVKEvent;
     FOnNeedVKUp: TNeedVKEvent;
+    FUIStyle: string;
     function GetSettingsFile: string;
   protected
     function LastIPOctet: string;
@@ -46,10 +47,13 @@ type
     procedure DoVKDown(Sender: TObject; vk: byte);
     procedure DoVKUp(Sender: TObject; vk: byte);
   public
+    constructor Create;
+
     property SettingsFile: string read GetSettingsFile;
     property DAOCPath: string read FDAOCPath write FDAOCPath;
     property CharacterName: string read FCharacterName write FCharacterName;
     property ServerIP: string read FServerIP write FServerIP;
+    property UIStyle: string read FUIStyle write FUIStyle;
 
       { inventory functions }
     procedure MoveInventoryItem(AFromBag, AFromItem, AToBag, AToItem: integer);
@@ -77,6 +81,7 @@ type
     procedure DoSendKeys(const AKeys: string);
     procedure DoVKDown(vk: byte);
     procedure DoVKUp(vk: byte);
+    function GetUIOffset(const AName: string; ADefault: integer) : integer;
   public
     constructor Create(AWndManager: TDAOCWindowManager); virtual;
     destructor Destroy; override;
@@ -91,6 +96,15 @@ type
 
   TStatsWindow = class(TDAOCWindow)
   private
+    FTopOffset:   integer;
+    FLeftOffset:  integer;
+    FButtonHeight:  integer;
+    FButtonWidth:   integer;
+    FInventoryTop:  integer;
+    FInventoryLeft: integer;
+    FInventoryItemHeight:  integer;
+    FInventoryBagLeft:  integer;
+    FInventoryBagTops:  array[0..4] of integer;
     function GetStartingOpenPage: TStatsWindowPage;
   protected
   public
@@ -105,6 +119,9 @@ type
   end;
 
   TDialogWindow = class(TDAOCWindow)
+  private
+    FOKTop:   integer;
+    FOKLeft:  integer;
   public
     constructor Create(AWndManager: TDAOCWindowManager); override;
     procedure ClickOK;
@@ -128,8 +145,8 @@ type
     FItemTopOffset: integer;
     FItemLeftOffset:  integer;
     FItemHeight:      integer;
+    FCloseTopOffset:  integer;
     FLastSelectWasIcon: boolean;
-    FCloseTopOffset:    integer;
 
     procedure SelectItemCommon(Value, XOff: integer);
   public
@@ -148,6 +165,8 @@ type
 
   TVendorWindow = class(TScrollableListWindow)
   private
+    FBuyTop:  integer;
+    FBuyLeft: integer;
   public
     constructor Create(AWndManager: TDAOCWindowManager); override;
     procedure Buy;
@@ -159,6 +178,9 @@ type
   TQuickbar = class(TDAOCWindow)
   private
     FOrientation:   TQuickBarOrientation;
+    FCenterPerp:    integer;
+    FCenterPara:    integer;
+    FButtonWidth:   integer;
     procedure GetStartingOrientation;
     procedure SlotXY(ASlot: integer; var X, Y: integer);
   public
@@ -181,6 +203,11 @@ type
 implementation
 
 { TDAOCWindowManager }
+
+constructor TDAOCWindowManager.Create;
+begin
+  FUIStyle := 'Classic';
+end;
 
 procedure TDAOCWindowManager.DoLeftClick(Sender: TObject; X, Y: integer);
 begin
@@ -304,6 +331,14 @@ begin
     Result := 0;
 end;
 
+function TDAOCWindow.GetUIOffset(const AName: string; ADefault: integer): integer;
+begin
+  with TINIFile.Create(ExtractFilePath(ParamStr(0)) + 'UI.ini') do begin
+    Result := ReadInteger(FWndManager.UIStyle, AName, ADefault);
+    Free;
+  end;  { with }
+end;
+
 function TDAOCWindow.GetVisible: boolean;
 begin
   if FSettings.Count > 2 then
@@ -330,20 +365,29 @@ end;
 { TStatsWindow }
 
 procedure TStatsWindow.ClickPage(APage: TStatsWindowPage);
-const
-  BUTTON_WIDTH = 28;
-  BUTTON_HEIGHT = 32;
-  BUTTON_TOP_OFFSET = 1;
-  BUTTON_LEFT_OFFSET = 14;
 begin
-  DoLeftClick(Left + BUTTON_LEFT_OFFSET + (BUTTON_WIDTH * ord(APage)) +
-    (BUTTON_WIDTH div 2), Top + BUTTON_TOP_OFFSET + (BUTTON_HEIGHT div 2));
+  DoLeftClick(Left + FTopOffset + (FButtonWidth * ord(APage)) +
+    (FButtonWidth div 2), Top + FTopOffset + (FButtonHeight div 2));
 end;
 
 constructor  TStatsWindow.Create(AWndManager: TDAOCWindowManager);
 begin
   FWindowName := 'Stats';
   inherited Create(AWndManager);
+
+  FTopOffset := GetUIOffset('StatsTop', 1);
+  FLeftOffset := GetUIOffset('StatsLeft', 14);
+  FButtonHeight := GetUIOffset('StatsButtonWidth', 28);
+  FButtonWidth := GetUIOffset('StatsButtonHeight', 32);
+  FInventoryTop := GetUIOffset('InventoryTop', 278);
+  FInventoryLeft := GetUIOffset('InventoryLeft', 20);
+  FInventoryItemHeight := GetUIOffset('InventoryItemHeight', 17);
+  FInventoryBagLeft := GetUIOffset('InventoryBagLeft', 180);
+  FInventoryBagTops[0] := GetUIOffset('InventoryBagTop1', 291);
+  FInventoryBagTops[1] := GetUIOffset('InventoryBagTop2', 318);
+  FInventoryBagTops[2] := GetUIOffset('InventoryBagTop3', 343);
+  FInventoryBagTops[3] := GetUIOffset('InventoryBagTop4', 368);
+  FInventoryBagTops[4] := GetUIOffset('InventoryBagTop5', 393);
 end;
 
 function TStatsWindow.GetStartingOpenPage: TStatsWindowPage;
@@ -381,35 +425,28 @@ end;
 
 procedure TStatsWindow.SelectInventoryBag(ABag: integer);
 (*** Assumes we've already ClickPage(swpInventory) ***)
-const
-  BAG_TOP_OFFSETS: array[0..4] of integer = (291, 318, 343, 368, 393);
-  BAG_LEFT_OFFSET = 180;
 begin
   if not (ABag in [0..4]) then
     exit;
 
-  DoLeftClick(Left + BAG_LEFT_OFFSET, Top + BAG_TOP_OFFSETS[ABag]);
+  DoLeftClick(Left + FInventoryBagLeft, Top + FInventoryBagTops[ABag]);
 end;
 
 procedure TStatsWindow.SelectInventoryItem(AItem: integer);
 (*** Assumes we've already ClickPage(swpInventory) ***)
-const
-  INV_LEFT_OFFSET = 20;
-  INV_TOP_OFFSET = 278;
-  INV_HEIGHT = 17;
 begin
   if not (AItem in [0..7]) then
     exit;
 
-  DoLeftClick(Left + INV_LEFT_OFFSET, Top + INV_TOP_OFFSET + (AItem * (INV_HEIGHT)) +
-    (INV_HEIGHT div 2));
+  DoLeftClick(Left + FInventoryLeft, Top + FInventoryTop + (AItem * (FInventoryItemHeight)) +
+    (FInventoryItemHeight div 2));
 end;
 
 { TDialogWindow }
 
 procedure TDialogWindow.ClickOK;
 begin
-  DoLeftClick(Left + 125, Top + 85);
+  DoLeftClick(Left + FOKLeft, Top + FOKTop);
 end;
 
 class procedure TDialogWindow.CloseDialog(AWndManager: TDAOCWindowManager);
@@ -425,13 +462,16 @@ constructor TDialogWindow.Create(AWndManager: TDAOCWindowManager);
 begin
   FWindowName := 'Dialog';
   inherited Create(AWndManager);
+
+  FOKTop := GetUIOffset('DialogOKTop', 85);
+  FOKLeft := GetUIOffset('DialogOKLeft', 125);
 end;
 
 { TVendorWindow }
 
 procedure TVendorWindow.Buy;
 begin
-  DoLeftClick(Left + 41, Top + 430);
+  DoLeftClick(Left + FBuyLeft, Top + FBuyTop);
 end;
 
 constructor TVendorWindow.Create(AWndManager: TDAOCWindowManager);
@@ -439,8 +479,20 @@ begin
   FWindowName := 'Train';
   inherited Create(AWndManager);
 
-  FPage := -1;
-  FItem := -1;
+  FItemsPerPage := GetUIOffset('MerchantItemsPerPage', 20);
+  FScrollLeftOffset := GetUIOffset('MerchantScrollbarLeft', 345);
+  FScrollUpTopOffset := GetUIOffset('MerchantScrollbarUpTop', 25);
+  FScrollDownTopOffset := GetUIOffset('MerchantScrollbarDownTop', 370);
+  FPageTopOffset := GetUIOffset('MerchantPageTop', 430);
+  FPageLeftLeftOffset := GetUIOffset('MerchantPageLeftLeft', 258);
+  FPageRightLeftOffset := GetUIOffset('MerchantPageRightLeft', 278);
+  FItemTopOffset := GetUIOffset('MerchantItemTop', 25);
+  FItemLeftOffset := GetUIOffset('MerchantItemLeft', 15);
+  FItemHeight := GetUIOffset('MerchantItemHeight', 18);
+  FCloseTopOffset := GetUIOffset('MerchantCloseTop', 5);
+
+  FBuyTop := GetUIOffset('MerchantBuyTop', 430);
+  FBuyLeft := GetUIOffset('MerchantBuyLeft', 41);
 end;
 
 procedure TVendorWindow.BuyMultiple(AQuantity: integer);
@@ -484,9 +536,20 @@ begin
   FWindowName := 'TradeSkillWindow';
   inherited Create(AWndManager);
 
-  FItemsPerPage := 21; // actually 22, but the last one on every page is the same as the first on the next
-  FScrollLeftOffset := 295;
   FExpandedGroupIdx := -1;
+
+  //FPageTopOffset := GetUIOffset('', 430);
+  //FPageLeftLeftOffset := GetUIOffset('', 258);
+  //FPageRightLeftOffset := GetUIOffset('', 278);
+  
+  FItemsPerPage := GetUIOffset('TradeskillItemsPerPage', 21); // actually 22, but the last one on every page is the same as the first on the next
+  FScrollLeftOffset := GetUIOffset('TradeskillScrollbarLeft', 295);
+  FScrollUpTopOffset := GetUIOffset('TradeskillScrollbarUpTop', 25);
+  FScrollDownTopOffset := GetUIOffset('TradeskillScrollbarDownTop', 370);
+  FItemTopOffset := GetUIOffset('TradeskillItemTop', 25);
+  FItemLeftOffset := GetUIOffset('TradeskillItemLeft', 15);
+  FItemHeight := GetUIOffset('TradeskillItemHeight', 18);
+  FCloseTopOffset := GetUIOffset('TradeskillCloseTop', 5);
 end;
 
 procedure TTradeRecipeWindow.ExpandGroup(AItem: TTradeSkillRecipe;
@@ -542,6 +605,10 @@ begin
   FWindowName := 'Quickbar';
   inherited Create(AWndManager);
   GetStartingOrientation;
+
+  FCenterPerp := GetUIOffset('QuickbarCenterPerp', 25);
+  FCenterPara := GetUIOffset('QuickbarCenterPara', 45);
+  FButtonWidth := GetUIOffset('QuickbarButtonWidth', 34);
 end;
 
 procedure TQuickbar.GetStartingOrientation;
@@ -557,13 +624,13 @@ begin
   case FOrientation of
     qboVertical:
       begin
-        X := Left + 25;
-        Y := Top + 45 + (34 * (ASlot-1));
+        X := Left + FCenterPerp;
+        Y := Top + FCenterPara + (FButtonWidth * (ASlot-1));
       end;
     qboHorizontal:
       begin
-        X := Top + 45 + (34 * (ASlot-1));
-        Y := Left + 25;
+        X := Top + FCenterPara + (FButtonWidth * (ASlot-1));
+        Y := Left + FCenterPerp;
       end;
   end;  { case orientation }
 end;
@@ -581,18 +648,6 @@ begin
 
   FPage := -1;
   FItem := -1;
-
-  FItemsPerPage := 20;
-  FScrollLeftOffset := 345;
-  FScrollUpTopOffset := 25;
-  FScrollDownTopOffset := 370;
-  FPageTopOffset := 430;
-  FPageLeftLeftOffset := 258;
-  FPageRightLeftOffset := 278;
-  FItemTopOffset := 25;
-  FItemLeftOffset := 15;
-  FItemHeight := 18;
-  FCloseTopOffset := 5;
 end;
 
 procedure TScrollableListWindow.PageLeft;
