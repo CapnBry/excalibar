@@ -75,7 +75,7 @@ void GET_LISTVIEW_SELECTED_ITEMS(HWND hwnd,UINT control,std::list<std::string>& 
 // intercept template functions
 template<typename T> bool is_near(const T& a,const T&b)
 {
-    return(fabs(a-b) < 0.00001);
+    return(fabs(a-b) < T(0.00001));
 }
 template<typename T> bool not_near(const T& a,const T&b)
 {
