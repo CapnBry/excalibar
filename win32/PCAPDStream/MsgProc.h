@@ -135,6 +135,9 @@ private:
 	    );
 	
 	cMemory Mem;
+	int CntPackets; // count of packets so we know
+	                // when to get the key
+	                // from memory
 
     MY_BUFFER_T TCPFromServerBuf;
     MY_BUFFER_T TCPFromClientBuf;

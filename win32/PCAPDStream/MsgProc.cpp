@@ -1,6 +1,6 @@
 #include "pcapserver.h"
 #include <iostream>
-#include <fstream>
+//#include <fstream>
 
 // some code courtesy of Cheyenne version 0.07 :)
 union word_builder
@@ -196,18 +196,19 @@ void SkipData(int& start,int bytes)
 } // end SkipData
 
 
-std::ofstream log_file;
+//std::ofstream log_file;
 //std::ofstream from_tcp_server_file;
 
 cMsgProc::cMsgProc(void)
 {
-    log_file.open("log.txt",std::ios::out);
+    //log_file.open("log.txt",std::ios::out);
     //from_tcp_server_file.open("from_tcp_server.txt",std::ios::out);
+    CntPackets=0;
 }
 
 cMsgProc::~cMsgProc(void)
 {
-    log_file.close();
+    //log_file.close();
     //from_tcp_server_file.close();
 }
 
@@ -307,13 +308,13 @@ bool cMsgProc::HandleGeneralPacket
 	MY_BUFFER_T* buf
 	)
 {
-    log_file << "[" << __FUNCTION__ << "]"
-        << " tcp=" << tcp
-        << " from_server=" << from_server
-        << " buf=" << buf
-        << " buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize
-        << " buf->NumUsedBytes()=" << buf->NumUsedBytes()
-        << "\n";
+    //log_file << "[" << __FUNCTION__ << "]"
+    //    << " tcp=" << tcp
+    //    << " from_server=" << from_server
+    //    << " buf=" << buf
+    //    << " buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize
+    //    << " buf->NumUsedBytes()=" << buf->NumUsedBytes()
+    //    << "\n";
         
     // if we need to get the size and have enough data
     // to get the size, then get the size. DAOCMessageSize==0
@@ -328,13 +329,13 @@ bool cMsgProc::HandleGeneralPacket
                 from_server,
                 buf->ShowTheBuffer()
                 );
-        log_file << "new: buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize << "\n"; 
+        //log_file << "new: buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize << "\n"; 
         } // end if need size and have enough data to get size
     
     size_t TotalMessageBytes=buf->UserStorage.DAOCMessageSize+2;
     while(buf->NumUsedBytes() >= TotalMessageBytes)
         {
-        log_file << "decrypting a message of size " << buf->UserStorage.DAOCMessageSize << "\n";
+        //log_file << "decrypting a message of size " << buf->UserStorage.DAOCMessageSize << "\n";
         
         // print stuff
         //PrintToStream(log_file,buf->ShowTheBuffer(),buf->NumUsedBytes());
@@ -375,9 +376,9 @@ bool cMsgProc::HandleGeneralPacket
             buf->UserStorage.DAOCMessageSize=0;
             }
         
-        log_file << "next: buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize 
-                    << " buf->NumUsedBytes()=" << buf->NumUsedBytes()
-                    << "\n"; 
+        //log_file << "next: buf->UserStorage.DAOCMessageSize=" << buf->UserStorage.DAOCMessageSize 
+        //            << " buf->NumUsedBytes()=" << buf->NumUsedBytes()
+        //            << "\n"; 
         
         // readjust this for next message
         TotalMessageBytes=buf->UserStorage.DAOCMessageSize+2;
@@ -390,6 +391,18 @@ bool cMsgProc::HandleGeneralPacket
 
 bool cMsgProc::HandleTCPPacket(char* data,int data_size,bool from_server)
 {
+    // ignore the first two packets, then 
+    // find the key when the third packet arrives 
+    if(CntPackets == 2) 
+        { 
+        Mem.GetKey(); 
+        CntPackets++;       
+        } 
+    else if(CntPackets < 2) 
+        { 
+        CntPackets++; 
+        } 
+        
     // alias a pointer to the correct buffer
     MY_BUFFER_T* buf;
     if(from_server)
