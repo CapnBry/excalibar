@@ -11,7 +11,15 @@ IN TESTING
   + Fix bug causing exception clearing group member list after zoning.
   + Fix bug removing group members who have already been deleted.
   + Doors are now red or green pyramids depending on their state.
-  + Target HUD now displays door status.
+  + Target HUD now displays door status
+  + Made Anonymous stealther circle slightly larger and less alpha.
+  + Added CachedSelectedObject for performance increase searching for
+    what is selected.
+  + Added display of LocalPlayer to target HUD if self selected.
+  + Added Mana percent to target HUD.
+  + Added ability to select self when clicking on map.
+  + An Object's distance from itself is now always 0.
+  + Added packethandler.ini for easy changing of packet command IDs.
 
 2004 Feb 09 - v1.83
 -------------------

@@ -47,7 +47,8 @@ uses
   QuickLaunchChars in 'QuickLaunchChars.pas',
   glWindow in '..\Common\glWindow.pas',
   LowOnStat in '..\Common\DAOCAutomation\LowOnStat.pas' {frmLowOnStat},
-  geScale in 'geScale.pas';
+  geScale in 'geScale.pas',
+  NamedPacketHandler in '..\Common\PacketSniff\NamedPacketHandler.pas';
 
 {$R *.TLB}
 
