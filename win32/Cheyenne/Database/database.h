@@ -272,6 +272,7 @@ public:
     bool IsSaveDAoCMessages(void)const{return(bSaveDAoCMessages);};
 
     void RequestFullUpdate(void);
+    const CheyenneTime GetMaxAge(Actor::ActorTypes type)const;
 
 protected:
 private:

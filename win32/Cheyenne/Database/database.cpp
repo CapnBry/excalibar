@@ -409,7 +409,7 @@ void Database::MaintainUncorrelatedStealth(void)
 void Database::DoMaintenance(void)
 {
     std::list<Database::id_type> IdToDelete;
-    const CheyenneTime MaxAge(600); // 600 seconds (10 minutes)
+    //const CheyenneTime MaxAge(600); // 600 seconds (10 minutes)
     CheyenneTime CurrentAge;
 
     // lock the database during the update
@@ -420,6 +420,9 @@ void Database::DoMaintenance(void)
         // update 'em
         Actor& ThisActor=(*it).second;
 
+        // get max age for this actor
+        const CheyenneTime MaxAge=GetMaxAge(ThisActor.GetActorType());
+        
         // get time since last update for this actor
         CurrentAge=::Clock.Current();
         CurrentAge -= ThisActor.GetLastUpdateTime();
@@ -1028,6 +1031,22 @@ void Database::SaveMessage(const daocmessages::SniffedMessage& msg)
         msg.Print(*MessageSaveStream);
         } // end if we are supposed to save
 } // end SaveMessage
+
+const CheyenneTime Database::GetMaxAge
+    (
+    Actor::ActorTypes type
+    )const
+{
+    switch(type)
+        {
+        case Actor::Player:
+            return CheyenneTime(60.0); // 1 minute
+        case Actor::Mob:
+            return CheyenneTime(600.0); // 10 minutes
+        default: // objects
+            return CheyenneTime(std::numeric_limits<double>::max()); // forever
+        }
+} // end GetMaxAge
 
 void Database::HandleShareMessage(const sharemessages::ShareMessage* msg)
 {
@@ -1738,7 +1757,7 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
             {
             const daocmessages::delete_object* p=static_cast<const daocmessages::delete_object*>(msg);
 
-            id_type id=GetUniqueId(p->detected_region,p->object_id);
+            const id_type id=GetUniqueId(p->detected_region,p->object_id);
 
             // get actor
             Actor* pa=GetActorById(id);
@@ -2348,26 +2367,38 @@ void Database::HandleSniffedMessage(const daocmessages::SniffedMessage* msg)
                 } // end if uncorrelated stealth
             else
                 {
-                // set stealth flag
-                pa->SetStealth(true);
-                
-                // save time
-                pa->SetLastLocalTime(::Clock.Current());
-
-                // if this is an old actor, we want to keep it "alive" since we are
-                // still seeing packets for it
-                if(pa->GetOld())
+                if(pa->GetHealth()==0)
                     {
-                    // save update time, but do not clear old flag. This
-                    // will cause the PPI to show it as old, but the 
-                    // database will never delete it -- unless we stop receiving
-                    // packets for it.
-                    pa->SetLastUpdateTime(::Clock.Current());
-                    pa->SetLastLocalTime(pa->GetLastUpdateTime());
-                    }
+                    // treat this like a delete actor message
+                    // send hard_delete to network
+                    SendNetworkUpdate(*pa,share_opcodes::hard_delete);
+                    
+                    // delete the actor
+                    DeleteActor(id);
+                    } // end if actor dead
+                else
+                    {
+                    // set stealth flag
+                    pa->SetStealth(true);
+                    
+                    // save time
+                    pa->SetLastLocalTime(::Clock.Current());
 
-                // send visibility update to the network
-                SendNetworkUpdate(*pa,share_opcodes::visibility_update);
+                    // if this is an old actor, we want to keep it "alive" since we are
+                    // still seeing packets for it
+                    if(pa->GetOld())
+                        {
+                        // save update time, but do not clear old flag. This
+                        // will cause the PPI to show it as old, but the 
+                        // database will never delete it -- unless we stop receiving
+                        // packets for it.
+                        pa->SetLastUpdateTime(::Clock.Current());
+                        pa->SetLastLocalTime(pa->GetLastUpdateTime());
+                        }
+
+                    // send visibility update to the network
+                    SendNetworkUpdate(*pa,share_opcodes::visibility_update);
+                    } // end else actor is alive
                 } // end else found stealther
             }
             break;
