@@ -271,7 +271,7 @@ DWORD TelnetClientData::Run(const bool& bContinue)
                 } // end while stuff is on the fifo
                 
             // wait for output buffer to have data in it
-            switch(GetOutputBuffer().Wait(AlertableWaitSingleFunctor(),1000))
+            switch(GetOutputBuffer().Wait(AlertableWaitSingleFunctor(),100))
                 {
                 case WAIT_OBJECT_0:
                     // there is data to be sent
