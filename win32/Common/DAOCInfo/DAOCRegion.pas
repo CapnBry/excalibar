@@ -114,7 +114,7 @@ end;
 
 function TDAOCZoneInfo.ZoneConvertHead(AHead: integer): integer;
 begin
-  Result := AHead + FRotate;
+  Result := AHead + FRotate + 180;
   if Result > 360 then
     dec(Result, 360);
 end;
