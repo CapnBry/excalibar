@@ -27,6 +27,8 @@ type
     procedure SetStealthed(const Value: boolean);
     function GetIsStale: boolean;
     function GetLiveDataConfidencePct: single;
+    function GetIsDead: boolean;
+    function GetIsAlive: boolean;
   protected
     FInfoID:WORD;
     FPlayerID: WORD;
@@ -88,6 +90,8 @@ type
     property Head: integer read GetHead;
     property HeadWord: WORD read FHeadWord write SetHeadWord;
     property HitPoints: BYTE read FHitPoints write SetHitPoints;
+    property IsAlive: boolean read GetIsAlive;
+    property IsDead: boolean read GetIsDead;
     property IsStale: boolean read GetIsStale;
     property Level: integer read FLevel write SetLevel;
     property Realm: TDAOCRealm read FRealm write SetRealm;
@@ -125,6 +129,8 @@ type
     FCount: integer;
     FHead: TDAOCObject;
   public
+    destructor Destroy; override;
+    
     procedure Add(ADAOCObj: TDAOCObject);
     function Delete(ADAOCObj: TDAOCObject) : TDAOCObject;
     function Remove(ADAOCObj: TDAOCObject) : TDAOCObject;
@@ -147,8 +153,6 @@ type
     function GetIsSwimming: boolean;
     function GetXProjected: DWORD;
     function GetYProjected: DWORD;
-    function GetIsDead: boolean;
-    function GetIsAlive: boolean;
     function GetSpeedString: string;
   protected
     FSpeedWord:  WORD;
@@ -174,8 +178,6 @@ type
     property Speed: integer read GetSpeed;
     property SpeedWord: WORD read FSpeedWord write SetSpeedWord;
     property SpeedString: string read GetSpeedString;
-    property IsAlive: boolean read GetIsAlive;
-    property IsDead: boolean read GetIsDead;
     property IsSwimming: boolean read GetIsSwimming;
     property Inventory: TDAOCInventory read FInventory;
   end;
@@ -465,12 +467,12 @@ begin
   inherited;
 end;
 
-function TDAOCMovingObject.GetIsAlive: boolean;
+function TDAOCObject.GetIsAlive: boolean;
 begin
   REsult := FHitPoints <> 0;
 end;
 
-function TDAOCMovingObject.GetIsDead: boolean;
+function TDAOCObject.GetIsDead: boolean;
 begin
   Result := FHitPoints = 0;
 end;
@@ -1187,6 +1189,8 @@ end;
 
 procedure TDAOCObjectLinkedList.Add(ADAOCObj: TDAOCObject);
 begin
+//  WriteLn(Format('%8.8p BeforeAdd %8.8p count %d', [Pointer(Self), Pointer(ADAOCObj), FCount]));
+
   if Assigned(FHead) then begin
     ADAOCObj.FNext := FHead;
     ADAOCObj.FPrev := nil;
@@ -1227,6 +1231,12 @@ function TDAOCObjectLinkedList.Delete(ADAOCObj: TDAOCObject) : TDAOCObject;
 begin
   Result := Remove(ADAOCObj);
   ADAOCObj.Free;
+end;
+
+destructor TDAOCObjectLinkedList.Destroy;
+begin
+  Clear;
+  inherited;
 end;
 
 function TDAOCObjectLinkedList.FindByInfoID(AInfoID: integer): TDAOCObject;
@@ -1293,6 +1303,8 @@ end;
 function TDAOCObjectLinkedList.Remove(ADAOCObj: TDAOCObject) : TDAOCObject;
 (*** Remove the object without freeing, return passed object's next ***)
 begin
+//  WriteLn(Format('%8.8p BeforeRemove %8.8p count %d', [Pointer(Self), Pointer(ADAOCObj), FCount]));
+
   if not Assigned(ADAOCObj) then begin
     Result := nil;
     exit;
