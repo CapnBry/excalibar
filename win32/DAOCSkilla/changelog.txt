@@ -1,6 +1,7 @@
 2003 Dec 19 - v1.70
 -------------------
-  + Added support for PPPoE.  *Tons* of thanks go to 
+  + Added support for PPPoE.  *Tons* of thanks go to ogerwahn for
+    providing PPPoE captures and bearing with me while I got it working.
   + Fixed confusing grayed text for adapters in Connection Config
     dialog.
 
