@@ -262,7 +262,7 @@ begin
 
 {$IFDEF OPENGL_RENDERER}
   if chkAutolaunchExcal.Checked then
-    frmGLRender.Hide;
+    frmGLRender.Close;
 {$ENDIF OPENGL_RENDERER}
 end;
 
@@ -348,6 +348,7 @@ begin
     chkChatLog.Checked := ReadBool('Main', 'RealtimeChatLog', false);
     chkChatLogClick(nil);
     edtChatLogFile.Text := ReadString('Main', 'ChatLogFile', FConnection.DAOCPath + 'realchat.log');
+    btnMacroing.Visible := ReadBool('Main', 'EnableMacroing', false);
 
     FConnection.DAOCWindowClass := ReadString('Main', 'DAOCWindowClass', FConnection.DAOCWindowClass);
 
