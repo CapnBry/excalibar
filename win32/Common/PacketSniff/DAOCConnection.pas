@@ -847,30 +847,56 @@ begin
 end;
 
 procedure TDAOCConnection.ProcessEthernetSegment(ASegment: TEthernetSegment);
+var
+  pDecapSegment:  TEthernetSegment;
 begin
   if not Assigned(ASegment.Data) then
     exit;
-    
-  if (ASegment.AsIP^.Protocol = SOL_UDP) and FActive then
-    ProcessUDPSegment(ASegment)
 
-  else if ASegment.AsIP^.Protocol = SOL_TCP then
-      { see if this is a new connection, SYN / ACK will come from server }
-    if IsSyn(ASegment.AsTCP) and IsAck(ASegment.AsTCP) then begin
-      IntializeFromSegment(ASegment);
-      DoOnConnect;
-    end
+  pDecapSegment := ASegment.DecapsulatePPPoE;
+  try
+    if Assigned(pDecapSegment) then begin
+        { quick software filter }
+      if ((pDecapSegment.AsIP^.SrcAddr and $00ffffff) <> $0010fed0) and // US
+        ((pDecapSegment.AsIP^.DestAddr and $00ffffff) <> $0010fed0) and
+        ((pDecapSegment.AsIP^.SrcAddr and $00ffffff) <> $007bfcc1) and  // EU
+        ((pDecapSegment.AsIP^.DestAddr and $00ffffff) <> $007bfcc1) then
+        exit;
 
-    else if IsFin(ASegment.AsTCP) and
-      (FClientAddr = ASegment.AsIP^.SrcAddr) then begin
-      FActive := false;
-      DoOnDisconnect;
-    end
+      if (pDecapSegment.AsIP^.Protocol = SOL_TCP) and not
+        ((pDecapSegment.AsTCP^.SrcPort = $7e29) or (pDecapSegment.AsTCP^.DestPort = $7e29)) // port 10622
+        then
+        exit;
 
-    else if FActive then
-      ProcessTCPSegment(ASegment);
+      ASegment := pDecapSegment;
+    end;  { if we decaped }
 
-  CheckScheduledTimeoutCallback;
+    if ASegment.AsEthernet^.FrameType <> NET_IP_TYPE then
+      exit;
+
+    if (ASegment.AsIP^.Protocol = SOL_UDP) and FActive then
+      ProcessUDPSegment(ASegment)
+
+    else if ASegment.AsIP^.Protocol = SOL_TCP then
+        { see if this is a new connection, SYN / ACK will come from server }
+      if IsSyn(ASegment.AsTCP) and IsAck(ASegment.AsTCP) then begin
+        IntializeFromSegment(ASegment);
+        DoOnConnect;
+      end
+
+      else if IsFin(ASegment.AsTCP) and
+        (FClientAddr = ASegment.AsIP^.SrcAddr) then begin
+        FActive := false;
+        DoOnDisconnect;
+      end
+
+      else if FActive then
+        ProcessTCPSegment(ASegment);
+
+    CheckScheduledTimeoutCallback;
+  finally
+    pDecapSegment.Free;
+  end;
 end;
 
 procedure TDAOCConnection.ProcessTCPSegment(ASegment: TEthernetSegment);
