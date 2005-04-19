@@ -1,203 +1,462 @@
-  0   1   - 0   0   548864   483328 -   614400   548864 Camelot_Hills.map
-  1   1   - 0   0   548864   548864 -   614400   614400 Salisbury_Plains.map
-  2   1   - 0   0   483328   434176 -   548864   499712 Black_Mtns_South.map
-  3   1   - 0   0   483328   368640 -   548864   434176 Black_Mtns_North.map
-  4   1   - 0   0   352256   696320 -   417792   761856 Dartmoor.map
-  6   1   - 0   0   352256   630784 -   417792   696320 Cornwall.map
-  7   1   - 0   0   417792   368640 -   483328   434176 Llyn_Barfog.map
-  8   1   - 0   0   483328   581632 -   548864   647168 Campacorentin_Forest.map
-  9   1   - 0   0   417792   614400 -   483328   679936 Avalon_Marsh.map
- 10   1   - 0   0   286720   630784 -   352256   696320 Lyonesse.map
- 11   1   - 0   0   565248   417792 -   630784   483328 oForest_Sauvage.map
- 12   1   - 0   0   499712   303104 -   565248   368640 oSnowdonia.map
- 13   2   - 3   0   524288   524288 -   589824   589824 Caerwent.map
- 14   1   - 0   0   565248   352256 -   630784   417792 oPennine_Mountains.map
- 15   1   - 0   0   598016   286720 -   663552   352256 oHadrians_Wall.map
- 16   2   - 3   0   524288   589824 -   589824   655360 Old_Sarum.map
- 17   2   - 3   0   524288   458752 -   589824   524288 Rilan.map
- 18   2   - 3   0   458752   524288 -   524288   589824 Dalton.map
- 19  20   - 2   0     8192     8192 -    73728    73728 Stonehenge_Barrows.map
- 20   2   - 3   0   458752   458752 -   524288   524288 Brisworthy.map
- 21  21   - 2   0     8192     8192 -    73728    73728 Tomb_of_Mithra.map
- 22  22   - 2   0     8192     8192 -    73728    73728 Keltoi_Fogou.map
- 23  23   - 2   0     8192     8192 -    73728    73728 Catacombs_of_Cardova.map
- 24  24   - 2   0     8192     8192 -    73728    73728 Tepoks_Mine.map
- 26  10   - 1  90     8192     8192 -    73728    73728 City_of_Camelot.map
- 30  30  73 0   0   262144   524288 -   327680   589824 Oceanus_Hesperos.map
- 31  30  74 0   0   327680   524288 -   393216   589824 Mesothalassa.map
- 32  30  75 0   0   327680   458752 -   393216   524288 Oceanus_Boreal.map
- 33  30  76 0   0   327680   589824 -   393216   655360 Oceanus_Notos.map
- 34  30  77 0   0   393216   524288 -   458752   589824 Oceanus_Anatole.map
- 35  35  78 2   0     8192     8192 -    73728    73728 Cetus_Pit.map
- 36  36  79 2   0     8192     8192 -    73728    73728 Sobekite_Eternal.map
- 37  37  80 2   0     8192     8192 -    73728    73728 Temple_of_Twilight.map
- 38  30  81 0   0   294912   393216 -   360448   458752 Stygian_Delta.map
- 39  30  82 0   0   229376   393216 -   294912   458752 Land_of_Atum.map
- 40  40  83 2   0     8192     8192 -    73728    73728 Halls_of_Maati.map
- 41  30  84 0   0   458752   524288 -   524288   589824 Typhons_Reach.map
- 42  30  85 0   0   524288   524288 -   589824   589824 Ashen_Isles.map
- 43  30  86 0   0   360448   655360 -   425984   720896 Green_Glades.map
- 44  30  87 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
- 45  45  88 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
- 46  46  89 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
- 47  47  90 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
- 50  50   - 1   0     8192     8192 -    73728    73728 Avalon_City.map
- 51  51   - 0   0   491520   491520 -   557056   557056 Isle_of_Glass.map
- 52  51   - 0   0   425984   442368 -   491520   507904 Avalon_Isle.map
- 53  51   - 0   0   376832   376832 -   442368   442368 Dales_of_Devwy.map
- 54  51   - 0   0   311296   360448 -   376832   425984 Caldey.map
- 55  51   - 0   0   294912   425984 -   360448   491520 Gwyddneau.map
- 56  51   - 0   0   360448   475136 -   425984   540672 Aldland.map
- 57  51   - 0   0   229376   425984 -   294912   491520 Inishail_Island.map
- 60  60   - 2   0     8192     8192 -    73728    73728 Caer_Sidi.map
- 61  61   - 2   0     8192     8192 -    73728    73728 Krondon.map
- 62  62   - 2   0     8192     8192 -    73728    73728 Crystal_Cave.map
- 64   2   - 3   0   458752   589824 -   524288   655360 Aylesbury.map
- 70  70   - 0   0   524288   524288 -   589824   589824 Ruins_of_Atlantis.map
- 71  71   - 0   0   524288   524288 -   589824   589824 Ruinerar_av_Atlantis.map
- 72  72   - 0   0   524288   524288 -   589824   589824 Scrios_de_Atlantis.map
- 73  73   - 0   0   262144   524288 -   327680   589824 Oceanus_Hesperos.map
- 74  73   - 0   0   327680   524288 -   393216   589824 Mesothalassa.map
- 75  73   - 0   0   327680   458752 -   393216   524288 Oceanus_Boreal.map
- 76  73   - 0   0   327680   589824 -   393216   655360 Oceanus_Notos.map
- 77  73   - 0   0   393216   524288 -   458752   589824 Oceanus_Anatole.map
- 78  78   - 2   0     8192     8192 -    73728    73728 Cetus_Pit.map
- 79  79   - 2   0     8192     8192 -    73728    73728 Sobekite_Eternal.map
- 80  80   - 2   0     8192     8192 -    73728    73728 Temple_of_Twilight.map
- 81  73   - 0   0   294912   393216 -   360448   458752 Stygian_Delta.map
- 82  73   - 0   0   229376   393216 -   294912   458752 Land_of_Atum.map
- 83  83   - 2   0     8192     8192 -    73728    73728 Halls_of_Maati.map
- 84  73   - 0   0   458752   524288 -   524288   589824 Typhons_Reach.map
- 85  73   - 0   0   524288   524288 -   589824   589824 Ashen_Isles.map
- 86  73   - 0   0   360448   655360 -   425984   720896 Green_Glades.map
- 87  73   - 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
- 88  88   - 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
- 89  89   - 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
- 90  90   - 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
- 91  91   - 2   0     8192     8192 -    73728    73728 Celestius.map
-100 100   - 0   0   753664   671744 -   819200   737280 Vale_of_Mularn.map
-101 100   - 0   0   720896   737280 -   786432   802816 East_Svealand.map
-102 100   - 0   0   655360   737280 -   720896   802816 West_Svealand.map
-103 100   - 0   0   720896   802816 -   786432   868352 Gotar.map
-104 100   - 0   0   819200   638976 -   884736   704512 Muspelheim.map
-105 100   - 0   0   753664   868352 -   819200   933888 Myrkwood_Forest.map
-106 100   - 0   0   688128   901120 -   753664   966656 Skona_Ravine.map
-107 100   - 0   0   622592   868352 -   688128   933888 Vanern_Swamp.map
-108 100   - 0   0   589824   737280 -   655360   802816 Raumarik.map
-111 100   - 0   0   720896   606208 -   786432   671744 oUppland.map
-112 100   - 0   0   655360   671744 -   720896   737280 oYggdra_Forest.map
-113 100   - 0   0   655360   606208 -   720896   671744 oJamtland_Mountains.map
-114 102   - 3   0   524288   524288 -   589824   589824 Erikstaad.map
-115 100   - 0   0   589824   573440 -   655360   638976 oOdins_Gate.map
-116 100   - 0   0   688128   966656 -   753664  1032192 Malmohus.map
-117 102   - 3   0   524288   458752 -   589824   524288 Arothi.map
-118 102   - 3   0   589824   524288 -   655360   589824 Carlingford.map
-119 102   - 3   0   524288   589824 -   589824   655360 Wyndham.map
-120 101   - 1 180     8192     8192 -    73728    73728 Jordheim.map
-121 102   - 3   0   589824   589824 -   655360   655360 Frisia.map
-122 102   - 3   0   589824   458752 -   655360   524288 Kaupang.map
-125 125   - 2   0     8192     8192 -    73728    73728 Spindelhalla.map
-126 126   - 2   0     8192     8192 -    73728    73728 Vendo_Caverns.map
-127 127   - 2   0     8192     8192 -    73728    73728 Varulvhamn.map
-128 128   - 2   0     8192     8192 -    73728    73728 Cursed_Tomb.map
-129 129   - 2   0     8192     8192 -    73728    73728 Nisses_Lair.map
-130 130  73 0   0   262144   524288 -   327680   589824 Oceanus_Hesperos.map
-131 130  74 0   0   327680   524288 -   393216   589824 Mesothalassa.map
-132 130  75 0   0   327680   458752 -   393216   524288 Oceanus_Boreal.map
-133 130  76 0   0   327680   589824 -   393216   655360 Oceanus_Notos.map
-134 130  77 0   0   393216   524288 -   458752   589824 Oceanus_Anatole.map
-135 135  78 2   0     8192     8192 -    73728    73728 Cetus_Pit.map
-136 136  79 2   0     8192     8192 -    73728    73728 Sobekite_Eternal.map
-137 137  80 2   0     8192     8192 -    73728    73728 Temple_of_Twilight.map
-138 130  81 0   0   294912   393216 -   360448   458752 Stygian_Delta.map
-139 130  82 0   0   229376   393216 -   294912   458752 Land_of_Atum.map
-140 140  83 2   0     8192     8192 -    73728    73728 Halls_of_Maati.map
-141 130  84 0   0   458752   524288 -   524288   589824 Typhons_Reach.map
-142 130  85 0   0   524288   524288 -   589824   589824 Ashen_Isles.map
-143 130  86 0   0   360448   655360 -   425984   720896 Green_Glades.map
-144 130  87 0   0   425984   655360 -   491520   720896 Arbor_Glen.map
-145 145  88 2   0     8192     8192 -    73728    73728 the_Great_Pyramid_of_Stygia.map
-146 146  89 2   0     8192     8192 -    73728    73728 Heart_of_Volcanus.map
-147 147  90 4   0     8192     8192 -    73728    73728 City_of_Aerus.map
-150 150   - 2   0     8192     8192 -    73728    73728 Trollheim.map
-151 151   - 0   0   245760   311296 -   311296   376832 Aegirs_Landing.map
-152 151   - 0   0   278528   245760 -   344064   311296 Gripklosa_Mountains.map
-153 151   - 0   0   344064   262144 -   409600   327680 Delling_Crater.map
-154 151   - 0   0   360448   327680 -   425984   393216 Faraheim.map
-155 151   - 0   0   294912   376832 -   360448   442368 Munin_Sound.map
-156 151   - 0   0   393216   393216 -   458752   458752 Iarnwood.map
-157 151   - 0   0   278528   180224 -   344064   245760 Dummy_Zone.map
-158 151   - 0   0   425984   327680 -   491520   393216 Modernagrav.map
-160 160   - 2   0     8192     8192 -    73728    73728 Tuscaran_Glacier.map
-161 161   - 2   0     8192     8192 -    73728    73728 Iarnvidiurs_Lair.map
-163 163   - 0   0   491520   458752 -   557056   524288 North_Sea.map
-164 163   - 0   0   491520   524288 -   557056   589824 Irish_Sea.map
-167 163   - 0   0   491520   393216 -   557056   458752 Odins_Gate.map
-168 163   - 0   0   557056   393216 -   622592   458752 Jamtland_Mountains.map
-169 163   - 0   0   622592   393216 -   688128   458752 Yggdra_Forest.map
-170 163   - 0   0   557056   327680 -   622592   393216 Uppland.map
-171 163   - 0   0   425984   491520 -   491520   557056 Emain_Macha.map
-172 163   - 0   0   425984   557056 -   491520   622592 Breifine.map
-173 163   - 0   0   360448   557056 -   425984   622592 Cruachan_Gorge.map
-174 163   - 0   0   425984   622592 -   491520   688128 Mount_Collory.map
-175 163   - 0   0   557056   622592 -   622592   688128 Snowdonia.map
-176 163   - 0   0   622592   557056 -   688128   622592 Forest_Sauvage.map
-177 163   - 0   0   557056   557056 -   622592   622592 Pennine_Mountains.map
-178 163   - 0   0   557056   491520 -   622592   557056 Hadrians_Wall.map
-180 180   - 2   0     8192     8192 -    73728    73728 Fomor.map
-181 181   - 0   0   393216   393216 -   458752   458752 Domnann.map
-182 181   - 0   0   327680   360448 -   393216   425984 Caillte_Garran.map
-183 181   - 0   0   262144   327680 -   327680   393216 Vale_of_Balor.map
-184 181   - 0   0   278528   262144 -   344064   327680 Cothrom_Gorge.map
-185 181   - 0   0   344064   229376 -   409600   294912 Worlds_End.map
-186 181   - 0   0   376832   294912 -   442368   360448 Vigilant_Rock.map
-187 181   - 0   0   344064   163840 -   409600   229376 Allta_Fearann.map
-190 190   - 2   0     8192     8192 -    73728    73728 Tur_Suil.map
-191 191   - 2   0     8192     8192 -    73728    73728 Galladoria.map
-200 200   - 0   0   319488   483328 -   385024   548864 Lough_Derg.map
-201 200   - 0   0   319488   548864 -   385024   614400 Silvermine_Mts.map
-202 200   - 0   0   286720   614400 -   352256   679936 Shannon_Estuary.map
-203 200   - 0   0   221184   417792 -   286720   483328 Cliffs_of_Moher.map
-204 200   - 0   0   286720   679936 -   352256   745472 Lough_Gur.map
-205 200   - 0   0   352256   712704 -   417792   778240 Bog_of_Cullen.map
-206 200   - 0   0   385024   483328 -   450560   548864 Valley_of_Bri_Leith.map
-207 200   - 0   0   286720   417792 -   352256   483328 Connacht.map
-208 200   - 0   0   450560   483328 -   516096   548864 Cursed_Forest.map
-209 201   - 1 180     8192     8192 -    73728    73728 Tir_na_Nog.map
-210 200   - 0   0   385024   417792 -   450560   483328 oMount_Collory.map
-211 200   - 0   0   319488   352256 -   385024   417792 oCruachan_Gorge.map
-212 200   - 0   0   385024   352256 -   450560   417792 oBreifine.map
-213 202   - 3   0   524288   524288 -   589824   589824 Meath.map
-214 200   - 0   0   417792   286720 -   483328   352256 oEmain_Macha.map
-215 202   - 3   0   458752   524288 -   524288   589824 Dunshire.map
-216 200   - 0   0   352256   647168 -   417792   712704 Sheeroe_Hills.map
-217 202   - 3   0   524288   589824 -   589824   655360 Torrylin.map
-218 202   - 3   0   589824   524288 -   655360   589824 Kilcullen.map
-219 202   - 3   0   458752   589824 -   524288   655360 Saeranthal.map
-220 220   - 2   0     8192     8192 -    73728    73728 Coruscating_Mine.map
-221 221   - 2   0     8192     8192 -    73728    73728 Muire_Tomb.map
-222 222   - 2   0     8192     8192 -    73728    73728 Spraggon_Den.map
-223 223   - 2   0     8192     8192 -    73728    73728 Koalinth_Caverns.map
-224 224   - 2   0     8192     8192 -    73728    73728 Treibh_Caillte.map
-225 202   - 3   0   589824   589824 -   655360   655360 Aberillan.map
-233 233   - 2   0     8192     8192 -    73728    73728 Summoners_Hall.map
-234 234   - 0   0   524288   524288 -   589824   589824 The_Proving_Grounds.map
-235 235   - 0   0   524288   524288 -   589824   589824 The_Lions_Den.map
-236 236   - 0   0   524288   524288 -   589824   589824 The_Hills_of_Claret.map
-237 237   - 0   0   524288   524288 -   589824   589824 Killaloe.map
-238 238   - 0   0   524288   524288 -   589824   589824 Thidranki.map
-239 239   - 0   0   524288   524288 -   589824   589824 Braemar.map
-240 240   - 0   0   524288   524288 -   589824   589824 Wilton.map
-241 241   - 0   0   524288   524288 -   589824   589824 Molvik.map
-242 242   - 0   0   524288   524288 -   589824   589824 Leirvik.map
-244 244   - 2   0     8192     8192 -    73728    73728 Passage_of_Conflict.map
-245 245   - 2   0     8192     8192 -    73728    73728 oHall_of_the_Corrupt.map
-246 246   - 2   0     8192     8192 -    73728    73728 oDodens_Gruva.map
-247 247   - 2   0     8192     8192 -    73728    73728 oMarfach_Caverns.map
-248 248   - 2   0     8192     8192 -    73728    73728 oSummoners_Hall.map
-249 249   - 2   0     8192     8192 -    73728    73728 Darkness_Falls.map
-250 250   - 0   0     8192     8192 -    73728    73728 oCaledonia.map
-251 251   - 0   0     8192     8192 -    73728    73728 oMurdaigean.map
-252 252   - 0   0     8192     8192 -    73728    73728 oThidranki.map
-253 253   - 0   0     8192     8192 -    73728    73728 oAbermenai.map
-254 242   - 0   0   262144   262144 -   327680   327680 Leirvik.map_bogus
+000 001   - 0   0   548864   483328 A    614400   548864 Camelot_Hills.map
+001 001   - 0   0   548864   548864 A    614400   614400 Salisbury_Plains.map
+002 001   - 0   0   483328   434176 A    548864   499712 Black_Mtns_South.map
+003 001   - 0   0   483328   368640 A    548864   434176 Black_Mtns_North.map
+004 001   - 0   0   352256   696320 A    417792   761856 Dartmoor.map
+006 001   - 0   0   352256   630784 A    417792   696320 Cornwall.map
+007 001   - 0   0   417792   368640 A    483328   434176 Llyn_Barfog.map
+008 001   - 0   0   483328   581632 A    548864   647168 Campacorentin_Forest.map
+009 001   - 0   0   417792   614400 A    483328   679936 Avalon_Marsh.map
+010 001   - 0   0   286720   630784 A    352256   696320 Lyonesse.map
+011 001   - 0   0   565248   417792 AO   630784   483328 Forest_Sauvage.map
+012 001   - 0   0   499712   303104 AO   565248   368640 Snowdonia.map
+013 002   - 3   0   524288   524288 A    589824   589824 Caerwent.map
+014 001   - 0   0   565248   352256 AO   630784   417792 Pennine_Mountains.map
+015 001   - 0   0   598016   286720 AO   663552   352256 Hadrians_Wall.map
+016 002   - 3   0   524288   589824 A    589824   655360 Old_Sarum.map
+017 002   - 3   0   524288   458752 A    589824   524288 Rilan.map
+018 002   - 3   0   458752   524288 A    524288   589824 Dalton.map
+019 020   - 2   0     8192     8192 A     73728    73728 Stonehenge_Barrows.map
+020 002   - 3   0   458752   458752 A    524288   524288 Brisworthy.map
+021 021   - 2   0     8192     8192 A     73728    73728 Tomb_of_Mithra.map
+022 022   - 2   0     8192     8192 A     73728    73728 Keltoi_Fogou.map
+023 023   - 2   0     8192     8192 A     73728    73728 Catacombs_of_Cardova.map
+024 024   - 2   0     8192     8192 A     73728    73728 Tepoks_Mine.map
+026 010   - 1  90     8192     8192 A     73728    73728 City_of_Camelot.map
+030 030 073 0   0   262144   524288 M    327680   589824 Oceanus_Hesperos.map
+031 030 074 0   0   327680   524288 M    393216   589824 Mesothalassa.map
+032 030 075 0   0   327680   458752 M    393216   524288 Oceanus_Boreal.map
+033 030 076 0   0   327680   589824 M    393216   655360 Oceanus_Notos.map
+034 030 077 0   0   393216   524288 M    458752   589824 Oceanus_Anatole.map
+035 035 078 2   0     8192     8192 M     73728    73728 Cetus_Pit.map
+036 036 079 2   0     8192     8192 M     73728    73728 Sobekite_Eternal.map
+037 037 080 2   0     8192     8192 M     73728    73728 Temple_of_Twilight.map
+038 030 081 0   0   294912   393216 M    360448   458752 Stygian_Delta.map
+039 030 082 0   0   229376   393216 M    294912   458752 Land_of_Atum.map
+040 040 083 2   0     8192     8192 M     73728    73728 Halls_of_Maati.map
+041 030 084 0   0   458752   524288 M    524288   589824 Typhons_Reach.map
+042 030 085 0   0   524288   524288 M    589824   589824 Ashen_Isles.map
+043 030 086 0   0   360448   655360 M    425984   720896 Green_Glades.map
+044 030 087 0   0   425984   655360 M    491520   720896 Arbor_Glen.map
+045 045 088 2   0     8192     8192 M     73728    73728 the_Great_Pyramid_of_Stygia.map
+046 046 089 2   0     8192     8192 M     73728    73728 Deep_Volcanus.map
+047 047 090 4   0     8192     8192 M     73728    73728 City_of_Aerus.map
+048 048   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+049 049   - 2   0     8192     8192 H     73728    73728 Rugnogs_Haven.map
+050 050   - 1   0     8192     8192 A     73728    73728 Avalon_City.map
+051 051   - 0   0   491520   491520 A    557056   557056 Isle_of_Glass.map
+052 051   - 0   0   425984   442368 A    491520   507904 Avalon_Isle.map
+053 051   - 0   0   376832   376832 A    442368   442368 Dales_of_Devwy.map
+054 051   - 0   0   311296   360448 A    376832   425984 Caldey.map
+055 051   - 0   0   294912   425984 A    360448   491520 Gwyddneau.map
+056 051   - 0   0   360448   475136 A    425984   540672 Aldland.map
+057 051   - 0   0   229376   425984 A    294912   491520 Inishail_Island.map
+058 058   - 4   0     8192     8192 M     73728    73728 Midgards_Underground_Forest.map
+059 059   - 2   0     8192     8192 A     73728    73728 Albions_Glashtin_Forges.map
+060 060   - 2   0     8192     8192 A     73728    73728 Caer_Sidi.map
+061 061   - 2   0     8192     8192 A     73728    73728 Krondon.map
+062 062   - 2   0     8192     8192 A     73728    73728 Crystal_Cave.map
+063 063   - 2   0     8192     8192 A     73728    73728 Roman_Aqueducts.map
+064 002   - 3   0   458752   589824 A    524288   655360 Aylesbury.map
+065 065   - 2   0     8192     8192 A     73728    73728 Inconnu_Crypt.map
+066 066   - 4   0     8192     8192 A     73728    73728 Albions_Underground_Forest.map
+067 067   - 4   0     8192     8192 A     73728    73728 The_Deadlands_of_Annwn.map
+068 068   - 2   0     8192     8192 A     73728    73728 Lower_Crypt.map
+069 069   - 2   0     8192     8192 A     73728    73728 Albions_Darkspire.map
+070 070   - 0   0   524288   524288 A    589824   589824 Ruins_of_Atlantis.map
+071 071   - 0   0   524288   524288 M    589824   589824 Ruinerar_av_Atlantis.map
+072 072   - 0   0   524288   524288 H    589824   589824 Scrios_de_Atlantis.map
+073 073   - 0   0   262144   524288 A    327680   589824 Oceanus_Hesperos.map
+074 073   - 0   0   327680   524288 A    393216   589824 Mesothalassa.map
+075 073   - 0   0   327680   458752 A    393216   524288 Oceanus_Boreal.map
+076 073   - 0   0   327680   589824 A    393216   655360 Oceanus_Notos.map
+077 073   - 0   0   393216   524288 A    458752   589824 Oceanus_Anatole.map
+078 078   - 2   0     8192     8192 A     73728    73728 Cetus_Pit.map
+079 079   - 2   0     8192     8192 A     73728    73728 Sobekite_Eternal.map
+080 080   - 2   0     8192     8192 A     73728    73728 Temple_of_Twilight.map
+081 073   - 0   0   294912   393216 A    360448   458752 Stygian_Delta.map
+082 073   - 0   0   229376   393216 A    294912   458752 Land_of_Atum.map
+083 083   - 2   0     8192     8192 A     73728    73728 Halls_of_Maati.map
+084 073   - 0   0   458752   524288 A    524288   589824 Typhons_Reach.map
+085 073   - 0   0   524288   524288 A    589824   589824 Ashen_Isles.map
+086 073   - 0   0   360448   655360 A    425984   720896 Green_Glades.map
+087 073   - 0   0   425984   655360 A    491520   720896 Arbor_Glen.map
+088 088   - 2   0     8192     8192 A     73728    73728 the_Great_Pyramid_of_Stygia.map
+089 089   - 2   0     8192     8192 A     73728    73728 Deep_Volcanus.map
+090 090   - 4   0     8192     8192 A     73728    73728 City_of_Aerus.map
+091 091   - 2   0     8192     8192 *     73728    73728 Celestius.map
+092 092   - 2   0     8192     8192 H     73728    73728 Veil_Rift.map
+093 093   - 2   0     8192     8192 H     73728    73728 Shar_Labyrinth.map
+094 094   - 2   0     8192     8192 H     73728    73728 The_Queens_Labyrinth.map
+095 095   - 4   0     8192     8192 H     73728    73728 Hibernias_Frontlines.map
+096 096   - 4   0     8192     8192 H     73728    73728 Hibernias_Underground_Forest.map
+097 097   - 4   0     8192     8192 H     73728    73728 Hibernias_Deadlands.map
+098 098   - 2   0     8192     8192 H     73728    73728 Hibernias_Darkspire.map
+099 099   - 2   0     8192     8192 H     73728    73728 Hibernias_Glashtin_Forge.map
+100 100   - 0   0   753664   671744 M    819200   737280 Vale_of_Mularn.map
+101 100   - 0   0   720896   737280 M    786432   802816 East_Svealand.map
+102 100   - 0   0   655360   737280 M    720896   802816 West_Svealand.map
+103 100   - 0   0   720896   802816 M    786432   868352 Gotar.map
+104 100   - 0   0   819200   638976 M    884736   704512 Muspelheim.map
+105 100   - 0   0   753664   868352 M    819200   933888 Myrkwood_Forest.map
+106 100   - 0   0   688128   901120 M    753664   966656 Skona_Ravine.map
+107 100   - 0   0   622592   868352 M    688128   933888 Vanern_Swamp.map
+108 100   - 0   0   589824   737280 M    655360   802816 Raumarik.map
+109 109   - 4   0     8192     8192 A     73728    73728 Albions_Frontlines.map
+111 100   - 0   0   720896   606208 MO   786432   671744 Uppland.map
+112 100   - 0   0   655360   671744 MO   720896   737280 Yggdra_Forest.map
+113 100   - 0   0   655360   606208 MO   720896   671744 Jamtland_Mountains.map
+114 102   - 3   0   524288   524288 M    589824   589824 Erikstaad.map
+115 100   - 0   0   589824   573440 MO   655360   638976 Odins_Gate.map
+116 100   - 0   0   688128   966656 M    753664  1032192 Malmohus.map
+117 102   - 3   0   524288   458752 M    589824   524288 Arothi.map
+118 102   - 3   0   589824   524288 M    655360   589824 Carlingford.map
+119 102   - 3   0   524288   589824 M    589824   655360 Wyndham.map
+120 101   - 1 180     8192     8192 M     73728    73728 Jordheim.map
+121 102   - 3   0   589824   589824 M    655360   655360 Frisia.map
+122 102   - 3   0   589824   458752 M    655360   524288 Kaupang.map
+123 123   - 2   0     8192     8192 I     73728    73728 Aphophian.map
+124 124   - 2   0     8192     8192 I     73728    73728 Hephaestian.map
+125 125   - 2   0     8192     8192 M     73728    73728 Spindelhalla.map
+126 126   - 2   0     8192     8192 M     73728    73728 Vendo_Caverns.map
+127 127   - 2   0     8192     8192 M     73728    73728 Varulvhamn.map
+128 128   - 2   0     8192     8192 M     73728    73728 Cursed_Tomb.map
+129 129   - 2   0     8192     8192 M     73728    73728 Nisses_Lair.map
+130 130 073 0   0   262144   524288 H    327680   589824 Oceanus_Hesperos.map
+131 130 074 0   0   327680   524288 H    393216   589824 Mesothalassa.map
+132 130 075 0   0   327680   458752 H    393216   524288 Oceanus_Boreal.map
+133 130 076 0   0   327680   589824 H    393216   655360 Oceanus_Notos.map
+134 130 077 0   0   393216   524288 H    458752   589824 Oceanus_Anatole.map
+135 135 078 2   0     8192     8192 H     73728    73728 Cetus_Pit.map
+136 136 079 2   0     8192     8192 H     73728    73728 Sobekite_Eternal.map
+137 137 080 2   0     8192     8192 H     73728    73728 Temple_of_Twilight.map
+138 130 081 0   0   294912   393216 H    360448   458752 Stygian_Delta.map
+139 130 082 0   0   229376   393216 H    294912   458752 Land_of_Atum.map
+140 140 083 2   0     8192     8192 H     73728    73728 Halls_of_Maati.map
+141 130 084 0   0   458752   524288 H    524288   589824 Typhons_Reach.map
+142 130 085 0   0   524288   524288 H    589824   589824 Ashen_Isles.map
+143 130 086 0   0   360448   655360 H    425984   720896 Green_Glades.map
+144 130 087 0   0   425984   655360 H    491520   720896 Arbor_Glen.map
+145 145 088 2   0     8192     8192 H     73728    73728 the_Great_Pyramid_of_Stygia.map
+146 146 089 2   0     8192     8192 H     73728    73728 Deep_Volcanus.map
+147 147 090 4   0     8192     8192 H     73728    73728 City_of_Aerus.map
+148 148   - 4   0     8192     8192 M     73728    73728 The_Frontlines.map
+149 149   - 2   0     8192     8192 M     73728    73728 Nyttheim.map
+150 150   - 2   0     8192     8192 M     73728    73728 Trollheim.map
+151 151   - 0   0   245760   311296 M    311296   376832 Aegirs_Landing.map
+152 151   - 0   0   278528   245760 M    344064   311296 Gripklosa_Mountains.map
+153 151   - 0   0   344064   262144 M    409600   327680 Delling_Crater.map
+154 151   - 0   0   360448   327680 M    425984   393216 Faraheim.map
+155 151   - 0   0   294912   376832 M    360448   442368 Munin_Sound.map
+156 151   - 0   0   393216   393216 M    458752   458752 Iarnwood.map
+157 151   - 0   0   278528   180224 T    344064   245760 Dummy_Zone.map
+158 151   - 0   0   425984   327680 M    491520   393216 Modernagrav.map
+160 160   - 2   0     8192     8192 M     73728    73728 Tuscaran_Glacier.map
+161 161   - 2   0     8192     8192 M     73728    73728 Iarnvidiurs_Lair.map
+162 162   - 4   0     8192     8192 M     73728    73728 Midgards_Deadlands.map
+163 163   - 0   0   491520   458752 F    557056   524288 North_Sea.map
+164 163   - 0   0   491520   524288 F    557056   589824 Irish_Sea.map
+167 163   - 0   0   491520   393216 FM   557056   458752 Odins_Gate.map
+168 163   - 0   0   557056   393216 FM   622592   458752 Jamtland_Mountains.map
+169 163   - 0   0   622592   393216 FM   688128   458752 Yggdra_Forest.map
+170 163   - 0   0   557056   327680 FM   622592   393216 Uppland.map
+171 163   - 0   0   425984   491520 FH   491520   557056 Emain_Macha.map
+172 163   - 0   0   425984   557056 FH   491520   622592 Breifine.map
+173 163   - 0   0   360448   557056 FH   425984   622592 Cruachan_Gorge.map
+174 163   - 0   0   425984   622592 FH   491520   688128 Mount_Collory.map
+175 163   - 0   0   557056   622592 FA   622592   688128 Snowdonia.map
+176 163   - 0   0   622592   557056 FA   688128   622592 Forest_Sauvage.map
+177 163   - 0   0   557056   557056 FA   622592   622592 Pennine_Mountains.map
+178 163   - 0   0   557056   491520 FA   622592   557056 Hadrians_Wall.map
+180 180   - 2   0     8192     8192 H     73728    73728 Fomor.map
+181 181   - 0   0   393216   393216 H    458752   458752 Domnann.map
+182 181   - 0   0   327680   360448 H    393216   425984 Caillte_Garran.map
+183 181   - 0   0   262144   327680 H    327680   393216 Vale_of_Balor.map
+184 181   - 0   0   278528   262144 H    344064   327680 Cothrom_Gorge.map
+185 181   - 0   0   344064   229376 H    409600   294912 Worlds_End.map
+186 181   - 0   0   376832   294912 H    442368   360448 Vigilant_Rock.map
+187 181   - 0   0   344064   163840 H    409600   229376 Allta_Fearann.map
+188 188   - 2   0     8192     8192 M     73728    73728 Midgards_Darkspire.map
+189 189   - 2   0     8192     8192 M     73728    73728 Midgards_Glashtin_Forges.map
+190 190   - 2   0     8192     8192 H     73728    73728 Tur_Suil.map
+191 191   - 2   0     8192     8192 H     73728    73728 Galladoria.map
+195 195   - 4   0     8192     8192 M     73728    73728 Midgards_Otherworld.map
+196 196   - 4   0     8192     8192 A     73728    73728 Albions_Otherworld.map
+197 197   - 4   0     8192     8192 H     73728    73728 The_Otherworld.map
+198 198   - 2   0     8192     8192 I     73728    73728 Shaitan.map
+199 199   - 2   0     8192     8192 I     73728    73728 Volurgon.map
+200 200   - 0   0   319488   483328 H    385024   548864 Lough_Derg.map
+201 200   - 0   0   319488   548864 H    385024   614400 Silvermine_Mts.map
+202 200   - 0   0   286720   614400 H    352256   679936 Shannon_Estuary.map
+203 200   - 0   0   221184   417792 H    286720   483328 Cliffs_of_Moher.map
+204 200   - 0   0   286720   679936 H    352256   745472 Lough_Gur.map
+205 200   - 0   0   352256   712704 H    417792   778240 Bog_of_Cullen.map
+206 200   - 0   0   385024   483328 H    450560   548864 Valley_of_Bri_Leith.map
+207 200   - 0   0   286720   417792 H    352256   483328 Connacht.map
+208 200   - 0   0   450560   483328 H    516096   548864 Cursed_Forest.map
+209 201   - 1 180     8192     8192 H     73728    73728 Tir_na_Nog.map
+210 200   - 0   0   385024   417792 HO   450560   483328 Mount_Collory.map
+211 200   - 0   0   319488   352256 HO   385024   417792 Cruachan_Gorge.map
+212 200   - 0   0   385024   352256 HO   450560   417792 Breifine.map
+213 202   - 3   0   524288   524288 H    589824   589824 Meath.map
+214 200   - 0   0   417792   286720 HO   483328   352256 Emain_Macha.map
+215 202   - 3   0   458752   524288 H    524288   589824 Dunshire.map
+216 200   - 0   0   352256   647168 H    417792   712704 Sheeroe_Hills.map
+217 202   - 3   0   524288   589824 H    589824   655360 Torrylin.map
+218 202   - 3   0   589824   524288 H    655360   589824 Kilcullen.map
+219 202   - 3   0   458752   589824 H    524288   655360 Saeranthal.map
+220 220   - 2   0     8192     8192 H     73728    73728 Coruscating_Mine.map
+221 221   - 2   0     8192     8192 H     73728    73728 Muire_Tomb.map
+222 222   - 2   0     8192     8192 H     73728    73728 Spraggon_Den.map
+223 223   - 2   0     8192     8192 H     73728    73728 Koalinth_Caverns.map
+224 224   - 2   0     8192     8192 H     73728    73728 Treibh_Caillte.map
+225 202   - 3   0   589824   589824 H    655360   655360 Aberillan.map
+226 226   - 2   0     8192     8192 M     73728    73728 Midgards_Abandoned_Mines.map
+227 227   - 2   0     8192     8192 A     73728    73728 Albions_Abandoned_Mines.map
+228 228   - 2   0     8192     8192 H     73728    73728 Hibernias_Abandoned_Mines.map
+229 229   - 2   0     8192     8192 M     73728    73728 Burial_Grounds.map
+230 230   - 2   0     8192     8192 T     73728    73728 Catacomb_Test_Dungeon.map
+231 231   - 0   0   524288   524288 T    589824   589824 ArtOutside.map
+232 232   - 2   0     8192     8192 T     73728    73728 ArtInside.map
+233 233   - 2   0     8192     8192 F     73728    73728 Summoners_Hall.map
+234 234   - 0   0   524288   524288 F    589824   589824 The_Proving_Grounds.map
+235 235   - 0   0   524288   524288 F    589824   589824 The_Lions_Den.map
+236 236   - 0   0   524288   524288 F    589824   589824 The_Hills_of_Claret.map
+237 237   - 0   0   524288   524288 F    589824   589824 Killaloe.map
+238 238   - 0   0   524288   524288 F    589824   589824 Thidranki.map
+239 239   - 0   0   524288   524288 F    589824   589824 Braemar.map
+240 240   - 0   0   524288   524288 F    589824   589824 Wilton.map
+241 241   - 0   0   524288   524288 F    589824   589824 Molvik.map
+242 242   - 0   0   524288   524288 T    589824   589824 TestBG.map
+243 243   - 2   0     8192     8192 M     73728    73728 Kobold_Undercity.map
+244 244   - 2   0     8192     8192 F     73728    73728 Passage_of_Conflict.map
+247 247   - 2   0     8192     8192 T     73728    73728 Catacomb_Figure_Demo.map
+249 249   - 2   0     8192     8192 F     73728    73728 Darkness_Falls.map
+254 242   - 0   0   262144   262144 F    327680   327680 Leirvik.map
+256 256   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+257 257   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+258 258   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+260 002   - 3   0   393216   524288 A    458752   589824 Chiltern.map
+261 002   - 3   0   393216   589824 A    458752   655360 Sherborne.map
+266 102   - 3   0   655360   524288 M    720896   589824 Holmestrand.map
+267 102   - 3   0   655360   589824 M    720896   655360 Nittedal.map
+272 202   - 3   0   524288   655360 H    589824   720896 Tullamore.map
+273 202   - 3   0   458752   655360 H    524288   720896 Moycullen.map
+278 278   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+279 279   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+280 280   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+281 281   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+282 282   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+283 283   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+284 284   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+285 285   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+286 286   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+287 287   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+288 288   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+289 289   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+290 290   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+291 291   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+292 292   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+293 293   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+294 294   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+295 295   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+296 296   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+297 297   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+298 298   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+300 300   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+301 301   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+302 302   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+303 303   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+304 304   - 2   0     8192     8192 M     73728    73728 Damp_Cavern.map
+305 305   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+306 306   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+307 307   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+308 308   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+309 309   - 2   0     8192     8192 M     73728    73728 Forgotten_Sepulchre.map
+310 310   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+311 311   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+312 312   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+313 313   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+314 314   - 2   0     8192     8192 M     73728    73728 Concealed_Guardhouse.map
+315 315   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+316 316   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+317 317   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+318 318   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+319 319   - 2   0     8192     8192 M     73728    73728 The_Gossamer_Grotto.map
+320 320   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+321 321   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+322 322   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+323 323   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+324 324   - 2   0     8192     8192 M     73728    73728 Underground_Tunnel.map
+325 325   - 2   0     8192     8192 M     73728    73728 The_Corrupted_City.map
+326 326   - 2   0     8192     8192 M     73728    73728 the_Ravaged_Realm.map
+327 327   - 2   0     8192     8192 M     73728    73728 Caverns_of_Madness.map
+328 328   - 2   0     8192     8192 M     73728    73728 Land_of_Unrest.map
+329 329   - 2   0     8192     8192 M     73728    73728 Jarlsbergs_Hideout.map
+330 330   - 2   0     8192     8192 M     73728    73728 Burial_AW3.map
+331 331   - 2   0     8192     8192 M     73728    73728 Thieves_Den.map
+332 332   - 2   0     8192     8192 M     73728    73728 Rebel_Half_Orc_Lair.map
+333 333   - 2   0     8192     8192 M     73728    73728 The_Haunted_Halls.map
+334 334   - 2   0     8192     8192 M     73728    73728 Lost_Area.map
+335 335   - 2   0     8192     8192 M     73728    73728 Caved_In_Tunnel.map
+339 339   - 2   0     8192     8192 T     73728    73728 Test_Zone_1.map
+340 340   - 2   0     8192     8192 T     73728    73728 Test_Zone_2.map
+341 341   - 2   0     8192     8192 T     73728    73728 Test_Zone_3.map
+342 342   - 2   0     8192     8192 M     73728    73728 Mid_Launch_2.map
+343 343   - 2   0     8192     8192 A     73728    73728 Alb_Launch_2.map
+344 344   - 2   0     8192     8192 H     73728    73728 Hib_Launch_2.map
+345 345   - 2   0     8192     8192 M     73728    73728 Tomte_Prison.map
+346 346   - 2   0     8192     8192 M     73728    73728 Nisses_Retreat.map
+347 347   - 2   0     8192     8192 M     73728    73728 Tomte_Town.map
+348 348   - 2   0     8192     8192 M     73728    73728 Tomte_Town.map
+349 349   - 2   0     8192     8192 M     73728    73728 Lioss_Eternal_Rest.map
+350 350   - 2   0     8192     8192 M     73728    73728 Liches_Unrest.map
+351 351   - 2   0     8192     8192 M     73728    73728 Cursed_Tomb_AW3.map
+352 352   - 2   0     8192     8192 M     73728    73728 Cursed_Tomb_AW4.map
+353 353   - 2   0     8192     8192 M     73728    73728 Den_of_Bones.map
+354 354   - 2   0     8192     8192 M     73728    73728 The_Lost_Burrow.map
+355 355   - 2   0     8192     8192 M     73728    73728 Vendo_AW3.map
+356 356   - 2   0     8192     8192 M     73728    73728 Vendo_AW4.map
+357 357   - 2   0     8192     8192 M     73728    73728 The_Cursed_Lair.map
+358 358   - 2   0     8192     8192 M     73728    73728 The_Burrow.map
+359 359   - 2   0     8192     8192 M     73728    73728 Varulvhamn_AW3.map
+360 360   - 2   0     8192     8192 M     73728    73728 Varulvhamn_AW4.map
+361 361   - 2   0     8192     8192 M     73728    73728 Arachnids_Labyrinth.map
+362 362   - 2   0     8192     8192 M     73728    73728 The_Masters_Lair.map
+363 363   - 2   0     8192     8192 M     73728    73728 Spindelhalla_AW3.map
+364 364   - 2   0     8192     8192 M     73728    73728 Spindelhalla_AW4.map
+365 365   - 2   0     8192     8192 H     73728    73728 Bandit_Lair.map
+366 366   - 2   0     8192     8192 H     73728    73728 Gnoll_Lair.map
+367 367   - 2   0     8192     8192 H     73728    73728 Vandrs_Bane.map
+368 368   - 2   0     8192     8192 H     73728    73728 Past_and_Present.map
+369 369   - 2   0     8192     8192 H     73728    73728 Half-Orc_Camp.map
+370 370   - 2   0     8192     8192 H     73728    73728 Brutal_Realization.map
+371 371   - 2   0     8192     8192 H     73728    73728 History_Repeats_Itself.map
+372 372   - 2   0     8192     8192 H     73728    73728 Hounds_of_Arawn.map
+373 373   - 2   0     8192     8192 M     73728    73728 Passage_of_Echoes.map
+374 374   - 2   0     8192     8192 M     73728    73728 Unrestful_Tomb.map
+375 375   - 2   0     8192     8192 M     73728    73728 Lost_Passages.map
+376 376   - 2   0     8192     8192 A     73728    73728 Goblins_Cookery.map
+377 377   - 2   0     8192     8192 A     73728    73728 The_Beastmasters_Den.map
+378 378   - 2   0     8192     8192 A     73728    73728 Tepok_AW3.map
+379 379   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+380 380   - 2   0     8192     8192 A     73728    73728 Lair_of_Doom.map
+381 381   - 2   0     8192     8192 A     73728    73728 The_Arena.map
+382 382   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+383 383   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+384 384   - 2   0     8192     8192 A     73728    73728 The_Ritual_Hall.map
+385 385   - 2   0     8192     8192 A     73728    73728 The_Betrayers_Den.map
+386 386   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+387 387   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+388 388   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+389 389   - 2   0     8192     8192 A     73728    73728 Shafts_of_the_Tenebrae.map
+390 390   - 2   0     8192     8192 A     73728    73728 Lair_of_the_Exiled.map
+391 391   - 2   0     8192     8192 A     73728    73728 Alb_AbMines_AW4.map
+392 392   - 2   0     8192     8192 A     73728    73728 The_Hall_of_Reawakening.map
+393 393   - 2   0     8192     8192 A     73728    73728 The_Hidden_Crypt.map
+394 394   - 2   0     8192     8192 A     73728    73728 Mithra_AW3.map
+395 395   - 2   0     8192     8192 A     73728    73728 Mithra_AW4.map
+396 396   - 2   0     8192     8192 A     73728    73728 Depths_of_Despair.map
+397 397   - 2   0     8192     8192 A     73728    73728 the_Realm_of_the_Damned.map
+398 398   - 2   0     8192     8192 A     73728    73728 Lower_Crypt_AW.map
+399 399   - 2   0     8192     8192 A     73728    73728 Lower_Crypt_AW.map
+400 400   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+401 401   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+402 402   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+403 403   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+404 404   - 2   0     8192     8192 A     73728    73728 Burial_Tomb.map
+405 405   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+406 406   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+407 407   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+408 408   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+409 409   - 2   0     8192     8192 A     73728    73728 Desecrated_Grounds.map
+410 410   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+411 411   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+412 412   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+413 413   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+414 414   - 2   0     8192     8192 A     73728    73728 Forgotten_Mines.map
+415 415   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+416 416   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+417 417   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+418 418   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+419 419   - 2   0     8192     8192 A     73728    73728 The_Funerary_Hall.map
+420 420   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+421 421   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+422 422   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+423 423   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+424 424   - 2   0     8192     8192 A     73728    73728 the_Sundered_Tombs.map
+425 425   - 2   0     8192     8192 A     73728    73728 The_Lost_Wing.map
+426 426   - 2   0     8192     8192 A     73728    73728 Deliahs_Sanctuary.map
+427 427   - 2   0     8192     8192 A     73728    73728 The_Cursed_Barrow.map
+428 428   - 2   0     8192     8192 A     73728    73728 The_Cursed_Barrow.map
+429 429   - 2   0     8192     8192 A     73728    73728 Snyblems_Lair.map
+430 430   - 2   0     8192     8192 A     73728    73728 the_Plutonian_Shore.map
+431 431   - 2   0     8192     8192 A     73728    73728 The_Cursed_Barrow.map
+432 432   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+433 433   - 2   0     8192     8192 A     73728    73728 Snargs_Grotto.map
+434 434   - 2   0     8192     8192 A     73728    73728 Maze_of_Tribulation.map
+435 435   - 2   0     8192     8192 A     73728    73728 The_Smelting_Pot.map
+436 436   - 2   0     8192     8192 A     73728    73728 Forges_of_Flame.map
+437 437   - 2   0     8192     8192 H     73728    73728 Hammer_Hugaks_Smithy.map
+438 438   - 2   0     8192     8192 H     73728    73728 the_Goblin_Workshop.map
+439 439   - 2   0     8192     8192 M     73728    73728 Wolaks_Crucible.map
+440 440   - 2   0     8192     8192 M     73728    73728 Mariks_Workroom.map
+441 441   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+442 442   - 2   0     8192     8192 H     73728    73728 The_Stewards_Crypt.map
+443 443   - 2   0     8192     8192 H     73728    73728 Serfs_Folly.map
+444 444   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+445 445   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+446 446   - 2   0     8192     8192 H     73728    73728 Veil_Rift.map
+446 446   - 4   0     8192     8192 H     73728    73728 Blathnaits_Refuge.map
+447 447   - 2   0     8192     8192 H     73728    73728 Veil_Rift.map
+447 447   - 4   0     8192     8192 H     73728    73728 Broken_Mirrors.map
+448 448   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+449 449   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+450 450   - 2   0     8192     8192 H     73728    73728 The_Cursed_Barrow.map
+451 451   - 2   0     8192     8192 H     73728    73728 The_Cursed_Barrow.map
+452 452   - 2   0     8192     8192 H     73728    73728 The_Cursed_Barrow.map
+453 453   - 2   0     8192     8192 H     73728    73728 The_Cursed_Barrow.map
+454 454   - 2   0     8192     8192 H     73728    73728 The_Cursed_Barrow.map
+455 455   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+456 456   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+457 457   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+458 458   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+459 459   - 2   0     8192     8192 H     73728    73728 Dismal_Grotto.map
+460 460   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+461 461   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+462 462   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+463 463   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+464 464   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+465 465   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+466 466   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+467 467   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+468 468   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+469 469   - 2   0     8192     8192 H     73728    73728 Dark_Cavern.map
+470 470   - 2   0     8192     8192 H     73728    73728 Half_Orc_Command_Post.map
+471 471   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+472 472   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+473 473   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+474 474   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+475 475   - 2   0     8192     8192 H     73728    73728 Rise_of_the_Spraggons.map
+476 476   - 2   0     8192     8192 H     73728    73728 The_Warrens.map
+477 477   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+478 478   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+479 479   - 2   0     8192     8192 H     73728    73728 The_Ancients_Retreat.map
+480 480   - 2   0     8192     8192 H     73728    73728 The_Shamans_Inner_Sanctum.map
+481 481   - 2   0     8192     8192 H     73728    73728 The_Accursed_Caves.map
+482 482   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+483 483   - 2   0     8192     8192 H     73728    73728 The_Brawlers_Den.map
+484 484   - 2   0     8192     8192 H     73728    73728 Felenas_Sorrow.map
+485 485   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+486 486   - 2   0     8192     8192 H     73728    73728 Unused_Mine.map
+487 487   - 2   0     8192     8192 H     73728    73728 The_Pit_of_Despair.map
+488 488   - 2   0     8192     8192 H     73728    73728 The_Forgotten_Vein.map
+491 491   - 2   0     8192     8192 H     73728    73728 Maze_of_Madness.map
+492 492   - 2   0     8192     8192 H     73728    73728 the_Shattered_Lands.map
+493 493   - 2   0     8192     8192 H     73728    73728 Shar_Labyrinth.map
+494 494   - 2   0     8192     8192 H     73728    73728 the_Wolves_Den.map
+495 495   - 2   0     8192     8192 H     73728    73728 Inner_Sanctum.map
+496 496   - 2   0     8192     8192 H     73728    73728 the_Deep.map
+497 497   - 2   0     8192     8192 M     73728    73728 Mid_Launch.map
+498 498   - 2   0     8192     8192 A     73728    73728 Alb_Launch.map
+499 499   - 2   0     8192     8192 H     73728    73728 Hib_Launch.map
