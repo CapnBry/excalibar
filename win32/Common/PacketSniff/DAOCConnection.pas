@@ -558,6 +558,7 @@ var
   pTmpItem: TDAOCInventoryItem;
 begin
   pPacket.HandlerName := 'InventoryList';
+exit;
   iItemCount := pPacket.getByte;
   pPacket.seek(3);
   while (iItemCount > 0) and not pPacket.EOF do begin
@@ -609,28 +610,16 @@ end;
 procedure TDAOCConnection.ParseLocalPosUpdateFromClient(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'LocalPosUpdateFromClient';
-{$IFDEF PRE_168}
-  pPacket.seek(2);
-  FLocalPlayer.SpeedWord := pPacket.getShort;
-  FLocalPlayer.Z := pPacket.getShort;
-  pPacket.seek(2);
-  FLocalPlayer.X := pPacket.getLong;
-  FLocalPlayer.Y := pPacket.getLong;
-  FLocalPlayer.HeadWord := pPacket.getShort;
-  CheckZoneChanged;
-{$ELSE}
   pPacket.seek(2);
   FLocalPlayer.SpeedWord := pPacket.getShort;
   FLocalPlayer.Z := pPacket.getShort;
   FLocalPlayer.X := pPacket.getShort;
   FLocalPlayer.Y := pPacket.getShort;
-  AdjustObjLocForZone(FLocalPlayer, pPacket.getByte);
-  pPacket.seek(1);
+  AdjustObjLocForZone(FLocalPlayer, pPacket.getShort);
   FLocalPlayer.HeadWord := pPacket.getShort;
 
   if FLocalPlayer.Level = 0 then
     FLocalPlayer.Level := FDefaultLocalPlayerLevel;
-{$ENDIF}
 
   DoOnPlayerPosUpdate;
   CheckObjectsOutOfRange;
