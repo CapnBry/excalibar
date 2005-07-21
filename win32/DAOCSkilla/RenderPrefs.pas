@@ -47,6 +47,7 @@ type
     FMobFilterList: TMobFilterList;
     FUseMobFilter:    boolean;
     FHighlightMobs: boolean;
+    function DefaultObjectClassFilter : TDAOCObjectClasses;
     procedure SetObjectClassFilter(const Value: TDAOCObjectClasses);
     procedure DoOnObjectFilterChanged;
     procedure DoOnMobListOptionsChanged;
@@ -409,7 +410,7 @@ end;
 
 constructor TRenderPreferences.Create;
 begin
-  ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocPlayer, ocVehicle];
+  ObjectClassFilter := [ocUnknown, ocObject, ocMob, ocVehicle];
   ObjectConFilter := [ccGray, ccGreen, ccBlue, ccYellow, ccOrange, ccRed, ccPurple];
   FMobFilterList := TMobFilterList.Create(true);
 end;
@@ -472,7 +473,8 @@ begin
     Width := ReadInteger('RenderPrefs', 'Width', 640);
     Height := ReadInteger('RenderPrefs', 'Height', 480);
     Range := ReadInteger('RenderPrefs', 'Range', 6000);
-    ObjectClassFilter := IntToObjectClasses(ReadInteger('RenderPrefs', 'ObjectClassFilter', $7fffffff));
+    ObjectClassFilter := IntToObjectClasses(ReadInteger('RenderPrefs', 'ObjectClassFilter',
+      ObjectClassesToInt(DefaultObjectClassFilter)));
     ObjectConFilter := IntToConColors(ReadInteger('RenderPrefs', 'ObjectConFilter', $7fffffff));
     DrawHUD := ReadBool('RenderPrefs', 'DrawHUD', true);
     DrawMapVector := ReadBool('RenderPrefs', 'DrawMapVector', true);
@@ -698,6 +700,11 @@ procedure TRenderPreferences.SetHighlightMobs(const Value: boolean);
 begin
   FHighlightMobs := Value;
   DoOnMobListOptionsChanged;
+end;
+
+function TRenderPreferences.DefaultObjectClassFilter: TDAOCObjectClasses;
+begin
+  Result := [ocUnknown, ocObject, ocMob, ocVehicle];
 end;
 
 { TfrmRenderPrefs }
