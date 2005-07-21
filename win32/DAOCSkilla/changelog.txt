@@ -1,4 +1,9 @@
-IN DEVELOPMENT
+2005 Jul 21 - v2.0.14
+--------------
+  + Fix for changes to v1.77 UpdatePosFromPlayer packet
+  + New daocinject.dll
+
+v2.0.12
 --------------
   + Fix for changes to v1.68 packets.
   + Added support for proper slot naming of things on consignement
