@@ -1558,8 +1558,10 @@ begin
   FMapElementsListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
   FMapTexturesListList.AttemptDownload := FRenderPrefs.AttemptMapDownload;
 
-  FMapElementsListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
-  FMapTexturesListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
+  if Assigned(FCurrConn) then begin
+    FMapElementsListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
+    FMapTexturesListList.LoadForZone(FCurrConn.Zone, FRenderPrefs.AdjacentZones);
+  end;
 end;
 
 procedure TfrmGLRender.DoPrefsDialog;
