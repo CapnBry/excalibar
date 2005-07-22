@@ -215,10 +215,9 @@ begin
     try
       if GetFileVersionInfo(PChar(ParamStr(0)), Wnd, InfoSize, VerBuf) then
         if VerQueryValue(VerBuf, '\', Pointer(FileInfo), VerSize) then begin
-          Result := Format('%d.%d.%d', [
+          Result := Format('%d.%d', [
             FileInfo.dwFileVersionMS shr 16,
-            FileInfo.dwFileVersionMS and $FFFF,
-            FileInfo.dwFileVersionLS shr 16]);
+            FileInfo.dwFileVersionMS and $FFFF]);
             // FileInfo.dwFileVersionLS and $FFFF]);
         end;
     finally
