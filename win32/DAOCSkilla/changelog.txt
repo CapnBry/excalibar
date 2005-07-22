@@ -1,3 +1,5 @@
+2005 Jul 22 - v2.16
+-------------------
   + Fix map window closing when a client disconnects if multiple
     clients are connected.
   + Fix kill task mob highlight not updating correctly for current mobs
