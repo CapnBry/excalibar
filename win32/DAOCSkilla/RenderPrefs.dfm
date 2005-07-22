@@ -1,6 +1,6 @@
 object frmRenderPrefs: TfrmRenderPrefs
-  Left = 518
-  Top = 244
+  Left = 708
+  Top = 334
   BorderStyle = bsToolWindow
   Caption = 'Render Preferences'
   ClientHeight = 342
@@ -40,10 +40,10 @@ object frmRenderPrefs: TfrmRenderPrefs
     Top = 0
     Width = 419
     Height = 305
-    ActivePage = tabGraphics
+    ActivePage = tabMobList
     Align = alTop
     MultiLine = True
-    TabIndex = 5
+    TabIndex = 4
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'UI options'
@@ -802,7 +802,7 @@ object frmRenderPrefs: TfrmRenderPrefs
         Top = 146
         Width = 249
         Height = 17
-        Caption = 'Play alerts (can be used w/o Use mob filter list)'
+        Caption = 'Play alert sounds'
         TabOrder = 8
         OnClick = chkPlayAlertClick
       end

@@ -150,6 +150,7 @@ type
     procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
     procedure DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
     procedure DAOCTradeskillCapped(Sender: TObject);
+    procedure DAOCKillTaskChanged(Sender: TObject);
 
     procedure DSTREAMDAOCConnect(Sender: TObject;
       AConnectionID: Cardinal; AServerIP: Cardinal; AServerPort: WORD;
@@ -326,6 +327,7 @@ begin
     OnDoorPositionUpdate := DAOCDoorPositionUpdate;
     OnMobInventoryChanged := DAOCMobInventoryChanged;
     OnTradeSkillCapped := DAOCTradeskillCapped;
+    OnKillTaskChanged := DAOCKillTaskChanged;
 
     DAOCPath := FDAOCPath;
     MainHWND := Handle;
@@ -862,6 +864,8 @@ begin
 end;
 
 procedure TfrmMain.SetupDStreamObj;
+var
+  pDefaultClient: TDStreamClient;
 begin
   FDStreamClients := TDStreamClientList.Create;
   FDStreamClients.OnDAOCConnect := DSTREAMDAOCConnect;
@@ -871,6 +875,13 @@ begin
   FDStreamClients.OnStatusChange := DSTREAMStatusChange;
 
   FDStreamClients.LoadFromINI(GetConfigFileName);
+
+  // If there no clients in the list, add a default one to localhost
+  if FDStreamClients.Count = 0 then begin
+    pDefaultClient := TDStreamClient.Create;
+    pDefaultClient.Host := 'localhost';
+    FDStreamClients.Add(pDefaultClient);
+  end;
 
   frmDStrmServerList1.DStrmList := FDStreamClients;
 end;
@@ -1090,6 +1101,13 @@ end;
 procedure TfrmMain.DAOCTradeskillCapped(Sender: TObject);
 begin
   frmMacroing.DAOCTradeskillCapped(Sender);
+end;
+
+procedure TfrmMain.DAOCKillTaskChanged(Sender: TObject);
+begin
+{$IFDEF OPENGL_RENDERER}
+  frmGLRender.DAOCKillTaskChanged(Sender);
+{$ENDIF OPENGL_RENDERER}
 end;
 
 end.

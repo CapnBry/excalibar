@@ -265,6 +265,7 @@ type
     procedure DAOCUnknownStealther(Sender: TObject; AObj: TDAOCObject);
     procedure DAOCDoorPositionUpdate(Sender: TObject; ADoor: TDAOCObject);
     procedure DAOCMobInventoryChanged(Sender: TObject; AObj: TDAOCMovingObject);
+    procedure DAOCKillTaskChanged(Sender: TObject);
 
     procedure Dirty;
     property DAOCConnectionList: TDAOCConnectionList read FDAOCConnectionList write SetDAOCConnectionList;
@@ -613,7 +614,8 @@ begin
 
   if FRenderPrefs.IsObjectInFilter(AObj) then begin
     AObj.Highlight := FRenderPrefs.HighlightMobs and
-      FRenderPrefs.MobFilterList.Matches(AObj.Name, AObj.Level);
+      (FRenderPrefs.MobFilterList.Matches(AObj.Name, AObj.Level)
+        or (FCurrConn.KillTask = AObj.Name));
 
     iPos := FilteredObjectInsert(AObj);
 
@@ -2555,6 +2557,13 @@ begin
   jpg.JPEGNeeded;
   jpg.SaveToFile('screenshot.jpg');
   jpg.Free;
+end;
+
+procedure TfrmGLRender.DAOCKillTaskChanged(Sender: TObject);
+begin
+  if Sender <> FCurrConn then exit;
+    
+  RefreshFilteredList;
 end;
 
 end.

@@ -508,7 +508,7 @@ begin
     MobListSortOrder := TMobListSortOrder(ReadInteger('RenderPrefs', 'MobListSortOrder', 0));
     GroupByClass := ReadBool('RenderPrefs', 'GroupByClass', true);
     DrawPushPins := ReadBool('RenderPrefs', 'DrawPushPins', true);
-    AnonymousStealthers := ReadBool('RenderPrefs', 'AnonymousStealthers', true);
+    AnonymousStealthers := ReadBool('RenderPrefs', 'AnonymousStealthers', false);
     SmoothLines := ReadBool('RenderPrefs', 'SmoothLines', false);
     SmoothPolygons := ReadBool('RenderPrefs', 'SmoothPolygons', false);
     SmoothPoints := ReadBool('RenderPrefs', 'SmoothPoints', false);
@@ -522,7 +522,7 @@ begin
     MinFPS := ReadInteger('RenderPrefs', 'MinFPS', 2);
     AutoScrollMoblist := ReadBool('RenderPrefs', 'AutoScrollMoblist', true);
     ShowPlayerInventory := ReadBool('RenderPrefs', 'ShowPlayerInventory', true);
-    HighlightMobs := ReadBool('RenderPrefs', 'HighlightMobs', false);
+    HighlightMobs := ReadBool('RenderPrefs', 'HighlightMobs', true);
     SwapTringleRingShade := ReadBool('RenderPrefs', 'SwapTringleRingShade', false);
     DrawPlayerHighlightRing := ReadBool('RenderPrefs', 'DrawPlayerHighlightRing', true);
     AutoMakeCurrent := ReadBool('RenderPrefs', 'AutoMakeCurrent', false);

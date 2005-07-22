@@ -1,6 +1,6 @@
 object frmGLRender: TfrmGLRender
-  Left = 358
-  Top = 125
+  Left = 489
+  Top = 171
   Width = 843
   Height = 643
   Caption = 'Excalibur'

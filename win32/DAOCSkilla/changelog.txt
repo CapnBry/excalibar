@@ -1,3 +1,13 @@
+2005 Jul 22 - v2.15
+-------------------
+  + Fix for v1.77 PlayerPosUpdate packet
+  + Fix for v1.77 NewObject(Object) packet
+  + Fix for v1.77 InventoryList packet
+  + Fix for v1.77 NewObject(Player) packet
+  + Fix for v1.77 DelveInformation packet
+  + Added mob highlight for current kill task
+  + Mob highlight defaults to on
+
 2005 Jul 21 - v2.0.14
 --------------
   + Fix for changes to v1.77 UpdatePosFromPlayer packet
