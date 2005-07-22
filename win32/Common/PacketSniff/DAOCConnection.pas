@@ -53,6 +53,7 @@ type
     FAccountCharacters:  TDAOCAccountCharInfoList;
 
     FSelectedID:    WORD;
+    FKillTask:      string;
     FTradeCommissionItem: string;
     FTradeCommissionNPC: string;
     FScheduledCallbacks:  TList;
@@ -107,6 +108,7 @@ type
     FOnGroupMembersChanged: TNotifyEvent;
     FOnDoorPositionUpdate: TDAOCObjectNotify;
     FOnMobInventoryChanged: TDAOCMovingObjectNotify;
+    FOnKillTaskChanged: TNotifyEvent;
 
     function GetClientIP: string;
     function GetServerIP: string;
@@ -215,6 +217,7 @@ type
     procedure ParseVendorWindowRequest(pPacket: TGameNetPacket);
     procedure ParseDoorPositionUpdate(pPacket: TGameNetPacket);
     procedure ParseSetHomeRealm(pPacket: TGameNetPacket);
+    procedure ParseQuestJournalUpdate(pPacket: TGameNetPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TGameNetPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TGameNetPacket);
@@ -262,6 +265,7 @@ type
     procedure DoOnGroupMembersChanged; virtual;
     procedure DoOnDoorPositionUpdate(AObj: TDAOCObject); virtual;
     procedure DoMobInventoryChanged(AObj: TDAOCMovingObject); virtual;
+    procedure DoOnKillTaskChanged; virtual;
 
     procedure ChatSay(const ALine: string);
     procedure ChatSend(const ALine: string);
@@ -305,6 +309,7 @@ type
     property UnknownStealthers: TDAOCObjectLinkedList read FUnknownStealthers;
     property GroundTarget: TMapNode read FGroundTarget;
     property GroupMembers: TDAOCObjectList read FGroupMembers;
+    property KillTask: string read FKillTask;
     property MaxObjectDistance: double read FMaxObjectDist write SetMaxObjectDistance;
     property MaxObjectStaleTime: Cardinal read FMaxObjectStaleTime write FMaxObjectStaleTime;
     property MasterVendorList: TDAOCMasterVendorList read FMasterVendorList;
@@ -342,6 +347,7 @@ type
     property OnDoorPositionUpdate: TDAOCObjectNotify read FOnDoorPositionUpdate write FOnDoorPositionUpdate;
     property OnGroupMembersChanged: TNotifyEvent read FOnGroupMembersChanged write FOnGroupMembersChanged;
     property OnInventoryChanged: TNotifyEvent read FOnInventoryChanged write FOnInventoryChanged;
+    property OnKillTaskChanged: TNotifyEvent read FOnKillTaskChanged write FOnKillTaskChanged;
     property OnLocalHealthUpdate: TNotifyEvent read FOnLocalHealthUpdate write FOnLocalHealthUpdate;
     property OnLog: TStringEvent read FOnLog write FOnLog;
     property OnMobInventoryChanged: TDAOCMovingObjectNotify read FOnMobInventoryChanged write FOnMobInventoryChanged;
@@ -558,7 +564,6 @@ var
   pTmpItem: TDAOCInventoryItem;
 begin
   pPacket.HandlerName := 'InventoryList';
-exit;
   iItemCount := pPacket.getByte;
   pPacket.seek(3);
   while (iItemCount > 0) and not pPacket.EOF do begin
@@ -577,7 +582,7 @@ exit;
     pPacket.seek(1);
     pTmpItem.ItemID := pPacket.getShort;
     pTmpItem.Color := pPacket.getByte;
-    pPacket.seek(2);
+    pPacket.seek(3);
     pTmpItem.Description := pPacket.getPascalString;
 
     FLocalPlayer.Inventory.TakeItem(pTmpItem);
@@ -879,8 +884,7 @@ begin
       ZXY[1] := pPacket.getShort;
       ZXY[2] := pPacket.getShort;
       pDAOCObject.SetXYZ(ZXY[1], ZXY[2], ZXY[0]);
-      AdjustObjLocForZone(pDAOCObject, pPacket.getByte);
-      pPacket.seek(1);
+      AdjustObjLocForZone(pDAOCObject, pPacket.getShort);
       HeadWord := pPacket.getShort;
       pPacket.seek(2);
       pDAOCObject.Stealthed := (pPacket.getByte and $02) <> 0;  // stealthed but visible
@@ -1084,11 +1088,23 @@ begin
   CheckZoneChanged;
 end;
 
+function StreamByteToDaocRealm(bRealm: BYTE) : TDAOCRealm;
+begin
+  case bRealm and $0f of
+    $04:  Result := drAlbion;
+    $08:  Result := drMidgard;
+    $0C:  Result := drHibernia;
+    else
+      Result := drNeutral;
+  end;
+end;
+
 procedure TDAOCConnection.ParseNewObjectCommon(pPacket: TGameNetPacket;
   AClass: TDAOCObjectClass);
 var
   tmpObject:  TDAOCObject;
   pOldObject: TDAOCObject;
+  iZone:      integer;
 begin
   pPacket.HandlerName := 'NewObject (' + DAOCObjectClassToStr(AClass) + ')';
 
@@ -1104,7 +1120,7 @@ begin
           Z := pPacket.getShort;
           X := pPacket.getLong;
           Y := pPacket.getLong;
-          pPacket.seek(4);
+          pPacket.seek(8);
           Name := pPacket.getPascalString;
           if pPacket.getByte = 4 then
             DoorID := pPacket.getLong;
@@ -1150,33 +1166,22 @@ begin
         with TDAOCPlayer(tmpObject) do begin
           PlayerID := pPacket.getShort;
           InfoID := pPacket.getShort;
-{$IFDEF PRE_168}
-          X := pPacket.getLong;
-          Y := pPacket.getLong;
-          Z := pPacket.getShort;
           HeadWord := pPacket.getShort;
-          pPacket.seek(4);
-          Realm := TDAOCRealm(pPacket.getByte);
-          Level := pPacket.getByte;
-          pPacket.seek(2);
-          Name := pPacket.getPascalString;
-          Guild := pPacket.getPascalString;
-          LastName := pPacket.getPascalString;
-{$ELSE}
+          Z := pPacket.getShort;
+          iZone := pPacket.getShort;
           X := pPacket.getShort;
           Y := pPacket.getShort;
-          AdjustObjLocForZone(tmpObject, pPacket.getByte);
-          pPacket.seek(1);
-          Z := pPacket.getShort;
-          HeadWord := pPacket.getShort;
-          pPacket.seek(4);
-          Realm := TDAOCRealm(pPacket.getByte);
+          AdjustObjLocForZone(tmpObject, iZone);
+          pPacket.seek(6);  // race/gender +5 bytes visual attributes?
           Level := pPacket.getByte;
-          pPacket.seek(2);
+          pPacket.seek(3);
+          Realm := StreamByteToDaocRealm(pPacket.getByte);
+          pPacket.seek(1);
           Name := pPacket.getPascalString;
           Guild := pPacket.getPascalString;
           LastName := pPacket.getPascalString;
-{$ENDIF}
+          // there's also a pascalstring here if they're from another server "of servername"
+
           IsInGuild := (FLocalPlayer.Guild <> '') and AnsiSameText(Guild, FLocalPlayer.Guild);
           UpdateRealmRank(TDAOCPlayer(tmpObject));
 
@@ -2014,7 +2019,7 @@ var
   wID:    WORD;
   pObj:   TDAOCObject;
   bMana:  BYTE;
-  bEndurance: BYTE;
+//  bEndurance: BYTE;
 begin
   pPacket.HandlerName := 'GroupMembersUpdate';
   ResetPlayersInGroup;
@@ -2027,8 +2032,8 @@ begin
     pPacket.getByte; // level
     pPacket.getByte; // health
     bMana := pPacket.getByte;
-    bEndurance := pPacket.getByte;  // maybe?
-    pPacket.seek(1);
+    // bEndurance := pPacket.getByte;  // maybe?
+    pPacket.seek(2);
     wID := pPacket.getShort;
 
     pObj := FDAOCObjs.FindByInfoID(wID);
@@ -2179,6 +2184,7 @@ begin
   if not Assigned(pItem) then
     exit;
 
+  pPacket.seek(1);
   sItemName := pPacket.getPascalString;
   slDelveInfo := pItem.DelveInfo;
   if Assigned(slDelveInfo) then
@@ -2458,6 +2464,8 @@ begin
         Handler := ParseGroupWindowUpdate
       else if AnsiSameText(Name, 'SetHomeRealm') then
         Handler := ParseSetHomeRealm
+      else if AnsiSameText(Name, 'QuestJournalUpdate') then
+        Handler := ParseQuestJournalUpdate
 
         { client handlers }
       else if AnsiSameText(Name, 'LocalPosUpdateFromClient') then
@@ -2586,6 +2594,51 @@ end;
 procedure TDAOCConnection.ParseSetHomeRealm(pPacket: TGameNetPacket);
 begin
   pPacket.HandlerName := 'SetHomeRealm NOTIMPL';
+end;
+
+procedure TDAOCConnection.ParseQuestJournalUpdate(pPacket: TGameNetPacket);
+var
+  iQuestIdx:  integer;
+  iLen:       integer;
+  sJournal: string;
+  iPos: integer;
+  P:    PChar;
+  sNewTask:   string;
+begin
+  pPacket.HandlerName := 'QuestJournalUpdate';
+  iQuestIdx := pPacket.getByte;  // number of quest in list
+  // index 0 is personal and realm task
+  if iQuestIdx <> 0 then
+    exit;
+
+  iLen := pPacket.getbyte;
+  pPacket.seek(2);
+  SetLength(sJournal, iLen);
+  P := PChar(sJournal);
+  pPacket.getBytes(P^, iLen);
+
+  iPos := Pos('[Task] You have been asked to kill a ', sJournal);
+  if iPos = 0 then
+    sNewTask := ''
+  else begin
+    sNewTask := '';
+    inc(P, 37);
+    while (P^ <> #0) and (P^ <> '.') do begin
+      sNewTask := sNewTask + P^;
+      P := CharNext(P)
+    end;
+  end;
+
+  if sNewTask <> FKillTask then begin
+    FKillTask := sNewTask;
+    DoOnKillTaskChanged;
+  end;
+end;
+
+procedure TDAOCConnection.DoOnKillTaskChanged;
+begin
+  if Assigned(FOnKillTaskChanged) then
+    FOnKillTaskChanged(Self);
 end;
 
 end.
