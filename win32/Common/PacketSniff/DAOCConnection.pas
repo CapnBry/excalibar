@@ -218,6 +218,7 @@ type
     procedure ParseDoorPositionUpdate(pPacket: TGameNetPacket);
     procedure ParseSetHomeRealm(pPacket: TGameNetPacket);
     procedure ParseQuestJournalUpdate(pPacket: TGameNetPacket);
+    procedure ParsePersonalTaskUpdate(pPacket: TGameNetPacket);
 
     procedure ProcessDAOCPacketFromServer(pPacket: TGameNetPacket);
     procedure ProcessDAOCPacketFromClient(pPacket: TGameNetPacket);
@@ -2599,11 +2600,6 @@ end;
 procedure TDAOCConnection.ParseQuestJournalUpdate(pPacket: TGameNetPacket);
 var
   iQuestIdx:  integer;
-  iLen:       integer;
-  sJournal: string;
-  iPos: integer;
-  P:    PChar;
-  sNewTask:   string;
 begin
   pPacket.HandlerName := 'QuestJournalUpdate';
   iQuestIdx := pPacket.getByte;  // number of quest in list
@@ -2611,34 +2607,73 @@ begin
   if iQuestIdx <> 0 then
     exit;
 
-  iLen := pPacket.getbyte;
-  pPacket.seek(2);
-  SetLength(sJournal, iLen);
-  P := PChar(sJournal);
-  pPacket.getBytes(P^, iLen);
-
-  iPos := Pos('[Task] You have been asked to kill a ', sJournal);
-  if iPos = 0 then
-    sNewTask := ''
-  else begin
-    sNewTask := '';
-    inc(P, 37);
-    while (P^ <> #0) and (P^ <> '.') do begin
-      sNewTask := sNewTask + P^;
-      P := CharNext(P)
-    end;
-  end;
-
-  if sNewTask <> FKillTask then begin
-    FKillTask := sNewTask;
-    DoOnKillTaskChanged;
-  end;
+  ParsePersonalTaskUpdate(pPacket);
 end;
 
 procedure TDAOCConnection.DoOnKillTaskChanged;
 begin
   if Assigned(FOnKillTaskChanged) then
     FOnKillTaskChanged(Self);
+end;
+
+procedure TDAOCConnection.ParsePersonalTaskUpdate(pPacket: TGameNetPacket);
+var
+  iLen:       integer;
+  sJournal: string;
+  iPos: integer;
+  P:    PChar;
+  sNewTask: string;
+  sWord:    string;
+  bFound:   boolean;
+begin
+  pPacket.HandlerName := 'QuestJournalUpdate(PersonalTask)';
+
+  iLen := pPacket.getbyte;
+  pPacket.seek(2);
+  SetLength(sJournal, iLen);
+  P := PChar(sJournal);
+  pPacket.getBytes(P^, iLen);
+
+  bFound := false;
+  sNewTask := '';
+  
+  iPos := Pos('[Task] You have been asked to kill ', sJournal);
+  if iPos <> 0 then begin
+    inc(iPos, 35);
+    ParseWord(sJournal, iPos);  // skip the word 'a' 'an' or 'the'
+    inc(P, iPos);
+    if P^ = ' ' then
+      inc(P);
+    while (P^ <> #0) and (P^ <> '.') do begin
+      sNewTask := sNewTask + P^;
+      inc(P);
+    end;
+
+    bFound := true;
+  end;
+
+  if not bFound then begin
+    iPos := Pos('[Task] You have killed your target and must now return to ', sJournal);
+    if iPos <> 0 then begin
+      inc(iPos, 57);
+      sWord := ParseWord(sJournal, iPos);
+      while (sWord <> 'for') and (sWord <> '') do begin
+        if sNewTask <> '' then
+          sNewTask := sNewTask + ' ';
+        sNewTask := sNewTask + sWord;
+        sWord := ParseWord(sJournal, iPos);
+      end;
+      bFound := true;
+    end;
+  end;
+
+  if not bFound then
+    sNewTask := '';
+
+  if sNewTask <> FKillTask then begin
+    FKillTask := sNewTask;
+    DoOnKillTaskChanged;
+  end;
 end;
 
 end.
