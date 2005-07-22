@@ -1297,7 +1297,8 @@ begin
     if FRenderPrefs.IsObjectInFilter(pObj) then
       FilteredObjectInsert(pObj);
     pObj.Highlight := FRenderPrefs.HighlightMobs and
-      FRenderPrefs.MobFilterList.Matches(pObj.Name, pObj.Level);
+      (FRenderPrefs.MobFilterList.Matches(pObj.Name, pObj.Level)
+       or (FCurrConn.KillTask = pObj.Name));
     pObj := pObj.Next;
   end;
 
