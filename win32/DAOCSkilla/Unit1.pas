@@ -275,7 +275,7 @@ begin
 
   frmMacroing.DAOCDisconnect(Sender);
 {$IFDEF OPENGL_RENDERER}
-  if atnAutoLaunchRadar.Checked then
+  if atnAutoLaunchRadar.Checked and (FDControlList.ActiveCount = 0) then
     frmGLRender.Close;
   frmGLRender.DAOCDisconnect(Sender);
 {$ENDIF OPENGL_RENDERER}
