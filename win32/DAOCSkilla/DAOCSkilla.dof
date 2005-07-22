@@ -64,7 +64,7 @@ RootDir=
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=2
-MinorVer=15
+MinorVer=16
 Release=0
 Build=0
 Debug=0
@@ -77,7 +77,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Network Utility for Dark Age of Camelot
-FileVersion=2.15.0.0
+FileVersion=2.16.0.0
 InternalName=
 LegalCopyright=
 LegalTrademarks=
