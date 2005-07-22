@@ -366,6 +366,7 @@ type
     FOnTradeSkillFailureWithLoss: TDAOCParserNotify;
     FOnCurrencyChange: TDAOCParserCurrencyChangeNotify;
 
+    procedure ParseFailedTask;
     procedure ParseBuyItem;
     procedure ParseBuyBackCon;
     procedure ParseRepairs;
@@ -479,7 +480,7 @@ type
     property OnTradeSkillSuccess: TDAOCParserIntNotify read FOnTradeSkillSuccess write FOnTradeSkillSuccess;
     property OnTradeSkillFailure: TDAOCParserNotify read FOnTradeSkillFailure write FOnTradeSkillFailure;
     property OnTradeSkillFailureWithLoss: TDAOCParserNotify read FOnTradeSkillFailureWithLoss write FOnTradeSkillFailureWithLoss;
-    property OnTradeskillMasterpiece: TDAOCParserNotify read FOnTradeskillMasterpiece write FOnTradeskillMasterpiece; 
+    property OnTradeskillMasterpiece: TDAOCParserNotify read FOnTradeskillMasterpiece write FOnTradeskillMasterpiece;
     property OnDeath: TDAOCParserNotify read FOnDeath write FOnDeath;
     property OnYouSay: TDAOCParserNotify read FOnYouSay write FOnYouSay;
     property OnInMiss: TDAOCParserNotify read FOnInMiss write FOnInMiss;
@@ -1433,6 +1434,8 @@ begin
       ParseBowDamage
     else if LineBeginsWith('You get ') then
       ParseExp
+    else if LineBeginsWith('You have failed your task!') then
+      ParseFailedTask
     else if LineBeginsWith('You successfully make ') then
       ParseTradeskillSuccess
     else if LineBeginsWith('You fail to make ') then
@@ -1501,6 +1504,12 @@ begin
       { [10:14:40] You are healed by Snu for 20 hit points. }
     else if LineBeginsWith('You are healed by ') then
       ParseHealed
+//    else if LineEndsWith(' and return to me for your reward.  Good luck!"') then
+//      ParseKillTask
+//    else if LineBeginsWith('You must not return to ') and LineEndsWith(' to receive your reward!') then
+//      ParseKillTaskComplete
+//    else if LineContains(', it''s good to see adventurers willing to help out the realm in such times.  Search to the ') then
+//      ParseKillTask
     else if LineContains(' gives you ') then
       ParseSellItem
     else if LineContains(' made for ') then
@@ -1784,6 +1793,15 @@ procedure TDAOCChatParser.ParseRepairs;
 begin
   if Assigned(FOnCurrencyChange) then
     FOnCurrencyChange(Self, ccrRepairItem);
+end;
+
+procedure TDAOCChatParser.ParseFailedTask;
+begin
+  if FTradeSkillItem <> '' then begin
+    FTradeSkillItem := '';
+    if Assigned(FOnTradeskillTask) then
+      FOnTradeskillTask(Self);
+  end;
 end;
 
 { TZoneMap }
