@@ -407,7 +407,7 @@ var
 begin
     { this is a shortcut, since it will not take effect until the next frame }
   glMap.AutoMakeCurrent := FRenderPrefs.AutoMakeCurrent;
-  
+
   if not FGLInitsCalled then
     GLInits;
 
@@ -2063,7 +2063,7 @@ begin
   glMap.Parent := pnlMap;
   glMap.Align := alClient;
   glMap.ColorDepth := c16bits;
-  glMap.DepthBufferEnabled := False;
+  glMap.DepthBufferEnabled := false;
   glMap.WindowFlags := [wfDrawToWindow, wfSupportOpenGL, wfGenericAccelerated, wfDoubleBuffer];
   glMap.PopupMenu := pumRadar;
 
@@ -2239,7 +2239,10 @@ end;
 
 procedure TfrmGLRender.AdjustMinFPSTimer;
 begin
-  tmrMinFPS.Interval := (1000 div FRenderPrefs.MinFPS);
+  if FRenderPrefs.MinFPS < 1 then
+    tmrMinFPS.Interval := 1000
+  else
+    tmrMinFPS.Interval := (1000 div FRenderPrefs.MinFPS);
 end;
 
 procedure TfrmGLRender.DAOCDisconnect(Sender: TObject);
