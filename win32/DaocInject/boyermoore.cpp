@@ -5,6 +5,7 @@
 CBoyMooSearch::CBoyMooSearch(void) : m_StartPos(0), m_EndPos(0),
 	m_haystack(NULL), m_haystacklen(0)
 {
+	printf("Boymoo ctor\n");
 }
 
 void CBoyMooSearch::InitializeFor(char* needle, int needlelen)

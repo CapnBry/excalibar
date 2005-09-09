@@ -2,9 +2,8 @@
 
 #define EXPECTED_MODULE_BASE  0x400000
 
-CSegmentSearch::CSegmentSearch(void) : m_ImageBase(0)
+CSegmentSearch::CSegmentSearch(void) : m_ImageBase(0), boymoo(NULL), m_LastSearchSeg(NULL)
 {
-	boymoo = NULL;
 }
 
 CSegmentSearch::~CSegmentSearch(void)
@@ -38,24 +37,45 @@ PBYTE CSegmentSearch::FindFirst(char *segment, char *needle, int needlelen)
 	if (!boymoo)
 		return NULL;
 
-	PIMAGE_SECTION_HEADER pseg = FindSegment(segment);
-	if (!pseg)
+	m_LastSearchSeg = FindSegment(segment);
+	if (!m_LastSearchSeg)
 		return NULL;
 
-	DWORD srchstart = GetSearchStartForSegment(pseg);
+	DWORD srchstart = GetSearchStartForSegment(m_LastSearchSeg);
 	boymoo->SetStartPos(srchstart);
-	boymoo->SetEndPos(srchstart + pseg->SizeOfRawData);
+	boymoo->SetEndPos(srchstart + m_LastSearchSeg->SizeOfRawData);
 	int offset = boymoo->FindFirst(needle, needlelen);
+
+	return AdjustSearchResult(offset);
+}
+
+PBYTE CSegmentSearch::FindNext(void)
+{
+	if (!boymoo)
+		return NULL;
+
+	if (!m_LastSearchSeg)
+		return NULL;
+
+	int offset = boymoo->FindNext();
+
+	return AdjustSearchResult(offset);
+}
+
+PBYTE CSegmentSearch::AdjustSearchResult(int offset)
+{
 	if (offset == -1)
 		return NULL;
-	
+
+	DWORD srchstart = GetSearchStartForSegment(m_LastSearchSeg);
+
 	/* convert the file offset to offset within the segment */
 	offset -= srchstart;
-	if ((DWORD)offset > pseg->SizeOfRawData)
+	if ((DWORD)offset > m_LastSearchSeg->SizeOfRawData)
 		return NULL;
 
 	/* return the virtual address of the needle */
-	return (PBYTE)IntToPtr(m_ImageBase + pseg->VirtualAddress + offset);
+	return (PBYTE)IntToPtr(m_ImageBase + m_LastSearchSeg->VirtualAddress + offset);
 }
 
 DWORD CSegmentSearch::GetSearchStartForSegment(PIMAGE_SECTION_HEADER segment)

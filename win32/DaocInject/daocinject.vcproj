@@ -74,8 +74,10 @@
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="detours\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DAOCINJECT_EXPORTS"
+				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
 				RuntimeLibrary="4"
+				BufferSecurityCheck="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -197,6 +199,9 @@
 			</File>
 			<File
 				RelativePath=".\dstreamdefs.h">
+			</File>
+			<File
+				RelativePath=".\injectntapi.h">
 			</File>
 			<File
 				RelativePath=".\segmentsearcher.h">

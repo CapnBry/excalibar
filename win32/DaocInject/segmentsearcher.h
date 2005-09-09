@@ -11,8 +11,10 @@ protected:
 	DWORD m_ImageBase;
 	CBoyMooSearch *boymoo;
 	std::vector<PIMAGE_SECTION_HEADER> sectionarray;
+	PIMAGE_SECTION_HEADER m_LastSearchSeg;
 
 	PIMAGE_SECTION_HEADER FindSegment(char *segment);
+	PBYTE AdjustSearchResult(int offset);
 	virtual DWORD GetSearchStartForSegment(PIMAGE_SECTION_HEADER segment);
 
 public:
@@ -20,6 +22,7 @@ public:
 	~CSegmentSearch(void);
 	PBYTE FindFirst(char *segment, char *needle, int needlelen);
 	PBYTE FindFirst(char *segment, char *needle) { return FindFirst(segment, needle, (int)strlen(needle)); }
+	PBYTE FindNext(void);
 };
 
 class CSegmentFileSearch : public CSegmentSearch
