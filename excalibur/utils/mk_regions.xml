@@ -1,0 +1,189 @@
+# mk_regions.xml
+# public domain software
+# MastaMappa
+usage()
+{
+echo "copy zones\\zones.mpk and gamedata.mpk to your current directory"
+echo "run dempak on each, then mk_regions.xml"
+exit
+}
+
+if [ ! -f zones.mpk.out/zones.dat ]
+then
+	echo requires zones.mpk.out/zones.dat
+	usage
+fi
+if [ ! -f gamedata.mpk.out/loading.dat ]
+then
+	echo requires gamedata.mpk.out/loading.dat
+	usage
+fi
+tr -d '\015' < zones.mpk.out/zones.dat | nawk '
+BEGIN {
+	pat["expansion"] = 1;
+	pat["tutorial"] = 1;
+	pat["phousing"] = 1;
+	CR = sprintf("\r");
+	# HARDCODE water level data
+	waterL["030"] = 7970;
+	waterL["035"] = 18960;
+	waterL["036"] = 0;
+	waterL["037"] = 0;
+	waterL["070"] = 5804;
+	waterL["071"] = 5804;
+	waterL["072"] = 5804;
+	waterL["073"] = 7970;
+	waterL["078"] = 18960;
+	waterL["079"] = 0;
+	waterL["080"] = 0;
+	waterL["130"] = 7970;
+	waterL["135"] = 18960;
+	waterL["163"] = 7879;
+	waterL["236"] = 0;
+	waterL["237"] = 0;
+	waterL["238"] = 0;
+	waterL["239"] = 0;
+	waterL["240"] = 0;
+	waterL["241"] = 0;
+	waterL["242"] = 0;
+	waterL["243"] = 19856;
+
+	#[region001]
+	#name=Albion
+	#
+	#[region325]
+	#name=The Forgotten Tunnels
+	#instance=1
+
+	cmd = sprintf("tr -d %c\\015%c < gamedata.mpk.out/loading.dat", 39, 39)
+	while ((cmd | getline x) > 0)
+	{
+		if (x ~ /^[\[]region/)
+		{
+			r = x;
+			gsub("[^0-9]", "", r);
+			continue;
+		}
+		if (x ~ /^name=/)
+		{
+			split(x, a, "=");
+			desc[r] = a[2];
+			continue;
+		}
+		if (x ~ /^instance=/)
+		{
+			split(x, a, "=");
+			instance[r] = a[2];
+			continue;
+		}
+	}
+	}
+	# r <- 3 digit 0 padded region number
+	# id <- region number
+	# grab data from region section
+/^[\[]region/ {
+	r = $1;
+	gsub("[^0-9]", "", r);
+	id = r + 0;
+if (r != sprintf("%03d", id)) print "HELP ME: " r " != " id, $0;
+	regionlist[id] = 1;
+	if (id > maxreg)
+		maxreg = id;
+	while (getline > 0)
+	{
+		if (NF == 0)
+			break;
+		n = split($0, a, "=");
+		if (n != 2)
+			break;
+		if (a[1] in pat)
+		{
+			if (a[1] == "phousing")
+				house[r] = 1;
+			if (a[1] == "expansion")
+				expansion[r] = a[2];
+			if (a[1] == "tutorial")
+				tutorial[r] = 1;
+		}
+	}
+	}
+	# some regions are not listed in region section
+	# so grab region from zone section
+/^[\[]zone/ {
+		# 
+		n = split($0, a, ";");
+		if (n == 2)
+		{
+			possible_desc = a[2]
+			gsub("  ", " ", possible_desc);
+			sub("^ ", "", possible_desc);
+		}
+		while (getline > 0)
+		{
+			if (NF == 0)
+				break;
+			n = split($0, a, "=");
+			if (n != 2)
+				break;
+			if (a[1] == "region")
+			{
+				id = a[2] + 0;
+				r = sprintf("%03d", id);
+				regionlist[id] = 1;
+				if (id > maxreg)
+					maxreg = id;
+				if (!(r in desc))
+					desc[r] = possible_desc;
+				break;
+			}
+		}
+	}
+END	{
+		printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>%s\n", CR;
+		printf "<root>%s\n", CR;
+		# pull them out sorted
+		for (id = 1; id <= maxreg; id++)
+		{
+			if (!(id in regionlist))
+				continue;
+			r = sprintf("%03d", id);
+			printf "  <Region%03d>%s\n", id, CR;
+			printf "    <description>%s</description>%s\n", desc[r], CR;
+			printf "    <isDivingEnabled>%s</isDivingEnabled>%s\n", (r in waterL) ? "True" : "False", CR;
+			printf "    <waterLevel>%d</waterLevel>%s\n", (r in waterL) ? waterL[r] : 0, CR;
+			printf "    <id>%d</id>%s\n", r, CR;
+			printf "    <port>10400</port>%s\n", CR;
+			printf "    <ip>127.0.0.1</ip>%s\n", CR;
+			printf "    <expansion>%d</expansion>%s\n", expansion[r]+0, CR;
+			if (r in house)
+				printf "    <isHousingEnabled>True</isHousingEnabled>%s\n", CR;
+			if (r in tutorial)
+				printf "    <tutorial>True</tutorial>%s\n", CR;
+			if (r in instance)
+				printf "    <instance>True</instance>%s\n", CR;
+			printf "  </Region%03d>%s\n", id, CR;
+
+			# region expansion housing tuorial instance diving waterL desc
+			printf "%s %d %d %d %d %d %d %s\n", r, expansion[r]+0, (r in house)?1:0, (r in tutorial)?1:0, (r in instance)?1:0, (r in waterL)?1:0, (r in waterL)?waterL[r]:0, desc[r] > "reginfo.txt"
+		}
+		printf "</root>%s\n", CR;
+	}
+' > regions.xml
+
+exit
+
+# <waterLevel>
+# <isDivingEnabled> 
+# <id>*region num
+# <ip>127.0.0.1</ip>
+# <port>10400</port>
+# <expansion>
+# 	0 Clasic
+# 	1 SI
+# 	2 TOA
+# 	3 Cata
+# 	4 Darkness
+#<description>
+#<isHousingEnabled>
+#
+#region	waterLevel

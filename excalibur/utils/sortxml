@@ -1,0 +1,60 @@
+# MastaMappa
+# open source software
+# usage: sortxml {zones.xml|regions.xml} > sortedfile
+
+nawk '
+NR == 1 {
+	# would really expect these in a BEGIN,
+	# but some things dont work until reading file, so record #1 works fine
+	file = "/tmp/sortxml" pid 
+	cmd = "sort -n -o " file	# pipe our "to be sorted" stuff to here
+	if (FILENAME == "zones.xml" || type ~ "z")
+		{
+		p = "<Zone[0-9]+>"	# tag to sort on
+		ep = "</Zone[0-9]+>"	# and its end
+		}
+	if (FILENAME == "regions.xml" || type ~ "r")
+		{
+		p = "<Region[0-9]+>"
+		ep = "</Region[0-9]+>"
+		}
+	}
+$1 == "</root>" { e = $1; exit } # exit here, means jump to END
+$1 ~ p {	# matched our tag, join lines until end tag
+	x = $1;
+	gsub("[^0-9]", "", x);	# remove non numeric potion of tag
+	printf "%d %s", x, $0 | cmd;	# print numeric portion first for sort
+	while (getline > 0)
+	{
+		printf "%s", $0 | cmd;	# joining lines...
+		if ($0 ~ ep)	# found our end pattern
+			break;
+	}
+	printf "\n" | cmd;	# so new line (for sort)
+	next
+	}
+	{ print }	# print header stuff (not through sort)
+END	{
+	close(cmd);	# finish sorting to file
+	while ((getline x < file) > 0) # now read in sorted file and resplit it
+	{
+		n = split(x, a)
+		print "  " a[2]		# field 1 is the numeric, drop it
+		for (i = 3; i < n; i++)
+		{
+			if (a[i] ~ /^</)	# begin tag
+			{
+				x = a[i]
+				sub(">.*", ">", x)
+				pp = "</" substr(x,2)	# make an end tag from the begin tag
+			}
+			for (j=i; (a[i] !~ pp) && (i < n); i++)	# if the field dosent contain the end tag
+			{
+				printf "%s%s", (j==i?"    ":" "), a[i]	# keep them joined
+			}
+			printf "%s%s\n", (j==i?"    ":" "), a[i]	# print end tag
+		}
+		print "  " a[n]	# print last end tag
+	}
+	print e 	# print "/root" end tag as saved above
+	}' pid=$$ $*

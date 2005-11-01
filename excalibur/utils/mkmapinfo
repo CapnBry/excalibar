@@ -1,11 +1,14 @@
 #!/bin/ksh
 
+# public domain software
+# MastaMappa
+
 # this will create both mapinfo.txt and nmapinfo.txt files. nmapinfo.txt is not used yet.
 # but is "friendlier" for other uses
 
 # yet another hard code .... remove -_???_clone from map name
 # Aerus dungeon is not rotated
-# also create zones.ini for DOL
+# also create zones.xml for DOL
 
 if [ "$1" = "" ]
 then
@@ -19,13 +22,16 @@ fi
 # haha, infact you dont see the sed either :P
 sed -e 's///g' -e 's/ *$//' $1 2>/dev/null | awk '
 BEGIN { M = 8192
-	file = "/Users/mm/z2r"	# you WILL need to fix this line, HARDCODED
+	file = "/Users/mm/z2r"
 	while ((getline x < file) > 0)
 		{
 		split(x, a)
 		z2r[a[1]] = a[2]
 		}
 	close(file)
+	xmlout = "sortxml type=z - > zones.xml"
+	print "<?xml version=\"1.0\" encoding=\"utf-8\"?>" | xmlout
+	print "<root>" | xmlout
 	}
 $1 ~ "^;" { next }	# skip commented lines (begin with a ;)
 $1 ~ "^[[]zone" {	# start of new zone data, init defaults, turn on zon flag
@@ -56,14 +62,15 @@ NF == 0 {	# blank line, process previous info, then turn off zon flag
 			pz = sprintf("%03d", proxy_zone[zone])
 		printf "%03d %03d %3s %s %3s %8d %8d %-2s %8d %8d %s\n", zone, region[zone], pz, type[zone], rot, x, y, realm, x+w, y+h, zonename[zone] ".map" | "sort -n -o nmapinfo.txt"
 		printf "%4s  %08x %08x  -  %08x %08x  %s  %-25s %-3s  %s\n", region[zone], x, y, x+w, y+h, type[zone], zonename[zone] ".map", zone, rot | "sort -n +8 -o mapinfo.txt"
-		printf "[%s]\r\n", rawzonename[zone] > "zones.ini"
-		printf "width = %s\r\n", width[zone] > "zones.ini"
-		printf "zoneID = %s\r\n", zone > "zones.ini"
-		printf "offsetx = %s\r\n", region_offset_x[zone] > "zones.ini"
-		printf "height = %s\r\n", height[zone] > "zones.ini"
-		printf "offsety = %s\r\n", region_offset_y[zone] > "zones.ini"
-		printf "regionID = %s\r\n", region[zone] > "zones.ini"
-		printf "\r\n" > "zones.ini"
+		printf "  <Zone%s>\n", zone | xmlout
+		printf "    <description>%s</description>\n", rawzonename[zone] | xmlout
+		printf "    <width>%s</width>\n", width[zone] | xmlout
+		printf "    <zoneID>%s</zoneID>\n", zone | xmlout
+		printf "    <height>%s</height>\n", height[zone] | xmlout
+		printf "    <offsety>%s</offsety>\n", region_offset_y[zone] | xmlout
+		printf "    <offsetx>%s</offsetx>\n", region_offset_x[zone] | xmlout
+		printf "    <regionID>%s</regionID>\n", region[zone] | xmlout
+		printf "  </Zone%s>\n", zone | xmlout
 		}
 	zon = 0
 	}
@@ -100,6 +107,10 @@ $1 ~ "=" { split($0, a, "=");	# reparse on "=" for var=value
 			a[2] = z + 0
 			region[zone] = a[2]
 		}
+	}
+END {
+	print "</root>" | xmlout
+	close(xmlout)
 	}
 ' -
 
