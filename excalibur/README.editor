@@ -4,3 +4,36 @@ For now, please read the INSTALL file for information on how to run it.
 
 To move around, use the cursor keys and pageup/pagedown. Hit 'home' to
 recenter.
+
+------------begin MastaMappa---------
+
+Masta Mappa added the following features:
+
+1. Point features
+	1.1 add new type of point Info, only effects .map files
+2. Line operations:
+	2.1 next node (updates slected node)
+	2.2 previous node (updates slected node)
+	2.3 split line
+	2.4 close
+3. Map Operations
+	3.1 Load a background image
+	3.2 square viewing area
+	3.3 force viewing area to 512x512
+	3.4 zoom viewing area to contain all points w/ 3% border (ignores areas)
+	3.5 center viewing area on selected element
+4. Area Features
+	4.1 created concept of an area
+	4.2 mark current view as an area
+	4.3 save areas to .map file
+	4.4 toggle area visibility
+	4.5 force veiwing area to selected area
+5. File features
+	5.1 added confirmation to "New", prevents accidental wipe
+	5.2 Added Title (saves to .map file)
+6. Editor Features
+	6.1 made info area smaller (increased map viewing area)
+	6.2 display represented dimensions of visible veiwing area
+	6.3 display (on screen) dimensions of map area
+7. bug fixes
+	7.1 when player pos is above and/or left of viewing area, adding a point re-centers to new point
