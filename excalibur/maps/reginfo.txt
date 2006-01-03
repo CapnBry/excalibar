@@ -1,0 +1,338 @@
+# region expansion housing tuorial instance diving waterL desc
+001 0 0 0 0 0 0 Albion
+002 0 1 0 0 0 0 Albion Housing
+010 0 0 0 0 0 0 Camelot City
+020 0 0 0 0 0 0 Stonehenge Barrows
+021 0 0 0 0 0 0 Tomb of Mithra
+022 0 0 0 0 0 0 Keltoi Fogou
+023 0 0 0 0 0 0 Catacombs of Cardova
+024 0 0 0 0 0 0 Tepok's Mine
+027 0 0 1 0 0 0 Tutorial
+047 0 0 0 0 0 0 Aerus City
+100 0 0 0 0 0 0 Midgard
+101 0 0 0 0 0 0 Jordheim
+102 0 1 0 0 0 0 Midgard Housing
+125 0 0 0 0 0 0 Spindelhalla
+126 0 0 0 0 0 0 Vendo Caverns
+127 0 0 0 0 0 0 Varulvhamn
+128 0 0 0 0 0 0 Cursed Tomb
+129 0 0 0 0 0 0 Nisse's Lair
+147 0 0 0 0 0 0 Aerus City
+163 0 0 0 0 1 7879 New Frontiers
+200 0 0 0 0 0 0 Hibernia
+201 0 0 0 0 0 0 Tir na Nog
+202 0 1 0 0 0 0 Hibernia Housing
+220 0 0 0 0 0 0 Coruscating Mine
+221 0 0 0 0 0 0 Muire Tomb
+222 0 0 0 0 0 0 Spraggon Den
+223 0 0 0 0 0 0 Koalinth Tribal Caverns
+224 0 0 0 0 0 0 Treibh Caillte
+231 0 0 0 0 0 0 Art Test Zone
+232 0 0 0 0 0 0 - Art Test Dungeon
+233 0 0 0 0 0 0 Summoner's Hall
+234 0 0 0 0 0 0 The Proving Grounds
+235 0 0 0 0 0 0 The Lion's Den
+236 0 0 0 0 1 0 The Hills of Claret
+237 0 0 0 0 1 0 Killaloe
+238 0 0 0 0 1 0 Thidranki
+239 0 0 0 0 1 0 Braemar
+240 0 0 0 0 1 0 Wilton
+241 0 0 0 0 1 0 Molvik
+242 0 0 0 0 1 0 Leirvik
+244 0 0 0 0 0 0 Passage of Conflict
+247 0 0 0 0 0 0 
+249 0 0 0 0 0 0 Darkness Falls
+050 1 0 0 0 0 0 Avalon City
+051 1 0 0 0 0 0 Avalon
+060 1 0 0 0 0 0 Caer Sidi
+061 1 0 0 0 0 0 Krondon
+062 1 0 0 0 0 0 Crystal Cave
+150 1 0 0 0 0 0 Trollheim
+151 1 0 0 0 0 0 Aegir
+160 1 0 0 0 0 0 Tuscaran Glacier
+161 1 0 0 0 0 0 Iarnvidiur's Lair
+180 1 0 0 0 0 0 Fomor City
+181 1 0 0 0 0 0 HyBrasil
+190 1 0 0 0 0 0 Tur Suil
+191 1 0 0 0 0 0 Galladoria
+030 2 0 0 0 1 7970 Atlantis
+035 2 0 0 0 1 18960 Cetus' Pit
+036 2 0 0 0 1 0 Sobekite Eternal
+037 2 0 0 0 1 0 Temple of Twilight
+040 2 0 0 0 0 0 Halls of Ma'ati
+045 2 0 0 0 0 0 The Great Pyramid
+046 2 0 0 0 0 0 Deep Volcanus
+070 2 0 0 0 1 5804 Ruins of Atlantis
+071 2 0 0 0 1 5804 Ruinrar Atlantis
+072 2 0 0 0 1 5804 Scrios de Atlantis
+073 2 0 0 0 1 7970 Atlantis
+078 2 0 0 0 1 18960 Cetus' Pit
+079 2 0 0 0 1 0 Sobekite Eternal
+080 2 0 0 0 1 0 Temple of Twilight
+083 2 0 0 0 0 0 Halls of Ma'ati
+088 2 0 0 0 0 0 The Great Pyramid
+089 2 0 0 0 0 0 Deep Volcanus
+090 2 0 0 0 0 0 Aerus City
+091 2 0 0 0 0 0 Celestius
+123 2 0 0 0 0 0 Volcanus Instance 1
+124 2 0 0 0 0 0 Volcanus Instance 2
+130 2 0 0 0 1 7970 Atlantis
+135 2 0 0 0 1 18960 Cetus' Pit
+136 2 0 0 0 0 0 Sobekite Eternal
+137 2 0 0 0 0 0 Temple of Twilight
+140 2 0 0 0 0 0 Halls of Ma'ati
+145 2 0 0 0 0 0 The Great Pyramid
+146 2 0 0 0 0 0 Deep Volcanus
+198 2 0 0 0 0 0 Volcanus Instance 3
+199 2 0 0 0 0 0 Volcanus Instance 4
+058 3 0 0 0 0 0 Underground Forest
+059 3 0 0 0 0 0 Glashtin Forge
+063 3 0 0 0 0 0 Roman Aqueducts
+065 3 0 0 0 0 0 Inconnu Crypt
+066 3 0 0 0 0 0 Underground Forest
+067 3 0 0 0 0 0 Deadlands of Annwn
+068 3 0 0 0 0 0 Lower Crypt
+069 3 0 0 0 0 0 Darkspire
+092 3 0 0 0 0 0 Veil Rift
+093 3 0 0 0 0 0 Shar Labyrinth
+094 3 0 0 0 0 0 Queen's Labyrinth
+095 3 0 0 0 0 0 The Frontlines
+096 3 0 0 0 0 0 Underground Forest
+097 3 0 0 0 0 0 Deadlands of Annwn
+098 3 0 0 0 0 0 Darkspire
+099 3 0 0 0 0 0 Glashtin Forge
+109 3 0 0 0 0 0 The Frontlines
+148 3 0 0 0 0 0 The Frontlines
+149 3 0 0 0 0 0 Nyttheim
+162 3 0 0 0 0 0 Deadlands of Annwn
+188 3 0 0 0 0 0 Darkspire
+189 3 0 0 0 0 0 Glashtin Forge
+195 3 0 0 0 0 0 The Otherworld
+196 3 0 0 0 0 0 The Otherworld
+197 3 0 0 0 0 0 The Otherworld
+226 3 0 0 0 0 0 Abandoned Mines
+227 3 0 0 0 0 0 Abandoned Mines
+228 3 0 0 0 0 0 Abandoned Mines
+229 3 0 0 0 0 0 Burial Grounds
+230 3 0 0 0 0 0 
+243 3 0 0 0 1 19856 Kobold Undercity
+331 3 0 0 0 0 0 Burial AW4
+342 3 0 0 0 0 0 Mid Launch 2
+343 3 0 0 0 0 0 Alb Launch 2
+344 3 0 0 0 0 0 Hib Launch 2
+497 3 0 0 0 0 0 Mid Launch
+498 3 0 0 0 0 0 Alb Launch
+499 3 0 0 0 0 0 Hib Launch
+339 4 0 0 0 0 0 Brimstone Caverns
+340 4 0 0 0 0 0 Halls of Helgardh
+341 4 0 0 0 0 0 Cave of Cruachan
+348 4 0 0 0 0 0 The Baron's Gaol
+351 4 0 0 0 0 0 Nephraal's Gaol
+352 4 0 0 0 0 0 Morfesa's Gaol
+325 0 0 0 1 0 0 The Forgotten Tunnels
+326 0 0 0 1 0 0 The Hidden Lair
+328 0 0 0 1 0 0 The Hidden Lair
+355 0 0 0 1 0 0 Tethra's Stronghold
+356 0 0 0 1 0 0 Barrow of Restless Dead
+359 0 0 0 1 0 0 Red Dagger Hideout
+048 3 0 0 1 0 0 The Unused Mine
+049 3 0 0 1 0 0 Rugnog's Haven
+256 3 0 0 1 0 0 Forgotten Mines
+257 3 0 0 1 0 0 Forgotten Mines
+258 3 0 0 1 0 0 Forgotten Mines
+278 3 0 0 1 0 0 Damp Cavern
+279 3 0 0 1 0 0 Damp Cavern
+280 3 0 0 1 0 0 Damp Cavern
+281 3 0 0 1 0 0 Forgotten Sepulchre
+282 3 0 0 1 0 0 Forgotten Sepulchre
+283 3 0 0 1 0 0 Forgotten Sepulchre
+284 3 0 0 1 0 0 The Concealed Guardhouse
+285 3 0 0 1 0 0 The Concealed Guardhouse
+286 3 0 0 1 0 0 The Concealed Guardhouse
+287 3 0 0 1 0 0 The Gossamer Grotto
+288 3 0 0 1 0 0 The Gossamer Grotto
+289 3 0 0 1 0 0 The Gossamer Grotto
+290 3 0 0 1 0 0 Underground Tunnel
+291 3 0 0 1 0 0 Underground Tunnel
+292 3 0 0 1 0 0 Underground Tunnel
+293 3 0 0 1 0 0 Burial Tomb
+294 3 0 0 1 0 0 Burial Tomb
+295 3 0 0 1 0 0 Burial Tomb
+296 3 0 0 1 0 0 Desecrated Grounds
+297 3 0 0 1 0 0 Desecrated Grounds
+298 3 0 0 1 0 0 Desecrated Grounds
+300 3 0 0 1 0 0 Damp Cavern
+301 3 0 0 1 0 0 Damp Cavern
+302 3 0 0 1 0 0 Damp Cavern
+303 3 0 0 1 0 0 Damp Cavern
+304 3 0 0 1 0 0 Damp Cavern
+305 3 0 0 1 0 0 Forgotten Sepulchre
+306 3 0 0 1 0 0 Forgotten Sepulchre
+307 3 0 0 1 0 0 Forgotten Sepulchre
+308 3 0 0 1 0 0 Forgotten Sepulchre
+309 3 0 0 1 0 0 Forgotten Sepulchre
+310 3 0 0 1 0 0 The Concealed Guardhouse
+311 3 0 0 1 0 0 The Concealed Guardhouse
+312 3 0 0 1 0 0 The Concealed Guardhouse
+313 3 0 0 1 0 0 The Concealed Guardhouse
+314 3 0 0 1 0 0 The Concealed Guardhouse
+315 3 0 0 1 0 0 The Gossamer Grotto
+316 3 0 0 1 0 0 The Gossamer Grotto
+317 3 0 0 1 0 0 The Gossamer Grotto
+318 3 0 0 1 0 0 The Gossamer Grotto
+319 3 0 0 1 0 0 The Gossamer Grotto
+320 3 0 0 1 0 0 Underground Tunnel
+321 3 0 0 1 0 0 Underground Tunnel
+322 3 0 0 1 0 0 Underground Tunnel
+323 3 0 0 1 0 0 Underground Tunnel
+324 3 0 0 1 0 0 Underground Tunnel
+327 3 0 0 1 0 0 Caverns of Madness
+329 3 0 0 1 0 0 Jarlsberg's Hideout
+332 3 0 0 1 0 0 Rebel Half Orc Lair
+333 3 0 0 1 0 0 The Haunted Halls
+345 3 0 0 1 0 0 Tomte Prison
+346 3 0 0 1 0 0 Nisse's Retreat
+349 3 0 0 1 0 0 Lios's Eternal Rest
+350 3 0 0 1 0 0 Liche's Unrest
+353 3 0 0 1 0 0 Den of Bones
+354 3 0 0 1 0 0 The Lost Burrow
+357 3 0 0 1 0 0 The Cursed Lair
+358 3 0 0 1 0 0 The Burrow
+361 3 0 0 1 0 0 Arachnid's Labyrinth
+362 3 0 0 1 0 0 The Master's Lair
+365 3 0 0 1 0 0 Bandit Lair
+366 3 0 0 1 0 0 Gnoll Lair
+367 3 0 0 1 0 0 Vandr's Bane
+368 3 0 0 1 0 0 Past and Present
+369 3 0 0 1 0 0 Half-Orc Camp
+370 3 0 0 1 0 0 Brutal Realization
+371 3 0 0 1 0 0 History Repeats Itself
+372 3 0 0 1 0 0 Hounds of Arawn
+373 3 0 0 1 0 0 Passage of Echoes
+374 3 0 0 1 0 0 The Unrestful Tomb
+375 3 0 0 1 0 0 The Lost Passages
+376 3 0 0 1 0 0 Goblin's Cookery
+377 3 0 0 1 0 0 The Beastmaster's Den
+379 3 0 0 1 0 0 The Funerary Hall
+380 3 0 0 1 0 0 Lair of Doom
+381 3 0 0 1 0 0 The Arena
+382 3 0 0 1 0 0 The Funerary Hall
+383 3 0 0 1 0 0 The Funerary Hall
+384 3 0 0 1 0 0 The Ritual Hall
+385 3 0 0 1 0 0 The Betrayer's Den
+386 3 0 0 1 0 0 The Sundered Tombs
+387 3 0 0 1 0 0 The Sundered Tombs
+388 3 0 0 1 0 0 The Sundered Tombs
+389 3 0 0 1 0 0 Shafts of the Tenebrae
+390 3 0 0 1 0 0 Lair of the Exiled
+392 3 0 0 1 0 0 The Hall of Reawakening
+393 3 0 0 1 0 0 The Hidden Crypt
+396 3 0 0 1 0 0 The Depths of Despair
+397 3 0 0 1 0 0 Realm of the Damned
+400 3 0 0 1 0 0 Burial Tomb
+401 3 0 0 1 0 0 Burial Tomb
+402 3 0 0 1 0 0 Burial Tomb
+403 3 0 0 1 0 0 Burial Tomb
+404 3 0 0 1 0 0 Burial Tomb
+405 3 0 0 1 0 0 Desecrated Grounds
+406 3 0 0 1 0 0 Desecrated Grounds
+407 3 0 0 1 0 0 Desecrated Grounds
+408 3 0 0 1 0 0 Desecrated Grounds
+409 3 0 0 1 0 0 Desecrated Grounds
+410 3 0 0 1 0 0 Forgotten Mines
+411 3 0 0 1 0 0 Forgotten Mines
+412 3 0 0 1 0 0 Forgotten Mines
+413 3 0 0 1 0 0 Forgotten Mines
+414 3 0 0 1 0 0 Forgotten Mines
+415 3 0 0 1 0 0 The Funerary Hall
+416 3 0 0 1 0 0 The Funerary Hall
+417 3 0 0 1 0 0 The Funerary Hall
+418 3 0 0 1 0 0 The Funerary Hall
+419 3 0 0 1 0 0 The Funerary Hall
+420 3 0 0 1 0 0 The Sundered Tombs
+421 3 0 0 1 0 0 The Sundered Tombs
+422 3 0 0 1 0 0 The Sundered Tombs
+423 3 0 0 1 0 0 The Sundered Tombs
+424 3 0 0 1 0 0 The Sundered Tombs
+425 3 0 0 1 0 0 The Lost Wing
+426 3 0 0 1 0 0 Deliah's Sanctuary
+427 3 0 0 1 0 0 The Cursed Barrow
+428 3 0 0 1 0 0 The Cursed Barrow
+429 3 0 0 1 0 0 Snyblem's Lair
+430 3 0 0 1 0 0 The Plutonian Shore
+431 3 0 0 1 0 0 The Cursed Barrow
+432 3 0 0 1 0 0 Dismal Grotto
+433 3 0 0 1 0 0 Snarg's Grotto
+434 3 0 0 1 0 0 The Maze of Tribulation
+435 3 0 0 1 0 0 The Smelting Pot
+436 3 0 0 1 0 0 Forges of Flame
+437 3 0 0 1 0 0 Hugak's Smithy
+438 3 0 0 1 0 0 The Goblin Workshop
+439 3 0 0 1 0 0 Wolak's Crucible
+440 3 0 0 1 0 0 Marik's Workroom
+441 3 0 0 1 0 0 Dismal Grotto
+442 3 0 0 1 0 0 The Steward's Crypt
+443 3 0 0 1 0 0 Serf's Folly
+444 3 0 0 1 0 0 Dismal Grotto
+445 3 0 0 1 0 0 The Dark Caverns
+446 3 0 0 1 0 0 Blathnait's Refuge
+447 3 0 0 1 0 0 Broken Mirrors
+448 3 0 0 1 0 0 The Dark Caverns
+449 3 0 0 1 0 0 The Dark Caverns
+450 3 0 0 1 0 0 The Cursed Barrow
+451 3 0 0 1 0 0 The Cursed Barrow
+452 3 0 0 1 0 0 The Cursed Barrow
+453 3 0 0 1 0 0 The Cursed Barrow
+454 3 0 0 1 0 0 The Cursed Barrow
+455 3 0 0 1 0 0 Dismal Grotto
+456 3 0 0 1 0 0 Dismal Grotto
+457 3 0 0 1 0 0 Dismal Grotto
+458 3 0 0 1 0 0 Dismal Grotto
+459 3 0 0 1 0 0 Dismal Grotto
+460 3 0 0 1 0 0 The Accursed Caves
+461 3 0 0 1 0 0 The Accursed Caves
+462 3 0 0 1 0 0 The Accursed Caves
+463 3 0 0 1 0 0 The Accursed Caves
+464 3 0 0 1 0 0 The Accursed Caves
+465 3 0 0 1 0 0 The Dark Caverns
+466 3 0 0 1 0 0 The Dark Caverns
+467 3 0 0 1 0 0 The Dark Caverns
+468 3 0 0 1 0 0 The Dark Caverns
+469 3 0 0 1 0 0 The Dark Caverns
+470 3 0 0 1 0 0 Half Orc Command Post
+471 3 0 0 1 0 0 The Unused Mine
+472 3 0 0 1 0 0 The Unused Mine
+473 3 0 0 1 0 0 The Unused Mine
+474 3 0 0 1 0 0 The Unused Mine
+475 3 0 0 1 0 0 Rise of the Spraggons
+476 3 0 0 1 0 0 The Warrens
+477 3 0 0 1 0 0 The Accursed Caves
+478 3 0 0 1 0 0 The Accursed Caves
+479 3 0 0 1 0 0 The Ancient's Retreat
+480 3 0 0 1 0 0 The Shaman's Inner Sanctum
+481 3 0 0 1 0 0 The Accursed Caves
+482 3 0 0 1 0 0 The Unused Mine
+483 3 0 0 1 0 0 The Brawler's Den
+484 3 0 0 1 0 0 Felena's Sorrow
+485 3 0 0 1 0 0 The Unused Mine
+486 3 0 0 1 0 0 The Unused Mine
+487 3 0 0 1 0 0 The Pit of Despair
+488 3 0 0 1 0 0 The Forgotten Vein
+491 3 0 0 1 0 0 Maze of Madness
+492 3 0 0 1 0 0 Shattered Lands
+494 3 0 0 1 0 0 The Gnoll's Den
+495 3 0 0 1 0 0 The Inner Sanctum
+496 3 0 0 1 0 0 The Deep
+330 4 0 0 1 0 0 The Foothills of Albion
+334 4 0 0 1 0 0 The Foothills of Midgard
+335 4 0 0 1 0 0 The Foothills of Hibernia
+336 4 0 0 1 0 0 Demonic Prison
+337 4 0 0 1 0 0 Demonic Prison
+338 4 0 0 1 0 0 Demonic Prison
+347 4 0 0 1 0 0 Lair of the Demon Lord
+360 4 0 0 1 0 0 King Eirik's Throne Room
+363 4 0 0 1 0 0 Anataeus' Sanctuary
+364 4 0 0 1 0 0 Keeper Iraeda's Sanctuary
+378 4 0 0 1 0 0 Keeper Garran's Sanctuary
+394 4 0 0 1 0 0 King Constantine's Throne Room
+395 4 0 0 1 0 0 King Lamfhotas' Throne Room
