@@ -1,0 +1,41 @@
+# MastaMappa
+# chatlog to map
+# Wed Nov 23 17:32:25 CST 2005
+# for mapping from live server using chatlog and a '/groundset 0' macro
+# uses nmapinfo.txt for offsets
+if [ $# = 0 ]
+then
+	echo "usage: $0 [zone=XXX] chat.log [>> zXXX.map]"
+	exit
+fi
+
+nawk 'BEGIN {
+	xoff[""] = 8192; # default to standard dungeon offset
+	yoff[""] = 8192;
+	desc1[""] = "some where";
+	desc2[""] = "some_where";
+	}
+FILENAME ~ "nmapinfo.txt" {
+	xoff[$1] = $6;
+	yoff[$1] = $7;
+	d = $NF;
+	sub(".map", "", d);
+	desc2[$1] = d;
+	gsub("_", " ", d);
+	desc1[$1] = d;
+	next;
+	}
+FNR == 1 { printf "%s,%s,0,0,0,0,0,0\n", desc1[zone], desc2[zone]; }
+/You ground-target/ {
+	split($NF, a, ",");
+	x = a[1] - xoff[zone];
+	y = a[2] - yoff[zone];
+	z = a[3];
+	sub("\r", "", z);
+	p = x "," y "," z;
+	if (lp != "")
+	{
+		print "M,Line,orange,2," lp "," p;
+	}
+	lp = p;
+	}' nmapinfo.txt $* | cmap

@@ -1,0 +1,12 @@
+# MastaMappa
+# assumes your in a datXXX.mpk.out directory and that a zonejump.csv file exists
+nawk 'BEGIN{OFS=FS=","};{ print "M,Line,red,2", $3, $4, $7, $5, $6, $8 }
+{ print "P", $2, "white", $3, $4, $7 }
+function abs(a)
+{
+if (a<0)
+	return -a
+else
+	return a
+}
+' zonejump.csv | sort -u
