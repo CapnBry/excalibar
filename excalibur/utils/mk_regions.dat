@@ -1,0 +1,324 @@
+# mk_region.dat
+# MastaMappa Copyleft 2005
+# I release this software to the public domain
+
+if [ "$1" = "-?" ]
+then
+	echo "usage: $0 [256|512]"
+	echo "zXXX.map are in current directory,"
+	echo "nmapinfo.txt, reginfo.txt, and OMdesc.txt are in current directory,"
+	echo "will overwrite regions.dat and areas.dat"
+	echo "areas.dat is only generated for MAPSZ==256, default"
+	exit
+fi
+
+
+#nmapinfo.txt:
+##zone, region, proxy, type, rot, x, y, realm, x+w, y+h, zonename
+#000 001   - 0   0   548864   483328 A    614400   548864 Camelot_Hills.map
+#001 001   - 0   0   548864   548864 A    614400   614400 Salisbury_Plains.map
+#
+#reginfo.txt:
+## region, expansion, housing, tuorial, instance, diving, waterL, desc
+#001 0 0 0 0 0 0 Albion
+#002 0 1 0 0 0 0 Albion Housing
+#010 0 0 0 0 0 0 Camelot City
+
+#grep '^A,' z???.map
+#z171.map:A,00,white,11420,58764,7603
+#z200.map:A,01,white,24600,45100,4100
+#z200.map:A,00,white,25100,7100,4100
+#z216.map:A,00,white,58500,58500,5000
+#z334.map:A,01,white,43880,32079,2091
+
+
+grep '^A,' z???.map | sort | nawk '
+BEGIN	{
+	cmd = "date";
+	cmd | getline date;
+	close(cmd);
+	}
+FILENAME == "reginfo.txt" {
+	r = $1;
+	if ($5 == 1)
+		instance[r] = 1;
+	else if (r+0 > maxreg)
+		maxreg = r+0;
+	d = $0;
+	sub($1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " ", "", d);
+	reg_name[r] = d;
+	next
+	}
+FILENAME == "nmapinfo.txt" {
+	#000 001   - 0   0   548864   483328 A    614400   548864 Camelot_Hills.map
+	z = $1;
+	r = $2
+	type[z] = $4;
+	zminx[z] = $6;
+	zminy[z] = $7;
+	zmaxx[z] = $9;
+	zmaxy[z] = $10;
+	if (r in instance)
+		rr = "000";
+	else
+		rr = r;
+	zone2region[z] = r;
+	region2zone[rr] = region2zone[rr] " " z
+	d = $NF;
+	sub(".map$", "", d);
+	zone_name[z] = d;
+	next
+	}
+FILENAME == "OMdesc.txt" {
+	n = split($0, a, "\t");
+	if (a[1] == "r")
+		mythregdesc[a[2]] = a[3];
+	else if (a[1] == "z")
+		mythdesc[a[2]] = a[3];
+	else if (a[1] == "a")
+		area_desc[a[2]] = a[3];
+	next
+	}
+	{ # only the A lines should be here
+		#z171.map:A,00:name,white,11420,58764,7603
+		zone = substr($0,2,3);
+		sub(".map.*", "", mn);
+		split($0, a, ",");
+		if (a[2] ~ ":")
+		{
+			n = split(a[2], b, ":");
+			an = b[1];
+			d = "";
+			for (i = 2; i <= n; i++)
+				d = d ":" b[2];
+			area_name[zone,an] = substr(d,2);
+		}
+		else
+			an = a[2];
+		zone2area[zone] = zone2area[zone] "," an;
+		areaX[zone,an] = a[4] - a[6];	# convert center/radius format to top/left/width
+		areaY[zone,an] = a[5] - a[6];
+		areaW[zone,an] = a[6] + a[6];
+	}
+END	{
+	if ((MAPSZ+0) == 0)
+		MAPSZ=256;
+	CR = sprintf("\r");
+	if (MAPSZ != 256)
+		out1 = "regions" MAPSZ ".dat";
+	else
+		out1 = "regions.dat";
+	print "; regions.dat" CR > out1;
+	print "; Official MastaMappa release: " date CR > out1;
+	print "; (C) Copyright 2005, MastaMappa, ALL rights reserved." CR > out1;
+	printf "; for use with any mapset derived from MastaMappa%cs maps%s\n", 39, CR > out1;
+	print "; permision to copy this data, in whole or in part, is granted so long as this" CR > out1;
+	print "; notice and all references to the MastaMappa are left intact." CR > out1;
+	print ";" CR > out1;
+	print "; outdoor zones - zone_width is zones width in pixels on region map" CR > out1;
+	print "; the region map scales per the zones in the region" CR > out1;
+	print "; offsets are used to place the pip on the region map correctly" CR > out1;
+	print ";" CR > out1;
+	print "; dungeon zones - zone_width is not specified (since there is no region map)" CR > out1;
+	print "; offsets are used to place the pip on the zoomed zone map correctly" CR > out1;
+	print ";" CR > out1;
+	print "; Note: if a dungeon map has an area map, the zone offset values here must be" CR > out1;
+	print "; subtracted from the offset values of the area map" CR > out1;
+	print "; this holds for outdoor zones too, but there, the zone offset is zero" CR > out1;
+	print ";" CR > out1;
+	print "; All instance dungeons are in region 000, which is at the end, due to its size" CR > out1;
+	print "; descriptions from Mythics regions.dat, where available, are maintained" CR > out1;
+	print ";" CR > out1;
+	print "; MAPSZ=" MAPSZ " (only effects outdoor region maps)" CR > out1;
+	print ";" CR > out1;
+	print "; individual maps available at http://www.eccentrix.com/members/mastamappa" CR > out1;
+	print ";" CR > out1;
+	for (id = 1; id <= maxreg; id++)
+	{
+		r = sprintf("%03d", id);
+		if (r in region2zone)
+			print_reg(r);
+	}
+	print_reg("000");
+	close(out1);
+	if (MAPSZ != 256)
+		exit
+	# now create areas.dat
+	out2 = "areas.dat";
+	print "; areas.dat" CR > out2;
+	print "; Official MastaMappa release: " date CR > out2;
+	print "; (C) Copyright 2005, MastaMappa, ALL rights reserved." CR > out2;
+	printf "; for use with any mapset derived from MastaMappa%cs maps%s\n", 39, CR > out2;
+	print "; permision to copy this data, in whole or in part, is granted so long as this" CR > out2;
+	print "; notice and all references to the MastaMappa are left intact." CR > out2;
+	print ";" CR > out2;
+	for (id = 1; id <= maxreg; id++) # ASSUMES HIGHEST ZONE IS A SINGLE ZONE REGION THAT MATCHES REGION #
+	{
+		z = sprintf("%03d", id);
+		if (z in zone2area)
+			print_area(z);
+	}
+	close(out2);
+	}
+
+function print_area(z,	n, a, AC, aa, indx)
+{
+	print ";" CR > out2;
+	print "[zone" z "] ;" zone_name[z] CR > out2;
+	n = split(zone2area[z], a, ","); # note: a[1] is NULL and n too big by 1
+	print "area_count=" (n - 1) CR > out2;
+	AC = 0;
+	for (aa = 2; aa <= n; aa++)
+	{
+		indx = z SUBSEP a[aa];
+		if (zone_offsetx[z] == 0 && zone_offsety[z] == 0)
+		{
+			print "area" AC "_left=" areaX[indx] CR > out2;
+			print "area" AC "_top=" areaY[indx] CR > out2;
+		}
+		else
+		{
+			print "area" AC "_left=" areaX[indx] - zone_offsetx[z] "	; " areaX[indx] "-" zone_offsetx[z] CR > out2;
+			print "area" AC "_top=" areaY[indx] - zone_offsety[z] "	; " areaY[indx] "-" zone_offsety[z] CR > out2;
+		}
+		print "area" AC "_width=" areaW[indx] CR > out2;
+		print "area" AC "_height=" areaW[indx] CR > out2;
+		
+		if (indx in area_name)
+			print "area" AC "_name=" area_name[indx] CR > out2;
+		else
+			print "area" AC "_name=" a[aa] CR > out2;
+		print "area" AC "_desc=MM" z "_" AC " " area_desc[area_name[indx]] CR > out2;
+		AC++;
+	}
+}
+
+function max(x,y)
+{
+	if (x >= y)
+		return x;
+	else
+		return y;
+}
+
+function abs(x)
+{
+	if (x < 0)
+		return -x;
+	else
+		return x;
+}
+
+function round(x,	v)
+{
+	v = int(x);
+	if (abs(x - v) > 0.5)
+		return v+1;
+	else
+		return v;
+}
+
+function print_reg(r,		a, i, n, z, rxmin, rxmax, rymin, rymax)
+{
+	print ";" CR > out1;
+	print "; " reg_name[r] CR > out1;
+	print ";" CR > out1;
+	print "[region" r "]" CR > out1;
+	n = split(substr(region2zone[r],2), a, " ");
+	print "zone_count=" n CR > out1;
+	if (n > 1 && type[a[1]] == 0) # outdoor zone
+	{
+		print "; outdoor zone" CR > out1;
+		# 
+		# first calculate the region dimensions
+		rxmin = rxmax = rymin = rymax = 0;
+		for (i = 1; i <= n; i++)
+		{
+			z = a[i];
+			if (rxmin == 0 || rxmin > zminx[z])
+				rxmin = zminx[z];
+			if (rymin == 0 || rymin > zminy[z])
+				rymin = zminy[z];
+			if (rxmax == 0 || rxmax < zmaxx[z])
+				rxmax = zmaxx[z];
+			if (rymax == 0 || rymax < zmaxy[z])
+				rymax = zmaxy[z];
+		}
+		rx = rxmax - rxmin;
+		ry = rymax - rymin;
+#print ";rx = " rx CR > out1;
+#print ";ry = " ry CR > out1;
+		R = max(rx,ry)*1.06;
+#print "; R = " R CR > out1;
+		zw = round(65536 * MAPSZ / R)
+		print "zone_width=" zw CR > out1;
+		print "zone_height=" zw CR > out1;
+		print "region_desc=MM" r " " reg_name[r] " " mythregdesc[r] CR > out1;
+		mox = rxmin + (rx - R) / 2;
+		moy = rymin + (ry - R) / 2;
+#print ";mox= " mox CR > out1;
+#print ";moy= " moy CR > out1;
+		for (i = 1; i <= n; i++)
+		{
+			z = a[i];
+			print "; " zone_name[z] CR > out1;
+			print "zone" i-1 "_number=" z CR > out1;
+			offx = round((zminx[z] - mox) * MAPSZ / R);
+			offy = round((zminy[z] - moy) * MAPSZ / R);
+			print "zone" i-1 "_left=" offx CR > out1;
+			print "zone" i-1 "_top=" offy CR > out1;
+			print "zone" i-1 "_desc=MM" z " " zone_name[z] " " mythdesc[z] CR > out1;
+			zone_offsetx[z] = 0;	# outdoor zone offsets are 0 
+			zone_offsety[z] = 0;
+		}
+	}
+	else	# dungeon maps
+	{
+		print "; dungeon zone" CR > out1;
+		for (i = 1; i <= n; i++)
+		{
+			z = a[i];
+			map2dat(z, i-1);
+		}
+	}
+}
+
+function map2dat(z, c,		file, cmd, n, a, x, minx, miny, rx, ry, R, offx, offy)
+{
+	file = "z" z ".map";
+	cmd = "minmax " file;
+	# minx  maxx  miny  maxy  rangex rangey
+	# 17321 28874 20705 32531 11553  11826 
+	cmd | getline x;
+	n = split(x, a, " ");
+	close(cmd);
+	minx = a[1];
+	miny = a[3];
+	rx = a[5];
+	ry = a[6];
+	R = max(rx,ry)*1.06;
+	if (R > 65535 || R < -65535)
+	{
+		rx = ry = R = 65535;
+		offx = 0;
+		offy = 0;
+	}
+	else
+	{
+		offx = round(minx + (rx-R)/2);
+		offy = round(miny + (ry-R)/2);
+	}
+	zone_offsetx[z] = offx;	# save these for areas.dat
+	zone_offsety[z] = offy;
+	Rr = round(R);
+	print "; " zone_name[z] CR > out1;
+	print "zone" c "_number=" z CR > out1;
+	print "zone" c "_left=0" CR > out1;
+	print "zone" c "_top=0" CR > out1;
+	print "zone" c "_offsetx=" offx CR > out1;
+	print "zone" c "_offsety=" offy CR > out1;
+	print "zone" c "_width=" Rr CR > out1;
+	print "zone" c "_height=" Rr CR > out1;
+	print "zone" c "_desc=MM" z " " zone_name[z] " " mythdesc[z] CR > out1;
+}
+' MAPSZ=$1 reginfo.txt nmapinfo.txt OMdesc.txt -
