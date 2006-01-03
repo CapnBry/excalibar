@@ -1,4 +1,4 @@
-cmap		compress map data (opposite of emapp)
+cmap		compress map data (opposite of emap)
 dempak.c	C source, unpacks Mythic's .mpk files
 emap		expand map, converts lines in map files to ALL be 2 point segments, makes ALL the other tools easier
 et.data		example data file for et.tcl
@@ -8,8 +8,9 @@ map2dat		finds "best view" boundaries of .map data
 map2ps		converts .map file to .ps
 mapinfo.txt	obsolete, use nmapinfo.txt under maps
 minmax		reports min/max boundaries of map data
+mk_regions.dat	makes regions.dat and areas.dat for in-game maps (ui\custom\maps)
 mk_regions.ini	for DOL, obsolete
-mk_regions.xml	for DOL, generates regions.xml
+mk_regions.xml	for DOL, generates regions.xml AND reginfo.txt
 mkmapinfo	generates nmapinfo.txt and zones.xml for DOL
 nmapinfo.txt	obsolete, generate you own, or use the one under maps
 proxy2DStream.c	provides the connection between the map editor and any flavor of DStream
