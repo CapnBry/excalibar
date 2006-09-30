@@ -39,6 +39,7 @@ BEGIN {
 	waterL["130"] = 7970;
 	waterL["135"] = 18960;
 	waterL["163"] = 7879;
+	waterL["165"] = 4323;
 	waterL["236"] = 0;
 	waterL["237"] = 0;
 	waterL["238"] = 0;
@@ -47,6 +48,7 @@ BEGIN {
 	waterL["241"] = 0;
 	waterL["242"] = 0;
 	waterL["243"] = 19856;
+	waterL["245"] = 21253;
 
 	#[region001]
 	#name=Albion
