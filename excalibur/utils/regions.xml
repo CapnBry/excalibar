@@ -2,8 +2,8 @@
 <root>
   <Region001>
     <description>Albion</description>
-    <isDivingEnabled>False</isDivingEnabled>
-    <waterLevel>0</waterLevel>
+    <isDivingEnabled>True</isDivingEnabled>
+    <waterLevel>1876</waterLevel>
     <id>1</id>
     <port>10400</port>
     <ip>127.0.0.1</ip>
@@ -474,8 +474,8 @@
   </Region099>
   <Region100>
     <description>Midgard</description>
-    <isDivingEnabled>False</isDivingEnabled>
-    <waterLevel>0</waterLevel>
+    <isDivingEnabled>True</isDivingEnabled>
+    <waterLevel>4332</waterLevel>
     <id>100</id>
     <port>10400</port>
     <ip>127.0.0.1</ip>
@@ -853,8 +853,8 @@
   </Region199>
   <Region200>
     <description>Hibernia</description>
-    <isDivingEnabled>False</isDivingEnabled>
-    <waterLevel>0</waterLevel>
+    <isDivingEnabled>True</isDivingEnabled>
+    <waterLevel>4573</waterLevel>
     <id>200</id>
     <port>10400</port>
     <ip>127.0.0.1</ip>
