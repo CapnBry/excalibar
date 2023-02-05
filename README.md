@@ -1,5 +1,7 @@
 Git repository holding a conversion of the [SourceForge Excalibur](https://sourceforge.net/projects/excalibar/) project. I (CapnBry) originally created this project under the name `teerex`. The CVS there doesn't seem to work any more, even from a command line, so I created this GitHub repository from an old CVS backup. The originaly repository was named `excalibar` and the misspelling was some sort of dumb joke, but I can't remember why that was funny to me in 2002.
 
+Interested parties just looking for DAoC packet formats might be most interested in [DAOCConnection.pas](win32/Common/PacketSniff/DAOCConnection.pas), which contains all the packet parsers for DaocSkilla.
+
 ### Excalibur
 
 Excalibur is the commonly used Linux GUI radar application for viewing real time nearby monter information from sniffing Dark Age of Camelot network data. It is based on Odin's Eye by "Slicer/Hackersquest" and development was continued for several years and new features and updated maps were added.
@@ -17,7 +19,7 @@ Binary DaocSkilla downloads are available:
 
 ### DStreamServer
 
-DaocSkilla originally would capture broadcast network data with PCAP, but as network switches became more common a way was needed to capture the network data from another machine. Computers with multiple monitors really weren't a thing back then, so a normal use case would have been to run the DAOC game on the gaming PC and copy the network traffic over to a laptop to display the radar. DStreamServer eventually just went to injecting itself into the game client to get the packets without requiring the user to install WinPCAP, which could be a dicey operation as Windows was still not super-cool with it. DStreamServer feeds game packets (the "DStream") to connected clients, and multiple DaocSkilla instances can connect, allowing sharing of radar data between friends to see a larger area.
+DaocSkilla originally would capture broadcast network data with PCAP, but as network switches became more common a way was needed to capture the network data from another machine. Computers with multiple monitors really weren't a thing back then, so a normal use case would have been to run the DAoC game on the gaming PC and copy the network traffic over to a laptop to display the radar. DStreamServer eventually just went to injecting itself into the game client to get the packets without requiring the user to install WinPCAP, which could be a dicey operation as Windows was still not super-cool with it. DStreamServer feeds game packets (the "DStream") to connected clients, and multiple DaocSkilla instances can connect, allowing sharing of radar data between friends to see a larger area.
 
 ### win32/DaocInject
 
@@ -25,7 +27,7 @@ Source code for the DLL that was injected into the game process, which fed the p
 
 ### win32/QuickLogon
 
-An application created to allow the user to jump right into the game, skipping the 90 "press OK to continue" popups that Mythic thought seemed reasonable for someone to go through every time the game was launched. Check [the readme](blob/main/win32/QuickLogon/readme_LGDD.txt) for more details.
+An application created to allow the user to jump right into the game, skipping the 90 "press OK to continue" popups that Mythic thought seemed reasonable for someone to go through every time the game was launched. Check [the readme](win32/QuickLogon/readme_LGDD.txt) for more details.
 
 ### win32/CamelotChatRT
 
